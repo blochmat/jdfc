@@ -12,5 +12,7 @@
 
     <artifactId>com.jdfc.report</artifactId>
 
+    <name>JDFC :: Report</name>
+
 
 </project>
