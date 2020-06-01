@@ -95,8 +95,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <properties>
-        <my.filter.value>hello</my.filter.value>
-    </properties>
 </project>
