@@ -13,6 +13,7 @@ import org.jdom2.input.SAXBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -66,7 +67,11 @@ public class ReportMojo extends AbstractMavenReport {
         List list = e.getChildren();
 
         // Build Html File
+        buildHTMLFile(list);
+    }
 
+    private void buildHTMLFile(List list) {
+        System.out.println(Arrays.toString(list.toArray()));
     }
 
     @Override
