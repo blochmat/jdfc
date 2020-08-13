@@ -1,22 +1,23 @@
 package com.jdfc.maven;
 
+import com.jdfc.core.analysis.cfg.DefUsePair;
+import com.jdfc.core.analysis.cfg.ProgramVariable;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reporting.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.apache.maven.reporting.AbstractMavenReport;
+import org.apache.maven.reporting.MavenReportException;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Locale;
+import java.util.*;
 
 
 @Mojo(name = "report", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
@@ -54,35 +55,64 @@ public class ReportMojo extends AbstractMavenReport {
 
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
-
-        File xmlFile = new File(System.getProperty("user.dir")+"/target/output.xml");
+        File xmlFile = new File(System.getProperty("user.dir") + "/target/output.xml");
         try {
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlFile);
-            assert doc != null;
-            Element root = doc.getDocumentElement();
-
-            NodeList nodeList = root.getChildNodes();
-            System.out.println("-----------------------------");
-            for(int i = 1; i < nodeList.getLength(); i++){
-                Node node = nodeList.item(i);
-                String.format("%s, %s, %s, %s",
-                        node.getLocalName(), node.getNodeType(), node.getNamespaceURI());
-
-                NodeList methodList = nodeList.item(i).getChildNodes();
-                System.out.println("--------------A---------------");
-                for(int j = 1; j < methodList.getLength(); j++) {
-                    System.out.println(methodList.item(j).getNodeName());
-
-                }
-                System.out.println("--------------E---------------");
-            }
-            System.out.println("-----------------------------");
+            buildHTMLFile(parseXMLFile(xmlFile));
         } catch (SAXException | IOException | ParserConfigurationException e) {
             e.printStackTrace();
         }
+
     }
 
-    private void buildHTMLFile(NodeList list) {
+    private List<DUPairInformation> parseXMLFile(File file) throws ParserConfigurationException, IOException, SAXException {
+        List<DUPairInformation> duPairList = new ArrayList<>();
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
+
+        if (doc == null) {
+            throw new FileNotFoundException("Could not find XML file to parse.");
+        }
+
+        Element root = doc.getDocumentElement();
+        NodeList nodeList = root.getChildNodes();
+
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            Node method = nodeList.item(i);
+            NamedNodeMap methodAttr = method.getAttributes();
+
+            if (methodAttr == null) {
+                continue;
+            }
+
+            Node methodName = methodAttr.getNamedItem("name");
+            NodeList pairList = method.getChildNodes();
+
+            for (int j = 0; j < pairList.getLength(); j++) {
+                Node pair = pairList.item(j);
+                NamedNodeMap pairAttr = pair.getAttributes();
+
+                if (pairAttr == null) {
+                    continue;
+                }
+
+                Node pairName = pairAttr.getNamedItem("name");
+                Node pairType = pairAttr.getNamedItem("type");
+                Node pairDefIndex = pairAttr.getNamedItem("defIndex");
+                Node pairUseIndex = pairAttr.getNamedItem("useIndex");
+                Node pairCovered = pairAttr.getNamedItem("covered");
+                DUPairInformation duPairInformation = new DUPairInformation(
+                        methodName.getNodeValue(),
+                        pairName.getNodeValue(),
+                        Integer.parseInt(pairDefIndex.getNodeValue()),
+                        Integer.parseInt(pairUseIndex.getNodeValue()),
+                        pairType.getNodeValue(),
+                        Boolean.parseBoolean(pairCovered.getNodeValue()));
+                duPairList.add(duPairInformation);
+            }
+        }
+        return duPairList;
+    }
+
+    private void buildHTMLFile(List<DUPairInformation> list) {
         System.out.println(list.toString());
     }
 
