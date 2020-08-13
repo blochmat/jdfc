@@ -2,17 +2,17 @@ package com.jdfc.core.analysis.cfg;
 
 
 import com.google.common.base.Preconditions;
-import com.jdfc.commons.internal.PrettyPrintMap;
 import com.jdfc.core.analysis.CFGStorage;
-import org.jdom2.Attribute;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 /** A implementation of a {@link CFG}. */
@@ -76,7 +76,11 @@ public class CFGImpl implements CFG {
         ProgramVariable programVariable = prepareNewEntry(methodNameDesc, varIndex, instructionIndex);
         Map<String, Set<ProgramVariable>> coveredList = CFGStorage.INSTANCE.getDefUseCovered();
         coveredList.get(methodNameDesc).add(programVariable);
-        dumpToFile();
+        try {
+            dumpToFile();
+        } catch (ParserConfigurationException | TransformerException e) {
+            e.printStackTrace();
+        }
     }
 
     static ProgramVariable prepareNewEntry(String methodName, int varIndex, int instructionIndex) {
@@ -91,67 +95,49 @@ public class CFGImpl implements CFG {
         return o.orElse(null);
     }
 
-    static void dumpToFile() {
+    static void dumpToFile() throws ParserConfigurationException, TransformerException {
         String outPath = String.format("%s/target/output.xml", System.getProperty("user.dir"));
 
         TreeMap<String, List<DefUsePair>> defUsePairs = CFGStorage.INSTANCE.getDefUsePairs();
         Map<String, Set<ProgramVariable>> defUseCovered = CFGStorage.INSTANCE.getDefUseCovered();
 
-        Element root = new Element("root");
-        Document doc = new Document(root);
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 
-        for (Map.Entry<String, List<DefUsePair>> methodEntry : defUsePairs.entrySet()) {
-            if (methodEntry.getValue().size() == 0) {
+        Element root = doc.createElement("root");
+        doc.appendChild(root);
+
+        for(Map.Entry<String, List<DefUsePair>> methodEntry: defUsePairs.entrySet()){
+            if (methodEntry.getValue().size()==0){
                 continue;
             }
-            Element method = new Element("method");
-            Attribute methodName = new Attribute("name", methodEntry.getKey());
-            Attribute totalPairs = new Attribute("total", Integer.toString(methodEntry.getValue().size()));
-            method.setAttribute(methodName);
-            method.setAttribute(totalPairs);
+            Element method = doc.createElement("method");
+            root.appendChild(method);
+            Attr methodName = doc.createAttribute("name");
+            methodName.setValue(methodEntry.getKey());
+            method.setAttributeNode(methodName);
+            method.setAttribute("total", Integer.toString((methodEntry.getValue().size())));
 
-            Element defUsePairList = new Element("defUsePairs");
-
-            for (DefUsePair duPair : methodEntry.getValue()) {
+            for(DefUsePair duPair : methodEntry.getValue()){
                 ProgramVariable variableDef = duPair.getDefinition();
                 ProgramVariable variableUse = duPair.getUsage();
 
-                Element pair = new Element("pair");
+                Element pair = doc.createElement("pair");
+                method.appendChild(pair);
                 boolean pairCovered = defUseCovered.get(methodEntry.getKey()).contains(duPair.getDefinition())
                         && defUseCovered.get(methodEntry.getKey()).contains(duPair.getUsage());
-                Attribute covered = new Attribute("covered", Boolean.toString(pairCovered));
-                pair.setAttribute(covered);
-
-                Element definition = new Element("definition");
-                addVariableAttributesToElement(variableDef, definition);
-                Element use = new Element("use");
-                addVariableAttributesToElement(variableUse, use);
-
-                pair.addContent(definition);
-                pair.addContent(use);
-
-                defUsePairList.addContent(pair);
+                pair.setAttribute("covered", Boolean.toString(pairCovered));
+                pair.setAttribute("name", variableDef.getName());
+                pair.setAttribute("type", variableDef.getType());
+                pair.setAttribute("defIndex", Integer.toString(variableDef.getInstructionIndex()));
+                pair.setAttribute("useIndex", Integer.toString(variableUse.getInstructionIndex()));
             }
-            method.addContent(defUsePairList);
-            root.addContent(method);
         }
 
-        XMLOutputter xmlOutputter = new XMLOutputter();
-        xmlOutputter.setFormat(Format.getPrettyFormat());
-        try {
-            xmlOutputter.output(doc, new FileWriter(new File(outPath)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        DOMSource domSource = new DOMSource(doc);
+        StreamResult streamResult = new StreamResult(new File(outPath));
+        transformer.transform(domSource, streamResult);
     }
-
-    private static void addVariableAttributesToElement(ProgramVariable var, Element element) {
-        Attribute defName = new Attribute("name", var.getName());
-        Attribute defType = new Attribute("type", var.getType());
-        Attribute defIndex = new Attribute("insnIndex", Integer.toString(var.getInstructionIndex()));
-        element.setAttribute(defName);
-        element.setAttribute(defType);
-        element.setAttribute(defIndex);
-    }
-
 }

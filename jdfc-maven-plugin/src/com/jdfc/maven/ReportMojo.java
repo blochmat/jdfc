@@ -6,15 +6,16 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reporting.*;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 
 
@@ -53,25 +54,36 @@ public class ReportMojo extends AbstractMavenReport {
 
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
-        Document document = null;
+
+        File xmlFile = new File(System.getProperty("user.dir")+"/target/output.xml");
         try {
-            SAXBuilder builder = new SAXBuilder();
-            File xmlFile = new File(System.getProperty("user.dir") + "/target/output.xml");
-            document = builder.build(xmlFile);
-        } catch (JDOMException | IOException e) {
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlFile);
+            assert doc != null;
+            Element root = doc.getDocumentElement();
+
+            NodeList nodeList = root.getChildNodes();
+            System.out.println("-----------------------------");
+            for(int i = 1; i < nodeList.getLength(); i++){
+                Node node = nodeList.item(i);
+                String.format("%s, %s, %s, %s",
+                        node.getLocalName(), node.getNodeType(), node.getNamespaceURI());
+
+                NodeList methodList = nodeList.item(i).getChildNodes();
+                System.out.println("--------------A---------------");
+                for(int j = 1; j < methodList.getLength(); j++) {
+                    System.out.println(methodList.item(j).getNodeName());
+
+                }
+                System.out.println("--------------E---------------");
+            }
+            System.out.println("-----------------------------");
+        } catch (SAXException | IOException | ParserConfigurationException e) {
             e.printStackTrace();
         }
-
-        assert document != null;
-        Element e = document.getRootElement();
-        List list = e.getChildren();
-
-        // Build Html File
-        buildHTMLFile(list);
     }
 
-    private void buildHTMLFile(List list) {
-        System.out.println(Arrays.toString(list.toArray()));
+    private void buildHTMLFile(NodeList list) {
+        System.out.println(list.toString());
     }
 
     @Override

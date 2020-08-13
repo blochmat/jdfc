@@ -167,6 +167,16 @@
 
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>com.github.genthaler</groupId>
+                    <artifactId>beanshell-maven-plugin</artifactId>
+                    <version>1.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>buildnumber-maven-plugin</artifactId>
+                    <version>1.2</version>
+                </plugin>
                 <!-- Apache plugins -->
 <!--                <plugin>-->
 <!--                    <groupId>org.apache.maven.plugins</groupId>-->
@@ -301,11 +311,11 @@
 <!--                    <artifactId>animal-sniffer-maven-plugin</artifactId>-->
 <!--                    <version>1.6</version>-->
 <!--                </plugin>-->
-<!--                <plugin>-->
-<!--                    <groupId>org.codehaus.mojo</groupId>-->
-<!--                    <artifactId>build-helper-maven-plugin</artifactId>-->
-<!--                    <version>1.5</version>-->
-<!--                </plugin>-->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.5</version>
+                </plugin>
 <!--                <plugin>-->
 <!--                    <groupId>org.codehaus.mojo</groupId>-->
 <!--                    <artifactId>xml-maven-plugin</artifactId>-->
@@ -443,76 +453,61 @@
 <!--                </executions>-->
 <!--            </plugin>-->
 
-<!--            <plugin>-->
-<!--                <groupId>org.codehaus.mojo</groupId>-->
-<!--                <artifactId>build-helper-maven-plugin</artifactId>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>parse-version</id>-->
-<!--                        <phase>validate</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>parse-version</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>parse-version</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-<!--            <plugin>-->
-<!--                <groupId>org.codehaus.mojo</groupId>-->
-<!--                <artifactId>buildnumber-maven-plugin</artifactId>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>validate</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>create</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <doCheck>false</doCheck>-->
-<!--                    <doUpdate>false</doUpdate>-->
-<!--                    <getRevisionOnlyOnce>true</getRevisionOnlyOnce>-->
-<!--                    <revisionOnScmFailure>0000000</revisionOnScmFailure>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                    <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+                    <revisionOnScmFailure>0000000</revisionOnScmFailure>
+                </configuration>
+            </plugin>
 
-<!--            <plugin>-->
-<!--                <groupId>com.github.genthaler</groupId>-->
-<!--                <artifactId>beanshell-maven-plugin</artifactId>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>parse-version</id>-->
-<!--                        <phase>validate</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>run</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <quiet>true</quiet>-->
-<!--                            <script><![CDATA[-->
-<!--                                major = project.getProperties().get("parsedVersion.majorVersion");-->
-<!--                                minor = project.getProperties().get("parsedVersion.minorVersion");-->
-<!--                                incremental = project.getProperties().get("parsedVersion.incrementalVersion");-->
-<!--                                unqualifiedVersion = major + "." + minor + "." + incremental;-->
-<!--                                project.getProperties().setProperty("unqualifiedVersion", unqualifiedVersion);-->
-
-<!--                                qualifier = "${maven.build.timestamp}";-->
-<!--                                project.getProperties().setProperty("buildQualifier", qualifier);-->
-
-<!--                                qualifiedVersion = unqualifiedVersion + "." + qualifier;-->
-<!--                                project.getProperties().setProperty("qualified.bundle.version", qualifiedVersion);-->
-
-<!--                                buildDate = qualifier.substring(0, 4) + "/" + qualifier.substring(4, 6) + "/" + qualifier.substring(6, 8);-->
-<!--                                project.getProperties().setProperty("build.date", buildDate);-->
-
-<!--                                buildNumber = project.getProperties().get("buildNumber");-->
-<!--                                pkgName = buildNumber.substring(buildNumber.length() - 7, buildNumber.length());-->
-<!--                                project.getProperties().setProperty("jdfc.runtime.package.name", "com.jdfc.agent.rt.internal_" + pkgName);-->
-<!--                              ]]>-->
-<!--                            </script>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>com.github.genthaler</groupId>
+                <artifactId>beanshell-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>parse-version</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <quiet>true</quiet>
+                            <script><![CDATA[
+                                buildNumber = project.getProperties().get("buildNumber");
+                                pkgName = buildNumber.substring(buildNumber.length() - 7, buildNumber.length());
+                                project.getProperties().setProperty("jdfc.runtime.package.name", "com.jdfc.agent.rt.internal_" + pkgName);
+                              ]]>
+                            </script>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
