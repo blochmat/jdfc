@@ -2,16 +2,11 @@ package com.jdfc.core.analysis.internal.instr;
 
 import org.objectweb.asm.*;
 
-public class ClassInstrument extends ClassVisitor implements IIdGenerator {
+public class ClassInstrument extends ClassVisitor {
 
 
     public ClassInstrument(ClassVisitor cv) {
         super(Opcodes.ASM4, cv);
-    }
-
-    @Override
-    public int nextId() {
-        return 0;
     }
 
     @Override

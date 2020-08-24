@@ -1,7 +1,5 @@
 package com.jdfc.maven;
 
-import com.jdfc.core.analysis.cfg.DefUsePair;
-import com.jdfc.core.analysis.cfg.ProgramVariable;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -14,9 +12,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 
@@ -57,15 +53,16 @@ public class ReportMojo extends AbstractMavenReport {
     protected void executeReport(Locale locale) throws MavenReportException {
         File xmlFile = new File(System.getProperty("user.dir") + "/target/output.xml");
         try {
-            buildHTMLFile(parseXMLFile(xmlFile));
+            createReport(loadXMLFile(xmlFile));
         } catch (SAXException | IOException | ParserConfigurationException e) {
             e.printStackTrace();
         }
 
     }
 
-    private List<DUPairInformation> parseXMLFile(File file) throws ParserConfigurationException, IOException, SAXException {
-        List<DUPairInformation> duPairList = new ArrayList<>();
+    // return executiondatatree with all execution data from xml file
+    private ExecutionDataTree loadXMLFile(File file) throws ParserConfigurationException, IOException, SAXException {
+        ExecutionDataTree dataTree = new ExecutionDataTree();
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
 
         if (doc == null) {
@@ -76,44 +73,93 @@ public class ReportMojo extends AbstractMavenReport {
         NodeList nodeList = root.getChildNodes();
 
         for (int i = 0; i < nodeList.getLength(); i++) {
-            Node method = nodeList.item(i);
-            NamedNodeMap methodAttr = method.getAttributes();
-
-            if (methodAttr == null) {
-                continue;
-            }
-
-            Node methodName = methodAttr.getNamedItem("name");
-            NodeList pairList = method.getChildNodes();
-
-            for (int j = 0; j < pairList.getLength(); j++) {
-                Node pair = pairList.item(j);
-                NamedNodeMap pairAttr = pair.getAttributes();
-
-                if (pairAttr == null) {
-                    continue;
-                }
-
-                Node pairName = pairAttr.getNamedItem("name");
-                Node pairType = pairAttr.getNamedItem("type");
-                Node pairDefIndex = pairAttr.getNamedItem("defIndex");
-                Node pairUseIndex = pairAttr.getNamedItem("useIndex");
-                Node pairCovered = pairAttr.getNamedItem("covered");
-                DUPairInformation duPairInformation = new DUPairInformation(
-                        methodName.getNodeValue(),
-                        pairName.getNodeValue(),
-                        Integer.parseInt(pairDefIndex.getNodeValue()),
-                        Integer.parseInt(pairUseIndex.getNodeValue()),
-                        pairType.getNodeValue(),
-                        Boolean.parseBoolean(pairCovered.getNodeValue()));
-                duPairList.add(duPairInformation);
+            Node node = nodeList.item(i);
+            NamedNodeMap attr = node.getAttributes();
+            if (attr != null) {
+                dataTree.getRoot().getChildren().put(node.getNodeName(), examineElement(node, attr));
             }
         }
-        return duPairList;
+        return dataTree;
     }
 
-    private void buildHTMLFile(List<DUPairInformation> list) {
-        System.out.println(list.toString());
+    // recursive function to create nodes for executionDataTree
+    private ExecutionDataNode examineElement(Node node, NamedNodeMap attr) {
+
+        NodeList nodeChildNodes = node.getChildNodes();
+
+        ExecutionDataNodeType type = determineType(node.getAttributes().getNamedItem("tagType").getNodeValue());
+
+        // is package, class, method
+        if (type != null){
+            PCMNode pcmNode = new PCMNode(type);
+            for (int i = 0; i < nodeChildNodes.getLength(); i++) {
+                Node childNode = nodeChildNodes.item(i);
+                NamedNodeMap cAttr = childNode.getAttributes();
+                if (cAttr != null) {
+                    pcmNode.getChildren().put(childNode.getNodeName(), examineElement(childNode, cAttr));
+                }
+            }
+            return pcmNode;
+        } else {
+            VariableNode variableNode =  new VariableNode(node.getNodeValue(),
+                    attr.getNamedItem("type").getNodeValue());
+            for(int i = 0; i < nodeChildNodes.getLength(); i++) {
+                Node childNode = nodeChildNodes.item(i);
+                NamedNodeMap cAttr = childNode.getAttributes();
+                if (cAttr != null) {
+                    CoverageInformation info =
+                            new CoverageInformation(Integer.parseInt(cAttr.getNamedItem("defIndex").getNodeValue()),
+                                    Integer.parseInt(cAttr.getNamedItem("useIndex").getNodeValue()),
+                                    Boolean.parseBoolean(cAttr.getNamedItem("covered").getNodeValue()));
+                    variableNode.getCoverageInformation().add(info);
+                }
+            }
+            return variableNode;
+        }
+    }
+
+    private ExecutionDataNodeType determineType(String nodeName) {
+        switch (nodeName) {
+            case "package":
+                return ExecutionDataNodeType.PACKAGE;
+            case "class":
+                return ExecutionDataNodeType.CLASS;
+            case "method":
+                return ExecutionDataNodeType.METHOD;
+            default:
+                return null;
+        }
+    }
+
+    private void createReport(ExecutionDataTree tree) {
+        try {
+            Writer writer = new FileWriter(new File(System.getProperty("user.dir") + "/target/htmlFile.html"));
+            writeHTMLRecursive(writer, tree);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeHTMLRecursive(Writer pWriter, ExecutionDataTree pTree) throws IOException {
+        pWriter.write(String.format("<!DOCTYPE html><html><head>%s</head><body>%s</body></html>", writeHeader(pWriter, pTree.getRoot()),
+                writeBodyRecursive(pWriter, pTree.getRoot())));
+    }
+
+    // Content and coverage information
+    private String writeBodyRecursive(Writer pWriter, ExecutionDataNode pNode) {
+        if (pNode instanceof PCMNode) {
+            // return table entry with columns (depending on type of node)
+        } else {
+            // return class view with marked entries
+        }
+        return "This is the body";
+    }
+
+
+    // Style and header title
+    private String writeHeader(Writer pWriter, PCMNode root) {
+        return "This is a Header";
     }
 
     @Override

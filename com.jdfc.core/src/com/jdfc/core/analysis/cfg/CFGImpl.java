@@ -2,10 +2,8 @@ package com.jdfc.core.analysis.cfg;
 
 
 import com.google.common.base.Preconditions;
-import com.jdfc.core.analysis.CFGStorage;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import com.jdfc.core.analysis.CoverageDataStore;
+import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -71,10 +69,12 @@ public class CFGImpl implements CFG {
     }
 
     public static void addCoveredEntry(
-            String methodName, String methodDesc, int varIndex, int instructionIndex) {
+            String className, String methodName, String methodDesc, int varIndex, int instructionIndex) {
+        // TODO: Extend functionality of storage to store class information
+        System.out.println(className);
         String methodNameDesc = methodName.concat(": " + methodDesc);
         ProgramVariable programVariable = prepareNewEntry(methodNameDesc, varIndex, instructionIndex);
-        Map<String, Set<ProgramVariable>> coveredList = CFGStorage.INSTANCE.getDefUseCovered();
+        Map<String, Set<ProgramVariable>> coveredList = CoverageDataStore.INSTANCE.getDefUseCovered();
         coveredList.get(methodNameDesc).add(programVariable);
         try {
             dumpToFile();
@@ -84,7 +84,7 @@ public class CFGImpl implements CFG {
     }
 
     static ProgramVariable prepareNewEntry(String methodName, int varIndex, int instructionIndex) {
-        CFG cfg = CFGStorage.INSTANCE.getMethodCFGs().get(methodName);
+        CFG cfg = CoverageDataStore.INSTANCE.getMethodCFGs().get(methodName);
         LocalVariableTable table = cfg.getLocalVariableTable();
         LocalVariable variable = findLocalVariable(table, varIndex);
         return ProgramVariable.create(variable.getName(), variable.getDescriptor(), instructionIndex);
@@ -98,8 +98,8 @@ public class CFGImpl implements CFG {
     static void dumpToFile() throws ParserConfigurationException, TransformerException {
         String outPath = String.format("%s/target/output.xml", System.getProperty("user.dir"));
 
-        TreeMap<String, List<DefUsePair>> defUsePairs = CFGStorage.INSTANCE.getDefUsePairs();
-        Map<String, Set<ProgramVariable>> defUseCovered = CFGStorage.INSTANCE.getDefUseCovered();
+        TreeMap<String, List<DefUsePair>> defUsePairs = CoverageDataStore.INSTANCE.getDefUsePairs();
+        Map<String, Set<ProgramVariable>> defUseCovered = CoverageDataStore.INSTANCE.getDefUseCovered();
 
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 
@@ -110,29 +110,47 @@ public class CFGImpl implements CFG {
             if (methodEntry.getValue().size()==0){
                 continue;
             }
-            Element method = doc.createElement("method");
+            String methodName = methodEntry.getKey().replaceAll(":\\s","");
+            methodName = methodName.replaceAll("\\(", "-");
+            methodName = methodName.replaceAll("\\)", "-");
+            Element method = doc.createElement(methodName);
+            method.setAttribute("tagType", "method");
             root.appendChild(method);
-            Attr methodName = doc.createAttribute("name");
-            methodName.setValue(methodEntry.getKey());
-            method.setAttributeNode(methodName);
-            method.setAttribute("total", Integer.toString((methodEntry.getValue().size())));
 
             for(DefUsePair duPair : methodEntry.getValue()){
+                NodeList methodChildren = method.getChildNodes();
                 ProgramVariable variableDef = duPair.getDefinition();
                 ProgramVariable variableUse = duPair.getUsage();
+                Element variable = null;
 
-                Element pair = doc.createElement("pair");
-                method.appendChild(pair);
+                // Search for appropriate child node
+                if (methodChildren.getLength() != 0){
+                    for (int i = 0; i < methodChildren.getLength(); i++) {
+                        if (variableDef.getName().equals(methodChildren.item(i).getNodeName())){
+                            variable = (Element) methodChildren.item(i);
+                            break;
+                        }
+                    }
+                }
+
+                // if none was found
+                if (variable == null) {
+                    variable = doc.createElement(variableDef.getName());
+                    method.appendChild(variable);
+                    variable.setAttribute("type", variableDef.getType());
+                    variable.setAttribute("tagType", "variable");
+                }
+
+                // append appearance of variable
+                Element appearance = doc.createElement("appearance");
+                variable.appendChild(appearance);
                 boolean pairCovered = defUseCovered.get(methodEntry.getKey()).contains(duPair.getDefinition())
                         && defUseCovered.get(methodEntry.getKey()).contains(duPair.getUsage());
-                pair.setAttribute("covered", Boolean.toString(pairCovered));
-                pair.setAttribute("name", variableDef.getName());
-                pair.setAttribute("type", variableDef.getType());
-                pair.setAttribute("defIndex", Integer.toString(variableDef.getInstructionIndex()));
-                pair.setAttribute("useIndex", Integer.toString(variableUse.getInstructionIndex()));
+                appearance.setAttribute("covered", Boolean.toString(pairCovered));
+                appearance.setAttribute("defIndex", Integer.toString(variableDef.getInstructionIndex()));
+                appearance.setAttribute("useIndex", Integer.toString(variableUse.getInstructionIndex()));
             }
         }
-
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");

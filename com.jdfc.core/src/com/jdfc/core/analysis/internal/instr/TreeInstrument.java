@@ -18,11 +18,11 @@ public class TreeInstrument {
      */
     public void instrument() {
         for (final MethodNode methodNode : classNode.methods) {
-            instrumentMethod(methodNode);
+            instrumentMethod(classNode.name, methodNode);
         }
     }
 
-    private void instrumentMethod(final MethodNode pMethodNode) {
+    private void instrumentMethod(final String className, final MethodNode pMethodNode) {
         InsnList buffer = cloneInsnList(pMethodNode.instructions);
         for (AbstractInsnNode instruction : buffer.toArray()) {
             switch (instruction.getOpcode()) {
@@ -35,11 +35,13 @@ public class TreeInstrument {
                 case Opcodes.FLOAD:
                 case Opcodes.LLOAD:
                     VarInsnNode node = (VarInsnNode) instruction;
+                    LdcInsnNode loadClassName = new LdcInsnNode(className);
                     LdcInsnNode loadName = new LdcInsnNode(pMethodNode.name);
                     LdcInsnNode loadDesc = new LdcInsnNode(pMethodNode.desc);
                     LdcInsnNode loadVarIndex = new LdcInsnNode(node.var);
                     LdcInsnNode loadInstructionIndex = new LdcInsnNode(buffer.indexOf(instruction));
-                    pMethodNode.instructions.insert(instruction, loadName);
+                    pMethodNode.instructions.insert(instruction, loadClassName);
+                    pMethodNode.instructions.insert(loadClassName, loadName);
                     pMethodNode.instructions.insert(loadName, loadDesc);
                     pMethodNode.instructions.insert(loadDesc, loadVarIndex);
                     pMethodNode.instructions.insert(loadVarIndex, loadInstructionIndex);
@@ -49,7 +51,7 @@ public class TreeInstrument {
                                     Opcodes.INVOKESTATIC,
                                     Type.getInternalName(CFGImpl.class),
                                     "addCoveredEntry",
-                                    "(Ljava/lang/String;Ljava/lang/String;II)V",
+                                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V",
                                     false));
             }
         }

@@ -1,16 +1,28 @@
 package com.jdfc.core.analysis;
 
+import com.jdfc.commons.internal.Node;
 import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.core.analysis.cfg.CFGNode;
 import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
+import com.jdfc.core.analysis.internal.data.PackageData;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-/** A storage singleton for method {@link CFG}s. */
-public enum CFGStorage {
+/** A storage singleton for package, class and finally method {@link CFG}s. */
+public enum CoverageDataStore {
     INSTANCE;
+
+    private Node<PackageData> root;
+
+    public Node<PackageData> getRoot() {
+        return root;
+    }
+
+    public void setRoot(Node<PackageData> root) {
+        this.root = root;
+    }
 
     private Map<String, CFG> methodCFGs;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
@@ -40,14 +52,6 @@ public enum CFGStorage {
 
     public Map<String, Set<ProgramVariable>> getDefUseCovered() {
         return defUseCovered;
-    }
-
-    public void setDefUsePairs(TreeMap<String, List<DefUsePair>> defUsePairs) {
-        this.defUsePairs = defUsePairs;
-    }
-
-    public void setDefUseCovered(Map<String, Set<ProgramVariable>> defUseCovered) {
-        this.defUseCovered = defUseCovered;
     }
 
     /** Calculates all possible Def-Use-Pairs. */
