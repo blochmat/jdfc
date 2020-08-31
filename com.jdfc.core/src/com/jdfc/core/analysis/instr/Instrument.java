@@ -22,7 +22,6 @@ public class Instrument {
         // Create CFGs for methods in class
         final ClassNode classNode = new ClassNode();
         final Map<String, CFG> methodCFGs = CFGCreator.createCFGsForClass(classReader, classNode);
-
         // Create tree entry, insert method cfgs in correct class node
         CoverageDataStore.INSTANCE.setMethodCFGs(methodCFGs);
         CoverageDataStore.INSTANCE.calculateDefUsePairs();

@@ -1,4 +1,4 @@
-package com.jdfc.commons.internal;
+package com.jdfc.commons.utils;
 
 import org.jdom2.Attribute;
 import org.jdom2.Document;

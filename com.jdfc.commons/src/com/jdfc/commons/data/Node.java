@@ -1,11 +1,9 @@
-package com.jdfc.commons.internal;
+package com.jdfc.commons.data;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class Node<T> {
+public class Node<T extends NodeData> {
 
     // Map of children with name, in case of leaf children.size == 0
     private Map<String, Node<T>> children = new HashMap<>();
@@ -61,5 +59,17 @@ public class Node<T> {
 
     public void removeParent() {
         this.parent = null;
+    }
+
+    public boolean hasChild(String path){
+        if (path == null) {
+            return false;
+        }
+        String[] pathArray = path.split("/");
+        if (pathArray.length > 1) {
+            return hasChild(String.join("/", pathArray)) && children.containsKey(pathArray[0]);
+        } else {
+            return children.containsKey(pathArray[0]);
+        }
     }
 }

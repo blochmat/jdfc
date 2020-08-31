@@ -71,7 +71,6 @@ public class CFGImpl implements CFG {
     public static void addCoveredEntry(
             String className, String methodName, String methodDesc, int varIndex, int instructionIndex) {
         // TODO: Extend functionality of storage to store class information
-        System.out.println(className);
         String methodNameDesc = methodName.concat(": " + methodDesc);
         ProgramVariable programVariable = prepareNewEntry(methodNameDesc, varIndex, instructionIndex);
         Map<String, Set<ProgramVariable>> coveredList = CoverageDataStore.INSTANCE.getDefUseCovered();

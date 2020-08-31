@@ -1,39 +1,19 @@
-package com.jdfc.core.analysis;
+package com.jdfc.core.analysis.internal.data;
 
-import com.jdfc.commons.data.Node;
+import com.jdfc.commons.data.NodeData;
 import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.core.analysis.cfg.CFGNode;
 import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
-import com.jdfc.commons.data.NodeData;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-/** A storage singleton for package, class and finally method {@link CFG}s. */
-public enum CoverageDataStore {
-    INSTANCE;
+public class ClassNodeData extends NodeData {
 
-    private Node<NodeData> root;
-    private List<String> classList;
     private Map<String, CFG> methodCFGs;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
-
-    public Node<NodeData> getRoot() {
-        return root;
-    }
-    public void setRoot(Node<NodeData> root) {
-        this.root = root;
-    }
-
-    public List<String> getClassList(){
-        return classList;
-    }
-
-    public void setClassList(List<String> pClassList){
-        this.classList = pClassList;
-    }
 
     /**
      * Sets the method {@link CFG}s.

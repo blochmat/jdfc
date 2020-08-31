@@ -15,10 +15,7 @@ import java.util.Properties;
 import static java.lang.String.format;
 
 @Mojo(name = "prepare-agent", defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
-public class AgentMojo extends AbstractJdfcMojo{
-
-    @Parameter(property = "jdfc.destFile", defaultValue = "${project.build.directory}/jdfc.exec")
-    private File destFile;
+public class AgentMojo extends AbstractJdfcMojo {
 
     /**
      * Map of plugin artifacts.
@@ -33,22 +30,24 @@ public class AgentMojo extends AbstractJdfcMojo{
 
     @Override
     protected void executeMojo() throws MojoExecutionException, MojoFailureException {
-        String name = "argLine";
+        String argLine = "argLine";
         Properties projectProperties = getProject().getProperties();
-        String oldValue = projectProperties.getProperty(name);
+        String oldValue = projectProperties.getProperty(argLine);
         // create command line arguments for agent
-        final String plainAgent = format("-javaagent:%s", getAgentJarFile());
-        String newValue = format("%s", plainAgent);
-        projectProperties.setProperty(name, newValue);
+        final String baseDir = getProject().getBuild().getOutputDirectory();
+        final String agent = format("-javaagent:%s", getAgentJarFile());
+        String newValue = "";
+        if (oldValue == null) {
+            newValue = format("%s=%s", agent, baseDir);
+        } else {
+            newValue = format("%s%s=%s", oldValue, agent, baseDir);
+        }
+        projectProperties.setProperty(argLine, newValue);
     }
 
     File getAgentJarFile() {
         final Artifact jdfcAgentArtifact = pluginArtifactMap
                 .get(AGENT_ARTIFACT_NAME);
         return jdfcAgentArtifact.getFile();
-    }
-
-    public File getDestFile(){
-        return destFile;
     }
 }
