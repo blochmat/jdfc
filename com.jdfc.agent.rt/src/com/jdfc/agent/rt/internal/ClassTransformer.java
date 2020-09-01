@@ -19,11 +19,9 @@ public class ClassTransformer implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-
-        if(!CoverageDataStore.INSTANCE.getClassList().contains(className)){
+        if (!CoverageDataStore.INSTANCE.getClassList().contains(className)) {
             return classfileBuffer;
         }
-
         final ClassReader cr = new ClassReader(classfileBuffer);
         return instrument.instrument(cr);
     }

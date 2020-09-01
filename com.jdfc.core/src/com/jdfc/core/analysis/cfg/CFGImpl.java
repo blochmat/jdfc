@@ -3,6 +3,7 @@ package com.jdfc.core.analysis.cfg;
 
 import com.google.common.base.Preconditions;
 import com.jdfc.core.analysis.CoverageDataStore;
+import com.jdfc.core.analysis.internal.data.ClassNodeData;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -70,20 +71,28 @@ public class CFGImpl implements CFG {
 
     public static void addCoveredEntry(
             String className, String methodName, String methodDesc, int varIndex, int instructionIndex) {
-        // TODO: Extend functionality of storage to store class information
         String methodNameDesc = methodName.concat(": " + methodDesc);
-        ProgramVariable programVariable = prepareNewEntry(methodNameDesc, varIndex, instructionIndex);
-        Map<String, Set<ProgramVariable>> coveredList = CoverageDataStore.INSTANCE.getDefUseCovered();
+        ProgramVariable programVariable = prepareNewEntry(className, methodNameDesc, varIndex, instructionIndex);
+
+        // TODO
+        ClassNodeData classNodeData = CoverageDataStore.INSTANCE.findClassDataNode(className);
+        Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
         coveredList.get(methodNameDesc).add(programVariable);
         try {
-            dumpToFile();
+            dumpToFile(className);
         } catch (ParserConfigurationException | TransformerException e) {
             e.printStackTrace();
         }
     }
 
-    static ProgramVariable prepareNewEntry(String methodName, int varIndex, int instructionIndex) {
-        CFG cfg = CoverageDataStore.INSTANCE.getMethodCFGs().get(methodName);
+    static ProgramVariable prepareNewEntry(String className, String methodName, int varIndex, int instructionIndex) {
+
+        // TODO
+        ClassNodeData classNodeData = CoverageDataStore.INSTANCE.findClassDataNode(className);
+        assert classNodeData != null;
+        CFG cfg = classNodeData.getMethodCFGs().get(methodName);
+
+
         LocalVariableTable table = cfg.getLocalVariableTable();
         LocalVariable variable = findLocalVariable(table, varIndex);
         return ProgramVariable.create(variable.getName(), variable.getDescriptor(), instructionIndex);
@@ -94,11 +103,17 @@ public class CFGImpl implements CFG {
         return o.orElse(null);
     }
 
-    static void dumpToFile() throws ParserConfigurationException, TransformerException {
-        String outPath = String.format("%s/target/output.xml", System.getProperty("user.dir"));
+    static void dumpToFile(String pClassName) throws ParserConfigurationException, TransformerException {
+        String outPath = String.format("%s/target/jdfc", System.getProperty("user.dir"));
+        File jdfcDir = new File(outPath);
+        if(!jdfcDir.exists()){
+            jdfcDir.mkdirs();
+        }
 
-        TreeMap<String, List<DefUsePair>> defUsePairs = CoverageDataStore.INSTANCE.getDefUsePairs();
-        Map<String, Set<ProgramVariable>> defUseCovered = CoverageDataStore.INSTANCE.getDefUseCovered();
+        String filePath = String.format(outPath+"/"+pClassName+".xml");
+        ClassNodeData classData = CoverageDataStore.INSTANCE.findClassDataNode(pClassName);
+        TreeMap<String, List<DefUsePair>> defUsePairs = classData.getDefUsePairs();
+        Map<String, Set<ProgramVariable>> defUseCovered = classData.getDefUseCovered();
 
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 
@@ -154,7 +169,9 @@ public class CFGImpl implements CFG {
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         DOMSource domSource = new DOMSource(doc);
-        StreamResult streamResult = new StreamResult(new File(outPath));
+        File file = new File(filePath);
+        file.getParentFile().mkdirs();
+        StreamResult streamResult = new StreamResult(file);
         transformer.transform(domSource, streamResult);
     }
 }

@@ -2,6 +2,7 @@ package com.jdfc.agent.rt.internal;
 
 import com.jdfc.commons.data.Node;
 import com.jdfc.commons.data.NodeData;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.internal.data.ClassNodeData;
 import com.jdfc.core.analysis.internal.data.PackageNodeData;
@@ -10,9 +11,7 @@ import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public final class PreMain {
 
@@ -30,6 +29,7 @@ public final class PreMain {
         CoverageDataStore.INSTANCE.setClassList(classList);
         File f = new File(options);
         addNodes(f, root, baseDir);
+        printTree(root);
         inst.addTransformer(new ClassTransformer());
     }
 
@@ -44,12 +44,22 @@ public final class PreMain {
                 addNodes(f, newPkgNode, pBaseDir);
             } else if (f.isFile() && f.getName().endsWith(".class")) {
                 String relativePath = pBaseDir.relativize(f.toPath()).toString();
-                String nameWithoutType = relativePath.split("\\.")[0];
-
+                String relativePathWithoutType = relativePath.split("\\.")[0];
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
-                CoverageDataStore.INSTANCE.getClassList().add(nameWithoutType);
+                CoverageDataStore.INSTANCE.getClassList().add(relativePathWithoutType);
+
+                String nameWithoutType = f.getName().split("\\.")[0];
                 ClassNodeData classNodeData = new ClassNodeData();
-                pNode.addChild(f.getName(), classNodeData);
+                pNode.addChild(nameWithoutType, classNodeData);
+            }
+        }
+    }
+
+    private static void printTree(Node<NodeData> node) {
+        if (!(node.getChildren().size() == 0)) {
+            PrettyPrintMap<String, Node<NodeData>> prettyPrintMap = new PrettyPrintMap<>(node.getChildren());
+            for(Map.Entry<String, Node<NodeData>> childNode : node.getChildren().entrySet()) {
+                printTree(childNode.getValue());
             }
         }
     }

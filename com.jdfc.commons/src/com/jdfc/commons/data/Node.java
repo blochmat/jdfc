@@ -1,7 +1,6 @@
 package com.jdfc.commons.data;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Node<T extends NodeData> {
 
@@ -24,6 +23,16 @@ public class Node<T extends NodeData> {
 
     public Map<String, Node<T>> getChildren() {
         return children;
+    }
+
+    public Node<T> getChildDataRecursive(ArrayList<String> path){
+        if (path.size() == 1){
+            return this.getChildren().get(path.get(0));
+        } else {
+            Node<T> child = this.getChildren().get(path.get(0));
+            path.remove(0);
+            return child.getChildDataRecursive(path);
+        }
     }
 
     public void setParent(Node<T> parent) {

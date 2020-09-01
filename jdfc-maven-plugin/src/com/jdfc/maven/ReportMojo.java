@@ -51,13 +51,12 @@ public class ReportMojo extends AbstractMavenReport {
 
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
-        File xmlFile = new File(System.getProperty("user.dir") + "/target/output.xml");
-        try {
-            createReport(loadXMLFile(xmlFile));
-        } catch (SAXException | IOException | ParserConfigurationException e) {
-            e.printStackTrace();
-        }
-
+//        File xmlFile = new File(System.getProperty("user.dir") + "/target/output.xml");
+//        try {
+//            createReport(loadXMLFile(xmlFile));
+//        } catch (SAXException | IOException | ParserConfigurationException e) {
+//            e.printStackTrace();
+//        }
     }
 
     // return executiondatatree with all execution data from xml file
