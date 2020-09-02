@@ -1,24 +1,36 @@
 package com.jdfc.core.analysis;
 
-import com.jdfc.commons.data.Node;
+import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.cfg.CFG;
-import com.jdfc.commons.data.NodeData;
-import com.jdfc.core.analysis.internal.data.ClassNodeData;
+import com.jdfc.commons.data.ExecutionData;
+import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.core.analysis.internal.data.PackageExecutionData;
 
+import java.io.Serializable;
 import java.util.*;
 
 /** A storage singleton for package, class and finally method {@link CFG}s. */
-public enum CoverageDataStore {
-    INSTANCE;
+public class CoverageDataStore {
 
-    private Node<NodeData> root;
+    private static CoverageDataStore singleton;
+    private ExecutionDataNode<ExecutionData> root;
     private List<String> classList;
 
-    public Node<NodeData> getRoot() {
-        return root;
+    private CoverageDataStore(){
+        PackageExecutionData packageNodeData = new PackageExecutionData();
+        this.root = new ExecutionDataNode<>(packageNodeData);
+        this.classList = new ArrayList<>();
     }
-    public void setRoot(Node<NodeData> root) {
-        this.root = root;
+
+    public static synchronized CoverageDataStore getInstance(){
+        if(singleton == null) {
+            singleton =  new CoverageDataStore();
+        }
+        return singleton;
+    }
+
+    public ExecutionDataNode<ExecutionData> getRoot() {
+        return root;
     }
 
     public List<String> getClassList(){
@@ -29,15 +41,19 @@ public enum CoverageDataStore {
         this.classList = pClassList;
     }
 
+    public void setRoot(ExecutionDataNode<ExecutionData> pNode) {
+        this.root = pNode;
+    }
+
     public void setupClassDataNode(String pClassName, Map<String, CFG> pMethodCFGs){
-        ClassNodeData classNodeData = findClassDataNode(pClassName);
+        ClassExecutionData classNodeData = findClassDataNode(pClassName);
         classNodeData.setMethodCFGs(pMethodCFGs);
         classNodeData.calculateDefUsePairs();
     }
 
-    public ClassNodeData findClassDataNode(String pClassName) {
+    public ClassExecutionData findClassDataNode(String pClassName) {
         ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.split("/")));
-        Node<NodeData> node = root.getChildDataRecursive(nodePath);
-        return (ClassNodeData) node.getData();
+        ExecutionDataNode<ExecutionData> executionDataNode = root.getChildDataRecursive(nodePath);
+        return (ClassExecutionData) executionDataNode.getData();
     }
 }

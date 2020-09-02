@@ -1,6 +1,6 @@
 package com.jdfc.core.analysis.internal.data;
 
-import com.jdfc.commons.data.NodeData;
+import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.core.analysis.cfg.CFGNode;
 import com.jdfc.core.analysis.cfg.DefUsePair;
@@ -9,7 +9,7 @@ import com.jdfc.core.analysis.cfg.ProgramVariable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ClassNodeData extends NodeData {
+public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
     private TreeMap<String, List<DefUsePair>> defUsePairs;

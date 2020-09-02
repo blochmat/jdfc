@@ -1,4 +1,5 @@
 package com.jdfc.core.analysis.cfg;
+
 import com.google.common.collect.Maps;
 
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.Optional;
  *
  * @see LocalVariable
  */
-public class LocalVariableTable{
+public class LocalVariableTable {
 
     private final Map<Integer, LocalVariable> localVariableTable;
 

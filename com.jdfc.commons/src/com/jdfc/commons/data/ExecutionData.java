@@ -1,6 +1,6 @@
 package com.jdfc.commons.data;
 
-public class NodeData {
+public class ExecutionData {
 
     private int covered;
     private int total;

@@ -2,50 +2,50 @@ package com.jdfc.commons.data;
 
 import java.util.*;
 
-public class Node<T extends NodeData> {
+public class ExecutionDataNode<T extends ExecutionData> {
 
     // Map of children with name, in case of leaf children.size == 0
-    private Map<String, Node<T>> children = new HashMap<>();
+    private Map<String, ExecutionDataNode<T>> children = new HashMap<>();
 
-    private Node<T> parent = null;
+    private ExecutionDataNode<T> parent = null;
 
     // TODO: Some kind of coverage data
     private T data = null;
 
-    public Node(T data) {
+    public ExecutionDataNode(T data) {
         this.data = data;
     }
 
-    public Node(T data, Node<T> parent) {
+    public ExecutionDataNode(T data, ExecutionDataNode<T> parent) {
         this.data = data;
         this.parent = parent;
     }
 
-    public Map<String, Node<T>> getChildren() {
+    public Map<String, ExecutionDataNode<T>> getChildren() {
         return children;
     }
 
-    public Node<T> getChildDataRecursive(ArrayList<String> path){
+    public ExecutionDataNode<T> getChildDataRecursive(ArrayList<String> path){
         if (path.size() == 1){
             return this.getChildren().get(path.get(0));
         } else {
-            Node<T> child = this.getChildren().get(path.get(0));
+            ExecutionDataNode<T> child = this.getChildren().get(path.get(0));
             path.remove(0);
             return child.getChildDataRecursive(path);
         }
     }
 
-    public void setParent(Node<T> parent) {
+    public void setParent(ExecutionDataNode<T> parent) {
         this.parent = parent;
     }
 
     public void addChild(String key, T data) {
-        Node<T> child = new Node<T>(data);
+        ExecutionDataNode<T> child = new ExecutionDataNode<T>(data);
         child.setParent(this);
         this.children.put(key, child);
     }
 
-    public void addChild(String key, Node<T> child) {
+    public void addChild(String key, ExecutionDataNode<T> child) {
         child.setParent(this);
         this.children.put(key, child);
     }

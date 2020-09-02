@@ -23,7 +23,7 @@ public class Instrument {
         final ClassNode classNode = new ClassNode();
         final Map<String, CFG> methodCFGs = CFGCreator.createCFGsForClass(classReader, classNode);
         // Create tree entry, insert method cfgs in correct class node
-        CoverageDataStore.INSTANCE.setupClassDataNode(classReader.getClassName(), methodCFGs);
+        CoverageDataStore.getInstance().setupClassDataNode(classReader.getClassName(), methodCFGs);
 
         // Instrument the definitions and uses of variables
         final TreeInstrument instrument = new TreeInstrument(classNode);
