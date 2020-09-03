@@ -25,8 +25,8 @@ public class ExecutionDataNode<T extends ExecutionData> {
         return children;
     }
 
-    public ExecutionDataNode<T> getChildDataRecursive(ArrayList<String> path){
-        if (path.size() == 1){
+    public ExecutionDataNode<T> getChildDataRecursive(ArrayList<String> path) {
+        if (path.size() == 1) {
             return this.getChildren().get(path.get(0));
         } else {
             ExecutionDataNode<T> child = this.getChildren().get(path.get(0));
@@ -37,6 +37,10 @@ public class ExecutionDataNode<T extends ExecutionData> {
 
     public void setParent(ExecutionDataNode<T> parent) {
         this.parent = parent;
+    }
+
+    public ExecutionDataNode<T> getParent() {
+        return parent;
     }
 
     public void addChild(String key, T data) {
@@ -70,7 +74,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
         this.parent = null;
     }
 
-    public boolean hasChild(String path){
+    public boolean hasChild(String path) {
         if (path == null) {
             return false;
         }
@@ -79,6 +83,23 @@ public class ExecutionDataNode<T extends ExecutionData> {
             return hasChild(String.join("/", pathArray)) && children.containsKey(pathArray[0]);
         } else {
             return children.containsKey(pathArray[0]);
+        }
+    }
+
+    // TODO: not working so well
+    public void aggregateDataToParents() {
+        if (!this.isRoot()) {
+            ExecutionData parentData = this.parent.getData();
+            int newTotal = parentData.getTotal() + this.data.getTotal();
+            int newCovered = parentData.getCovered() + this.data.getCovered();
+            int newMissed = parentData.getMissed() + this.data.getMissed();
+            int newMethodCount = parentData.getMethodCount() + this.data.getMethodCount();
+
+            parentData.setTotal(newTotal);
+            parentData.setCovered(newCovered);
+            parentData.setMissed(newMissed);
+            parentData.setMethodCount(newMethodCount);
+            parent.aggregateDataToParents();
         }
     }
 }

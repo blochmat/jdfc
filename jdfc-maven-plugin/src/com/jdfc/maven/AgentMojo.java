@@ -34,13 +34,13 @@ public class AgentMojo extends AbstractJdfcMojo {
         Properties projectProperties = getProject().getProperties();
         String oldValue = projectProperties.getProperty(argLine);
         // create command line arguments for agent
-        final String baseDir = getProject().getBuild().getOutputDirectory();
+        final String targetDir = getProject().getBuild().getOutputDirectory();
         final String agent = format("-javaagent:%s", getAgentJarFile());
         String newValue = "";
         if (oldValue == null) {
-            newValue = format("%s=%s", agent, baseDir);
+            newValue = format("%s=%s", agent, targetDir);
         } else {
-            newValue = format("%s%s=%s", oldValue, agent, baseDir);
+            newValue = format("%s%s=%s", oldValue, agent, targetDir);
         }
         projectProperties.setProperty(argLine, newValue);
     }

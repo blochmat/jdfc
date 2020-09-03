@@ -17,10 +17,10 @@ public class PrettyPrintMap<K, V> {
             sb.append(entry.getKey());
             sb.append('=').append("\n");
             Object foo = entry.getValue();
-            if (foo != null){
-                sb.append("Sure, something is there of type: ").append(foo.getClass().getName());
-            } else {
-                sb.append("Not that good news, boy.");
+            if (foo instanceof List){
+                sb.append(Arrays.toString(((List<?>) foo).toArray()));
+            } else if (foo instanceof Set){
+                sb.append(Arrays.toString(((Set<?>) foo).toArray()));
             }
             sb.append('"');
             if (iter.hasNext()) {

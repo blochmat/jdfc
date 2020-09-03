@@ -83,7 +83,7 @@ public class CFGImpl implements CFG {
             String className, String methodName, String methodDesc, int varIndex, int instructionIndex) {
         String methodNameDesc = methodName.concat(": " + methodDesc);
         ProgramVariable programVariable = prepareNewEntry(className, methodNameDesc, varIndex, instructionIndex);
-        ClassExecutionData classNodeData = CoverageDataStore.getInstance().findClassDataNode(className);
+        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(className).getData();
         Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
         coveredList.get(methodNameDesc).add(programVariable);
         try {
@@ -94,7 +94,7 @@ public class CFGImpl implements CFG {
     }
 
     static ProgramVariable prepareNewEntry(String className, String methodName, int varIndex, int instructionIndex) {
-        ClassExecutionData classNodeData = CoverageDataStore.getInstance().findClassDataNode(className);
+        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(className).getData();
         assert classNodeData != null;
         CFG cfg = classNodeData.getMethodCFGs().get(methodName);
         LocalVariableTable table = cfg.getLocalVariableTable();
@@ -107,6 +107,7 @@ public class CFGImpl implements CFG {
         return o.orElse(null);
     }
 
+    // TODO: Either create own class to handle xml or figure out how to do it jacoco like
     static void dumpToFile(String pClassName) throws ParserConfigurationException, TransformerException {
         String outPath = String.format("%s/target/jdfc", System.getProperty("user.dir"));
         File jdfcDir = new File(outPath);
@@ -115,7 +116,7 @@ public class CFGImpl implements CFG {
         }
 
         String classXMLPath = String.format("%s/%s.xml", outPath, pClassName);
-        ClassExecutionData classData = CoverageDataStore.getInstance().findClassDataNode(pClassName);
+        ClassExecutionData classData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
         TreeMap<String, List<DefUsePair>> defUsePairs = classData.getDefUsePairs();
         Map<String, Set<ProgramVariable>> defUseCovered = classData.getDefUseCovered();
 

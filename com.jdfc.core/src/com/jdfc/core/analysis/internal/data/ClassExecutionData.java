@@ -41,6 +41,14 @@ public class ClassExecutionData extends ExecutionData {
         return defUseCovered;
     }
 
+    public void setDefUsePairs(TreeMap<String, List<DefUsePair>> defUsePairs) {
+        this.defUsePairs = defUsePairs;
+    }
+
+    public void setDefUseCovered(Map<String, Set<ProgramVariable>> defUseCovered) {
+        this.defUseCovered = defUseCovered;
+    }
+
     /** Calculates all possible Def-Use-Pairs. */
     public void calculateDefUsePairs() {
         defUsePairs = new TreeMap<>();
@@ -68,6 +76,24 @@ public class ClassExecutionData extends ExecutionData {
                     }
                 }
             }
+        }
+    }
+
+    public void computeCoverage() {
+        for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
+            if (entry.getValue().size() == 0) {
+                continue;
+            }
+            int covered = 0;
+            String methodName = entry.getKey();
+            for (DefUsePair pair : entry.getValue()) {
+                if (defUseCovered.get(methodName).contains(pair.getDefinition())
+                        && defUseCovered.get(methodName).contains(pair.getUsage())) {
+                    covered += 1;
+                }
+            }
+            this.setCovered(covered);
+            this.setMissed(this.getTotal() - this.getCovered());
         }
     }
 }

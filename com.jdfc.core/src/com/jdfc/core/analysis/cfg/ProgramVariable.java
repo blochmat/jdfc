@@ -9,7 +9,7 @@ public class ProgramVariable {
     private final String type;
     private final int instructionIndex;
 
-    private ProgramVariable(final String pName, final String pType, final int pInstructionIndex) {
+    public ProgramVariable(final String pName, final String pType, final int pInstructionIndex) {
         name = pName;
         type = pType;
         instructionIndex = pInstructionIndex;
