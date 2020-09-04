@@ -86,20 +86,26 @@ public class ExecutionDataNode<T extends ExecutionData> {
         }
     }
 
-    // TODO: not working so well
     public void aggregateDataToParents() {
         if (!this.isRoot()) {
-            ExecutionData parentData = this.parent.getData();
-            int newTotal = parentData.getTotal() + this.data.getTotal();
-            int newCovered = parentData.getCovered() + this.data.getCovered();
-            int newMissed = parentData.getMissed() + this.data.getMissed();
-            int newMethodCount = parentData.getMethodCount() + this.data.getMethodCount();
+            int newTotal = 0;
+            int newCovered = 0;
+            int newMissed = 0;
+            int newMethodCount = 0;
 
+            for(Map.Entry<String, ExecutionDataNode<T>> child : this.parent.getChildren().entrySet()){
+                newTotal += child.getValue().getData().getTotal();
+                newCovered += child.getValue().getData().getCovered();
+                newMissed += child.getValue().getData().getMissed();
+                newMethodCount += child.getValue().getData().getMethodCount();
+
+            }
+            ExecutionData parentData = this.parent.getData();
             parentData.setTotal(newTotal);
             parentData.setCovered(newCovered);
             parentData.setMissed(newMissed);
             parentData.setMethodCount(newMethodCount);
-            parent.aggregateDataToParents();
+            this.parent.aggregateDataToParents();
         }
     }
 }
