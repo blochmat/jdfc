@@ -2,16 +2,12 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
-import com.jdfc.core.analysis.internal.data.ClassExecutionData;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +24,7 @@ public class ReportGenerator {
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         try {
             Map<String, ExecutionData> packageExecutionData = createHTMLFilesRecursive(root, null, workDir);
-            HTMLGenerator.generateIndexFiles(packageExecutionData, workDir, true);
+            HTMLFactory.generateIndexFiles(packageExecutionData, workDir, true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,7 +85,7 @@ public class ReportGenerator {
             }
         }
         if (outputFolder.exists()) {
-            HTMLGenerator.generateIndexFiles(classExecutionDataMap, dir, false);
+            HTMLFactory.generateIndexFiles(classExecutionDataMap, dir, false);
         }
         return packageExecutionDataMap;
     }

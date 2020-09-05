@@ -3,23 +3,37 @@ package com.jdfc.report;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.report.html.HTMLFile;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
 
-public class HTMLGenerator {
+// TODO: pro/contra static methods
+public class HTMLFactory {
 
     public static void generateIndexFiles(Map<String, ExecutionData> pClassFileDataMap, String pWorkDir, boolean isRoot) throws IOException {
         String indexPath = String.format("%s/index.html", pWorkDir);
         File index = new File(indexPath);
-        index.createNewFile();
+        Writer writer = new FileWriter(index);
+        writer.write(generateIndexHTML(pClassFileDataMap));
+        writer.close();
         if(!isRoot){
             String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
             File indexSource = new File(indexSourcePath);
             indexSource.createNewFile();
         }
+    }
+
+    private static String generateIndexHTML(Map<String, ExecutionData> pClassFileDataMap){
+        HTMLFile html = new HTMLFile();
+        html.fillHeader("This is the header");
+
+        // TODO: Implement HTML creation
+        html.addTable(pClassFileDataMap);
+        return html.render();
     }
 
     private void writeHTMLRecursive(Writer pWriter, ExecutionDataNode<ExecutionData> pNode) throws IOException {
