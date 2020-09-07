@@ -46,6 +46,12 @@ public class CoverageDataStore {
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
         ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.split("/")));
+
+        // root path
+        if (nodePath.size() == 1) {
+            nodePath.add(0, "default");
+        }
+
         return root.getChildDataRecursive(nodePath);
     }
 
@@ -68,7 +74,13 @@ public class CoverageDataStore {
 
                 String nameWithoutType = f.getName().split("\\.")[0];
                 ClassExecutionData classNodeData = new ClassExecutionData();
-                pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                if(pExecutionDataNode.isRoot()){
+                    PackageExecutionData rootClassData = new PackageExecutionData();
+                    pExecutionDataNode.addChild("default", rootClassData);
+                    pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
+                } else {
+                    pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                }
             }
         }
     }

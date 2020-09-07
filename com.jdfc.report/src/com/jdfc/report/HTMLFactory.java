@@ -14,7 +14,9 @@ import java.util.Map;
 // TODO: pro/contra static methods
 public class HTMLFactory {
 
-    public static void generateIndexFiles(Map<String, ExecutionData> pClassFileDataMap, String pWorkDir, boolean isRoot) throws IOException {
+    public static void generateIndexFiles(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
+                                          String pWorkDir,
+                                          boolean isRoot) throws IOException {
         String indexPath = String.format("%s/index.html", pWorkDir);
         File index = new File(indexPath);
         Writer writer = new FileWriter(index);
@@ -27,8 +29,10 @@ public class HTMLFactory {
         }
     }
 
-    private static String generateIndexHTML(Map<String, ExecutionData> pClassFileDataMap){
+    private static String generateIndexHTML(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap){
         HTMLFile html = new HTMLFile();
+
+        // TODO: Add styles and meta information
         html.fillHeader("This is the header");
 
         // TODO: Implement HTML creation

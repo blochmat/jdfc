@@ -1,6 +1,7 @@
 package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
+import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.report.html.table.Table;
 import org.checkerframework.checker.units.qual.A;
 
@@ -45,10 +46,15 @@ public class HTMLFile {
         body = String.format(body, str);
     }
 
-    public void addTable(Map<String, ExecutionData> pClassFileDataMap) {
+    public void addTable(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         Table table = new Table();
-        for(Map.Entry<String, ExecutionData> entry : pClassFileDataMap.entrySet()) {
-            table.addRow(entry.getKey(), entry.getValue());
+        ExecutionDataNode<ExecutionData> parent = null;
+        for(Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : pClassFileDataMap.entrySet()) {
+            if (parent == null) {
+                parent = entry.getValue().getParent();
+                table.addTableFoot(parent.getData());
+            }
+            table.addRow(entry.getKey(), entry.getValue().getData());
         }
         content.add(table);
     }

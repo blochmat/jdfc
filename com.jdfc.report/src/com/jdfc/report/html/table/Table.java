@@ -11,6 +11,7 @@ public class Table extends HTMLElement {
     //TODO: Maybe head foot body as List<Row>
     List<String> columns;
     List<Row> rows;
+    Foot foot;
     String tag = "<table>%s</table>";
 
     public Table() {
@@ -33,16 +34,6 @@ public class Table extends HTMLElement {
         return String.format(headTag, render);
     }
 
-    private String createTableFoot(){
-        String footTag = "<tfoot>%s</tfoot>";
-        String render = "";
-        for(String str : columns) {
-            Cell cell = new Cell("n.a.");
-            render = render.concat(cell.render());
-        }
-        return String.format(footTag, render);
-    }
-
     private String createTableBody(){
         String bodyTag = "<tbody>%s</tbody>";
         String render = "";
@@ -57,10 +48,14 @@ public class Table extends HTMLElement {
         rows.add(row);
     }
 
+    public void addTableFoot(ExecutionData pData) {
+        foot = new Foot(pData);
+    }
+
     @Override
     public String render(){
         String head = createTableHead();
-        String foot = createTableFoot();
+        String foot = this.foot.render();
         String body = createTableBody();
 
         return String.format(tag,

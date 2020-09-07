@@ -57,6 +57,8 @@ public class ReportMojo extends AbstractMavenReport {
         final String target = getProject().getBuild().getDirectory();
         final String importDir = String.format("%s/jdfc", target);
         LoadController.loadDataFromXML(importDir);
+
+        // TODO: REMOVE DEBUG
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
         final String exportDir = String.format("%s/jdfr-report", target);
         ReportGenerator.createReport(exportDir);

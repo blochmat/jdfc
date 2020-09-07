@@ -9,7 +9,6 @@ public class ExecutionDataNode<T extends ExecutionData> {
 
     private ExecutionDataNode<T> parent = null;
 
-    // TODO: Some kind of coverage data
     private T data = null;
 
     public ExecutionDataNode(T data) {
@@ -86,7 +85,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
         }
     }
 
-    public void aggregateDataToParents() {
+    public void aggregateDataToRoot() {
         if (!this.isRoot()) {
             int newTotal = 0;
             int newCovered = 0;
@@ -105,7 +104,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
             parentData.setCovered(newCovered);
             parentData.setMissed(newMissed);
             parentData.setMethodCount(newMethodCount);
-            this.parent.aggregateDataToParents();
+            this.parent.aggregateDataToRoot();
         }
     }
 }

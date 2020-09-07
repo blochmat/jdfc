@@ -42,7 +42,7 @@ public class LoadController {
                 classExecutionData.setDefUseCovered(new HashMap<>());
                 examineFileRecursive(rootTag, classExecutionData);
                 classExecutionDataNode.setData(classExecutionData);
-                classExecutionDataNode.aggregateDataToParents();
+                classExecutionDataNode.aggregateDataToRoot();
             } catch (SAXException | IOException | ParserConfigurationException e) {
                 e.printStackTrace();
             }

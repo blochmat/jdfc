@@ -2,6 +2,7 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 
 import java.io.File;
@@ -13,8 +14,6 @@ import java.util.stream.Stream;
 
 public class ReportGenerator {
 
-    private static String DEFAULT = "default";
-
     // TODO: Create HTML Report
     public static void createReport(String workDir) {
         File exportDir = new File(workDir);
@@ -23,46 +22,29 @@ public class ReportGenerator {
         }
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         try {
-            Map<String, ExecutionData> packageExecutionData = createHTMLFilesRecursive(root, null, workDir);
+            Map<String, ExecutionDataNode<ExecutionData>> packageExecutionData = createHTMLFilesRecursive(root, null, workDir);
             HTMLFactory.generateIndexFiles(packageExecutionData, workDir, true);
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        File index = new File(String.format("%s/index.html", workDir));
-//        File something = new File(String.format("%s/something.html", workDir));
-//
-//        try {
-//            Writer writer = new FileWriter(index);
-//            writeHTMLRecursive(writer, root);
-//            writer.close();
-//            Writer someWriter = new FileWriter(something);
-//            someWriter.write("Its something!");
-//            someWriter.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
-    private static Map<String, ExecutionData> createHTMLFilesRecursive(ExecutionDataNode<ExecutionData> pNode, String pPathName, String workDir)
+    private static Map<String, ExecutionDataNode<ExecutionData>> createHTMLFilesRecursive(ExecutionDataNode<ExecutionData> pNode, String pPathName, String workDir)
             throws IOException {
         String dir;
-        String currentName;
-        Map<String, ExecutionData> packageExecutionDataMap = new HashMap<>();
-        if (pNode.isRoot()) {
-            currentName = DEFAULT;
-        } else {
-            currentName = pPathName;
-        }
-        dir = String.format("%s/%s", workDir, currentName);
+        Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataMap = new HashMap<>();
+        dir = String.format("%s/%s", workDir, pPathName);
 
         File outputFolder = new File(dir);
         Map<String, ExecutionDataNode<ExecutionData>> children = pNode.getChildren();
-        Map<String, ExecutionData> classExecutionDataMap = new HashMap<>();
+        Map<String, ExecutionDataNode<ExecutionData>> classExecutionDataMap = new HashMap<>();
+
         for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : children.entrySet()) {
             if (entry.getValue().isLeaf()) {
-                classExecutionDataMap.put(entry.getKey(), entry.getValue().getData());
-                packageExecutionDataMap.put(currentName, pNode.getData());
-                if(outputFolder.mkdir()){
+                classExecutionDataMap.put(entry.getKey(), entry.getValue());
+                packageExecutionDataMap.put(pPathName, pNode);
+
+                if(outputFolder.mkdir() || outputFolder.exists()){
                     // method overview
                     String overviewName = String.format("%s/%s.html", dir, entry.getKey());
                     File overview = new File(overviewName);
@@ -75,11 +57,13 @@ public class ReportGenerator {
                 }
             } else {
                 String nextPathName;
+
                 if (pPathName == null) {
                     nextPathName = entry.getKey();
                 } else {
                     nextPathName = String.format("%s.%s", pPathName, entry.getKey());
                 }
+
                 packageExecutionDataMap = mergeMaps(packageExecutionDataMap,
                         createHTMLFilesRecursive(entry.getValue(), nextPathName, workDir));
             }
@@ -90,7 +74,7 @@ public class ReportGenerator {
         return packageExecutionDataMap;
     }
 
-    private static Map<String, ExecutionData> mergeMaps(Map<String, ExecutionData> map1, Map<String, ExecutionData> map2) {
+    private static Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1, Map<String, ExecutionDataNode<ExecutionData>> map2) {
         return Stream.of(map1, map2)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(
