@@ -96,4 +96,19 @@ public class ClassExecutionData extends ExecutionData {
             this.setMissed(this.getTotal() - this.getCovered());
         }
     }
+
+    public int computeCoverageForMethod(String pKey){
+        List<DefUsePair> list = defUsePairs.get(pKey);
+        Set<ProgramVariable> set = defUseCovered.get(pKey);
+
+        int covered = 0;
+
+        for(DefUsePair pair : list) {
+            if(set.contains(pair.getDefinition())
+            && set.contains(pair.getUsage())){
+                covered += 1;
+            }
+        }
+        return covered;
+    }
 }

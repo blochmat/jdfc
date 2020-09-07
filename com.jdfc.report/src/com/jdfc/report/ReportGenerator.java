@@ -47,8 +47,9 @@ public class ReportGenerator {
                 if(outputFolder.mkdir() || outputFolder.exists()){
                     // method overview
                     String overviewName = String.format("%s/%s.html", dir, entry.getKey());
-                    File overview = new File(overviewName);
-                    overview.createNewFile();
+                    File overView = new File(overviewName);
+                    overView.createNewFile();
+                    HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir);
 
                     // class detail view
                     String detailViewName = String.format("%s/%s.java.html", dir, entry.getKey());

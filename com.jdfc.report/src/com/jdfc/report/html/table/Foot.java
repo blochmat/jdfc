@@ -1,19 +1,22 @@
 package com.jdfc.report.html.table;
 
 import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.report.html.HTMLElement;
+import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.core.analysis.internal.data.PackageExecutionData;
 
-public class Foot extends HTMLElement {
+public class Foot extends Row {
 
-    private final Row content;
+    public Foot(ClassExecutionData pData){
+        super("Total", pData.getTotal(), pData.getCovered(), pData.getMissed());
+    }
 
-    public Foot(ExecutionData pData){
-        content = new Row("Total", pData);
+    public Foot(PackageExecutionData pData) {
+        super("Total", pData);
     }
 
     @Override
     public String render() {
         String tag = "<tfoot>%s</tfoot>";
-        return String.format(tag, content.render());
+        return String.format(tag, super.render());
     }
 }

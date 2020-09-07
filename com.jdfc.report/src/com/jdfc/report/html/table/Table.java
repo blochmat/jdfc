@@ -1,6 +1,8 @@
 package com.jdfc.report.html.table;
 
 import com.jdfc.commons.data.ExecutionData;
+import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.core.analysis.internal.data.PackageExecutionData;
 import com.jdfc.report.html.HTMLElement;
 
 import java.util.ArrayList;
@@ -14,14 +16,9 @@ public class Table extends HTMLElement {
     Foot foot;
     String tag = "<table>%s</table>";
 
-    public Table() {
-        columns = new ArrayList<>();
+    public Table(List<String> pColumns) {
+        columns = pColumns;
         rows = new ArrayList<>();
-        columns.add("element");
-        columns.add("method count");
-        columns.add("total");
-        columns.add("covered");
-        columns.add("missed");
     }
 
     private String createTableHead() {
@@ -44,12 +41,19 @@ public class Table extends HTMLElement {
     }
 
     public void addRow(String element, ExecutionData pData){
-        Row row = new Row(element, pData);
-        rows.add(row);
+        rows.add(new Row(element, pData));
+    }
+
+    public void addRow(String pElement, int pTotal, int pCovered, int pMissed) {
+        rows.add(new Row(pElement, pTotal, pCovered, pMissed));
     }
 
     public void addTableFoot(ExecutionData pData) {
-        foot = new Foot(pData);
+        if (pData instanceof ClassExecutionData) {
+            foot = new Foot((ClassExecutionData) pData);
+        } else {
+            foot = new Foot((PackageExecutionData) pData);
+        }
     }
 
     @Override
