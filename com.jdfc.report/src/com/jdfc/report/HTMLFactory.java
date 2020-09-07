@@ -9,6 +9,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 // TODO: pro/contra static methods
@@ -20,7 +23,7 @@ public class HTMLFactory {
         String indexPath = String.format("%s/index.html", pWorkDir);
         File index = new File(indexPath);
         Writer writer = new FileWriter(index);
-        writer.write(generateIndexHTML(pClassFileDataMap));
+        writer.write(createIndexHTML(pClassFileDataMap));
         writer.close();
         if(!isRoot){
             String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
@@ -29,14 +32,40 @@ public class HTMLFactory {
         }
     }
 
-    private static String generateIndexHTML(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap){
+    private static String createIndexHTML(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap){
         HTMLFile html = new HTMLFile();
 
         // TODO: Add styles and meta information
         html.fillHeader("This is the header");
 
         // TODO: Implement HTML creation
-        html.addTable(pClassFileDataMap);
+        List<String> columns = new ArrayList<>(Arrays.asList("Element", "Method Count", "Total", "Covered", "Missed"));
+        html.addTable(columns, pClassFileDataMap);
+        return html.render();
+    }
+
+    public static void createClassOverview(String pClassName, ExecutionData pData, String pWorkDir) throws IOException {
+        if(pData instanceof ClassExecutionData) {
+            String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
+            File classOverview = new File(filePath);
+            Writer writer = new FileWriter(classOverview);
+            String content = createOverviewHTML((ClassExecutionData) pData);
+            if (content != null) {
+                writer.write(content);
+            }
+            writer.close();
+        } else {
+            throw new IllegalArgumentException("Class Overview can not be created from data.");
+        }
+    }
+
+    private static String createOverviewHTML(ClassExecutionData pData) {
+        HTMLFile html = new HTMLFile();
+
+        html.fillHeader("This is the header");
+
+        List<String> columns = new ArrayList<>(Arrays.asList("Element", "Total", "Covered", "Missed"));
+        html.addTable(columns, pData);
         return html.render();
     }
 

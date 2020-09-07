@@ -2,12 +2,14 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.core.analysis.cfg.CFG;
+import com.jdfc.core.analysis.cfg.DefUsePair;
+import com.jdfc.core.analysis.cfg.ProgramVariable;
+import com.jdfc.core.analysis.internal.data.ClassExecutionData;
 import com.jdfc.report.html.table.Table;
 import org.checkerframework.checker.units.qual.A;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HTMLFile {
 
@@ -46,8 +48,8 @@ public class HTMLFile {
         body = String.format(body, str);
     }
 
-    public void addTable(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
-        Table table = new Table();
+    public void addTable(List<String> pColumns, Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
+        Table table = new Table(pColumns);
         ExecutionDataNode<ExecutionData> parent = null;
         for(Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : pClassFileDataMap.entrySet()) {
             if (parent == null) {
@@ -56,6 +58,18 @@ public class HTMLFile {
             }
             table.addRow(entry.getKey(), entry.getValue().getData());
         }
+        content.add(table);
+    }
+
+    public void addTable(List<String> pColumns, ClassExecutionData pData) {
+        Table table = new Table(pColumns);
+        for(Map.Entry<String, List<DefUsePair>> entry: pData.getDefUsePairs().entrySet()){
+            int total = entry.getValue().size();
+            int covered = pData.computeCoverageForMethod(entry.getKey());
+            int missed = total - covered;
+            table.addRow(entry.getKey(), total, covered, missed);
+        }
+        table.addTableFoot(pData);
         content.add(table);
     }
 }

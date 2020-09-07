@@ -10,6 +10,7 @@ public class Row extends HTMLElement {
     String tag = "<tr>%s</tr>";
     List<String> entries;
 
+    // TODO: Pass list of values to row? Which type?
     public Row(String pElement, ExecutionData data) {
         entries = new ArrayList<>();
         entries.add(pElement);
@@ -17,6 +18,14 @@ public class Row extends HTMLElement {
         entries.add(String.valueOf(data.getTotal()));
         entries.add(String.valueOf(data.getCovered()));
         entries.add(String.valueOf(data.getMissed()));
+    }
+
+    public Row(String pElement, int pTotal, int pCovered, int pMissed) {
+        entries = new ArrayList<>();
+        entries.add(pElement);
+        entries.add(String.valueOf(pTotal));
+        entries.add(String.valueOf(pCovered));
+        entries.add(String.valueOf(pMissed));
     }
 
     @Override
