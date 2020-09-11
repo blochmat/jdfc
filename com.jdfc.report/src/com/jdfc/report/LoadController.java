@@ -6,7 +6,7 @@ import com.jdfc.commons.utils.Files;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
-import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -79,9 +79,11 @@ public class LoadController {
                         String name = pairAttr.getNamedItem("name").getNodeValue();
                         String type = pairAttr.getNamedItem("type").getNodeValue();
                         int definitionIndex = Integer.parseInt(pairAttr.getNamedItem("definitionIndex").getNodeValue());
+                        int definitionLineNumber = Integer.parseInt(pairAttr.getNamedItem("definitionLineNumber").getNodeValue());
                         int usageIndex = Integer.parseInt(pairAttr.getNamedItem("usageIndex").getNodeValue());
-                        ProgramVariable definition = new ProgramVariable(name, type, definitionIndex);
-                        ProgramVariable usage = new ProgramVariable(name, type, usageIndex);
+                        int usageLineNumber = Integer.parseInt(pairAttr.getNamedItem("usageLineNumber").getNodeValue());
+                        ProgramVariable definition = new ProgramVariable(name, type, definitionIndex, definitionLineNumber);
+                        ProgramVariable usage = new ProgramVariable(name, type, usageIndex, usageLineNumber);
                         DefUsePair newPair = new DefUsePair(definition, usage);
                         classExecutionData.getDefUsePairs().get(methodName).add(newPair);
                     }
@@ -97,7 +99,8 @@ public class LoadController {
                         String name = pairAttr.getNamedItem("name").getNodeValue();
                         String type = pairAttr.getNamedItem("type").getNodeValue();
                         int instructionIndex = Integer.parseInt(pairAttr.getNamedItem("instructionIndex").getNodeValue());
-                        ProgramVariable programVariable = new ProgramVariable(name, type, instructionIndex);
+                        int lineNumber = Integer.parseInt(pairAttr.getNamedItem("lineNumber").getNodeValue());
+                        ProgramVariable programVariable = new ProgramVariable(name, type, instructionIndex, lineNumber);
                         classExecutionData.getDefUseCovered().get(methodName).add(programVariable);
                     }
                 }

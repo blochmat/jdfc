@@ -8,16 +8,19 @@ public class ProgramVariable {
     private final String name;
     private final String type;
     private final int instructionIndex;
+    private final int lineNumber;
 
-    public ProgramVariable(final String pName, final String pType, final int pInstructionIndex) {
+    public ProgramVariable(
+            final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
         name = pName;
         type = pType;
         instructionIndex = pInstructionIndex;
+        lineNumber = pLineNumber;
     }
 
     static ProgramVariable create(
-            final String pName, final String pType, final int pInstructionIndex) {
-        return new ProgramVariable(pName, pType, pInstructionIndex);
+            final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
+        return new ProgramVariable(pName, pType, pInstructionIndex, pLineNumber);
     }
 
     /**
@@ -42,7 +45,13 @@ public class ProgramVariable {
         return instructionIndex;
     }
 
-    /** {@inheritDoc} */
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean equals(final Object pOther) {
         if (this == pOther) {
@@ -54,18 +63,23 @@ public class ProgramVariable {
         final ProgramVariable that = (ProgramVariable) pOther;
         return Objects.equals(name, that.name)
                 && Objects.equals(type, that.type)
-                && instructionIndex == that.instructionIndex;
+                && instructionIndex == that.instructionIndex
+                && lineNumber == that.lineNumber;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int hashCode() {
-        return Objects.hash(name, type, instructionIndex);
+        return Objects.hash(name, type, instructionIndex, lineNumber);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
-        return String.format("ProgramVariable %s: %s (Idx: %d)", name, type, instructionIndex);
+        return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d)", name, type, instructionIndex, lineNumber);
     }
 }

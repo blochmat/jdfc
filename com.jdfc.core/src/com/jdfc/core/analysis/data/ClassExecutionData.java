@@ -1,4 +1,4 @@
-package com.jdfc.core.analysis.internal.data;
+package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.cfg.CFG;

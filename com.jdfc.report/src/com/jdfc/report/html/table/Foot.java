@@ -1,8 +1,7 @@
 package com.jdfc.report.html.table;
 
-import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.core.analysis.internal.data.ClassExecutionData;
-import com.jdfc.core.analysis.internal.data.PackageExecutionData;
+import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.data.PackageExecutionData;
 
 public class Foot extends Row {
 

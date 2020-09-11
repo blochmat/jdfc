@@ -2,12 +2,9 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.core.analysis.cfg.DefUsePair;
-import com.jdfc.core.analysis.cfg.ProgramVariable;
-import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.table.Table;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.*;
 

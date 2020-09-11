@@ -2,7 +2,7 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.HTMLFile;
 
 import java.io.File;

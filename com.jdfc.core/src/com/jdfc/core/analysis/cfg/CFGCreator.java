@@ -50,40 +50,11 @@ public class CFGCreator {
         final Map<String, LocalVariableTable> localVariableTables =
                 localVariableTableVisitor.getLocalVariables();
 
-        pClassReader.accept(pClassNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-
         final Map<String, CFG> methodCFGs = Maps.newLinkedHashMap();
-        for (MethodNode methodNode : pClassNode.methods) {
-            final String localVariableTableKey = computeInternalMethodName(methodNode);
-            final LocalVariableTable localVariableTable = localVariableTables.get(localVariableTableKey);
-            final Type[] parameterTypes = Type.getArgumentTypes(methodNode.desc);
-            final MethodCFGCreator methodCFGCreator =
-                    new MethodCFGCreator(methodNode, localVariableTable, parameterTypes);
-            final CFG cfg = methodCFGCreator.create();
-            cfg.calculateReachingDefinitions();
-            methodCFGs.put(localVariableTableKey, cfg);
-        }
+        final CFGCreatorVisitor cfgCreatorVisitor =
+                new CFGCreatorVisitor(methodCFGs, localVariableTables, pClassNode);
+        pClassReader.accept(cfgCreatorVisitor, 0);
         return Collections.unmodifiableMap(methodCFGs);
-    }
-
-    /**
-     * Computes the internal method name representation that is used, for example, in the map emitted
-     * by {@link CFGCreator#createCFGsForClass(ClassReader, ClassNode)}.
-     *
-     * @param pMethodNode The method node to get the information from
-     * @return The internal method name representation
-     */
-    public static String computeInternalMethodName(final MethodNode pMethodNode) {
-        final String methodName = pMethodNode.name;
-        final String descriptor = pMethodNode.desc;
-        final String signature = pMethodNode.signature;
-        final String[] exceptions;
-        if (pMethodNode.exceptions.size() > 0) {
-            exceptions = (String[]) pMethodNode.exceptions.toArray(new String[0]);
-        } else {
-            exceptions = null;
-        }
-        return computeInternalMethodName(methodName, descriptor, signature, exceptions);
     }
 
     /**

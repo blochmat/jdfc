@@ -3,7 +3,7 @@ package com.jdfc.core.analysis.cfg;
 
 import com.google.common.base.Preconditions;
 import com.jdfc.core.analysis.CoverageDataStore;
-import com.jdfc.core.analysis.internal.data.ClassExecutionData;
+import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -80,9 +80,9 @@ public class CFGImpl implements CFG {
     }
 
     public static void addCoveredEntry(
-            String className, String methodName, String methodDesc, int varIndex, int instructionIndex) {
+            String className, String methodName, String methodDesc, int varIndex, int instructionIndex, int lineNumber) {
         String methodNameDesc = methodName.concat(": " + methodDesc);
-        ProgramVariable programVariable = prepareNewEntry(className, methodNameDesc, varIndex, instructionIndex);
+        ProgramVariable programVariable = prepareNewEntry(className, methodNameDesc, varIndex, instructionIndex, lineNumber);
         ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(className).getData();
         Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
         coveredList.get(methodNameDesc).add(programVariable);
@@ -93,13 +93,13 @@ public class CFGImpl implements CFG {
         }
     }
 
-    static ProgramVariable prepareNewEntry(String className, String methodName, int varIndex, int instructionIndex) {
+    static ProgramVariable prepareNewEntry(String className, String methodName, int varIndex, int instructionIndex, int lineNumber) {
         ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(className).getData();
         assert classNodeData != null;
         CFG cfg = classNodeData.getMethodCFGs().get(methodName);
         LocalVariableTable table = cfg.getLocalVariableTable();
         LocalVariable variable = findLocalVariable(table, varIndex);
-        return ProgramVariable.create(variable.getName(), variable.getDescriptor(), instructionIndex);
+        return ProgramVariable.create(variable.getName(), variable.getDescriptor(), instructionIndex, lineNumber);
     }
 
     static LocalVariable findLocalVariable(LocalVariableTable table, int index) {
@@ -141,7 +141,10 @@ public class CFGImpl implements CFG {
                 defUsePairTag.setAttribute("name", duPair.getDefinition().getName());
                 defUsePairTag.setAttribute("type", duPair.getDefinition().getType());
                 defUsePairTag.setAttribute("definitionIndex", Integer.toString(duPair.getDefinition().getInstructionIndex()));
+                defUsePairTag.setAttribute("definitionLineNumber", Integer.toString(duPair.getDefinition().getLineNumber()));
+
                 defUsePairTag.setAttribute("usageIndex", Integer.toString(duPair.getUsage().getInstructionIndex()));
+                defUsePairTag.setAttribute("usageLineNumber", Integer.toString(duPair.getUsage().getLineNumber()));
                 defUsePairsTag.appendChild(defUsePairTag);
             }
 
@@ -155,58 +158,13 @@ public class CFGImpl implements CFG {
                     programVariableTag.setAttribute("type", programVariable.getType());
                     programVariableTag.setAttribute("instructionIndex",
                             Integer.toString(programVariable.getInstructionIndex()));
+                    programVariableTag.setAttribute("lineNumber",
+                            Integer.toString(programVariable.getLineNumber()));
                     defUseCoveredTag.appendChild(programVariableTag);
                 }
             }
         }
 
-        // To complicated to read in
-//
-//        for(Map.Entry<String, List<DefUsePair>> methodEntry: defUsePairs.entrySet()){
-//            if (methodEntry.getValue().size()==0){
-//                continue;
-//            }
-//            String methodName = methodEntry.getKey().replaceAll(":\\s","");
-//            methodName = methodName.replaceAll("\\(", "-");
-//            methodName = methodName.replaceAll("\\)", "-");
-//            Element method = doc.createElement(methodName);
-//            method.setAttribute("tagType", "method");
-//            root.appendChild(method);
-//
-//            for(DefUsePair duPair : methodEntry.getValue()){
-//                NodeList methodChildren = method.getChildNodes();
-//                ProgramVariable variableDef = duPair.getDefinition();
-//                ProgramVariable variableUse = duPair.getUsage();
-//                Element variable = null;
-//
-//                // Search for appropriate child node
-//                if (methodChildren.getLength() != 0){
-//                    for (int i = 0; i < methodChildren.getLength(); i++) {
-//                        if (variableDef.getName().equals(methodChildren.item(i).getNodeName())){
-//                            variable = (Element) methodChildren.item(i);
-//                            break;
-//                        }
-//                    }
-//                }
-//
-//                // if none was found
-//                if (variable == null) {
-//                    variable = doc.createElement(variableDef.getName());
-//                    method.appendChild(variable);
-//                    variable.setAttribute("type", variableDef.getType());
-//                    variable.setAttribute("tagType", "variable");
-//                }
-//
-//                // append appearance of variable
-//                Element appearance = doc.createElement("appearance");
-//                variable.appendChild(appearance);
-//                boolean pairCovered = defUseCovered.get(methodEntry.getKey()).contains(duPair.getDefinition())
-//                        && defUseCovered.get(methodEntry.getKey()).contains(duPair.getUsage());
-//                appearance.setAttribute("covered", Boolean.toString(pairCovered));
-//                appearance.setAttribute("defIndex", Integer.toString(variableDef.getInstructionIndex()));
-//                appearance.setAttribute("useIndex", Integer.toString(variableUse.getInstructionIndex()));
-//            }
-//        }
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");

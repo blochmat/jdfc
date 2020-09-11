@@ -38,9 +38,9 @@
 
         <maven.build.timestamp.format>yyyyMMddhhmm</maven.build.timestamp.format>
 
-        <bytecode.version>1.5</bytecode.version>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <bytecode.version>1.6</bytecode.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
 
         <jvm.args></jvm.args>
         <argLine>${jvm.args}</argLine>
@@ -191,7 +191,10 @@
 <!--                <plugin>-->
 <!--                    <groupId>org.apache.maven.plugins</groupId>-->
 <!--                    <artifactId>maven-compiler-plugin</artifactId>-->
-<!--                    <version>3.7.0</version>-->
+<!--                    <configuration>-->
+<!--                        <source>${maven.compiler.source}</source>-->
+<!--                        <target>${maven.compiler.target}</target>-->
+<!--                    </configuration>-->
 <!--                </plugin>-->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

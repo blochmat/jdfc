@@ -3,8 +3,8 @@ package com.jdfc.core.analysis;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.core.analysis.internal.data.ClassExecutionData;
-import com.jdfc.core.analysis.internal.data.PackageExecutionData;
+import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.data.PackageExecutionData;
 
 import java.io.File;
 import java.nio.file.Path;

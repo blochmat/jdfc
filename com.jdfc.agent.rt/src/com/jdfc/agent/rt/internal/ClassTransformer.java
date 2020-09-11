@@ -7,6 +7,7 @@ import org.objectweb.asm.ClassReader;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
 
 
 public class ClassTransformer implements ClassFileTransformer {
