@@ -14,6 +14,11 @@ public class ClassExecutionData extends ExecutionData {
     private Map<String, CFG> methodCFGs;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
+    private final String relativePath;
+
+    public ClassExecutionData(String pRelativePath) {
+        relativePath = pRelativePath;
+    }
 
     /**
      * Sets the method {@link CFG}s.
@@ -40,6 +45,8 @@ public class ClassExecutionData extends ExecutionData {
     public Map<String, Set<ProgramVariable>> getDefUseCovered() {
         return defUseCovered;
     }
+
+    public String getRelativePath(){return relativePath;}
 
     public void setDefUsePairs(TreeMap<String, List<DefUsePair>> defUsePairs) {
         this.defUsePairs = defUsePairs;

@@ -1,4 +1,4 @@
-package com.jdfc.core.analysis.internal.instr;
+package com.jdfc.core.analysis.internal.instr.tree;
 
 import com.jdfc.core.analysis.cfg.CFGImpl;
 import org.objectweb.asm.Opcodes;

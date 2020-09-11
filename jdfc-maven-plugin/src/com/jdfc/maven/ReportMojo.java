@@ -55,13 +55,14 @@ public class ReportMojo extends AbstractMavenReport {
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
         final String target = getProject().getBuild().getDirectory();
+        final String source = getProject().getBuild().getSourceDirectory();
         final String importDir = String.format("%s/jdfc", target);
         LoadController.loadDataFromXML(importDir);
 
         // TODO: REMOVE DEBUG
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
         final String exportDir = String.format("%s/jdfr-report", target);
-        ReportGenerator.createReport(exportDir);
+        ReportGenerator.createReport(exportDir, source);
     }
 
     private void debugPrintChildren(ExecutionDataNode<ExecutionData> pNode, int indent) {

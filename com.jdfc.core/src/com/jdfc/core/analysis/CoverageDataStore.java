@@ -73,7 +73,7 @@ public class CoverageDataStore {
                 classList.add(relativePathWithoutType);
 
                 String nameWithoutType = f.getName().split("\\.")[0];
-                ClassExecutionData classNodeData = new ClassExecutionData();
+                ClassExecutionData classNodeData = new ClassExecutionData(relativePathWithoutType);
                 if(pExecutionDataNode.isRoot()){
                     PackageExecutionData rootClassData = new PackageExecutionData();
                     pExecutionDataNode.addChild("default", rootClassData);

@@ -9,10 +9,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // TODO: pro/contra static methods
 public class HTMLFactory {
@@ -26,6 +23,7 @@ public class HTMLFactory {
         writer.write(createIndexHTML(pClassFileDataMap));
         writer.close();
         if(!isRoot){
+            // TODO: Create indexSource files
             String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
             File indexSource = new File(indexSourcePath);
             indexSource.createNewFile();
@@ -69,30 +67,36 @@ public class HTMLFactory {
         return html.render();
     }
 
-    private void writeHTMLRecursive(Writer pWriter, ExecutionDataNode<ExecutionData> pNode) throws IOException {
-        pWriter.write(String.format("<!DOCTYPE html><html><head>%s</head><body>%s</body></html>",
-                writeHeader(pWriter, pNode),
-                writeBodyRecursive(pNode)));
-    }
+    public static void createClassDetailView(String pClassName, ExecutionData pData, String pWorkDir, String sourceDir)
+            throws IOException {
+        if(pData instanceof ClassExecutionData) {
+            String filePath = String.format("%s/%s.java.html", pWorkDir, pClassName);
+            File detailView = new File(filePath);
 
-    // Content and coverage information
-    private String writeBodyRecursive(ExecutionDataNode<ExecutionData> pNode) {
-        String str = "";
-        if (pNode.getData() instanceof ClassExecutionData) {
-            // return class view with marked entries
-        } else {
-            // create Table view with entry for every child and link to the respective html
-            Map<String, ExecutionDataNode<ExecutionData>> children = pNode.getChildren();
-            for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : children.entrySet()) {
-                str = str.concat(String.format("<h1>%s</h1>\n", entry.getKey()));
+            String className = String.format("%s/%s.java", sourceDir, ((ClassExecutionData) pData).getRelativePath());
+            File classFile = new File(className);
+            Scanner scanner = new Scanner(classFile);
+            String data = "";
+            while(scanner.hasNextLine()){
+                data = data.concat(scanner.nextLine()+"\n");
             }
+            scanner.close();
+
+            Writer writer = new FileWriter(detailView);
+            String content = createDetailViewHTML(data, pData);
+            if (content != null) {
+                writer.write(content);
+            }
+            writer.close();
         }
-        return str;
+        else {
+            throw new IllegalArgumentException("Class Overview can not be created from data.");
+        }
     }
 
+    private static String createDetailViewHTML(String pData, ExecutionData pExecutionData) {
+        HTMLFile html = new HTMLFile();
 
-    // Style and header title
-    private String writeHeader(Writer pWriter, ExecutionDataNode<ExecutionData> root) {
-        return "<a href=\"something.html\">Some Link</a>";
+        return html.render();
     }
 }

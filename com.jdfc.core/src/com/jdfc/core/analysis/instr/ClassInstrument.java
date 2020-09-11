@@ -3,7 +3,7 @@ package com.jdfc.core.analysis.instr;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.core.analysis.cfg.CFGCreator;
-import com.jdfc.core.analysis.internal.instr.TreeInstrument;
+import com.jdfc.core.analysis.internal.instr.tree.TreeInstrument;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -13,15 +13,15 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 
-public class Instrument {
+public class ClassInstrument {
 
-    public Instrument() {
+    public ClassInstrument() {
     }
 
     public byte[] instrument(final ClassReader classReader) {
-        // Create CFGs for methods in class
         final ClassNode classNode = new ClassNode();
         final Map<String, CFG> methodCFGs = CFGCreator.createCFGsForClass(classReader, classNode);
+
         // Create tree entry, insert method cfgs in correct class node
         CoverageDataStore.getInstance().setupClassDataNode(classReader.getClassName(), methodCFGs);
 

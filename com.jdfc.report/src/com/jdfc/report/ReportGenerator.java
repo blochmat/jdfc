@@ -2,7 +2,6 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 
 import java.io.File;
@@ -15,25 +14,27 @@ import java.util.stream.Stream;
 public class ReportGenerator {
 
     // TODO: Create HTML Report
-    public static void createReport(String workDir) {
-        File exportDir = new File(workDir);
-        if (!exportDir.exists()) {
-            exportDir.mkdir();
+    public static void createReport(String exportDir, String sourceDir) {
+        File jdfcReportDir = new File(exportDir);
+        if (!jdfcReportDir.exists()) {
+            jdfcReportDir.mkdir();
         }
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         try {
-            Map<String, ExecutionDataNode<ExecutionData>> packageExecutionData = createHTMLFilesRecursive(root, null, workDir);
-            HTMLFactory.generateIndexFiles(packageExecutionData, workDir, true);
+            Map<String, ExecutionDataNode<ExecutionData>> packageExecutionData = createHTMLFilesRecursive(
+                    root, null, exportDir, sourceDir);
+            HTMLFactory.generateIndexFiles(packageExecutionData, exportDir, true);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static Map<String, ExecutionDataNode<ExecutionData>> createHTMLFilesRecursive(ExecutionDataNode<ExecutionData> pNode, String pPathName, String workDir)
+    private static Map<String, ExecutionDataNode<ExecutionData>> createHTMLFilesRecursive(
+            ExecutionDataNode<ExecutionData> pNode, String pPathName, String exportDir, String sourceDir)
             throws IOException {
         String dir;
         Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataMap = new HashMap<>();
-        dir = String.format("%s/%s", workDir, pPathName);
+        dir = String.format("%s/%s", exportDir, pPathName);
 
         File outputFolder = new File(dir);
         Map<String, ExecutionDataNode<ExecutionData>> children = pNode.getChildren();
@@ -46,15 +47,10 @@ public class ReportGenerator {
 
                 if(outputFolder.mkdir() || outputFolder.exists()){
                     // method overview
-                    String overviewName = String.format("%s/%s.html", dir, entry.getKey());
-                    File overView = new File(overviewName);
-                    overView.createNewFile();
                     HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir);
 
                     // class detail view
-                    String detailViewName = String.format("%s/%s.java.html", dir, entry.getKey());
-                    File detailView = new File(detailViewName);
-                    detailView.createNewFile();
+                    HTMLFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), dir, sourceDir);
                 }
             } else {
                 String nextPathName;
@@ -66,7 +62,7 @@ public class ReportGenerator {
                 }
 
                 packageExecutionDataMap = mergeMaps(packageExecutionDataMap,
-                        createHTMLFilesRecursive(entry.getValue(), nextPathName, workDir));
+                        createHTMLFilesRecursive(entry.getValue(), nextPathName, exportDir, sourceDir));
             }
         }
         if (outputFolder.exists()) {

@@ -1,7 +1,7 @@
 package com.jdfc.agent.rt.internal;
 
 import com.jdfc.core.analysis.CoverageDataStore;
-import com.jdfc.core.analysis.instr.Instrument;
+import com.jdfc.core.analysis.instr.ClassInstrument;
 import org.objectweb.asm.ClassReader;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -11,10 +11,10 @@ import java.security.ProtectionDomain;
 
 public class ClassTransformer implements ClassFileTransformer {
 
-    private final Instrument instrument;
+    private final ClassInstrument classInstrument;
 
     public ClassTransformer() {
-        this.instrument = new Instrument();
+        this.classInstrument = new ClassInstrument();
     }
 
     @Override
@@ -23,6 +23,6 @@ public class ClassTransformer implements ClassFileTransformer {
             return classfileBuffer;
         }
         final ClassReader cr = new ClassReader(classfileBuffer);
-        return instrument.instrument(cr);
+        return classInstrument.instrument(cr);
     }
 }
