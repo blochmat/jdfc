@@ -6,7 +6,8 @@ public class HTMLElement {
     private String styleClass;
     private String content;
 
-    public HTMLElement (){}
+    public HTMLElement (){
+    }
 
     public String getTag() {
         return tag;

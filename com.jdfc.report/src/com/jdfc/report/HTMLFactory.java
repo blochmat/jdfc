@@ -2,8 +2,13 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.core.analysis.cfg.DefUsePair;
+import com.jdfc.core.analysis.cfg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.report.html.HTMLElement;
 import com.jdfc.report.html.HTMLFile;
+import com.jdfc.report.html.Linebreak;
+import com.jdfc.report.html.Span;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -23,7 +28,7 @@ public class HTMLFactory {
         Writer writer = new FileWriter(index);
         writer.write(createIndexHTML(pClassFileDataMap));
         writer.close();
-        if(!isRoot){
+        if (!isRoot) {
             // TODO: Create indexSource files
             String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
             File indexSource = new File(indexSourcePath);
@@ -31,7 +36,7 @@ public class HTMLFactory {
         }
     }
 
-    private static String createIndexHTML(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap){
+    private static String createIndexHTML(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         HTMLFile html = new HTMLFile();
 
         // TODO: Add styles and meta information
@@ -44,7 +49,7 @@ public class HTMLFactory {
     }
 
     public static void createClassOverview(String pClassName, ExecutionData pData, String pWorkDir) throws IOException {
-        if(pData instanceof ClassExecutionData) {
+        if (pData instanceof ClassExecutionData) {
             String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
             File classOverview = new File(filePath);
             Writer writer = new FileWriter(classOverview);
@@ -70,34 +75,61 @@ public class HTMLFactory {
 
     public static void createClassDetailView(String pClassName, ExecutionData pData, String pWorkDir, String sourceDir)
             throws IOException {
-        if(pData instanceof ClassExecutionData) {
+        if (pData instanceof ClassExecutionData) {
             String filePath = String.format("%s/%s.java.html", pWorkDir, pClassName);
             File detailView = new File(filePath);
 
             String className = String.format("%s/%s.java", sourceDir, ((ClassExecutionData) pData).getRelativePath());
             File classFile = new File(className);
             Scanner scanner = new Scanner(classFile);
-            String data = "";
-            while(scanner.hasNextLine()){
-                data = data.concat(scanner.nextLine()+"\n");
+            HTMLFile html = new HTMLFile();
+            html.fillHeader("This is the header");
+            int lineCounter = 0;
+            while (scanner.hasNextLine()) {
+                String current = scanner.nextLine();
+                lineCounter += 1;
+                if (!current.equals("")) {
+                    // TODO: Create span for variables and color them with style class
+                    current = current.replace(" ","&nbsp;");
+                    current = findAndMarkVariables(lineCounter, current, (ClassExecutionData) pData);
+                    html.getContent().add(new Span(current));
+                }
+                html.getContent().add(new Linebreak());
             }
             scanner.close();
 
             Writer writer = new FileWriter(detailView);
-            String content = createDetailViewHTML(data, pData);
-            if (content != null) {
-                writer.write(content);
-            }
+            writer.write(html.render());
             writer.close();
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Class Overview can not be created from data.");
         }
     }
 
-    private static String createDetailViewHTML(String pData, ExecutionData pExecutionData) {
-        HTMLFile html = new HTMLFile();
+    private static String findAndMarkVariables(int lineNumber, String lineString, ClassExecutionData data) {
 
-        return html.render();
+        // TODO: HIER GEHTS WEITER
+        String[] stringArray = lineString.split(" ");
+
+        for(int i = 0; i < stringArray.length; i++) {
+            String str = stringArray[i];
+            System.out.printf("%s %s\n", str, lineNumber);
+            ProgramVariable programVariable = findProgramVariable(data, lineNumber, str);
+            if (programVariable != null) {
+                stringArray[i] = String.format("<span style=\"color:blue\">%s</span>", str);
+            }
+        }
+        return String.join("&nbsp;", stringArray);
+    }
+
+    private static ProgramVariable findProgramVariable(ClassExecutionData data, int lineNumber, String name) {
+        for(Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseCovered().entrySet()) {
+            for(ProgramVariable var : map.getValue()) {
+                if(var.getName().equals(name) && var.getLineNumber() == lineNumber) {
+                    return var;
+                }
+            }
+        }
+        return null;
     }
 }

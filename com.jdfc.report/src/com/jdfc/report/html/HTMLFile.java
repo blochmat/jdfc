@@ -13,13 +13,17 @@ public class HTMLFile {
     private final String main;
     private String head;
     private String body;
-    List<HTMLElement> content;
+    private List<HTMLElement> content;
 
     public HTMLFile(){
-        this.main = "<!DOCTYPE html><html>%s%s</html>";
+        this.main = "<!DOCTYPE html><html>%s</br>%s</html>";
         this.head = "<head>%s</head>";
         this.body = "<body>%s</body>";
         content = new ArrayList<>();
+    }
+
+    public List<HTMLElement> getContent() {
+        return content;
     }
 
     public String render(){
@@ -38,11 +42,6 @@ public class HTMLFile {
     public void fillHeader(String str){
         // mainly style and title
         head = String.format(head, str);
-    }
-
-    public void fillBody(String str) {
-        // contents are tables or something
-        body = String.format(body, str);
     }
 
     public void addTable(List<String> pColumns, Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
