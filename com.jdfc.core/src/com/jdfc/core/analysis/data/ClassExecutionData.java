@@ -6,6 +6,7 @@ import com.jdfc.core.analysis.cfg.CFGNode;
 import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
 
+import java.nio.file.FileSystemLoopException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ public class ClassExecutionData extends ExecutionData {
     private Map<String, CFG> methodCFGs;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
+    private Map<String, Set<ProgramVariable>> defUseUncovered;
     private final String relativePath;
 
     public ClassExecutionData(String pRelativePath) {
@@ -44,6 +46,10 @@ public class ClassExecutionData extends ExecutionData {
 
     public Map<String, Set<ProgramVariable>> getDefUseCovered() {
         return defUseCovered;
+    }
+
+    public Map<String, Set<ProgramVariable>> getDefUseUncovered() {
+        return defUseUncovered;
     }
 
     public String getRelativePath(){return relativePath;}
@@ -87,16 +93,28 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void computeCoverage() {
+        defUseUncovered = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
             if (entry.getValue().size() == 0) {
                 continue;
             }
-            int covered = 0;
             String methodName = entry.getKey();
+            int covered = 0;
+            defUseUncovered.put(methodName, new HashSet<>());
             for (DefUsePair pair : entry.getValue()) {
-                if (defUseCovered.get(methodName).contains(pair.getDefinition())
-                        && defUseCovered.get(methodName).contains(pair.getUsage())) {
+                ProgramVariable def = pair.getDefinition();
+                ProgramVariable use = pair.getUsage();
+                boolean defCovered = defUseCovered.get(methodName).contains(def);
+                boolean useCovered = defUseCovered.get(methodName).contains(use);
+                if (defCovered && useCovered) {
                     covered += 1;
+                } else {
+                    if (!defCovered) {
+                        defUseUncovered.get(methodName).add(def);
+                    }
+                    if (!useCovered) {
+                        defUseUncovered.get(methodName).add(use);
+                    }
                 }
             }
             this.setCovered(covered);

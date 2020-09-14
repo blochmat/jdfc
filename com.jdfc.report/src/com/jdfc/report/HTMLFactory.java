@@ -100,7 +100,6 @@ public class HTMLFactory {
             Writer writer = new FileWriter(detailView);
             writer.write(html.render());
             writer.close();
-            System.out.println(new PrettyPrintMap<String, Set<ProgramVariable>>(((ClassExecutionData) pData).getDefUseCovered()));
         } else {
             throw new IllegalArgumentException("Class Overview can not be created from data.");
         }
@@ -111,7 +110,6 @@ public class HTMLFactory {
         String[] words = lineString.split("\\W+");
         boolean haveEqualLength = words.length == specialChars.length;
         StringBuilder builder = new StringBuilder();
-
         if (words.length == 0) {
             for (String spChar : specialChars) {
                 spChar = spChar.replace(" ",  "&nbsp;");
@@ -123,9 +121,14 @@ public class HTMLFactory {
             }
             for (int i = 0; i < words.length; i++) {
                 String str = words[i];
-                ProgramVariable programVariable = findCovered(data, lineNumber, str);
-                if (programVariable != null) {
-                    words[i] = String.format("<span style=\"color:blue\">%s</span>", str);
+                ProgramVariable coveredVariable = findCovered(data, lineNumber, str);
+                if (coveredVariable != null) {
+                    words[i] = String.format("<span style=\"color:green\">%s</span>", str);
+                }
+
+                ProgramVariable uncoveredVariable = findUncovered(data, lineNumber, str);
+                if (uncoveredVariable != null) {
+                    words[i] = String.format("<span style=\"color:red\">%s</span>", str);
                 }
 
                 if (haveEqualLength) {
@@ -138,6 +141,21 @@ public class HTMLFactory {
             }
         }
         return builder.toString();
+    }
+
+    private static ProgramVariable findUncovered(ClassExecutionData data, int lineNumber, String name) {
+        if (name.equals("a")) {
+            System.out.println(lineNumber + " " + name);
+            System.out.println(new PrettyPrintMap<>(data.getDefUseUncovered()));
+        }
+        for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseUncovered().entrySet()) {
+            for (ProgramVariable var: map.getValue()) {
+                if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {
+                    return var;
+                }
+            }
+        }
+        return null;
     }
 
     private static ProgramVariable findCovered(ClassExecutionData data, int lineNumber, String name) {
