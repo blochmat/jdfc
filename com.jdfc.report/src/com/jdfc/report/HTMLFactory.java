@@ -2,10 +2,10 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.report.html.HTMLElement;
 import com.jdfc.report.html.HTMLFile;
 import com.jdfc.report.html.Linebreak;
 import com.jdfc.report.html.Span;
@@ -90,7 +90,6 @@ public class HTMLFactory {
                 lineCounter += 1;
                 if (!current.equals("")) {
                     // TODO: Create span for variables and color them with style class
-                    current = current.replace(" ","&nbsp;");
                     current = findAndMarkVariables(lineCounter, current, (ClassExecutionData) pData);
                     html.getContent().add(new Span(current));
                 }
@@ -101,31 +100,50 @@ public class HTMLFactory {
             Writer writer = new FileWriter(detailView);
             writer.write(html.render());
             writer.close();
+            System.out.println(new PrettyPrintMap<String, Set<ProgramVariable>>(((ClassExecutionData) pData).getDefUseCovered()));
         } else {
             throw new IllegalArgumentException("Class Overview can not be created from data.");
         }
     }
 
     private static String findAndMarkVariables(int lineNumber, String lineString, ClassExecutionData data) {
+        String[] specialChars = lineString.split("\\w+\\b");
+        String[] words = lineString.split("\\W+");
+        boolean haveEqualLength = words.length == specialChars.length;
+        StringBuilder builder = new StringBuilder();
 
-        // TODO: HIER GEHTS WEITER
-        String[] stringArray = lineString.split(" ");
+        if (words.length == 0) {
+            for (String spChar : specialChars) {
+                spChar = spChar.replace(" ",  "&nbsp;");
+                builder.append(spChar);
+            }
+        } else {
+            if (!haveEqualLength) {
+                builder.append(specialChars[0]);
+            }
+            for (int i = 0; i < words.length; i++) {
+                String str = words[i];
+                ProgramVariable programVariable = findCovered(data, lineNumber, str);
+                if (programVariable != null) {
+                    words[i] = String.format("<span style=\"color:blue\">%s</span>", str);
+                }
 
-        for(int i = 0; i < stringArray.length; i++) {
-            String str = stringArray[i];
-            System.out.printf("%s %s\n", str, lineNumber);
-            ProgramVariable programVariable = findProgramVariable(data, lineNumber, str);
-            if (programVariable != null) {
-                stringArray[i] = String.format("<span style=\"color:blue\">%s</span>", str);
+                if (haveEqualLength) {
+                    specialChars[i] = specialChars[i].replace(" ", "&nbsp;");
+                    builder.append(words[i]).append(specialChars[i]);
+                } else {
+                    specialChars[i + 1] = specialChars[i + 1].replace(" ", "&nbsp;");
+                    builder.append(words[i]).append(specialChars[i + 1]);
+                }
             }
         }
-        return String.join("&nbsp;", stringArray);
+        return builder.toString();
     }
 
-    private static ProgramVariable findProgramVariable(ClassExecutionData data, int lineNumber, String name) {
-        for(Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseCovered().entrySet()) {
-            for(ProgramVariable var : map.getValue()) {
-                if(var.getName().equals(name) && var.getLineNumber() == lineNumber) {
+    private static ProgramVariable findCovered(ClassExecutionData data, int lineNumber, String name) {
+        for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseCovered().entrySet()) {
+            for (ProgramVariable var : map.getValue()) {
+                if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {
                     return var;
                 }
             }

@@ -81,6 +81,8 @@ public class CFGCreatorVisitor extends ClassVisitor {
         private int currentLineNumber = -1;
         private AbstractInsnNode currentNode = null;
         private int currentInstructionIndex = -1;
+        private int firstLine = -1;
+        private boolean isFirstLineSet = false;
 
         public MethodCFGCreatorVisitor(MethodVisitor pMethodVisitor,
                                        String pName,
@@ -103,6 +105,10 @@ public class CFGCreatorVisitor extends ClassVisitor {
 
         @Override
         public void visitLineNumber(int line, Label start) {
+            if(!isFirstLineSet) {
+                firstLine = line-1;
+                isFirstLineSet = true;
+            }
             System.out.println("visitLineNumber");
             currentLineNumber = line;
             super.visitLineNumber(line, start);
@@ -343,7 +349,7 @@ public class CFGCreatorVisitor extends ClassVisitor {
                     final LocalVariable localVariable = parameterVariable.get();
                     final ProgramVariable variable =
                             ProgramVariable.create(
-                                    localVariable.getName(), localVariable.getDescriptor(), Integer.MIN_VALUE, Integer.MIN_VALUE);
+                                    localVariable.getName(), localVariable.getDescriptor(), Integer.MIN_VALUE, firstLine);
                     parameters.add(variable);
                 }
             }
