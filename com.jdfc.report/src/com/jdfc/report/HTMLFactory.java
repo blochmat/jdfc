@@ -9,6 +9,8 @@ import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.HTMLFile;
 import com.jdfc.report.html.Linebreak;
 import com.jdfc.report.html.Span;
+import com.jdfc.report.html.table.Row;
+import com.jdfc.report.html.table.Table;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -85,17 +87,17 @@ public class HTMLFactory {
             HTMLFile html = new HTMLFile();
             html.fillHeader("This is the header");
             int lineCounter = 0;
+            Table table = new Table(null);
             while (scanner.hasNextLine()) {
                 String current = scanner.nextLine();
                 lineCounter += 1;
-                if (!current.equals("")) {
-                    // TODO: Create span for variables and color them with style class
-                    current = findAndMarkVariables(lineCounter, current, (ClassExecutionData) pData);
-                    html.getContent().add(new Span(current));
-                }
-                html.getContent().add(new Linebreak());
+                // TODO: Put every line in a separate table row to be able to display line numbers (see Github)
+                current = findAndMarkVariables(lineCounter, current, (ClassExecutionData) pData);
+                String[] content = {String.valueOf(lineCounter), current};
+                table.addRow(new Row(content));
             }
             scanner.close();
+            html.addTable(table);
 
             Writer writer = new FileWriter(detailView);
             writer.write(html.render());
@@ -112,7 +114,7 @@ public class HTMLFactory {
         StringBuilder builder = new StringBuilder();
         if (words.length == 0) {
             for (String spChar : specialChars) {
-                spChar = spChar.replace(" ",  "&nbsp;");
+                spChar = spChar.replace(" ", "&nbsp;");
                 builder.append(spChar);
             }
         } else {
@@ -149,7 +151,7 @@ public class HTMLFactory {
             System.out.println(new PrettyPrintMap<>(data.getDefUseUncovered()));
         }
         for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseUncovered().entrySet()) {
-            for (ProgramVariable var: map.getValue()) {
+            for (ProgramVariable var : map.getValue()) {
                 if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {
                     return var;
                 }

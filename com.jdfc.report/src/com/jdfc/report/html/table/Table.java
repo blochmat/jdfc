@@ -22,13 +22,16 @@ public class Table extends HTMLElement {
     }
 
     private String createTableHead() {
-        String headTag = "<thead>%s</thead>";
-        String render = "";
-        for(String str : columns) {
-            Cell cell = new Cell(str);
-            render = render.concat(cell.render());
+        if (columns != null) {
+            String headTag = "<thead>%s</thead>";
+            String render = "";
+            for(String str : columns) {
+                Cell cell = new Cell(str);
+                render = render.concat(cell.render());
+            }
+            return String.format(headTag, render);
         }
-        return String.format(headTag, render);
+        return "";
     }
 
     private String createTableBody(){
@@ -38,6 +41,10 @@ public class Table extends HTMLElement {
             render = render.concat(row.render());
         }
         return String.format(bodyTag, render);
+    }
+
+    public void addRow(Row row){
+        rows.add(row);
     }
 
     public void addRow(String element, ExecutionData pData){
@@ -59,10 +66,14 @@ public class Table extends HTMLElement {
     @Override
     public String render(){
         String head = createTableHead();
-        String foot = this.foot.render();
         String body = createTableBody();
-
+        String renderedFoot;
+        if (foot != null) {
+            renderedFoot = this.foot.render();
+        } else {
+            renderedFoot = "";
+        }
         return String.format(tag,
-                String.format("%s%s%s", head, foot, body));
+                String.format("%s%s%s", head, renderedFoot, body));
     }
 }

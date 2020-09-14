@@ -44,6 +44,10 @@ public class HTMLFile {
         head = String.format(head, str);
     }
 
+    public void addTable(Table table){
+        content.add(table);
+    }
+
     public void addTable(List<String> pColumns, Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         Table table = new Table(pColumns);
         ExecutionDataNode<ExecutionData> parent = null;

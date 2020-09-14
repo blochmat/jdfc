@@ -4,6 +4,7 @@ import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.report.html.HTMLElement;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Row extends HTMLElement {
@@ -26,6 +27,11 @@ public class Row extends HTMLElement {
         entries.add(String.valueOf(pTotal));
         entries.add(String.valueOf(pCovered));
         entries.add(String.valueOf(pMissed));
+    }
+
+    public Row(String[] pEntries) {
+        entries = new ArrayList<>();
+        entries.addAll(Arrays.asList(pEntries));
     }
 
     @Override
