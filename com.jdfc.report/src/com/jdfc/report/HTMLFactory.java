@@ -2,12 +2,9 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
-import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.HTMLFile;
-import com.jdfc.report.html.Linebreak;
 import com.jdfc.report.html.Span;
 import com.jdfc.report.html.table.Row;
 import com.jdfc.report.html.table.Table;
@@ -28,7 +25,7 @@ public class HTMLFactory {
         String indexPath = String.format("%s/index.html", pWorkDir);
         File index = new File(indexPath);
         Writer writer = new FileWriter(index);
-        writer.write(createIndexHTML(pClassFileDataMap));
+        writer.write(createIndexHTML(pClassFileDataMap, pWorkDir));
         writer.close();
         if (!isRoot) {
             // TODO: Create indexSource files
@@ -38,13 +35,12 @@ public class HTMLFactory {
         }
     }
 
-    private static String createIndexHTML(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
-        HTMLFile html = new HTMLFile();
+    private static String createIndexHTML(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap, String pWorkDir) {
+        String[] split = pWorkDir.split("/");
+        String title = split[split.length-1];
 
-        // TODO: Add styles and meta information
-        html.fillHeader("This is the header");
-
-        // TODO: Implement HTML creation
+        HTMLFile html = new HTMLFile(title);
+        html.createHeader();
         List<String> columns = new ArrayList<>(Arrays.asList("Element", "Method Count", "Total", "Covered", "Missed"));
         html.addTable(columns, pClassFileDataMap);
         return html.render();
@@ -55,7 +51,7 @@ public class HTMLFactory {
             String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
             File classOverview = new File(filePath);
             Writer writer = new FileWriter(classOverview);
-            String content = createOverviewHTML((ClassExecutionData) pData);
+            String content = createClassOverviewHTML((ClassExecutionData) pData, pClassName);
             if (content != null) {
                 writer.write(content);
             }
@@ -65,13 +61,13 @@ public class HTMLFactory {
         }
     }
 
-    private static String createOverviewHTML(ClassExecutionData pData) {
-        HTMLFile html = new HTMLFile();
+    private static String createClassOverviewHTML(ClassExecutionData pData, String pClassFileName) {
+        HTMLFile html = new HTMLFile(pClassFileName);
 
-        html.fillHeader("This is the header");
+        html.createHeader();
 
         List<String> columns = new ArrayList<>(Arrays.asList("Element", "Total", "Covered", "Missed"));
-        html.addTable(columns, pData);
+        html.addTable(columns, pData, pClassFileName);
         return html.render();
     }
 
@@ -81,20 +77,22 @@ public class HTMLFactory {
             String filePath = String.format("%s/%s.java.html", pWorkDir, pClassName);
             File detailView = new File(filePath);
 
-            String className = String.format("%s/%s.java", sourceDir, ((ClassExecutionData) pData).getRelativePath());
-            File classFile = new File(className);
+            String fileName = String.format("%s/%s.java", sourceDir, ((ClassExecutionData) pData).getRelativePath());
+            File classFile = new File(fileName);
             Scanner scanner = new Scanner(classFile);
-            HTMLFile html = new HTMLFile();
-            html.fillHeader("This is the header");
+            HTMLFile html = new HTMLFile(pClassName);
+
+            // TODO: Create/Store style files and create links in header
+            html.createHeader();
             int lineCounter = 0;
             Table table = new Table(null);
             while (scanner.hasNextLine()) {
                 String current = scanner.nextLine();
                 lineCounter += 1;
-                // TODO: Put every line in a separate table row to be able to display line numbers (see Github)
                 current = findAndMarkVariables(lineCounter, current, (ClassExecutionData) pData);
-                String[] content = {String.valueOf(lineCounter), current};
-                table.addRow(new Row(content));
+                Span span = new Span(current, lineCounter);
+                String[] content = {String.valueOf(lineCounter), span.render()};
+                table.addRow(new Row(content, null));
             }
             scanner.close();
             html.addTable(table);
@@ -146,10 +144,6 @@ public class HTMLFactory {
     }
 
     private static ProgramVariable findUncovered(ClassExecutionData data, int lineNumber, String name) {
-        if (name.equals("a")) {
-            System.out.println(lineNumber + " " + name);
-            System.out.println(new PrettyPrintMap<>(data.getDefUseUncovered()));
-        }
         for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseUncovered().entrySet()) {
             for (ProgramVariable var : map.getValue()) {
                 if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {

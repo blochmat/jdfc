@@ -60,7 +60,14 @@ public class ReportMojo extends AbstractMavenReport {
 
         // TODO: REMOVE DEBUG
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
-        final String exportDir = String.format("%s/jdfr-report", target);
+        final String resourcesDir = String.format("%s/jdfc-resources", target);
+        try {
+            ReportGenerator.createReportCSS(resourcesDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final String exportDir = String.format("%s/jdfc-report", target);
         ReportGenerator.createReport(exportDir, source);
     }
 
@@ -81,14 +88,6 @@ public class ReportMojo extends AbstractMavenReport {
             String str = String.format("%s%s %s %s %s %s", strip,
                     entry.getKey(), data.getMethodCount(), data.getTotal(), data.getCovered(), data.getMissed());
             System.out.println(str);
-//            if (data instanceof ClassExecutionData) {
-//                PrettyPrintMap<String, List<DefUsePair>> defUse =
-//                        new PrettyPrintMap<>(((ClassExecutionData) data).getDefUsePairs());
-//                PrettyPrintMap<String, Set<ProgramVariable>> covered =
-//                        new PrettyPrintMap<>(((ClassExecutionData) data).getDefUseCovered());
-//                System.out.println(strip + defUse.toString());
-//                System.out.println(strip + covered);
-//            }
             debugPrintChildren(entry.getValue(), indent + 1);
         }
     }

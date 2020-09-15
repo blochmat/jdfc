@@ -2,7 +2,6 @@ package com.jdfc.report.html.table;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.data.PackageExecutionData;
 import com.jdfc.report.html.HTMLElement;
 
 import java.util.ArrayList;
@@ -21,11 +20,11 @@ public class Table extends HTMLElement {
         rows = new ArrayList<>();
     }
 
-    private String createTableHead() {
+    private String createHead() {
         if (columns != null) {
             String headTag = "<thead>%s</thead>";
             String render = "";
-            for(String str : columns) {
+            for (String str : columns) {
                 Cell cell = new Cell(str);
                 render = render.concat(cell.render());
             }
@@ -34,39 +33,47 @@ public class Table extends HTMLElement {
         return "";
     }
 
-    private String createTableBody(){
+    private String createBody() {
         String bodyTag = "<tbody>%s</tbody>";
         String render = "";
-        for(Row row : rows) {
+        for (Row row : rows) {
             render = render.concat(row.render());
         }
         return String.format(bodyTag, render);
     }
 
-    public void addRow(Row row){
+    public void addRow(Row row) {
         rows.add(row);
     }
 
-    public void addRow(String element, ExecutionData pData){
-        rows.add(new Row(element, pData));
+    public void addRow(String[] entries, String link) {
+        rows.add(new Row(entries, link));
     }
 
-    public void addRow(String pElement, int pTotal, int pCovered, int pMissed) {
-        rows.add(new Row(pElement, pTotal, pCovered, pMissed));
-    }
-
-    public void addTableFoot(ExecutionData pData) {
+    public void createFoot(ExecutionData pData) {
+        String[] entries;
         if (pData instanceof ClassExecutionData) {
-            foot = new Foot((ClassExecutionData) pData);
+            entries = new String[]
+                    {"Total",
+                            String.valueOf(pData.getTotal()),
+                            String.valueOf(pData.getCovered()),
+                            String.valueOf(pData.getMissed())};
         } else {
-            foot = new Foot((PackageExecutionData) pData);
+            entries = new String[]
+                    {"Total",
+                            String.valueOf(pData.getMethodCount()),
+                            String.valueOf(pData.getTotal()),
+                            String.valueOf(pData.getCovered()),
+                            String.valueOf(pData.getMissed())
+                    };
         }
+        foot = new Foot(entries);
     }
 
     @Override
-    public String render(){
-        String head = createTableHead();
-        String body = createTableBody();
+    public String render() {
+        String head = createHead();
+        String body = createBody();
         String renderedFoot;
         if (foot != null) {
             renderedFoot = this.foot.render();

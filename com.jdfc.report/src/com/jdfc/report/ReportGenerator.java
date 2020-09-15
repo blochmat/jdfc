@@ -4,8 +4,7 @@ import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.CoverageDataStore;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -13,7 +12,6 @@ import java.util.stream.Stream;
 
 public class ReportGenerator {
 
-    // TODO: Create HTML Report
     public static void createReport(String exportDir, String sourceDir) {
         File jdfcReportDir = new File(exportDir);
         if (!jdfcReportDir.exists()) {
@@ -45,7 +43,7 @@ public class ReportGenerator {
                 classExecutionDataMap.put(entry.getKey(), entry.getValue());
                 packageExecutionDataMap.put(pPathName, pNode);
 
-                if(outputFolder.mkdir() || outputFolder.exists()){
+                if (outputFolder.mkdir() || outputFolder.exists()) {
                     // method overview
                     HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir);
 
@@ -78,5 +76,123 @@ public class ReportGenerator {
                         Map.Entry::getKey,
                         Map.Entry::getValue
                 ));
+    }
+
+    // TODO: Change resource file creation
+    public static void createReportCSS(String pOutputDir) throws IOException {
+        File outputDir = new File(pOutputDir);
+        outputDir.mkdir();
+        File target = new File(pOutputDir + "/report.css");
+        FileWriter writer = new FileWriter(target);
+        writer.write(".style-class {\n" +
+                "    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;\n" +
+                "}");
+        writer.write("h1 {\n" +
+                "  font-weight:bold;\n" +
+                "  font-size:18pt;\n" +
+                "}");
+        writer.write("table.coverage {\n" +
+                "  empty-cells:show;\n" +
+                "  border-collapse:collapse;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead {\n" +
+                "  background-color:#e0e0e0;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead td {\n" +
+                "  white-space:nowrap;\n" +
+                "  padding:2px 14px 0px 6px;\n" +
+                "  border-bottom:#b0b0b0 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead td.bar {\n" +
+                "  border-left:#cccccc 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead td.ctr1 {\n" +
+                "  text-align:right;\n" +
+                "  border-left:#cccccc 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead td.ctr2 {\n" +
+                "  text-align:right;\n" +
+                "  padding-left:2px;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead td.sortable {\n" +
+                "  cursor:pointer;\n" +
+                "  background-image:url(sort.gif);\n" +
+                "  background-position:right center;\n" +
+                "  background-repeat:no-repeat;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead td.up {\n" +
+                "  background-image:url(up.gif);\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage thead td.down {\n" +
+                "  background-image:url(down.gif);\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tbody td {\n" +
+                "  white-space:nowrap;\n" +
+                "  padding:2px 6px 2px 6px;\n" +
+                "  border-bottom:#d6d3ce 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tbody tr:hover {\n" +
+                "  background: #f0f0d0 !important;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tbody td.bar {\n" +
+                "  border-left:#e8e8e8 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tbody td.ctr1 {\n" +
+                "  text-align:right;\n" +
+                "  padding-right:14px;\n" +
+                "  border-left:#e8e8e8 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tbody td.ctr2 {\n" +
+                "  text-align:right;\n" +
+                "  padding-right:14px;\n" +
+                "  padding-left:2px;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tfoot td {\n" +
+                "  white-space:nowrap;\n" +
+                "  padding:2px 6px 2px 6px;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tfoot td.bar {\n" +
+                "  border-left:#e8e8e8 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tfoot td.ctr1 {\n" +
+                "  text-align:right;\n" +
+                "  padding-right:14px;\n" +
+                "  border-left:#e8e8e8 1px solid;\n" +
+                "}\n" +
+                "\n" +
+                "table.coverage tfoot td.ctr2 {\n" +
+                "  text-align:right;\n" +
+                "  padding-right:14px;\n" +
+                "  padding-left:2px;\n" +
+                "}\n" +
+                "\n" +
+                ".footer {\n" +
+                "  margin-top:20px;\n" +
+                "  border-top:#d6d3ce 1px solid;\n" +
+                "  padding-top:2px;\n" +
+                "  font-size:8pt;\n" +
+                "  color:#a0a0a0;\n" +
+                "}\n" +
+                "\n" +
+                ".footer a {\n" +
+                "  color:#a0a0a0;\n" +
+                "}");
+        writer.close();
     }
 }

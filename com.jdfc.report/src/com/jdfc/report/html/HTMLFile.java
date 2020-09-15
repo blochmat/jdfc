@@ -10,66 +10,86 @@ import java.util.*;
 
 public class HTMLFile {
 
-    private final String main;
+    private final String title;
+    private final String HMTLContainer;
     private String head;
     private String body;
-    private List<HTMLElement> content;
+    private List<HTMLElement> contentList;
 
-    public HTMLFile(){
-        this.main = "<!DOCTYPE html><html>%s</br>%s</html>";
+    public HTMLFile(String title){
+        this.title = title;
+        this.HMTLContainer = "<!DOCTYPE html><html>%s</br>%s</html>";
         this.head = "<head>%s</head>";
         this.body = "<body>%s</body>";
-        content = new ArrayList<>();
+        contentList = new ArrayList<>();
     }
 
-    public List<HTMLElement> getContent() {
-        return content;
+    public List<HTMLElement> getContentList() {
+        return contentList;
     }
 
     public String render(){
         body = renderBody();
-        return String.format(main, head, body);
+        return String.format(HMTLContainer, head, body);
     }
 
     private String renderBody() {
-        String render = "";
-        for(HTMLElement el : content){
+        String render = String.format("<h1 class=\"style-class\">%s</h1>", title);
+        for(HTMLElement el : contentList){
             render = render.concat(el.render());
         }
         return String.format(body, render);
     }
 
-    public void fillHeader(String str){
+    public void createHeader(){
         // mainly style and title
-        head = String.format(head, str);
+        String linkToResource ="<link rel=\"stylesheet\" href=\"../../jdfc-resources/report.css\" type=\"text/css\"/>";
+        String title = String.format("<title>%s.java</title>", this.title);
+        String content = linkToResource.concat(title);
+        head = String.format(head, content);
     }
 
     public void addTable(Table table){
-        content.add(table);
+        contentList.add(table);
     }
 
+    // Package and Class Tables Index
     public void addTable(List<String> pColumns, Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         Table table = new Table(pColumns);
         ExecutionDataNode<ExecutionData> parent = null;
         for(Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : pClassFileDataMap.entrySet()) {
             if (parent == null) {
                 parent = entry.getValue().getParent();
-                table.addTableFoot(parent.getData());
+                table.createFoot(parent.getData());
             }
-            table.addRow(entry.getKey(), entry.getValue().getData());
+            ExecutionData data = entry.getValue().getData();
+            String[] rowEntries =
+                    {entry.getKey(), String.valueOf(data.getMethodCount()), String.valueOf(data.getTotal()),
+                            String.valueOf(data.getCovered()), String.valueOf(data.getMissed())};
+            if (data instanceof ClassExecutionData) {
+                String link = entry.getKey()+".html";
+                table.addRow(rowEntries, link);
+            } else {
+                table.addRow(rowEntries, entry.getKey());
+            }
+
         }
-        content.add(table);
+        contentList.add(table);
     }
 
-    public void addTable(List<String> pColumns, ClassExecutionData pData) {
+    // MethodTable
+    public void addTable(List<String> pColumns, ClassExecutionData pData, String classFileName) {
         Table table = new Table(pColumns);
         for(Map.Entry<String, List<DefUsePair>> entry: pData.getDefUsePairs().entrySet()){
             int total = entry.getValue().size();
             int covered = pData.computeCoverageForMethod(entry.getKey());
             int missed = total - covered;
-            table.addRow(entry.getKey(), total, covered, missed);
+            String[] entries =
+                    {entry.getKey(), String.valueOf(total), String.valueOf(covered), String.valueOf(missed)};
+            String link = String.format("%s.java.html#L%s", classFileName, pData.getMethodPositionMap().get(entry.getKey()));
+            table.addRow(entries, link);
         }
-        table.addTableFoot(pData);
-        content.add(table);
+        table.createFoot(pData);
+        contentList.add(table);
     }
 }
