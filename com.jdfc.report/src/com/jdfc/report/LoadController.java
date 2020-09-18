@@ -5,6 +5,7 @@ import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.utils.Files;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.cfg.DefUsePair;
+import com.jdfc.core.analysis.cfg.InstanceVariable;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.w3c.dom.Document;
@@ -26,8 +27,11 @@ public class LoadController {
         File dir = new File(workDir);
         Path baseDir = dir.toPath();
         String fileEnding = ".xml";
+
+        // Loading data node structure
         CoverageDataStore.getInstance()
                 .addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), baseDir, fileEnding);
+        // Load simple xml files
         List<File> xmlFiles = Files.loadFilesFromDirRecursive(dir, ".xml");
 
         for (File xml : xmlFiles) {
@@ -47,6 +51,8 @@ public class LoadController {
                 e.printStackTrace();
             }
         }
+
+
     }
 
     private static void examineFileRecursive(Node pXMLNode, ClassExecutionData classExecutionData) {
@@ -55,15 +61,38 @@ public class LoadController {
             Node node = nodeList.item(i);
             NamedNodeMap attr = node.getAttributes();
             if (attr != null) {
-                if (node.getNodeName().equals("method")) {
+                if (node.getNodeName().equals("instanceVariables")) {
+                    NodeList instanceVariables = node.getChildNodes();
+                    getInstanceVariableData(instanceVariables, classExecutionData);
+                } else if (node.getNodeName().equals("method")) {
+                    // Number of iterations over method labels == methodCount
                     classExecutionData.setMethodCount(classExecutionData.getMethodCount() + 1);
                     examineFileRecursive(node, classExecutionData);
                 } else {
+                    // DefUsePair or DefUseCovered list
                     String methodName = node.getParentNode().getAttributes().getNamedItem("name").getNodeValue();
                     NodeList defUsePairs = node.getChildNodes();
                     String listName = node.getNodeName();
                     collectCoverageData(methodName, defUsePairs, listName, classExecutionData);
                 }
+            }
+        }
+    }
+
+    private static void getInstanceVariableData(NodeList pInstanceVariables, ClassExecutionData classExecutionData) {
+        for(int i = 0; i < pInstanceVariables.getLength(); i++) {
+            Node instanceVariable = pInstanceVariables.item(i);
+            NamedNodeMap attr = instanceVariable.getAttributes();
+            if (attr != null) {
+                String owner = attr.getNamedItem("owner").getNodeValue();
+                int access = Integer.parseInt(attr.getNamedItem("access").getNodeValue());
+                String name = attr.getNamedItem("name").getNodeValue();
+                String descriptor = attr.getNamedItem("descriptor").getNodeValue();
+                String signature = attr.getNamedItem("signature").getNodeValue();
+                int lineNumber = Integer.parseInt(attr.getNamedItem("lineNumber").getNodeValue());
+
+                InstanceVariable newVar = new InstanceVariable(owner, access, name, descriptor, signature, lineNumber);
+                classExecutionData.getInstanceVariables().add(newVar);
             }
         }
     }
@@ -76,14 +105,15 @@ public class LoadController {
                     Node pair = nodeList.item(j);
                     NamedNodeMap pairAttr = pair.getAttributes();
                     if (pairAttr != null) {
+                        String owner = pairAttr.getNamedItem("owner").getNodeValue();
                         String name = pairAttr.getNamedItem("name").getNodeValue();
                         String type = pairAttr.getNamedItem("type").getNodeValue();
                         int definitionIndex = Integer.parseInt(pairAttr.getNamedItem("definitionIndex").getNodeValue());
                         int definitionLineNumber = Integer.parseInt(pairAttr.getNamedItem("definitionLineNumber").getNodeValue());
                         int usageIndex = Integer.parseInt(pairAttr.getNamedItem("usageIndex").getNodeValue());
                         int usageLineNumber = Integer.parseInt(pairAttr.getNamedItem("usageLineNumber").getNodeValue());
-                        ProgramVariable definition = new ProgramVariable(name, type, definitionIndex, definitionLineNumber);
-                        ProgramVariable usage = new ProgramVariable(name, type, usageIndex, usageLineNumber);
+                        ProgramVariable definition = new ProgramVariable(owner, name, type, definitionIndex, definitionLineNumber);
+                        ProgramVariable usage = new ProgramVariable(owner, name, type, usageIndex, usageLineNumber);
                         DefUsePair newPair = new DefUsePair(definition, usage);
                         classExecutionData.getDefUsePairs().get(methodName).add(newPair);
                     }
@@ -96,11 +126,12 @@ public class LoadController {
                     Node pair = nodeList.item(j);
                     NamedNodeMap pairAttr = pair.getAttributes();
                     if (pairAttr != null) {
+                        String owner = pairAttr.getNamedItem("owner").getNodeValue();
                         String name = pairAttr.getNamedItem("name").getNodeValue();
                         String type = pairAttr.getNamedItem("type").getNodeValue();
                         int instructionIndex = Integer.parseInt(pairAttr.getNamedItem("instructionIndex").getNodeValue());
                         int lineNumber = Integer.parseInt(pairAttr.getNamedItem("lineNumber").getNodeValue());
-                        ProgramVariable programVariable = new ProgramVariable(name, type, instructionIndex, lineNumber);
+                        ProgramVariable programVariable = new ProgramVariable(owner, name, type, instructionIndex, lineNumber);
                         classExecutionData.getDefUseCovered().get(methodName).add(programVariable);
                     }
                 }

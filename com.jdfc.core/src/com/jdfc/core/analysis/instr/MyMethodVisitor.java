@@ -13,7 +13,7 @@ public class MyMethodVisitor extends MethodVisitor {
     final MethodNode methodNode;
     AbstractInsnNode currentNode = null;
     int currentLineNumber = -1;
-    int currentInstructionIndex = Integer.MIN_VALUE;
+    int currentInstructionIndex = -1;
 
     public MyMethodVisitor(MethodVisitor pMethodVisitor, String pClassName, String pMethodName, String pMethodDesc, MethodNode pMethodNode) {
         super(Opcodes.ASM6, pMethodVisitor);
@@ -41,6 +41,7 @@ public class MyMethodVisitor extends MethodVisitor {
         System.out.println("visitIincInsn");
         updateCurrentNode();
         mv.visitIincInsn(var, increment);
+        insertLocalVariableEntryCreation(var);
     }
 
     @Override
@@ -68,6 +69,7 @@ public class MyMethodVisitor extends MethodVisitor {
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         System.out.println("visitFieldInsn");
         updateCurrentNode();
+        insertInstanceVariableEntryCreation(owner, name, descriptor);
         mv.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
@@ -125,6 +127,10 @@ public class MyMethodVisitor extends MethodVisitor {
         System.out.println("visitVarInsn");
         updateCurrentNode();
         mv.visitVarInsn(opcode, var);
+        insertLocalVariableEntryCreation(var);
+    }
+
+    private void insertLocalVariableEntryCreation(final int var) {
         mv.visitLdcInsn(className);
         mv.visitLdcInsn(methodName);
         mv.visitLdcInsn(methodDesc);
@@ -135,18 +141,34 @@ public class MyMethodVisitor extends MethodVisitor {
                 Opcodes.INVOKESTATIC,
                 Type.getInternalName(CFGImpl.class),
                 "addCoveredEntry",
-                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;III)V",
+                "(Ljava/lang/String;" +
+                        "Ljava/lang/String;" +
+                        "Ljava/lang/String;" +
+                        "III)V",
                 false);
     }
 
-    @Override
-    public void visitMaxs(int maxStack, int maxLocals) {
-        mv.visitMaxs(maxStack+5, maxLocals);
-    }
-
-    @Override
-    public void visitEnd() {
-        mv.visitEnd();
+    private void insertInstanceVariableEntryCreation(final String pOwner, final String pName, final String pDescriptor) {
+        mv.visitLdcInsn(className);
+        mv.visitLdcInsn(pOwner);
+        mv.visitLdcInsn(methodName);
+        mv.visitLdcInsn(methodDesc);
+        mv.visitLdcInsn(pName);
+        mv.visitLdcInsn(pDescriptor);
+        mv.visitLdcInsn(currentInstructionIndex);
+        mv.visitLdcInsn(currentLineNumber);
+        mv.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                Type.getInternalName(CFGImpl.class),
+                "addCoveredEntry",
+                "(Ljava/lang/String;" +
+                        "Ljava/lang/String;" +
+                        "Ljava/lang/String;" +
+                        "Ljava/lang/String;" +
+                        "Ljava/lang/String;" +
+                        "Ljava/lang/String;" +
+                        "II)V",
+                false);
     }
 
     // TODO: Twice (see CFGCreatorVisitor)

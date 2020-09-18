@@ -56,12 +56,15 @@ public class ReportMojo extends AbstractMavenReport {
         final String target = getProject().getBuild().getDirectory();
         final String source = getProject().getBuild().getSourceDirectory();
         final String importDir = String.format("%s/jdfc", target);
+
+        // Load stored data into CoverageDataStore
         LoadController.loadDataFromXML(importDir);
 
         // TODO: REMOVE DEBUG
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
         final String resourcesDir = String.format("%s/jdfc-resources", target);
         try {
+            // TODO: Add more style or store a static file
             ReportGenerator.createReportCSS(resourcesDir);
         } catch (IOException e) {
             e.printStackTrace();

@@ -9,10 +9,7 @@ import com.jdfc.report.html.Span;
 import com.jdfc.report.html.table.Row;
 import com.jdfc.report.html.table.Table;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.*;
 
 
@@ -120,6 +117,7 @@ public class HTMLFactory {
                 builder.append(specialChars[0]);
             }
             for (int i = 0; i < words.length; i++) {
+                // TODO: mark pairs
                 String str = words[i];
                 ProgramVariable coveredVariable = findCovered(data, lineNumber, str);
                 if (coveredVariable != null) {

@@ -22,6 +22,7 @@ public class ClassInstrument {
     public byte[] instrument(final ClassReader classReader) {
         final ClassNode classNode = new ClassNode();
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+
         final Map<String, CFG> methodCFGs = CFGCreator.createCFGsForClass(classReader, classNode);
         // Create tree entry, insert method cfgs in correct class node
         CoverageDataStore.getInstance().setupClassDataNode(classReader.getClassName(), methodCFGs);

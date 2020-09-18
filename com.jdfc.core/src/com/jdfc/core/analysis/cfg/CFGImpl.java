@@ -79,32 +79,92 @@ public class CFGImpl implements CFG {
         return String.format("CFGImpl for method %s (containing %d nodes)", methodName, nodes.size());
     }
 
-    public static void addCoveredEntry(
-            String className, String methodName, String methodDesc, int varIndex, int instructionIndex, int lineNumber) {
-        String methodNameDesc = methodName.concat(": " + methodDesc);
-        ProgramVariable programVariable = prepareNewEntry(className, methodNameDesc, varIndex, instructionIndex, lineNumber);
-        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(className).getData();
+    // LocalVariables
+    public static void addCoveredEntry(final String pClassName,
+                                       final String pMethodName,
+                                       final String pMethodDesc,
+                                       final int pVarIndex,
+                                       final int pInsnIndex,
+                                       final int pLineNumber) {
+        String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
+        ProgramVariable programVariable = prepareNewEntry(pClassName, methodNameDesc, pVarIndex, pInsnIndex, pLineNumber);
+        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
         Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
         coveredList.get(methodNameDesc).add(programVariable);
         try {
-            dumpToFile(className);
+            dumpToFile(pClassName);
         } catch (ParserConfigurationException | TransformerException e) {
             e.printStackTrace();
         }
     }
 
-    static ProgramVariable prepareNewEntry(String className, String methodName, int varIndex, int instructionIndex, int lineNumber) {
-        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(className).getData();
-        assert classNodeData != null;
-        CFG cfg = classNodeData.getMethodCFGs().get(methodName);
-        LocalVariableTable table = cfg.getLocalVariableTable();
-        LocalVariable variable = findLocalVariable(table, varIndex);
-        return ProgramVariable.create(variable.getName(), variable.getDescriptor(), instructionIndex, lineNumber);
+    static ProgramVariable prepareNewEntry(final String pClassName,
+                                           final String pMethodName,
+                                           final int pVarIndex,
+                                           final int pInsnIndex,
+                                           final int pLineNumber) {
+        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
+        if(classNodeData != null) {
+            CFG cfg = classNodeData.getMethodCFGs().get(pMethodName);
+            LocalVariableTable table = cfg.getLocalVariableTable();
+            LocalVariable variable = findLocalVariable(table, pVarIndex);
+            return ProgramVariable.create(null, variable.getName(), variable.getDescriptor(), pInsnIndex, pLineNumber);
+        }
+        return null;
+    }
+
+    // InstanceVariables
+    public static void addCoveredEntry(final String pClassName,
+                                       final String pOwner,
+                                       final String pMethodName,
+                                       final String pMethodDesc,
+                                       final String pVarName,
+                                       final String pVarDesc,
+                                       final int pIndex,
+                                       final int pLineNumber) {
+        String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
+        ProgramVariable programVariable = prepareNewEntry(pClassName, pOwner, pVarName, pVarDesc, pIndex, pLineNumber);
+        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
+        Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
+        coveredList.get(methodNameDesc).add(programVariable);
+        try {
+            dumpToFile(pClassName);
+        } catch (ParserConfigurationException | TransformerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static ProgramVariable prepareNewEntry(final String pClassName,
+                                           final String pOwner,
+                                           final String pVarName,
+                                           final String pVarDesc,
+                                           final int pInstructionIndex,
+                                           final int pLineNumber) {
+        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
+        if(classNodeData != null) {
+            Set<InstanceVariable> set = classNodeData.getInstanceVariables();
+            InstanceVariable variable = findInstanceVariable(set, pOwner, pVarName, pVarDesc);
+            if (variable != null) {
+                return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(), pInstructionIndex, pLineNumber);
+            }
+        }
+        return null;
     }
 
     static LocalVariable findLocalVariable(LocalVariableTable table, int index) {
         Optional<LocalVariable> o = table.getEntry(index);
         return o.orElse(null);
+    }
+
+    static InstanceVariable findInstanceVariable(Set<InstanceVariable> pSet, String pOwner, String pVarName, String pVarDesc) {
+        for (InstanceVariable variable : pSet) {
+            if (variable.getOwner().equals(pOwner)
+                    && variable.getName().equals(pVarName)
+                    && variable.getDescriptor().equals(pVarDesc)) {
+                return variable;
+            }
+        }
+        return null;
     }
 
     // TODO: Either create own class to handle xml or figure out how to do it jacoco like
@@ -125,6 +185,19 @@ public class CFGImpl implements CFG {
         Element rootTag = doc.createElement("root");
         doc.appendChild(rootTag);
 
+        Element instanceVariablesTag = doc.createElement("instanceVariables");
+        rootTag.appendChild(instanceVariablesTag);
+        for(InstanceVariable instanceVariable : classData.getInstanceVariables()){
+            Element instanceVarTag = doc.createElement("instanceVariable");
+            instanceVarTag.setAttribute("owner", instanceVariable.getOwner());
+            instanceVarTag.setAttribute("access", String.valueOf(instanceVariable.getAccess()));
+            instanceVarTag.setAttribute("name", instanceVariable.getName());
+            instanceVarTag.setAttribute("descriptor", instanceVariable.getDescriptor());
+            instanceVarTag.setAttribute("signature", instanceVariable.getSignature());
+            instanceVarTag.setAttribute("lineNumber", String.valueOf(instanceVariable.getLineNumber()));
+            instanceVariablesTag.appendChild(instanceVarTag);
+        }
+
         for (Map.Entry<String, List<DefUsePair>> methodEntry : defUsePairs.entrySet()) {
             if (methodEntry.getValue().size() == 0) {
                 continue;
@@ -138,6 +211,7 @@ public class CFGImpl implements CFG {
 
             for (DefUsePair duPair : methodEntry.getValue()) {
                 Element defUsePairTag = doc.createElement("defUsePair");
+                defUsePairTag.setAttribute("owner", duPair.getDefinition().getOwner());
                 defUsePairTag.setAttribute("name", duPair.getDefinition().getName());
                 defUsePairTag.setAttribute("type", duPair.getDefinition().getType());
                 defUsePairTag.setAttribute("definitionIndex", Integer.toString(duPair.getDefinition().getInstructionIndex()));
@@ -154,6 +228,7 @@ public class CFGImpl implements CFG {
             if (defUseCovered.get(methodEntry.getKey()) != null) {
                 for (ProgramVariable programVariable : defUseCovered.get(methodEntry.getKey())) {
                     Element programVariableTag = doc.createElement("programVariable");
+                    programVariableTag.setAttribute("owner", programVariable.getOwner());
                     programVariableTag.setAttribute("name", programVariable.getName());
                     programVariableTag.setAttribute("type", programVariable.getType());
                     programVariableTag.setAttribute("instructionIndex",

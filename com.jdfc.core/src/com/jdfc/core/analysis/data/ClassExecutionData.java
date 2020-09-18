@@ -1,10 +1,7 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.core.analysis.cfg.CFG;
-import com.jdfc.core.analysis.cfg.CFGNode;
-import com.jdfc.core.analysis.cfg.DefUsePair;
-import com.jdfc.core.analysis.cfg.ProgramVariable;
+import com.jdfc.core.analysis.cfg.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,6 +9,7 @@ import java.util.stream.Collectors;
 public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
+    private Set<InstanceVariable> instanceVariables;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
     private Map<String, Set<ProgramVariable>> defUseUncovered;
@@ -19,7 +17,9 @@ public class ClassExecutionData extends ExecutionData {
     private final String relativePath;
 
     public ClassExecutionData(String pRelativePath) {
+        // TODO: Initialize all properties
         relativePath = pRelativePath;
+        instanceVariables = new HashSet<>();
     }
 
     /**
@@ -54,6 +54,14 @@ public class ClassExecutionData extends ExecutionData {
 
     public Map<String, Integer> getMethodPositionMap() {
         return methodPositionMap;
+    }
+
+    public Set<InstanceVariable> getInstanceVariables() {
+        return instanceVariables;
+    }
+
+    public void setInstanceVariables(Set<InstanceVariable> instanceVariables) {
+        this.instanceVariables = instanceVariables;
     }
 
     public String getRelativePath(){return relativePath;}

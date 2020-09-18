@@ -2,14 +2,16 @@ package com.jdfc.core.analysis.cfg;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.jdfc.commons.utils.PrettyPrintMap;
+import com.jdfc.core.analysis.CoverageDataStore;
+import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /** Creates {@link CFG}s for each method of a class file. */
 public class CFGCreator {
@@ -44,12 +46,23 @@ public class CFGCreator {
                 pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
 
-        final CFGLocalVariableTableVisitor localVariableTableVisitor =
-                new CFGLocalVariableTableVisitor();
+        // Get all variables
+        final CFGVariableVisitor localVariableTableVisitor =
+                new CFGVariableVisitor(pClassNode);
         pClassReader.accept(localVariableTableVisitor, 0);
+
+        // Set variables in ClassExecutionData
+        final Set<InstanceVariable> instanceVariables =
+                localVariableTableVisitor.getInstanceVariables();
+        ClassExecutionData classExecutionData =
+                (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassNode.name).getData();
+        if (classExecutionData != null) {
+            classExecutionData.setInstanceVariables(instanceVariables);
+        }
+
+        // Create method cfgs
         final Map<String, LocalVariableTable> localVariableTables =
                 localVariableTableVisitor.getLocalVariables();
-
         final Map<String, CFG> methodCFGs = Maps.newLinkedHashMap();
         final CFGCreatorVisitor cfgCreatorVisitor =
                 new CFGCreatorVisitor(methodCFGs, localVariableTables, pClassNode);

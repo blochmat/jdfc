@@ -2,16 +2,20 @@ package com.jdfc.core.analysis.cfg;
 
 import java.util.Objects;
 
-/** Represents a program variable that is identified by its name and type. */
+/**
+ * Represents a program variable that is identified by its name and type.
+ */
 public class ProgramVariable {
 
+    private final String owner;
     private final String name;
     private final String type;
     private final int instructionIndex;
     private final int lineNumber;
 
     public ProgramVariable(
-            final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
+            final String pOwner, final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
+        owner = pOwner;
         name = pName;
         type = pType;
         instructionIndex = pInstructionIndex;
@@ -19,8 +23,8 @@ public class ProgramVariable {
     }
 
     static ProgramVariable create(
-            final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
-        return new ProgramVariable(pName, pType, pInstructionIndex, pLineNumber);
+            final String pOwner, final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
+        return new ProgramVariable(pOwner, pName, pType, pInstructionIndex, pLineNumber);
     }
 
     /**
@@ -49,6 +53,10 @@ public class ProgramVariable {
         return lineNumber;
     }
 
+    public String getOwner() {
+        return owner;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -61,7 +69,8 @@ public class ProgramVariable {
             return false;
         }
         final ProgramVariable that = (ProgramVariable) pOther;
-        return Objects.equals(name, that.name)
+        return Objects.equals(owner, that.owner)
+                && Objects.equals(name, that.name)
                 && Objects.equals(type, that.type)
                 && instructionIndex == that.instructionIndex
                 && lineNumber == that.lineNumber;
@@ -72,7 +81,7 @@ public class ProgramVariable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(name, type, instructionIndex, lineNumber);
+        return Objects.hash(owner, name, type, instructionIndex, lineNumber);
     }
 
     /**
@@ -80,6 +89,7 @@ public class ProgramVariable {
      */
     @Override
     public String toString() {
-        return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d)", name, type, instructionIndex, lineNumber);
+        return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d, Owner: %s)",
+                name, type, instructionIndex, lineNumber, owner);
     }
 }
