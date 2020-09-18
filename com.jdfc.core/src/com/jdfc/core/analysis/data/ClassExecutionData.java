@@ -13,7 +13,7 @@ public class ClassExecutionData extends ExecutionData {
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
     private Map<String, Set<ProgramVariable>> defUseUncovered;
-    private Map<String, Integer> methodPositionMap;
+    private Map<String, Integer> methodStartLineMap;
     private final String relativePath;
 
     public ClassExecutionData(String pRelativePath) {
@@ -52,8 +52,8 @@ public class ClassExecutionData extends ExecutionData {
         return defUseUncovered;
     }
 
-    public Map<String, Integer> getMethodPositionMap() {
-        return methodPositionMap;
+    public Map<String, Integer> getMethodStartLineMap() {
+        return methodStartLineMap;
     }
 
     public Set<InstanceVariable> getInstanceVariables() {
@@ -106,7 +106,7 @@ public class ClassExecutionData extends ExecutionData {
 
     public void computeCoverage() {
         defUseUncovered = new HashMap<>();
-        methodPositionMap = new HashMap<>();
+        methodStartLineMap = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
             if (entry.getValue().size() == 0) {
                 continue;
@@ -114,7 +114,7 @@ public class ClassExecutionData extends ExecutionData {
             String methodName = entry.getKey();
             int covered = 0;
             defUseUncovered.put(methodName, new HashSet<>());
-            methodPositionMap.put(methodName, Integer.MAX_VALUE);
+            methodStartLineMap.put(methodName, Integer.MAX_VALUE);
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
@@ -130,8 +130,8 @@ public class ClassExecutionData extends ExecutionData {
                         defUseUncovered.get(methodName).add(use);
                     }
                 }
-                if(methodPositionMap.get(methodName) > def.getLineNumber()){
-                    methodPositionMap.put(methodName, def.getLineNumber());
+                if(methodStartLineMap.get(methodName) > def.getLineNumber()){
+                    methodStartLineMap.put(methodName, def.getLineNumber());
                 }
             }
             this.setCovered(covered);

@@ -2,6 +2,8 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.utils.PrettyPrintMap;
+import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.HTMLFile;
@@ -9,6 +11,7 @@ import com.jdfc.report.html.Span;
 import com.jdfc.report.html.table.Row;
 import com.jdfc.report.html.table.Table;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.*;
 
@@ -25,7 +28,7 @@ public class HTMLFactory {
         writer.write(createIndexHTML(pClassFileDataMap, pWorkDir));
         writer.close();
         if (!isRoot) {
-            // TODO: Create indexSource files
+            // TODO: Create indexSource files?
             String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
             File indexSource = new File(indexSourcePath);
             indexSource.createNewFile();
@@ -71,6 +74,7 @@ public class HTMLFactory {
     public static void createClassDetailView(String pClassName, ExecutionData pData, String pWorkDir, String sourceDir)
             throws IOException {
         if (pData instanceof ClassExecutionData) {
+            System.out.println(new PrettyPrintMap<>(((ClassExecutionData) pData).getDefUsePairs()));
             String filePath = String.format("%s/%s.java.html", pWorkDir, pClassName);
             File detailView = new File(filePath);
 
@@ -86,6 +90,7 @@ public class HTMLFactory {
             while (scanner.hasNextLine()) {
                 String current = scanner.nextLine();
                 lineCounter += 1;
+                // create line string with everything
                 current = findAndMarkVariables(lineCounter, current, (ClassExecutionData) pData);
                 Span span = new Span(current, lineCounter);
                 String[] content = {String.valueOf(lineCounter), span.render()};
@@ -119,16 +124,21 @@ public class HTMLFactory {
             for (int i = 0; i < words.length; i++) {
                 // TODO: mark pairs
                 String str = words[i];
-                ProgramVariable coveredVariable = findCovered(data, lineNumber, str);
-                if (coveredVariable != null) {
-                    words[i] = String.format("<span style=\"color:green\">%s</span>", str);
-                }
+                ProgramVariable definition = findDefinition(data, lineNumber, str);
+                if (definition != null) {
+                    Map<ProgramVariable, Boolean> uses = findUses(data, definition);
+                    // Create dropdown and links to variables
+                    words[i] = createDropDown(uses, str);
+                } else {
+                    // Mark uses appropriately
+                    if (isCovered(data, lineNumber, str)) {
+                        words[i] = String.format("<span style=\"background-color:#7EFF8D\">%s</span>", str);
+                    }
 
-                ProgramVariable uncoveredVariable = findUncovered(data, lineNumber, str);
-                if (uncoveredVariable != null) {
-                    words[i] = String.format("<span style=\"color:red\">%s</span>", str);
+                    if (isUncovered(data, lineNumber, str)) {
+                        words[i] = String.format("<span style=\"background-color:#FF7E7E\">%s</span>", str);
+                    }
                 }
-
                 if (haveEqualLength) {
                     specialChars[i] = specialChars[i].replace(" ", "&nbsp;");
                     builder.append(words[i]).append(specialChars[i]);
@@ -141,25 +151,70 @@ public class HTMLFactory {
         return builder.toString();
     }
 
-    private static ProgramVariable findUncovered(ClassExecutionData data, int lineNumber, String name) {
-        for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseUncovered().entrySet()) {
-            for (ProgramVariable var : map.getValue()) {
-                if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {
-                    return var;
+    private static String createDropDown(final Map<ProgramVariable, Boolean> pUses, String pString) {
+        // create table and show colored entries on hover over
+        // entries are links to the variable use
+        String backgroundColor;
+        if (Collections.frequency(pUses.values(), true) == pUses.size()) {
+            backgroundColor = "#7EFF8D";
+        } else if (Collections.frequency(pUses.values(), true) == 0) {
+            // red
+            backgroundColor = "#FF7E7E";
+        } else {
+            backgroundColor = "#FFE27E";
+        }
+        String table = String.format("<span class=\"tooltiptext\">%s</span>", "Tooltip");
+
+        return String.format("<div class=\"tooltip\" style=\"background-color:%s\">%s%s</div>", backgroundColor, pString, table);
+    }
+
+    // find definition by line number and name
+    private static ProgramVariable findDefinition(ClassExecutionData pData, int pLineNumber, String pName){
+        for(Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
+            for(DefUsePair defUsePair : defUsePairs.getValue()) {
+                ProgramVariable definition = defUsePair.getDefinition();
+                if (definition.getLineNumber() == pLineNumber && definition.getName().equals(pName)){
+                    return definition;
                 }
             }
         }
         return null;
     }
 
-    private static ProgramVariable findCovered(ClassExecutionData data, int lineNumber, String name) {
-        for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseCovered().entrySet()) {
-            for (ProgramVariable var : map.getValue()) {
-                if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {
-                    return var;
+    // find all uses for one particular definition
+    private static Map<ProgramVariable, Boolean> findUses(ClassExecutionData pData, ProgramVariable pDefinition) {
+        Map<ProgramVariable, Boolean> uses = new HashMap<>();
+        for(Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
+            for(DefUsePair defUsePair : defUsePairs.getValue()) {
+                if (defUsePair.getDefinition().equals(pDefinition)){
+                    ProgramVariable use = defUsePair.getUsage();
+                    boolean covered = pData.getDefUseUncovered().get(defUsePairs.getKey()).contains(use);
+                    uses.put(use, covered);
                 }
             }
         }
-        return null;
+        return uses;
+    }
+
+    private static boolean isUncovered(ClassExecutionData data, int lineNumber, String name) {
+        for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseUncovered().entrySet()) {
+            for (ProgramVariable var : map.getValue()) {
+                if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isCovered(ClassExecutionData data, int lineNumber, String name) {
+        for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseCovered().entrySet()) {
+            for (ProgramVariable var : map.getValue()) {
+                if (var.getName().equals(name) && var.getLineNumber() == lineNumber) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

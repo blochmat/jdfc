@@ -91,107 +91,32 @@ public class ReportGenerator {
                 "  font-weight:bold;\n" +
                 "  font-size:18pt;\n" +
                 "}");
-        writer.write("table.coverage {\n" +
-                "  empty-cells:show;\n" +
-                "  border-collapse:collapse;\n" +
+        writer.write(".tooltip {\n" +
+                "  position: relative;\n" +
+                "  display: inline-block;\n" +
+                "  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */\n" +
                 "}\n" +
                 "\n" +
-                "table.coverage thead {\n" +
-                "  background-color:#e0e0e0;\n" +
+                "/* Tooltip text */\n" +
+                ".tooltip .tooltiptext {\n" +
+                "  visibility: hidden;\n" +
+                "  width: 120px;\n" +
+                "  background-color: black;\n" +
+                "  color: #fff;\n" +
+                "  text-align: center;\n" +
+                "  padding: 5px 0;\n" +
+                "  border-radius: 6px;\n" +
+                " \n" +
+                "  /* Position the tooltip text - see examples below! */\n" +
+                "  position: absolute;\n" +
+                "  z-index: 1;\n" +
+                "  top: -5px;\n" +
+                "  left: 120%;\n" +
                 "}\n" +
                 "\n" +
-                "table.coverage thead td {\n" +
-                "  white-space:nowrap;\n" +
-                "  padding:2px 14px 0px 6px;\n" +
-                "  border-bottom:#b0b0b0 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage thead td.bar {\n" +
-                "  border-left:#cccccc 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage thead td.ctr1 {\n" +
-                "  text-align:right;\n" +
-                "  border-left:#cccccc 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage thead td.ctr2 {\n" +
-                "  text-align:right;\n" +
-                "  padding-left:2px;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage thead td.sortable {\n" +
-                "  cursor:pointer;\n" +
-                "  background-image:url(sort.gif);\n" +
-                "  background-position:right center;\n" +
-                "  background-repeat:no-repeat;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage thead td.up {\n" +
-                "  background-image:url(up.gif);\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage thead td.down {\n" +
-                "  background-image:url(down.gif);\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tbody td {\n" +
-                "  white-space:nowrap;\n" +
-                "  padding:2px 6px 2px 6px;\n" +
-                "  border-bottom:#d6d3ce 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tbody tr:hover {\n" +
-                "  background: #f0f0d0 !important;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tbody td.bar {\n" +
-                "  border-left:#e8e8e8 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tbody td.ctr1 {\n" +
-                "  text-align:right;\n" +
-                "  padding-right:14px;\n" +
-                "  border-left:#e8e8e8 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tbody td.ctr2 {\n" +
-                "  text-align:right;\n" +
-                "  padding-right:14px;\n" +
-                "  padding-left:2px;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tfoot td {\n" +
-                "  white-space:nowrap;\n" +
-                "  padding:2px 6px 2px 6px;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tfoot td.bar {\n" +
-                "  border-left:#e8e8e8 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tfoot td.ctr1 {\n" +
-                "  text-align:right;\n" +
-                "  padding-right:14px;\n" +
-                "  border-left:#e8e8e8 1px solid;\n" +
-                "}\n" +
-                "\n" +
-                "table.coverage tfoot td.ctr2 {\n" +
-                "  text-align:right;\n" +
-                "  padding-right:14px;\n" +
-                "  padding-left:2px;\n" +
-                "}\n" +
-                "\n" +
-                ".footer {\n" +
-                "  margin-top:20px;\n" +
-                "  border-top:#d6d3ce 1px solid;\n" +
-                "  padding-top:2px;\n" +
-                "  font-size:8pt;\n" +
-                "  color:#a0a0a0;\n" +
-                "}\n" +
-                "\n" +
-                ".footer a {\n" +
-                "  color:#a0a0a0;\n" +
+                "/* Show the tooltip text when you mouse over the tooltip container */\n" +
+                ".tooltip:hover .tooltiptext {\n" +
+                "  visibility: visible;\n" +
                 "}");
         writer.close();
     }

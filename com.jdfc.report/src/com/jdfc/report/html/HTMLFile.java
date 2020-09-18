@@ -86,7 +86,7 @@ public class HTMLFile {
             int missed = total - covered;
             String[] entries =
                     {entry.getKey(), String.valueOf(total), String.valueOf(covered), String.valueOf(missed)};
-            String link = String.format("%s.java.html#L%s", classFileName, pData.getMethodPositionMap().get(entry.getKey()));
+            String link = String.format("%s.java.html#L%s", classFileName, pData.getMethodStartLineMap().get(entry.getKey()));
             table.addRow(entries, link);
         }
         table.createFoot(pData);

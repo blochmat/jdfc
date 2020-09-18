@@ -2,6 +2,7 @@ package com.jdfc.maven;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.data.PackageExecutionData;
 import com.jdfc.report.LoadController;
