@@ -14,8 +14,8 @@ import java.util.*;
 public class CoverageDataStore {
 
     private static CoverageDataStore singleton;
-    private ExecutionDataNode<ExecutionData> root;
-    private List<String> classList;
+    private final ExecutionDataNode<ExecutionData> root;
+    private final List<String> classList;
 
     private CoverageDataStore(){
         PackageExecutionData packageNodeData = new PackageExecutionData();
@@ -60,6 +60,10 @@ public class CoverageDataStore {
                                          Path pBaseDir,
                                          String suffix) {
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
+        if(pExecutionDataNode.isRoot()){
+            PackageExecutionData rootClassData = new PackageExecutionData();
+            pExecutionDataNode.addChild("default", rootClassData);
+        }
         for (File f : fileList){
             if(f.isDirectory()) {
                 PackageExecutionData pkgData = new PackageExecutionData();
@@ -71,12 +75,10 @@ public class CoverageDataStore {
                 String relativePathWithoutType = relativePath.split("\\.")[0];
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
                 classList.add(relativePathWithoutType);
-
+                System.out.println(Arrays.toString(classList.toArray()));
                 String nameWithoutType = f.getName().split("\\.")[0];
                 ClassExecutionData classNodeData = new ClassExecutionData(relativePathWithoutType);
                 if(pExecutionDataNode.isRoot()){
-                    PackageExecutionData rootClassData = new PackageExecutionData();
-                    pExecutionDataNode.addChild("default", rootClassData);
                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                 } else {
                     pExecutionDataNode.addChild(nameWithoutType, classNodeData);

@@ -15,6 +15,7 @@ public class MyClassVisitor extends ClassVisitor {
         super(Opcodes.ASM6, cv);
         classNode = pClassNode;
         className = classNode.name;
+        System.out.println("DEBUG:" + className);
     }
 
     @Override
