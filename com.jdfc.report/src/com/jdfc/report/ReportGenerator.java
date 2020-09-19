@@ -3,6 +3,7 @@ package com.jdfc.report;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.CoverageDataStore;
+import com.jdfc.report.html.HTMLFactory;
 
 import java.io.*;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class ReportGenerator {
 
                 if (outputFolder.mkdir() || outputFolder.exists()) {
                     // method overview
-                    HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir);
+                    HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir, entry.getValue().getParent().isRoot());
 
                     // class detail view
                     HTMLFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), dir, sourceDir);
@@ -100,10 +101,10 @@ public class ReportGenerator {
                 "/* Tooltip text */\n" +
                 ".tooltip .tooltiptext {\n" +
                 "  visibility: hidden;\n" +
-                "  width: 120px;\n" +
-                "  background-color: black;\n" +
-                "  color: #fff;\n" +
-                "  text-align: center;\n" +
+                "  background-color: #F5F4EF;\n" +
+                "  font-size: 14px;\n" +
+                "  width: 200px;\n" +
+                "  color: #292929;\n" +
                 "  padding: 5px 0;\n" +
                 "  border-radius: 6px;\n" +
                 " \n" +
@@ -117,6 +118,22 @@ public class ReportGenerator {
                 "/* Show the tooltip text when you mouse over the tooltip container */\n" +
                 ".tooltip:hover .tooltiptext {\n" +
                 "  visibility: visible;\n" +
+                "}\n" +
+                "\n" +
+                ".greenDef {\n" +
+                "  background-color: #7EFF8D;\n" +
+                "}\n" +
+                "\n" +
+                ".yellowDef {\n" +
+                "  background-color: #FFE27E;\n" +
+                "}\n" +
+                "\n" +
+                ".redDef {\n" +
+                "  background-color: #FF7E7E;\n" +
+                "}\n" +
+                "\n" +
+                ".no-margin {\n" +
+                "  margin: 0;\n" +
                 "}");
         writer.close();
     }
