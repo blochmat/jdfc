@@ -91,7 +91,7 @@ public class ReportGenerator {
         writer.write("h1 {\n" +
                 "  font-weight:bold;\n" +
                 "  font-size:18pt;\n" +
-                "}");
+                "}\n\n");
         writer.write(".tooltip {\n" +
                 "  position: relative;\n" +
                 "  display: inline-block;\n" +
@@ -120,15 +120,15 @@ public class ReportGenerator {
                 "  visibility: visible;\n" +
                 "}\n" +
                 "\n" +
-                ".greenDef {\n" +
+                ".green {\n" +
                 "  background-color: #7EFF8D;\n" +
                 "}\n" +
                 "\n" +
-                ".yellowDef {\n" +
+                ".yellow {\n" +
                 "  background-color: #FFE27E;\n" +
                 "}\n" +
                 "\n" +
-                ".redDef {\n" +
+                ".red {\n" +
                 "  background-color: #FF7E7E;\n" +
                 "}\n" +
                 "\n" +

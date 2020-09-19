@@ -111,8 +111,7 @@ public class HTMLFactory {
     }
 
     private static HTMLElement createPreTag(int lineNumber, String lineString, ClassExecutionData data) {
-        String noMarginStyle = "class=\"no-margin\"";
-        HTMLElement preTag = HTMLElement.pre(noMarginStyle);
+        HTMLElement spanTagLine = HTMLElement.span(null);
         String[] specialChars = lineString.split("\\w+\\b");
         String[] words = lineString.split("\\W+");
         boolean haveEqualLength = words.length == specialChars.length;
@@ -122,10 +121,10 @@ public class HTMLFactory {
             for(String c : specialChars) {
                 builder.append(c);
             }
-            preTag.getContent().add(HTMLElement.noTag(builder.toString()));
+            spanTagLine.getContent().add(HTMLElement.noTag(builder.toString()));
         } else {
             if (!haveEqualLength) {
-                preTag.getContent().add(HTMLElement.noTag(specialChars[0]));
+                spanTagLine.getContent().add(HTMLElement.noTag(specialChars[0]));
             }
             for (int i = 0; i < words.length; i++) {
                 // TODO: mark pairs
@@ -138,31 +137,30 @@ public class HTMLFactory {
                             String.format("class=\"%s\" ", getDefinitionBackgroundColorHex(uses));
                     spanTag = HTMLElement.span(styleClass);
                     // Create dropdown and links to variables
-                    spanTag.getContent().add(HTMLElement.noTag(word));
-                    spanTag.getContent().add(createTooltip(uses));
+                    spanTag.getContent().add(createTooltip(uses, word));
                 } else {
                     spanTag = HTMLElement.span(null, word);
                     // TODO: Redefinitions are marked green
                     if (isCovered(data, lineNumber, word)) {
-                        spanTag.getAttributes().add("style=\"background-color:#7EFF8D\" ");
+                        spanTag.getAttributes().add("class=\"green\" ");
                     }
                     if (isUncovered(data, lineNumber, word)) {
-                        spanTag.getAttributes().add("style=\"background-color:#FF7E7E\" ");
+                        spanTag.getAttributes().add("class=\"red\" ");
                     }
                 }
-                preTag.getContent().add(spanTag);
+                spanTagLine.getContent().add(spanTag);
                 if (haveEqualLength) {
 //                    specialChars[i] = specialChars[i].replace(" ", "&nbsp;");
 //                    builder.append(words[i]).append(specialChars[i]);
-                    preTag.getContent().add(HTMLElement.noTag(specialChars[i]));
+                    spanTagLine.getContent().add(HTMLElement.noTag(specialChars[i]));
                 } else {
 //                    specialChars[i + 1] = specialChars[i + 1].replace(" ", "&nbsp;");
 //                    builder.append(words[i]).append(specialChars[i + 1]);
-                    preTag.getContent().add(HTMLElement.noTag(specialChars[i + 1]));
+                    spanTagLine.getContent().add(HTMLElement.noTag(specialChars[i + 1]));
                 }
             }
         }
-        return preTag;
+        return spanTagLine;
     }
 
     private static HTMLElement createDefaultHTMLHead(final String pTitle, boolean isRootDir) {
@@ -266,33 +264,34 @@ public class HTMLFactory {
         return bodyTag;
     }
 
-    private static HTMLElement createTooltip(final Map<ProgramVariable, Boolean> pUses) {
+    private static HTMLElement createTooltip(final Map<ProgramVariable, Boolean> pUses, final String pText) {
         // create table and show colored entries on hover over
         // entries are links to the variable use
         String tooltipStyle = "class=\"tooltip\" ";
         HTMLElement tooltip = HTMLElement.div(tooltipStyle);
         String tooltipTextStyle = "class=\"tooltiptext\"";
-        HTMLElement divTag = HTMLElement.div(tooltipTextStyle);
-        HTMLElement tableTag = HTMLElement.table(null);
-        HTMLElement tbody = HTMLElement.tbody(null);
-        HTMLElement tr = HTMLElement.tr(null);
-        HTMLElement td = HTMLElement.td(null);
-        td.getContent().add(HTMLElement.a("Link it is", null, "EvenMoreBranchingInteger.java.html#L3"));
-        tr.getContent().add(td);
-        tbody.getContent().add(tr);
-        tableTag.getContent().add(tbody);
-        divTag.getContent().add(tableTag);
-        tooltip.getContent().add(divTag);
+//        HTMLElement divTag = HTMLElement.div(tooltipTextStyle);
+//        HTMLElement tableTag = HTMLElement.table(null);
+//        HTMLElement tbody = HTMLElement.tbody(null);
+//        HTMLElement tr = HTMLElement.tr(null);
+//        HTMLElement td = HTMLElement.td(null);
+//        td.getContent().add(HTMLElement.a("Link it is", null, "EvenMoreBranchingInteger.java.html#L3"));
+//        tr.getContent().add(td);
+//        tbody.getContent().add(tr);
+//        tableTag.getContent().add(tbody);
+        tooltip.getContent().add(HTMLElement.noTag(pText));
+        tooltip.getContent().add(HTMLElement.a(tooltipTextStyle, "EvenMoreBranchingInteger.java.html#L3", "A Link it is"));
+//        tooltip.getContent().add(divTag);
         return tooltip;
     }
 
     private static String getDefinitionBackgroundColorHex(Map<ProgramVariable, Boolean> pUses) {
         if (Collections.frequency(pUses.values(), true) == pUses.size()) {
-            return "greenDef";
+            return "green";
         } else if (Collections.frequency(pUses.values(), true) == 0) {
-            return "redDef";
+            return "red";
         } else {
-            return "yellowDef";
+            return "yellow";
         }
     }
 
