@@ -4,7 +4,6 @@ import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.data.PackageExecutionData;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -18,8 +17,8 @@ public class CoverageDataStore {
     private final List<String> classList;
 
     private CoverageDataStore(){
-        PackageExecutionData packageNodeData = new PackageExecutionData();
-        this.root = new ExecutionDataNode<>(packageNodeData);
+        ExecutionData executionData = new ExecutionData();
+        this.root = new ExecutionDataNode<>(executionData);
         this.classList = new ArrayList<>();
     }
 
@@ -61,12 +60,12 @@ public class CoverageDataStore {
                                          String suffix) {
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
         if(pExecutionDataNode.isRoot()){
-            PackageExecutionData rootClassData = new PackageExecutionData();
+            ExecutionData rootClassData = new ExecutionData();
             pExecutionDataNode.addChild("default", rootClassData);
         }
         for (File f : fileList){
             if(f.isDirectory()) {
-                PackageExecutionData pkgData = new PackageExecutionData();
+                ExecutionData pkgData = new ExecutionData();
                 ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
                 addNodesFromDirRecursive(f, newPkgExecutionDataNode, pBaseDir, suffix);

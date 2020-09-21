@@ -2,9 +2,7 @@ package com.jdfc.maven;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
-import com.jdfc.core.analysis.data.PackageExecutionData;
 import com.jdfc.report.LoadController;
 import com.jdfc.report.ReportGenerator;
 import org.apache.maven.doxia.siterenderer.Renderer;
@@ -77,7 +75,7 @@ public class ReportMojo extends AbstractMavenReport {
 
     private void debugPrintChildren(ExecutionDataNode<ExecutionData> pNode, int indent) {
         if (pNode.isRoot()) {
-            PackageExecutionData rootData = (PackageExecutionData) pNode.getData();
+            ExecutionData rootData = pNode.getData();
             String root = String.format("root %s %s %s %s", rootData.getMethodCount(), rootData.getTotal(), rootData.getCovered(), rootData.getMissed());
             System.out.println(root);
         }
