@@ -30,7 +30,7 @@ public final class PreMain {
     // TODO: Remove debug
     private static void debugPrintChildren(ExecutionDataNode<ExecutionData> pNode, int indent) {
         if (pNode.isRoot()) {
-            PackageExecutionData rootData = (PackageExecutionData) pNode.getData();
+            ExecutionData rootData = pNode.getData();
             String root = String.format("root %s %s %s %s", rootData.getMethodCount(), rootData.getTotal(), rootData.getCovered(), rootData.getMissed());
             System.out.println(root);
         }

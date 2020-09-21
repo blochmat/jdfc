@@ -95,29 +95,36 @@ public class ReportGenerator {
         writer.write(".tooltip {\n" +
                 "  position: relative;\n" +
                 "  display: inline-block;\n" +
-                "  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */\n" +
+                "  border-bottom: 1px dotted black;\n" +
                 "}\n" +
                 "\n" +
-                "/* Tooltip text */\n" +
-                ".tooltip .tooltiptext {\n" +
+                ".tooltip {\n" +
+                "  position: relative;\n" +
+                "  display: inline-block;\n" +
+                "  border-bottom: 1px dotted black;\n" +
+                "}\n" +
+                "\n" +
+                ".tooltip .tooltipcontent {\n" +
                 "  visibility: hidden;\n" +
-                "  background-color: #F5F4EF;\n" +
-                "  font-size: 14px;\n" +
-                "  width: 200px;\n" +
-                "  color: #292929;\n" +
-                "  padding: 5px 0;\n" +
+                "  width: 120px;\n" +
+                "  background-color: #D5D5D5;\n" +
+                "  color: #fff;\n" +
+                "  text-align: center;\n" +
                 "  border-radius: 6px;\n" +
-                " \n" +
-                "  /* Position the tooltip text - see examples below! */\n" +
+                "  padding: 5px 0;\n" +
                 "  position: absolute;\n" +
                 "  z-index: 1;\n" +
                 "  top: -5px;\n" +
-                "  left: 120%;\n" +
+                "  left: 110%;\n" +
+                "  \n" +
+                "  /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */\n" +
+                "  opacity: 0;\n" +
+                "  transition: opacity 0.5s;\n" +
                 "}\n" +
                 "\n" +
-                "/* Show the tooltip text when you mouse over the tooltip container */\n" +
-                ".tooltip:hover .tooltiptext {\n" +
+                ".tooltip:hover .tooltipcontent {\n" +
                 "  visibility: visible;\n" +
+                "  opacity: 1;\n" +
                 "}\n" +
                 "\n" +
                 ".green {\n" +
@@ -132,9 +139,17 @@ public class ReportGenerator {
                 "  background-color: #FF7E7E;\n" +
                 "}\n" +
                 "\n" +
-                ".no-margin {\n" +
-                "  margin: 0;\n" +
-                "}");
+                ".keep-spaces {\n" +
+                "  white-space: pre-wrap;\n" +
+                "}\n" +
+                "\n" +
+                ".java-keyword{\n" +
+                "  color: #8F00FF" +
+                "}\n"+
+                "\n" +
+                ".type-keyword{\n" +
+                "  color: #0049FF" +
+                "}\n");
         writer.close();
     }
 }

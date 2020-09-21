@@ -13,7 +13,7 @@ public class ProgramVariable {
     private final int instructionIndex;
     private final int lineNumber;
 
-    public ProgramVariable(
+    private ProgramVariable(
             final String pOwner, final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
         owner = pOwner;
         name = pName;
@@ -22,7 +22,7 @@ public class ProgramVariable {
         lineNumber = pLineNumber;
     }
 
-    static ProgramVariable create(
+    public static ProgramVariable create(
             final String pOwner, final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
         return new ProgramVariable(pOwner, pName, pType, pInstructionIndex, pLineNumber);
     }

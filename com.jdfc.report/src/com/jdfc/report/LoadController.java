@@ -112,8 +112,8 @@ public class LoadController {
                         int definitionLineNumber = Integer.parseInt(pairAttr.getNamedItem("definitionLineNumber").getNodeValue());
                         int usageIndex = Integer.parseInt(pairAttr.getNamedItem("usageIndex").getNodeValue());
                         int usageLineNumber = Integer.parseInt(pairAttr.getNamedItem("usageLineNumber").getNodeValue());
-                        ProgramVariable definition = new ProgramVariable(owner, name, type, definitionIndex, definitionLineNumber);
-                        ProgramVariable usage = new ProgramVariable(owner, name, type, usageIndex, usageLineNumber);
+                        ProgramVariable definition = ProgramVariable.create(owner, name, type, definitionIndex, definitionLineNumber);
+                        ProgramVariable usage = ProgramVariable.create(owner, name, type, usageIndex, usageLineNumber);
                         DefUsePair newPair = new DefUsePair(definition, usage);
                         classExecutionData.getDefUsePairs().get(methodName).add(newPair);
                     }
@@ -131,7 +131,7 @@ public class LoadController {
                         String type = pairAttr.getNamedItem("type").getNodeValue();
                         int instructionIndex = Integer.parseInt(pairAttr.getNamedItem("instructionIndex").getNodeValue());
                         int lineNumber = Integer.parseInt(pairAttr.getNamedItem("lineNumber").getNodeValue());
-                        ProgramVariable programVariable = new ProgramVariable(owner, name, type, instructionIndex, lineNumber);
+                        ProgramVariable programVariable = ProgramVariable.create(owner, name, type, instructionIndex, lineNumber);
                         classExecutionData.getDefUseCovered().get(methodName).add(programVariable);
                     }
                 }
