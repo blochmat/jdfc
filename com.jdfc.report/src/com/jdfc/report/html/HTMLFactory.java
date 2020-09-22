@@ -6,12 +6,11 @@ import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.InstanceVariable;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.report.html.resources.Resources;
 
 import java.io.*;
 import java.util.*;
 
-
-// TODO: pro/contra static methods
 public class HTMLFactory {
 
     static final String[] JAVA_KEYWORDS = { "abstract", "assert",
@@ -26,28 +25,36 @@ public class HTMLFactory {
 
     static final String[] TYPE_KEYWORDS = {"boolean", "byte", "char", "double", "float", "int", "long", "short"};
 
-    public static void generateIndexFiles(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
-                                          String pWorkDir,
-                                          boolean isRoot) throws IOException {
+    static final String STYLE_SHEET = "report.css";
+
+    public static void generateIndexFiles(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
+                                          final String pWorkDir,
+                                          final Resources pResources) throws IOException {
         String indexPath = String.format("%s/index.html", pWorkDir);
         File index = new File(indexPath);
-        HTMLElement indexHTML = createIndexHTML(pClassFileDataMap, pWorkDir, isRoot);
+        String styleSheetPath = String.format("%s/%s", pResources.getPathToResources(index), STYLE_SHEET);
+        HTMLElement indexHTML = createIndexHTML(pClassFileDataMap, pWorkDir, styleSheetPath);
         Writer writer = new FileWriter(index);
         writer.write(indexHTML.render());
         writer.close();
-        if (!isRoot) {
-            // TODO: Create indexSource files?
-            String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
-            File indexSource = new File(indexSourcePath);
-            indexSource.createNewFile();
-        }
+        // if is not root
+//        if (!pOut) {
+//            // TODO: Create indexSource files?
+//            String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
+//            File indexSource = new File(indexSourcePath);
+//            indexSource.createNewFile();
+//        }
     }
 
-    public static void createClassOverview(String pClassName, ExecutionData pData, String pWorkDir, boolean isRootDir) throws IOException {
+    public static void createClassOverview(final String pClassName,
+                                           final ExecutionData pData,
+                                           final String pWorkDir,
+                                           final Resources pResources) throws IOException {
         if (pData instanceof ClassExecutionData) {
             String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
             File classFile = new File(filePath);
-            HTMLElement classHTML = createClassOverviewHTML((ClassExecutionData) pData, pClassName, isRootDir);
+            String styleSheetPath = String.format("%s/%s", pResources.getPathToResources(classFile), STYLE_SHEET);
+            HTMLElement classHTML = createClassOverviewHTML((ClassExecutionData) pData, pClassName, styleSheetPath);
             Writer writer = new FileWriter(classFile);
             writer.write(classHTML.render());
             writer.close();
@@ -56,19 +63,23 @@ public class HTMLFactory {
         }
     }
 
-    public static void createClassDetailView(String pClassName, ExecutionData pData, String pWorkDir, String sourceDir)
+    public static void createClassDetailView(final String pClassName,
+                                             final ExecutionData pData,
+                                             final String pWorkDir,
+                                             final String pSourceDir,
+                                             final Resources pResources)
             throws IOException {
         if (pData instanceof ClassExecutionData) {
             String outPath = String.format("%s/%s.java.html", pWorkDir, pClassName);
             File outFile = new File(outPath);
-
-            String inPath = String.format("%s/%s.java", sourceDir, ((ClassExecutionData) pData).getRelativePath());
+            String styleSheetPath = String.format("%s/%s", pResources.getPathToResources(outFile), STYLE_SHEET);
+            String inPath = String.format("%s/%s.java", pSourceDir, ((ClassExecutionData) pData).getRelativePath());
             File inFile = new File(inPath);
             Scanner scanner = new Scanner(inFile);
             HTMLElement htmlMainTag = HTMLElement.html();
             String classFileName = String.format("%s.java", pClassName);
 
-            htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, false));
+            htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, styleSheetPath));
             HTMLElement bodyTag = HTMLElement.body();
             bodyTag.getAttributes().add("class=\"style-class\"");
             bodyTag.getContent().add(HTMLElement.h1(pClassName));
@@ -98,12 +109,13 @@ public class HTMLFactory {
 
     private static HTMLElement createIndexHTML(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
                                                final String pWorkDir,
-                                               final boolean isRootDir) {
+                                               final String pPathToResource) {
         String[] split = pWorkDir.split("/");
         String title = split[split.length - 1];
         HTMLElement htmlMainTag = HTMLElement.html();
-        htmlMainTag.getContent().add(createDefaultHTMLHead(title, isRootDir));
+        htmlMainTag.getContent().add(createDefaultHTMLHead(title, pPathToResource));
         HTMLElement htmlBodyTag = HTMLElement.body();
+        htmlBodyTag.getAttributes().add("onload=\"initialSort(['breadcrumb'])\"");
         htmlBodyTag.getContent().add(HTMLElement.h1(title));
         List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Total", "Covered", "Missed"));
         htmlBodyTag.getContent().add(createDataTable(columns, pClassFileDataMap));
@@ -111,10 +123,12 @@ public class HTMLFactory {
         return htmlMainTag;
     }
 
-    private static HTMLElement createClassOverviewHTML(ClassExecutionData pData, String pClassFileName, boolean isRootDir) {
+    private static HTMLElement createClassOverviewHTML(final ClassExecutionData pData,
+                                                       final String pClassFileName,
+                                                       final String pPathToResources) {
         HTMLElement htmlMainTag = HTMLElement.html();
         String classFileName = String.format("%s.java", pClassFileName);
-        htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, isRootDir));
+        htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, pPathToResources));
         HTMLElement htmlBodyTag = HTMLElement.body();
         htmlBodyTag.getContent().add(HTMLElement.h1(pClassFileName));
         List<String> columns = new ArrayList<>(Arrays.asList("Total", "Covered", "Missed"));
@@ -181,16 +195,11 @@ public class HTMLFactory {
         return spanTagLine;
     }
 
-    private static HTMLElement createDefaultHTMLHead(final String pTitle, boolean isRootDir) {
+    private static HTMLElement createDefaultHTMLHead(final String pTitle,
+                                                     final String pPathToResources) {
         HTMLElement headTag = HTMLElement.head();
-        String href;
-        if (isRootDir) {
-            href = "../jdfc-resources/report.css";
-        } else {
-            href = "../../jdfc-resources/report.css";
-        }
         headTag.getContent().add(
-                HTMLElement.link("stylesheet", href, "text/css"));
+                HTMLElement.link("stylesheet", pPathToResources, "text/css"));
         headTag.getContent().add(
                 HTMLElement.title(pTitle));
         return headTag;

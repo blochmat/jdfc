@@ -5,6 +5,8 @@ import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.report.LoadController;
 import com.jdfc.report.ReportGenerator;
+import com.jdfc.report.html.resources.Resources;
+import com.sun.org.apache.regexp.internal.RE;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -61,16 +63,11 @@ public class ReportMojo extends AbstractMavenReport {
 
         // TODO: REMOVE DEBUG
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
-        final String resourcesDir = String.format("%s/jdfc-resources", target);
-        try {
-            // TODO: Add more style or store a static file
-            ReportGenerator.createReportCSS(resourcesDir);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         final String exportDir = String.format("%s/jdfc-report", target);
-        ReportGenerator.createReport(exportDir, source);
+        ReportGenerator reportGenerator = new ReportGenerator();
+        reportGenerator.createReport(exportDir, source);
+
     }
 
     private void debugPrintChildren(ExecutionDataNode<ExecutionData> pNode, int indent) {

@@ -23,9 +23,6 @@ public class AgentMojo extends AbstractJdfcMojo {
     @Parameter(property = "plugin.artifactMap", required = true, readonly = true)
     Map<String, Artifact> pluginArtifactMap;
 
-    /**
-     * Name of the JaCoCo Agent artifact.
-     */
     static final String AGENT_ARTIFACT_NAME = "com.jdfc:com.jdfc.agent";
 
     @Override

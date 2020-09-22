@@ -4,6 +4,7 @@ import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.report.html.HTMLFactory;
+import com.jdfc.report.html.resources.Resources;
 
 import java.io.*;
 import java.util.HashMap;
@@ -13,27 +14,33 @@ import java.util.stream.Stream;
 
 public class ReportGenerator {
 
-    public static void createReport(String exportDir, String sourceDir) {
-        File jdfcReportDir = new File(exportDir);
+    public void createReport(final String pExportDir, final String pSourceDir) {
+        File jdfcReportDir = new File(pExportDir);
         if (!jdfcReportDir.exists()) {
             jdfcReportDir.mkdir();
         }
+        Resources resources = new Resources(jdfcReportDir);
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         try {
+            resources.copyResource();
             Map<String, ExecutionDataNode<ExecutionData>> packageExecutionData = createHTMLFilesRecursive(
-                    root, null, exportDir, sourceDir);
-            HTMLFactory.generateIndexFiles(packageExecutionData, exportDir, true);
+                    root, null, pExportDir, pSourceDir, resources);
+            HTMLFactory.generateIndexFiles(packageExecutionData, pExportDir, resources);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static Map<String, ExecutionDataNode<ExecutionData>> createHTMLFilesRecursive(
-            ExecutionDataNode<ExecutionData> pNode, String pPathName, String exportDir, String sourceDir)
+    private Map<String, ExecutionDataNode<ExecutionData>> createHTMLFilesRecursive(
+            final ExecutionDataNode<ExecutionData> pNode,
+            final String pPathName,
+            final String pExportDir,
+            final String pSourceDir,
+            final Resources pResources)
             throws IOException {
         String dir;
         Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataMap = new HashMap<>();
-        dir = String.format("%s/%s", exportDir, pPathName);
+        dir = String.format("%s/%s", pExportDir, pPathName);
 
         File outputFolder = new File(dir);
         Map<String, ExecutionDataNode<ExecutionData>> children = pNode.getChildren();
@@ -46,10 +53,11 @@ public class ReportGenerator {
 
                 if (outputFolder.mkdir() || outputFolder.exists()) {
                     // method overview
-                    HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir, entry.getValue().getParent().isRoot());
+                    HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir, pResources);
 
                     // class detail view
-                    HTMLFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), dir, sourceDir);
+                    HTMLFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), dir,
+                            pSourceDir, pResources);
                 }
             } else {
                 String nextPathName;
@@ -61,95 +69,21 @@ public class ReportGenerator {
                 }
 
                 packageExecutionDataMap = mergeMaps(packageExecutionDataMap,
-                        createHTMLFilesRecursive(entry.getValue(), nextPathName, exportDir, sourceDir));
+                        createHTMLFilesRecursive(entry.getValue(), nextPathName, pExportDir, pSourceDir, pResources));
             }
         }
         if (outputFolder.exists()) {
-            HTMLFactory.generateIndexFiles(classExecutionDataMap, dir, false);
+            HTMLFactory.generateIndexFiles(classExecutionDataMap, dir, pResources);
         }
         return packageExecutionDataMap;
     }
 
-    private static Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1, Map<String, ExecutionDataNode<ExecutionData>> map2) {
+    private Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1, Map<String, ExecutionDataNode<ExecutionData>> map2) {
         return Stream.of(map1, map2)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue
                 ));
-    }
-
-    // TODO: Change resource file creation
-    public static void createReportCSS(String pOutputDir) throws IOException {
-        File outputDir = new File(pOutputDir);
-        outputDir.mkdir();
-        File target = new File(pOutputDir + "/report.css");
-        FileWriter writer = new FileWriter(target);
-        writer.write(".style-class {\n" +
-                "    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;\n" +
-                "}");
-        writer.write("h1 {\n" +
-                "  font-weight:bold;\n" +
-                "  font-size:18pt;\n" +
-                "}\n\n");
-        writer.write(".tooltip {\n" +
-                "  position: relative;\n" +
-                "  display: inline-block;\n" +
-                "  border-bottom: 1px dotted black;\n" +
-                "}\n" +
-                "\n" +
-                ".tooltip {\n" +
-                "  position: relative;\n" +
-                "  display: inline-block;\n" +
-                "  border-bottom: 1px dotted black;\n" +
-                "}\n" +
-                "\n" +
-                ".tooltip .tooltipcontent {\n" +
-                "  visibility: hidden;\n" +
-                "  width: 120px;\n" +
-                "  background-color: #D5D5D5;\n" +
-                "  color: #fff;\n" +
-                "  text-align: center;\n" +
-                "  border-radius: 6px;\n" +
-                "  padding: 5px 0;\n" +
-                "  position: absolute;\n" +
-                "  z-index: 1;\n" +
-                "  top: -5px;\n" +
-                "  left: 110%;\n" +
-                "  \n" +
-                "  /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */\n" +
-                "  opacity: 0;\n" +
-                "  transition: opacity 0.5s;\n" +
-                "}\n" +
-                "\n" +
-                ".tooltip:hover .tooltipcontent {\n" +
-                "  visibility: visible;\n" +
-                "  opacity: 1;\n" +
-                "}\n" +
-                "\n" +
-                ".green {\n" +
-                "  background-color: #7EFF8D;\n" +
-                "}\n" +
-                "\n" +
-                ".yellow {\n" +
-                "  background-color: #FFE27E;\n" +
-                "}\n" +
-                "\n" +
-                ".red {\n" +
-                "  background-color: #FF7E7E;\n" +
-                "}\n" +
-                "\n" +
-                ".keep-spaces {\n" +
-                "  white-space: pre-wrap;\n" +
-                "}\n" +
-                "\n" +
-                ".java-keyword{\n" +
-                "  color: #8F00FF" +
-                "}\n"+
-                "\n" +
-                ".type-keyword{\n" +
-                "  color: #0049FF" +
-                "}\n");
-        writer.close();
     }
 }
