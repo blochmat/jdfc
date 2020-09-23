@@ -43,7 +43,7 @@ class CFGVariableVisitor extends ClassVisitor {
             final String pDescriptor,
             final String pSignature,
             final Object pValue) {
-        System.out.println("visitField");
+//        System.out.println("visitField");
         FieldVisitor fv;
         if (cv != null) {
             fv = cv.visitField(pAccess, pName, pDescriptor, pSignature, pValue);

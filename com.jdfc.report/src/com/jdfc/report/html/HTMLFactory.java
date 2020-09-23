@@ -13,7 +13,7 @@ import java.util.*;
 
 public class HTMLFactory {
 
-    static final String[] JAVA_KEYWORDS = { "abstract", "assert",
+    static final String[] JAVA_KEYWORDS = {"abstract", "assert",
             "break", "case", "catch", "class", "const",
             "continue", "default", "do", "else", "extends", "false",
             "final", "finally", "for", "goto", "if", "implements",
@@ -21,7 +21,7 @@ public class HTMLFactory {
             "new", "null", "package", "private", "protected", "public",
             "return", "static", "strictfp", "super", "switch",
             "synchronized", "this", "throw", "throws", "transient", "true",
-            "try", "void", "volatile", "while" };
+            "try", "void", "volatile", "while"};
 
     static final String[] TYPE_KEYWORDS = {"boolean", "byte", "char", "double", "float", "int", "long", "short"};
 
@@ -140,58 +140,88 @@ public class HTMLFactory {
     private static HTMLElement processLine(String pClassName, int lineNumber, String lineString, ClassExecutionData data) {
         HTMLElement spanTagLine = HTMLElement.span();
         spanTagLine.getAttributes().add("class=\"keep-spaces\"");
-        String[] specialChars = lineString.split("\\w+\\b");
-        String[] words = lineString.split("\\W+");
-        boolean haveEqualLength = words.length == specialChars.length;
+        String[] specialCharsArray = lineString.split("\\w+\\b");
+        String[] wordsArray = lineString.split("\\W+");
 
-        if (words.length == 0) {
-            StringBuilder builder = new StringBuilder();
-            for (String c : specialChars) {
-                builder.append(c);
-            }
-            spanTagLine.getContent().add(HTMLElement.noTag(builder.toString()));
-        } else {
-            if (!haveEqualLength) {
-                spanTagLine.getContent().add(HTMLElement.noTag(specialChars[0]));
-            }
-            for (int i = 0; i < words.length; i++) {
-                String word = words[i];
-                ProgramVariable definition = findDefinition(data, lineNumber, word);
-                HTMLElement spanTag;
-                if (definition != null) {
-                    Map<ProgramVariable, Boolean> useCoverageMap = getUseCoverageMap(data, definition);
-                    spanTag = HTMLElement.span();
-                    spanTag.getAttributes().add(String.format("class=\"%s\" ", getDefinitionBackgroundColorHex(useCoverageMap)));
-                    spanTag.getContent().add(createTooltip(pClassName, useCoverageMap, word));
-                } else {
-                    ProgramVariable usage = findUsage(data, lineNumber, word);
-                    spanTag = HTMLElement.span(word);
-                    if (usage != null) {
-                        String id = String.format("L%sI%s", usage.getLineNumber(), usage.getInstructionIndex());
-                        spanTag.getAttributes().add(String.format("id=\"%s\"", id));
-                        // TODO: Redefinitions are marked green
-                        if (isCovered(data, usage)) {
-                            spanTag.getAttributes().add("class=\"green\"");
-                        }
-                        if (isUncovered(data, usage)) {
-                            spanTag.getAttributes().add("class=\"red\"");
-                        }
-                    } else {
-                        addCodeHighlighting(spanTag, word);
-                    }
-                }
-                spanTagLine.getContent().add(spanTag);
-                if (haveEqualLength) {
-//                    specialChars[i] = specialChars[i].replace(" ", "&nbsp;");
-//                    builder.append(words[i]).append(specialChars[i]);
-                    spanTagLine.getContent().add(HTMLElement.noTag(specialChars[i]));
-                } else {
-//                    specialChars[i + 1] = specialChars[i + 1].replace(" ", "&nbsp;");
-//                    builder.append(words[i]).append(specialChars[i + 1]);
-                    spanTagLine.getContent().add(HTMLElement.noTag(specialChars[i + 1]));
-                }
+        List<String> specialChars = new ArrayList<>();
+        for (String str : specialCharsArray) {
+            if (!str.equals("")) {
+                specialChars.add(str);
             }
         }
+        List<String> words = new ArrayList<>();
+        for (String str : wordsArray) {
+            if (!str.equals("")) {
+                words.add(str);
+            }
+        }
+
+        boolean isSpecialCharsLonger = specialChars.size() > words.size();
+        boolean isComment = false;
+        System.out.println(Arrays.toString(specialChars.toArray()) + " " + specialChars.size());
+        System.out.println(Arrays.toString(words.toArray()) + " " + words.size());
+
+        for (int i = 0; i < words.size(); i++) {
+            String word = words.get(i);
+            // Create Comment
+            if(specialChars.get(i).contains("//")) {
+                int index = specialChars.get(i).indexOf("//");
+                String remainder = specialChars.get(i).substring(0, index);
+                String commentSlashes = specialChars.get(i).substring(index);
+                spanTagLine.getContent().add(HTMLElement.noTag(remainder));
+                HTMLElement comment = HTMLElement.span();
+                comment.getAttributes().add("class=\"comment\"");
+                comment.getContent().add(HTMLElement.noTag(commentSlashes));
+                comment.getContent().add(HTMLElement.noTag(words.get(i)));
+                for(int j = i+1; j < words.size(); j++) {
+                    comment.getContent().add(HTMLElement.noTag(specialChars.get(j)));
+                    comment.getContent().add(HTMLElement.noTag(words.get(j)));
+                }
+                if(isSpecialCharsLonger) {
+                    comment.getContent().add(HTMLElement.noTag(specialChars.get(specialChars.size()-1)));
+                    isComment = true;
+                }
+                spanTagLine.getContent().add(comment);
+                break;
+            }
+
+            ProgramVariable definition = findDefinition(data, lineNumber, word);
+            HTMLElement spanTag;
+            if (definition != null) {
+                Map<ProgramVariable, Boolean> useCoverageMap = getUseCoverageMap(data, definition);
+                spanTag = HTMLElement.span();
+                spanTag.getAttributes().add(String.format("class=\"%s\" ", getDefinitionBackgroundColorHex(useCoverageMap)));
+                spanTag.getContent().add(createTooltip(pClassName, useCoverageMap, word));
+            } else {
+                ProgramVariable usage = findUsage(data, lineNumber, word);
+                spanTag = HTMLElement.span(word);
+                if (usage != null) {
+                    String id = String.format("L%sI%s", usage.getLineNumber(), usage.getInstructionIndex());
+                    spanTag.getAttributes().add(String.format("id=\"%s\"", id));
+                    // TODO: Redefinitions are marked green
+                    if (isCovered(data, usage)) {
+                        spanTag.getAttributes().add("class=\"green\"");
+                    }
+                    if (isUncovered(data, usage)) {
+                        spanTag.getAttributes().add("class=\"red\"");
+                    }
+                } else {
+                    addCodeHighlighting(spanTag, word);
+                }
+            }
+            if (isSpecialCharsLonger) {
+                spanTagLine.getContent().add(HTMLElement.noTag(specialChars.get(i)));
+                spanTagLine.getContent().add(spanTag);
+            } else {
+                spanTagLine.getContent().add(spanTag);
+                spanTagLine.getContent().add(HTMLElement.noTag(specialChars.get(i)));
+            }
+        }
+        // Add last special char
+        if (isSpecialCharsLonger && !isComment) {
+            spanTagLine.getContent().add(HTMLElement.noTag(specialChars.get(specialChars.size() - 1)));
+        }
+
         return spanTagLine;
     }
 
@@ -330,7 +360,7 @@ public class HTMLFactory {
     }
 
     private static void addCodeHighlighting(HTMLElement pSpanTag, String pWord) {
-        if(isJavaKeyword(pWord)){
+        if (isJavaKeyword(pWord)) {
             pSpanTag.getAttributes().add("class=\"java-keyword\"");
         } else if (isTypeKeyword(pWord)) {
             pSpanTag.getAttributes().add("class=\"type-keyword\"");
@@ -366,8 +396,8 @@ public class HTMLFactory {
                 }
             }
         }
-        for(InstanceVariable instanceVariable : pData.getInstanceVariables()) {
-            if(instanceVariable.getLineNumber() == pLineNumber && instanceVariable.getName().equals(pName)){
+        for (InstanceVariable instanceVariable : pData.getInstanceVariables()) {
+            if (instanceVariable.getLineNumber() == pLineNumber && instanceVariable.getName().equals(pName)) {
                 return ProgramVariable.create(
                         instanceVariable.getOwner(),
                         instanceVariable.getName(),

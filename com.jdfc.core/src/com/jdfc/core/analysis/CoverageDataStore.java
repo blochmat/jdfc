@@ -74,7 +74,6 @@ public class CoverageDataStore {
                 String relativePathWithoutType = relativePath.split("\\.")[0];
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
                 classList.add(relativePathWithoutType);
-                System.out.println(Arrays.toString(classList.toArray()));
                 String nameWithoutType = f.getName().split("\\.")[0];
                 ClassExecutionData classNodeData = new ClassExecutionData(relativePathWithoutType);
                 if(pExecutionDataNode.isRoot()){

@@ -1,11 +1,11 @@
 .style-class {
-    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
 }
 
 .h1 {
-     font-weight:bold;
-     font-size:18pt;
- }
+    font-weight: bold;
+    font-size: 18pt;
+}
 
 .tooltip {
     position: relative;
@@ -58,8 +58,14 @@
     white-space: pre-wrap;
 }
 
-.java-keyword{
-    color: #8F00FF}
+.java-keyword {
+    color: #8F00FF
+}
 
-.type-keyword{
-    color: #0049FF}
+.type-keyword {
+    color: #0049FF
+}
+
+.comment {
+    color: gray;
+}

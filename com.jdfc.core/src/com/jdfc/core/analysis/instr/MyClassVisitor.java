@@ -16,7 +16,7 @@ public class MyClassVisitor extends ClassVisitor {
         super(Opcodes.ASM6, cv);
         classNode = pClassNode;
         className = classNode.name;
-        System.out.println("DEBUG:" + className);
+//        System.out.println("DEBUG:" + className);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class MyClassVisitor extends ClassVisitor {
 
     // TODO: Twice (see CFGCreatorVisitor)
     private MethodNode getMethodNode(String pName) {
-        System.out.println("getMethodNode " + pName);
+//        System.out.println("getMethodNode " + pName);
         for (MethodNode node : classNode.methods) {
             if (node.name.equals(pName)) {
                 return node;
