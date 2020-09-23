@@ -1,4 +1,4 @@
-package com.jdfc.agent.rt.internal;
+package com.jdfc.agent;
 
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.instr.ClassInstrument;
@@ -7,7 +7,6 @@ import org.objectweb.asm.ClassReader;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.Arrays;
 
 
 public class ClassTransformer implements ClassFileTransformer {

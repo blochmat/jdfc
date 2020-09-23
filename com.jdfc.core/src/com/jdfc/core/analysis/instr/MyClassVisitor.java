@@ -10,6 +10,7 @@ public class MyClassVisitor extends ClassVisitor {
 
     final ClassNode classNode;
     final String className;
+    final String jacocoMethodName = "$jacoco";
 
     public MyClassVisitor(ClassVisitor cv, ClassNode pClassNode) {
         super(Opcodes.ASM6, cv);
@@ -24,8 +25,10 @@ public class MyClassVisitor extends ClassVisitor {
         MethodVisitor mv;
         mv = cv.visitMethod(access, name, desc, signature, exceptions);
         if (mv != null) {
-            MethodNode methodNode = getMethodNode(name);
-            mv = new MyMethodVisitor(mv, className, name, desc, methodNode);
+            if(!isJacocoInstrumentation(name)) {
+                MethodNode methodNode = getMethodNode(name);
+                mv = new MyMethodVisitor(mv, className, name, desc, methodNode);
+            }
         }
         return mv;
     }
@@ -39,5 +42,9 @@ public class MyClassVisitor extends ClassVisitor {
             }
         }
         return null;
+    }
+
+    private boolean isJacocoInstrumentation(String pString) {
+        return pString.contains(jacocoMethodName);
     }
 }

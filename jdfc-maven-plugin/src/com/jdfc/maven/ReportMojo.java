@@ -5,8 +5,6 @@ import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.report.LoadController;
 import com.jdfc.report.ReportGenerator;
-import com.jdfc.report.html.resources.Resources;
-import com.sun.org.apache.regexp.internal.RE;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;

@@ -1,5 +1,6 @@
-package com.jdfc.agent.rt.internal;
+package com.jdfc.agent;
 
+import com.jdfc.agent.ClassTransformer;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.CoverageDataStore;
@@ -9,9 +10,9 @@ import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
 import java.util.*;
 
-public final class PreMain {
+public final class Agent {
 
-    private PreMain(){
+    private Agent(){
 
     }
 

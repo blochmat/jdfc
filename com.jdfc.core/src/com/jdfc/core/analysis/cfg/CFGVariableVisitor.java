@@ -27,6 +27,7 @@ class CFGVariableVisitor extends ClassVisitor {
     private final Map<String, LocalVariableTable> localVariables;
     private final Set<InstanceVariable> instanceVariables;
     private final ClassNode classNode;
+    final String jacocoMethodName = "$jacoco";
 
     CFGVariableVisitor(final ClassNode pClassNode) {
         super(ASM6);
@@ -49,10 +50,15 @@ class CFGVariableVisitor extends ClassVisitor {
         } else {
             fv = null;
         }
-        return new CFGFieldVisitor(this, fv, pAccess, pName, pDescriptor, pSignature, pValue);
+        if(!isJacocoInstrumentation(pName)) {
+            return new CFGFieldVisitor(this, fv, pAccess, pName, pDescriptor, pSignature, pValue);
+        }
+        return fv;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public MethodVisitor visitMethod(
             final int pAccess,
@@ -66,8 +72,11 @@ class CFGVariableVisitor extends ClassVisitor {
         } else {
             mv = null;
         }
-        return new CFGVariableMethodVisitor(
-                this, mv, pName, pDescriptor, pSignature, pExceptions);
+        if (!isJacocoInstrumentation(pName)) {
+            return new CFGVariableMethodVisitor(
+                    this, mv, pName, pDescriptor, pSignature, pExceptions);
+        }
+        return mv;
     }
 
     /**
@@ -80,7 +89,9 @@ class CFGVariableVisitor extends ClassVisitor {
         return localVariables;
     }
 
-    Set<InstanceVariable> getInstanceVariables() { return instanceVariables; }
+    Set<InstanceVariable> getInstanceVariables() {
+        return instanceVariables;
+    }
 
     private static class CFGFieldVisitor extends FieldVisitor {
 
@@ -164,7 +175,9 @@ class CFGVariableVisitor extends ClassVisitor {
             super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         }
 
-        /** {@inheritDoc} */
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void visitLocalVariable(
                 final String pName,
@@ -178,12 +191,18 @@ class CFGVariableVisitor extends ClassVisitor {
             super.visitLocalVariable(pName, pDescriptor, pSignature, pStart, pEnd, pIndex);
         }
 
-        /** {@inheritDoc} */
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void visitEnd() {
             final String methodName =
                     CFGCreator.computeInternalMethodName(name, descriptor, signature, exceptions);
             classVisitor.localVariables.put(methodName, localVariableTable);
         }
+    }
+
+    private boolean isJacocoInstrumentation(String pString) {
+        return pString.contains(jacocoMethodName);
     }
 }

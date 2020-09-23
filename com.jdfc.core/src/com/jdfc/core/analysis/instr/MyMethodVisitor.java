@@ -14,6 +14,8 @@ public class MyMethodVisitor extends MethodVisitor {
     AbstractInsnNode currentNode = null;
     int currentLineNumber = -1;
     int currentInstructionIndex = -1;
+    // workaround not to collide with jacoco:
+    final String jacocoMethodName = "$jacoco";
 
     public MyMethodVisitor(MethodVisitor pMethodVisitor, String pClassName, String pMethodName, String pMethodDesc, MethodNode pMethodNode) {
         super(Opcodes.ASM6, pMethodVisitor);
@@ -140,7 +142,7 @@ public class MyMethodVisitor extends MethodVisitor {
         mv.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 Type.getInternalName(CFGImpl.class),
-                "addCoveredEntry",
+                "addLocalVarCoveredEntry",
                 "(Ljava/lang/String;" +
                         "Ljava/lang/String;" +
                         "Ljava/lang/String;" +
@@ -149,26 +151,28 @@ public class MyMethodVisitor extends MethodVisitor {
     }
 
     private void insertInstanceVariableEntryCreation(final String pOwner, final String pName, final String pDescriptor) {
-        mv.visitLdcInsn(className);
-        mv.visitLdcInsn(pOwner);
-        mv.visitLdcInsn(methodName);
-        mv.visitLdcInsn(methodDesc);
-        mv.visitLdcInsn(pName);
-        mv.visitLdcInsn(pDescriptor);
-        mv.visitLdcInsn(currentInstructionIndex);
-        mv.visitLdcInsn(currentLineNumber);
-        mv.visitMethodInsn(
-                Opcodes.INVOKESTATIC,
-                Type.getInternalName(CFGImpl.class),
-                "addCoveredEntry",
-                "(Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
-                        "II)V",
-                false);
+        if(!isJacocoInstrumentation(pName)) {
+            mv.visitLdcInsn(className);
+            mv.visitLdcInsn(pOwner);
+            mv.visitLdcInsn(methodName);
+            mv.visitLdcInsn(methodDesc);
+            mv.visitLdcInsn(pName);
+            mv.visitLdcInsn(pDescriptor);
+            mv.visitLdcInsn(currentInstructionIndex);
+            mv.visitLdcInsn(currentLineNumber);
+            mv.visitMethodInsn(
+                    Opcodes.INVOKESTATIC,
+                    Type.getInternalName(CFGImpl.class),
+                    "addInstanceVarCoveredEntry",
+                    "(Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "Ljava/lang/String;" +
+                            "II)V",
+                    false);
+        }
     }
 
     // TODO: Twice (see CFGCreatorVisitor)
@@ -179,5 +183,9 @@ public class MyMethodVisitor extends MethodVisitor {
             currentNode = currentNode.getNext();
         }
         currentInstructionIndex = methodNode.instructions.indexOf(currentNode);
+    }
+
+    private boolean isJacocoInstrumentation(String pString) {
+        return pString.contains(jacocoMethodName);
     }
 }

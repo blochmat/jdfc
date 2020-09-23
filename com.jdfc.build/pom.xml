@@ -13,7 +13,6 @@
         <module>../com.jdfc.commons</module>
         <module>../com.jdfc.core</module>
         <module>../com.jdfc.report</module>
-        <module>../com.jdfc.agent.rt</module>
         <module>../com.jdfc.agent</module>
         <module>../jdfc-maven-plugin</module>
     </modules>
@@ -84,7 +83,7 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>com.jdfc.agent.rt</artifactId>
+                <artifactId>com.jdfc.agent</artifactId>
                 <version>${project.groupId}</version>
             </dependency>
             <!-- Third-party dependencies -->
@@ -504,7 +503,7 @@
                             <script><![CDATA[
                                 buildNumber = project.getProperties().get("buildNumber");
                                 pkgName = buildNumber.substring(buildNumber.length() - 7, buildNumber.length());
-                                project.getProperties().setProperty("jdfc.runtime.package.name", "com.jdfc.agent.rt.internal_" + pkgName);
+                                project.getProperties().setProperty("jdfc.runtime.package.name", "com.jdfc.agent_" + pkgName);
                               ]]>
                             </script>
                         </configuration>

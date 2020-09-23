@@ -79,42 +79,27 @@ public class CFGImpl implements CFG {
         return String.format("CFGImpl for method %s (containing %d nodes)", methodName, nodes.size());
     }
 
-    // LocalVariables
-    public static void addCoveredEntry(final String pClassName,
+    public static void addLocalVarCoveredEntry(final String pClassName,
                                        final String pMethodName,
                                        final String pMethodDesc,
                                        final int pVarIndex,
                                        final int pInsnIndex,
                                        final int pLineNumber) {
         String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
-        ProgramVariable programVariable = prepareNewEntry(pClassName, methodNameDesc, pVarIndex, pInsnIndex, pLineNumber);
         ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-        Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
-        coveredList.get(methodNameDesc).add(programVariable);
-        try {
-            dumpToFile(pClassName);
-        } catch (ParserConfigurationException | TransformerException e) {
-            e.printStackTrace();
+        ProgramVariable programVariable = prepareNewLocalVarEntry(classNodeData, methodNameDesc, pVarIndex, pInsnIndex, pLineNumber);
+        if(programVariable != null) {
+            Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
+            coveredList.get(methodNameDesc).add(programVariable);
+            try {
+                dumpToFile(pClassName);
+            } catch (ParserConfigurationException | TransformerException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    static ProgramVariable prepareNewEntry(final String pClassName,
-                                           final String pMethodName,
-                                           final int pVarIndex,
-                                           final int pInsnIndex,
-                                           final int pLineNumber) {
-        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-        if(classNodeData != null) {
-            CFG cfg = classNodeData.getMethodCFGs().get(pMethodName);
-            LocalVariableTable table = cfg.getLocalVariableTable();
-            LocalVariable variable = findLocalVariable(table, pVarIndex);
-            return ProgramVariable.create(null, variable.getName(), variable.getDescriptor(), pInsnIndex, pLineNumber);
-        }
-        return null;
-    }
-
-    // InstanceVariables
-    public static void addCoveredEntry(final String pClassName,
+    public static void addInstanceVarCoveredEntry(final String pClassName,
                                        final String pOwner,
                                        final String pMethodName,
                                        final String pMethodDesc,
@@ -123,30 +108,44 @@ public class CFGImpl implements CFG {
                                        final int pIndex,
                                        final int pLineNumber) {
         String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
-        ProgramVariable programVariable = prepareNewEntry(pClassName, pOwner, pVarName, pVarDesc, pIndex, pLineNumber);
-        ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-        Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
-        coveredList.get(methodNameDesc).add(programVariable);
-        try {
-            dumpToFile(pClassName);
-        } catch (ParserConfigurationException | TransformerException e) {
-            e.printStackTrace();
+        ProgramVariable programVariable = prepareNewInstanceVarEntry(pClassName, pOwner, pVarName, pVarDesc, pIndex, pLineNumber);
+        if (programVariable != null) {
+            ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
+            Map<String, Set<ProgramVariable>> coveredList = classNodeData.getDefUseCovered();
+            coveredList.get(methodNameDesc).add(programVariable);
+            try {
+                dumpToFile(pClassName);
+            } catch (ParserConfigurationException | TransformerException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    static ProgramVariable prepareNewEntry(final String pClassName,
-                                           final String pOwner,
-                                           final String pVarName,
-                                           final String pVarDesc,
-                                           final int pInstructionIndex,
-                                           final int pLineNumber) {
+    static ProgramVariable prepareNewLocalVarEntry(final ClassExecutionData pData,
+                                                   final String pMethodName,
+                                                   final int pVarIndex,
+                                                   final int pInsnIndex,
+                                                   final int pLineNumber) {
+        CFG cfg = pData.getMethodCFGs().get(pMethodName);
+        LocalVariableTable table = cfg.getLocalVariableTable();
+        LocalVariable variable = findLocalVariable(table, pVarIndex);
+        if (variable != null) {
+            return ProgramVariable.create(null, variable.getName(), variable.getDescriptor(), pInsnIndex, pLineNumber);
+        }
+        return null;
+    }
+
+    static ProgramVariable prepareNewInstanceVarEntry(final String pClassName,
+                                                   final String pOwner,
+                                                   final String pVarName,
+                                                   final String pVarDesc,
+                                                   final int pInstructionIndex,
+                                                   final int pLineNumber) {
         ClassExecutionData classNodeData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-        if(classNodeData != null) {
-            Set<InstanceVariable> set = classNodeData.getInstanceVariables();
-            InstanceVariable variable = findInstanceVariable(set, pOwner, pVarName, pVarDesc);
-            if (variable != null) {
-                return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(), pInstructionIndex, pLineNumber);
-            }
+        Set<InstanceVariable> set = classNodeData.getInstanceVariables();
+        InstanceVariable variable = findInstanceVariable(set, pOwner, pVarName, pVarDesc);
+        if(variable != null) {
+            return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(), pInstructionIndex, pLineNumber);
         }
         return null;
     }
@@ -187,7 +186,7 @@ public class CFGImpl implements CFG {
 
         Element instanceVariablesTag = doc.createElement("instanceVariables");
         rootTag.appendChild(instanceVariablesTag);
-        for(InstanceVariable instanceVariable : classData.getInstanceVariables()){
+        for (InstanceVariable instanceVariable : classData.getInstanceVariables()) {
             Element instanceVarTag = doc.createElement("instanceVariable");
             instanceVarTag.setAttribute("owner", instanceVariable.getOwner());
             instanceVarTag.setAttribute("access", String.valueOf(instanceVariable.getAccess()));

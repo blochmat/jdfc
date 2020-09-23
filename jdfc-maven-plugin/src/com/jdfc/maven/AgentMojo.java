@@ -14,7 +14,7 @@ import java.util.Properties;
 
 import static java.lang.String.format;
 
-@Mojo(name = "prepare-agent", defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
+@Mojo(name = "prepare-package", defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
 public class AgentMojo extends AbstractJdfcMojo {
 
     /**
@@ -27,6 +27,7 @@ public class AgentMojo extends AbstractJdfcMojo {
 
     @Override
     protected void executeMojo() throws MojoExecutionException, MojoFailureException {
+        // TODO: Refactor argLine processing
         String argLine = "argLine";
         Properties projectProperties = getProject().getProperties();
         String oldValue = projectProperties.getProperty(argLine);
@@ -35,9 +36,9 @@ public class AgentMojo extends AbstractJdfcMojo {
         final String agent = format("-javaagent:%s", getAgentJarFile());
         String newValue = "";
         if (oldValue == null) {
-            newValue = format("%s=%s", agent, targetDir);
+            newValue = String.format("%s=%s", agent, targetDir);
         } else {
-            newValue = format("%s%s=%s", oldValue, agent, targetDir);
+            newValue = String.format("%s %s=%s", oldValue, agent, targetDir);
         }
         projectProperties.setProperty(argLine, newValue);
     }

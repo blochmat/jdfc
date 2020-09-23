@@ -13,7 +13,14 @@
   <artifactId>com.jdfc.agent</artifactId>
 
   <name>JDFC :: Agent</name>
-  <description>JDFC Agent</description>
+  <description>JDFC Java Agent</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.jdfc</groupId>
+      <artifactId>com.jdfc.core</artifactId>
+    </dependency>
+  </dependencies>
 
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -21,77 +28,78 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>${project.groupId}</groupId>
-                  <artifactId>com.jdfc.agent.rt</artifactId>
-                  <classifier>all</classifier>
-                  <version>${project.version}</version>
-                  <destFileName>jdfcagent.jar</destFileName>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.directory}/classes</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-artifacts</id>
             <phase>package</phase>
             <goals>
-              <goal>attach-artifact</goal>
+              <goal>shade</goal>
             </goals>
             <configuration>
-              <artifacts>
-                <artifact>
-                  <file>${project.build.directory}/classes/jdfcagent.jar</file>
-                  <type>jar</type>
-                  <classifier>runtime</classifier>
-                </artifact>
-              </artifacts>
+              <shadedClassifierName>runtime</shadedClassifierName>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <minimizeJar>true</minimizeJar>
+              <relocations>
+                <relocation>
+                  <pattern>com.jdfc.agent</pattern>
+                  <shadedPattern>${jdfc.runtime.package.name}</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.jdfc.core</pattern>
+                  <shadedPattern>${jdfc.runtime.package.name}.core</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb.asm</pattern>
+                  <shadedPattern>${jdfc.runtime.package.name}.asm</shadedPattern>
+                </relocation>
+              </relocations>
+              <filters>
+                <filter>
+                  <artifact>org.ow2.asm:*</artifact>
+                  <excludes>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer
+                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Premain-Class>${jdfc.runtime.package.name}.Agent</Premain-Class>
+                    <Automatic-Module-Name>${project.artifactId}</Automatic-Module-Name>
+                    <Implementation-Title>${project.description}</Implementation-Title>
+                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+                    <Implementation-Version>${project.version}</Implementation-Version>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
             </configuration>
           </execution>
         </executions>
       </plugin>
 
 <!--      <plugin>-->
-<!--        <groupId>org.apache.felix</groupId>-->
-<!--        <artifactId>maven-bundle-plugin</artifactId>-->
+<!--        <groupId>org.codehaus.mojo</groupId>-->
+<!--        <artifactId>build-helper-maven-plugin</artifactId>-->
 <!--        <executions>-->
 <!--          <execution>-->
-<!--            <phase>process-classes</phase>-->
+<!--            <id>attach-artifacts</id>-->
+<!--            <phase>pre-integration-test</phase>-->
 <!--            <goals>-->
-<!--              <goal>manifest</goal>-->
+<!--              <goal>attach-artifact</goal>-->
 <!--            </goals>-->
+<!--            <configuration>-->
+<!--              <artifacts>-->
+<!--                <artifact>-->
+<!--                  <file>${project.build.directory}/classes/jdfcagent.jar</file>-->
+<!--                  <type>jar</type>-->
+<!--                  <classifier>runtime</classifier>-->
+<!--                </artifact>-->
+<!--              </artifacts>-->
+<!--            </configuration>-->
 <!--          </execution>-->
 <!--        </executions>-->
 <!--      </plugin>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-jar-plugin</artifactId>-->
-<!--        <configuration>-->
-<!--          <archive>-->
-<!--            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>-->
-<!--          </archive>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
     </plugins>
   </build>
-
 </project>
