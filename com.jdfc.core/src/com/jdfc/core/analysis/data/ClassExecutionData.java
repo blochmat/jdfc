@@ -13,7 +13,7 @@ public class ClassExecutionData extends ExecutionData {
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
     private Map<String, Set<ProgramVariable>> defUseUncovered;
-    private Map<String, Integer> methodStartLineMap;
+    private Map<String, ProgramVariable> methodStartLineMap;
     private final String relativePath;
 
     public ClassExecutionData(String pRelativePath) {
@@ -52,7 +52,7 @@ public class ClassExecutionData extends ExecutionData {
         return defUseUncovered;
     }
 
-    public Map<String, Integer> getMethodStartLineMap() {
+    public Map<String, ProgramVariable> getMethodStartLineMap() {
         return methodStartLineMap;
     }
 
@@ -114,7 +114,21 @@ public class ClassExecutionData extends ExecutionData {
             String methodName = entry.getKey();
             int covered = 0;
             defUseUncovered.put(methodName, new HashSet<>());
-            methodStartLineMap.put(methodName, Integer.MAX_VALUE);
+            ProgramVariable dummy = ProgramVariable.create(null, "dummy", null, Integer.MAX_VALUE, Integer.MAX_VALUE);
+            methodStartLineMap.put(methodName, dummy);
+            if(methodName.contains("init")) {
+                for(InstanceVariable instanceVariable : instanceVariables) {
+                    if(methodStartLineMap.get(methodName).getLineNumber() > instanceVariable.getLineNumber()
+                            && instanceVariable.getLineNumber() != -1){
+                        ProgramVariable programVariable = ProgramVariable.create(instanceVariable.getOwner(),
+                                instanceVariable.getName(),
+                                instanceVariable.getDescriptor(),
+                                Integer.MIN_VALUE,
+                                instanceVariable.getLineNumber());
+                        methodStartLineMap.put(methodName, programVariable);
+                    }
+                }
+            }
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
@@ -130,8 +144,9 @@ public class ClassExecutionData extends ExecutionData {
                         defUseUncovered.get(methodName).add(use);
                     }
                 }
-                if(methodStartLineMap.get(methodName) > def.getLineNumber()){
-                    methodStartLineMap.put(methodName, def.getLineNumber());
+                if(methodStartLineMap.get(methodName).getLineNumber() > def.getLineNumber()
+                        && def.getLineNumber() != -1){
+                    methodStartLineMap.put(methodName, def);
                 }
             }
             this.setCovered(covered);

@@ -14,10 +14,10 @@ public class Resources {
 
     public void copyResource() throws IOException {
         copyResource("report.css");
-        copyResource("sort.js");
+        copyResource("script.js");
     }
 
-    public String getPathToResources(final File pFile){
+    public String getPathToResourcesFrom(final File pFile){
         Path relative = pFile.toPath().relativize(folder.toPath());
 
         return relative.toString().replaceFirst("\\.", "");

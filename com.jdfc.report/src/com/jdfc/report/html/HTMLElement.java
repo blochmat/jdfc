@@ -56,6 +56,16 @@ public class HTMLElement {
         return newElement;
     }
 
+    static HTMLElement script(final String pType, final String pSrc) {
+        String scriptTag = "<script%s></script>";
+        HTMLElement newElement = new HTMLElement(scriptTag, null);
+        String type = String.format("type=\"%s\"", pType);
+        newElement.getAttributes().add(type);
+        String src = String.format("src=\"%s\"", pSrc);
+        newElement.getAttributes().add(src);
+        return newElement;
+    }
+
     static HTMLElement title(final String pText) {
         String titleTag = "<title%s>%s</title>";
         return new HTMLElement(titleTag, pText);

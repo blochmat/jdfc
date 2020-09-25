@@ -27,6 +27,7 @@ public class CFGCreatorVisitor extends ClassVisitor {
     private final Map<String, CFG> methodCFGs;
     private final Map<String, LocalVariableTable> localVariableTables;
     private final ClassNode classNode;
+    final String jacocoMethodName = "$jacoco";
 
     public CFGCreatorVisitor(Map<String, CFG> pMethodCFGs,
                              Map<String, LocalVariableTable> pLocalVariableTables,
@@ -51,12 +52,12 @@ public class CFGCreatorVisitor extends ClassVisitor {
         final Type[] parameterTypes = Type.getArgumentTypes(desc);
         final MethodNode methodNode = getMethodNode(name);
 
-        if (methodNode != null) {
+        if (methodNode != null && !isJacocoInstrumentation(name)) {
             return new MethodCFGCreatorVisitor(
                     this, mv, name, localVariableTableKey, methodCFGs, localVariableTable, parameterTypes, methodNode);
         }
 
-        return null;
+        return mv;
     }
 
     private MethodNode getMethodNode(String pName) {
@@ -67,6 +68,10 @@ public class CFGCreatorVisitor extends ClassVisitor {
             }
         }
         return null;
+    }
+
+    private boolean isJacocoInstrumentation(String pString) {
+        return pString.contains(jacocoMethodName);
     }
 
     private static class MethodCFGCreatorVisitor extends MethodVisitor {
@@ -297,12 +302,14 @@ public class CFGCreatorVisitor extends ClassVisitor {
                 case LSTORE:
                 case FSTORE:
                 case DSTORE:
+                case ASTORE:
                     node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex);
                     break;
                 case ILOAD:
                 case LLOAD:
                 case FLOAD:
                 case DLOAD:
+                case ALOAD:
                     node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex);
                     break;
                 default:
