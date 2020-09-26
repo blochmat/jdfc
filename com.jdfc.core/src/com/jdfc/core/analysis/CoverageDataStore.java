@@ -1,6 +1,7 @@
 package com.jdfc.core.analysis;
 
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.cfg.CFG;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.data.ClassExecutionData;
@@ -41,6 +42,7 @@ public class CoverageDataStore {
         ClassExecutionData classNodeData = (ClassExecutionData) findClassDataNode(pClassName).getData();
         classNodeData.setMethodCFGs(pMethodCFGs);
         classNodeData.calculateDefUsePairs();
+        System.out.println(new PrettyPrintMap<>(classNodeData.getDefUsePairs()));
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {

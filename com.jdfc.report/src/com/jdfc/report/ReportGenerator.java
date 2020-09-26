@@ -60,9 +60,7 @@ public class ReportGenerator {
                     // class detail view
                     HTMLFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), dir,
                             pSourceDir, pResources);
-                    ClassExecutionData pData = (ClassExecutionData) entry.getValue().getData();
-                    System.out.println(new PrettyPrintMap<>(pData.getDefUsePairs()));
-                }
+                    ClassExecutionData pData = (ClassExecutionData) entry.getValue().getData(); }
             } else {
                 String nextPathName;
 

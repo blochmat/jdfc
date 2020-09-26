@@ -4,8 +4,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
 import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
@@ -19,7 +17,6 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -111,6 +108,7 @@ public class CFGCreatorVisitor extends ClassVisitor {
             classVisitor = pClassVisitor;
             className = pClassName;
             methodName = pMethodName;
+            System.out.println(methodName);
             internalMethodName = pInternalMethodName;
             methodCFGs = pMethodCFGs;
             localVariableTable = pLocalVariableTable;
@@ -123,7 +121,11 @@ public class CFGCreatorVisitor extends ClassVisitor {
         @Override
         public void visitLineNumber(int line, Label start) {
             if (firstLine == -1) {
-                firstLine += line;
+                if(methodName.equals("<init>")) {
+                    firstLine = line;
+                } else {
+                    firstLine += line;
+                }
             }
 //            System.out.println("visitLineNumber");
             currentLineNumber = line;
@@ -277,8 +279,6 @@ public class CFGCreatorVisitor extends ClassVisitor {
             ClassExecutionData data = (ClassExecutionData) CoverageDataStore.getInstance()
                     .findClassDataNode(className).getData();
             data.getMethodRangeMap().put(internalMethodName, new Pair<>(firstLine, lastLine));
-            System.out.println(className+" "+methodName);
-            System.out.println(new PrettyPrintMap<>(data.getMethodRangeMap()));
             super.visitEnd();
         }
 
@@ -399,6 +399,8 @@ public class CFGCreatorVisitor extends ClassVisitor {
                                     localVariable.getDescriptor(),
                                     Integer.MIN_VALUE,
                                     firstLine);
+                    System.out.println(localVariable.getName());
+                    System.out.println(firstLine);
                     parameters.add(variable);
                 }
             }

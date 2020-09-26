@@ -201,7 +201,6 @@ public class HTMLFactory {
             ProgramVariable definition = findDefinition(data, lineNumber, word);
             HTMLElement spanTag;
             if (definition != null) {
-                System.out.println("/// Definition: "+ lineNumber+" "+word);
                 boolean isDefCovered = findIsDefCovered(data, definition);
                 Map<ProgramVariable, Boolean> useCoverageMap = getUseCoverageMap(data, definition);
                 spanTag = HTMLElement.span();
@@ -469,23 +468,17 @@ public class HTMLFactory {
     }
 
     private static boolean isRedefined(ClassExecutionData pData, int pLineNumber, String pName) {
-        String methodName = "";
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
-            methodName = defUsePairs.getKey();
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 ProgramVariable definition = defUsePair.getDefinition();
                 if (definition.getLineNumber() > pLineNumber
                         && definition.getName().equals(pName)
                         && pData.getMethodRangeMap().get(defUsePairs.getKey()).fst <= pLineNumber
                         && pData.getMethodRangeMap().get(defUsePairs.getKey()).snd >= pLineNumber) {
-                    System.out.println("TRUE: "+pLineNumber +" "+pName);
                     return true;
                 }
             }
         }
-        System.out.println("FALSE: "+methodName+" "+pLineNumber +" "+pName);
-        System.out.println(pData.getMethodRangeMap().get(methodName).fst);
-        System.out.println(pData.getMethodRangeMap().get(methodName).snd);
         return false;
     }
 
