@@ -2,7 +2,9 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
+import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.HTMLFactory;
 import com.jdfc.report.html.resources.Resources;
 
@@ -58,6 +60,8 @@ public class ReportGenerator {
                     // class detail view
                     HTMLFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), dir,
                             pSourceDir, pResources);
+                    ClassExecutionData pData = (ClassExecutionData) entry.getValue().getData();
+                    System.out.println(new PrettyPrintMap<>(pData.getDefUsePairs()));
                 }
             } else {
                 String nextPathName;

@@ -1,6 +1,7 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
+import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.cfg.*;
 
 import java.util.*;
@@ -13,13 +14,17 @@ public class ClassExecutionData extends ExecutionData {
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
     private Map<String, Set<ProgramVariable>> defUseUncovered;
-    private Map<String, ProgramVariable> methodStartLineMap;
+    private Map<String, Pair<Integer, Integer>> methodRangeMap;
     private final String relativePath;
 
     public ClassExecutionData(String pRelativePath) {
         // TODO: Initialize all properties
+        defUsePairs = new TreeMap<>();
+        defUseCovered = new HashMap<>();
+        defUseUncovered = new HashMap<>();
         relativePath = pRelativePath;
         instanceVariables = new HashSet<>();
+        methodRangeMap = new HashMap<>();
     }
 
     /**
@@ -52,8 +57,8 @@ public class ClassExecutionData extends ExecutionData {
         return defUseUncovered;
     }
 
-    public Map<String, ProgramVariable> getMethodStartLineMap() {
-        return methodStartLineMap;
+    public Map<String, Pair<Integer, Integer>> getMethodRangeMap() {
+        return methodRangeMap;
     }
 
     public Set<InstanceVariable> getInstanceVariables() {
@@ -106,7 +111,6 @@ public class ClassExecutionData extends ExecutionData {
 
     public void computeCoverage() {
         defUseUncovered = new HashMap<>();
-        methodStartLineMap = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
             if (entry.getValue().size() == 0) {
                 continue;
@@ -114,21 +118,6 @@ public class ClassExecutionData extends ExecutionData {
             String methodName = entry.getKey();
             int covered = 0;
             defUseUncovered.put(methodName, new HashSet<>());
-            ProgramVariable dummy = ProgramVariable.create(null, "dummy", null, Integer.MAX_VALUE, Integer.MAX_VALUE);
-            methodStartLineMap.put(methodName, dummy);
-            if(methodName.contains("init")) {
-                for(InstanceVariable instanceVariable : instanceVariables) {
-                    if(methodStartLineMap.get(methodName).getLineNumber() > instanceVariable.getLineNumber()
-                            && instanceVariable.getLineNumber() != -1){
-                        ProgramVariable programVariable = ProgramVariable.create(instanceVariable.getOwner(),
-                                instanceVariable.getName(),
-                                instanceVariable.getDescriptor(),
-                                Integer.MIN_VALUE,
-                                instanceVariable.getLineNumber());
-                        methodStartLineMap.put(methodName, programVariable);
-                    }
-                }
-            }
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
@@ -143,10 +132,6 @@ public class ClassExecutionData extends ExecutionData {
                     if (!useCovered) {
                         defUseUncovered.get(methodName).add(use);
                     }
-                }
-                if(methodStartLineMap.get(methodName).getLineNumber() > def.getLineNumber()
-                        && def.getLineNumber() != -1){
-                    methodStartLineMap.put(methodName, def);
                 }
             }
             this.setCovered(covered);

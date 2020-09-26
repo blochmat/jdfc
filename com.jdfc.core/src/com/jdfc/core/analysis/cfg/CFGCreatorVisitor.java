@@ -4,6 +4,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.jdfc.commons.data.ExecutionData;
+import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.data.Pair;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.*;
@@ -15,6 +19,7 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -54,7 +59,7 @@ public class CFGCreatorVisitor extends ClassVisitor {
 
         if (methodNode != null && !isJacocoInstrumentation(name)) {
             return new MethodCFGCreatorVisitor(
-                    this, mv, name, localVariableTableKey, methodCFGs, localVariableTable, parameterTypes, methodNode);
+                    this, mv, name, localVariableTableKey, methodCFGs, localVariableTable, parameterTypes, methodNode, classNode.name);
         }
 
         return mv;
@@ -86,21 +91,25 @@ public class CFGCreatorVisitor extends ClassVisitor {
         private final Type[] parameterTypes;
 
         private final MethodNode methodNode;
+        private final String className;
         private int currentLineNumber = -1;
         private AbstractInsnNode currentNode = null;
         private int currentInstructionIndex = -1;
         private int firstLine = -1;
+        private int lastLine = -1;
 
-        public MethodCFGCreatorVisitor(CFGCreatorVisitor pClassVisitor,
-                                       MethodVisitor pMethodVisitor,
-                                       String pMethodName,
-                                       String pInternalMethodName,
-                                       Map<String, CFG> pMethodCFGs,
-                                       LocalVariableTable pLocalVariableTable,
-                                       Type[] pParameterTypes,
-                                       MethodNode pMethodNode) {
+        public MethodCFGCreatorVisitor(final CFGCreatorVisitor pClassVisitor,
+                                       final MethodVisitor pMethodVisitor,
+                                       final String pMethodName,
+                                       final String pInternalMethodName,
+                                       final Map<String, CFG> pMethodCFGs,
+                                       final LocalVariableTable pLocalVariableTable,
+                                       final Type[] pParameterTypes,
+                                       final MethodNode pMethodNode,
+                                       final String pClassName) {
             super(ASM6, pMethodVisitor);
             classVisitor = pClassVisitor;
+            className = pClassName;
             methodName = pMethodName;
             internalMethodName = pInternalMethodName;
             methodCFGs = pMethodCFGs;
@@ -264,6 +273,12 @@ public class CFGCreatorVisitor extends ClassVisitor {
             CFG cfg = new CFGImpl(methodName, nodes, localVariableTable);
             cfg.calculateReachingDefinitions();
             methodCFGs.put(internalMethodName, cfg);
+            lastLine = currentLineNumber;
+            ClassExecutionData data = (ClassExecutionData) CoverageDataStore.getInstance()
+                    .findClassDataNode(className).getData();
+            data.getMethodRangeMap().put(internalMethodName, new Pair<>(firstLine, lastLine));
+            System.out.println(className+" "+methodName);
+            System.out.println(new PrettyPrintMap<>(data.getMethodRangeMap()));
             super.visitEnd();
         }
 

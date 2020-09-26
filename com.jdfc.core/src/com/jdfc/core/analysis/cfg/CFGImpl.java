@@ -2,6 +2,7 @@ package com.jdfc.core.analysis.cfg;
 
 
 import com.google.common.base.Preconditions;
+import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.w3c.dom.*;
@@ -237,6 +238,17 @@ public class CFGImpl implements CFG {
                     defUseCoveredTag.appendChild(programVariableTag);
                 }
             }
+        }
+
+        Element methodRangeMap = doc.createElement("methodRangeMap");
+        rootTag.appendChild(methodRangeMap);
+
+        for(Map.Entry<String, Pair<Integer, Integer>> methodEntry : classData.getMethodRangeMap().entrySet()) {
+            Element methodRange = doc.createElement("methodRange");
+            methodRangeMap.appendChild(methodRange);
+            methodRange.setAttribute("methodName", methodEntry.getKey());
+            methodRange.setAttribute("fst", String.valueOf(methodEntry.getValue().fst));
+            methodRange.setAttribute("snd", String.valueOf(methodEntry.getValue().snd));
         }
 
         Transformer transformer = TransformerFactory.newInstance().newTransformer();

@@ -2,7 +2,6 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.cfg.DefUsePair;
 import com.jdfc.core.analysis.cfg.InstanceVariable;
 import com.jdfc.core.analysis.cfg.ProgramVariable;
@@ -99,10 +98,12 @@ public class HTMLFactory {
                 HTMLElement trTag = HTMLElement.tr();
                 String current = scanner.nextLine();
                 lineCounter += 1;
-                trTag.getContent().add(HTMLElement.td(lineCounter));
-                HTMLElement tdTag = HTMLElement.td();
-                tdTag.getContent().add(processLine(pClassName, lineCounter, current, (ClassExecutionData) pData));
-                trTag.getContent().add(tdTag);
+                HTMLElement lineCell = HTMLElement.td(lineCounter);
+                lineCell.getAttributes().add(String.format("id=\"%s\"", lineCounter));
+                trTag.getContent().add(lineCell);
+                HTMLElement textCell = HTMLElement.td();
+                textCell.getContent().add(processLine(pClassName, lineCounter, current, (ClassExecutionData) pData));
+                trTag.getContent().add(textCell);
                 tableTag.getContent().add(trTag);
             }
             scanner.close();
@@ -176,7 +177,7 @@ public class HTMLFactory {
         for (int i = 0; i < words.size(); i++) {
             String word = words.get(i);
             // Create Comment
-            if(specialChars.get(i).contains("//")) {
+            if (specialChars.get(i).contains("//")) {
                 int index = specialChars.get(i).indexOf("//");
                 String remainder = specialChars.get(i).substring(0, index);
                 String commentSlashes = specialChars.get(i).substring(index);
@@ -185,12 +186,12 @@ public class HTMLFactory {
                 comment.getAttributes().add("class=\"comment\"");
                 comment.getContent().add(HTMLElement.noTag(commentSlashes));
                 comment.getContent().add(HTMLElement.noTag(words.get(i)));
-                for(int j = i+1; j < words.size(); j++) {
+                for (int j = i + 1; j < words.size(); j++) {
                     comment.getContent().add(HTMLElement.noTag(specialChars.get(j)));
                     comment.getContent().add(HTMLElement.noTag(words.get(j)));
                 }
-                if(isSpecialCharsLonger) {
-                    comment.getContent().add(HTMLElement.noTag(specialChars.get(specialChars.size()-1)));
+                if (isSpecialCharsLonger) {
+                    comment.getContent().add(HTMLElement.noTag(specialChars.get(specialChars.size() - 1)));
                     isComment = true;
                 }
                 spanTagLine.getContent().add(comment);
@@ -198,14 +199,15 @@ public class HTMLFactory {
             }
 
             ProgramVariable definition = findDefinition(data, lineNumber, word);
-            boolean isDefCovered = findIsDefCovered(data, definition);
             HTMLElement spanTag;
             if (definition != null) {
+                System.out.println("/// Definition: "+ lineNumber+" "+word);
+                boolean isDefCovered = findIsDefCovered(data, definition);
                 Map<ProgramVariable, Boolean> useCoverageMap = getUseCoverageMap(data, definition);
                 spanTag = HTMLElement.span();
                 String id = String.format("L%sI%s", definition.getLineNumber(), definition.getInstructionIndex());
                 spanTag.getAttributes().add(String.format("id=\"%s\"", id));
-                spanTag.getAttributes().add(String.format("class=\"%s\" ", getDefinitionBackgroundColorHex(isDefCovered, useCoverageMap)));
+                spanTag.getAttributes().add(String.format("class=\"%s\"", getDefinitionBackgroundColorHex(isDefCovered, useCoverageMap)));
                 spanTag.getContent().add(createTooltip(pClassName, useCoverageMap, word));
             } else {
                 ProgramVariable usage = findUsage(data, lineNumber, word);
@@ -213,7 +215,6 @@ public class HTMLFactory {
                 if (usage != null) {
                     String id = String.format("L%sI%s", usage.getLineNumber(), usage.getInstructionIndex());
                     spanTag.getAttributes().add(String.format("id=\"%s\"", id));
-                    // TODO: Mark Definitions if Redefinitions exist?
                     if (isCovered(data, usage)) {
                         spanTag.getAttributes().add("class=\"green\"");
                     }
@@ -221,7 +222,12 @@ public class HTMLFactory {
                         spanTag.getAttributes().add("class=\"red\"");
                     }
                 } else {
-                    addCodeHighlighting(spanTag, word);
+                    if(isRedefined(data, lineNumber, word)) {
+                        spanTag = HTMLElement.span(word);
+                        spanTag.getAttributes().add("class=\"blue\"");
+//                    spanTag.getAttributes().add(String.format("class=\"%s\"", getRedefinitionBackgroundColorHex(data, lineNumber, word)));
+                    }
+//                    addCodeHighlighting(spanTag, word);
                 }
             }
             if (isSpecialCharsLonger) {
@@ -238,6 +244,41 @@ public class HTMLFactory {
         }
 
         return spanTagLine;
+    }
+
+    private static String getRedefinitionBackgroundColorHex(ClassExecutionData pData, int pLineNumber, String pName) {
+        boolean covered = false;
+        boolean uncovered = false;
+        for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getDefUseCovered().entrySet()) {
+            for (ProgramVariable programVariable : defUseCovered.getValue()) {
+                if (programVariable.getLineNumber() > pLineNumber
+                        && programVariable.getName().equals(pName)
+                        && pData.getMethodRangeMap().get(defUseCovered.getKey()).fst < pLineNumber
+                        && pData.getMethodRangeMap().get(defUseCovered.getKey()).snd > pLineNumber) {
+                    covered = true;
+                }
+            }
+        }
+        for (Map.Entry<String, Set<ProgramVariable>> defUseUncovered : pData.getDefUseUncovered().entrySet()) {
+            for (ProgramVariable programVariable : defUseUncovered.getValue()) {
+                if (programVariable.getLineNumber() > pLineNumber
+                        && programVariable.getName().equals(pName)
+                        && pData.getMethodRangeMap().get(defUseUncovered.getKey()).fst < pLineNumber
+                        && pData.getMethodRangeMap().get(defUseUncovered.getKey()).snd > pLineNumber) {
+                    uncovered = true;
+                }
+            }
+        }
+
+        if(uncovered && !covered) {
+            return "red";
+        } else if (covered && !uncovered) {
+            return "blue";
+        } else if (covered) {
+            return "pink";
+        } else {
+            return "";
+        }
     }
 
     private static HTMLElement createDefaultHTMLHead(final String pTitle,
@@ -265,15 +306,14 @@ public class HTMLFactory {
         tableTag.getContent().add(createTableHeadTag(pColumns));
         for (Map.Entry<String, List<DefUsePair>> entry : pData.getDefUsePairs().entrySet()) {
             String elementName = entry.getKey();
-            if(elementName.contains("<init>")) {
+            if (elementName.contains("<init>")) {
                 elementName = elementName.replace("<init>", "init");
             }
             int total = entry.getValue().size();
             int covered = pData.computeCoverageForMethod(entry.getKey());
             int missed = total - covered;
-            String link = String.format("%s.java.html#L%sI%s", pClassfileName,
-                    pData.getMethodStartLineMap().get(entry.getKey()).getLineNumber(),
-                    pData.getMethodStartLineMap().get(entry.getKey()).getInstructionIndex());
+            String link = String.format("%s.java.html#L%s", pClassfileName,
+                    pData.getMethodRangeMap().get(entry.getKey()).fst);
             HTMLElement trTag = HTMLElement.tr();
             HTMLElement tdTag = HTMLElement.td();
             tdTag.getContent().add(HTMLElement.a(link, elementName));
@@ -428,6 +468,27 @@ public class HTMLFactory {
         return null;
     }
 
+    private static boolean isRedefined(ClassExecutionData pData, int pLineNumber, String pName) {
+        String methodName = "";
+        for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
+            methodName = defUsePairs.getKey();
+            for (DefUsePair defUsePair : defUsePairs.getValue()) {
+                ProgramVariable definition = defUsePair.getDefinition();
+                if (definition.getLineNumber() > pLineNumber
+                        && definition.getName().equals(pName)
+                        && pData.getMethodRangeMap().get(defUsePairs.getKey()).fst <= pLineNumber
+                        && pData.getMethodRangeMap().get(defUsePairs.getKey()).snd >= pLineNumber) {
+                    System.out.println("TRUE: "+pLineNumber +" "+pName);
+                    return true;
+                }
+            }
+        }
+        System.out.println("FALSE: "+methodName+" "+pLineNumber +" "+pName);
+        System.out.println(pData.getMethodRangeMap().get(methodName).fst);
+        System.out.println(pData.getMethodRangeMap().get(methodName).snd);
+        return false;
+    }
+
     private static ProgramVariable findUsage(ClassExecutionData pData, int pLineNumber, String pName) {
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
@@ -440,9 +501,9 @@ public class HTMLFactory {
         return null;
     }
 
-    private static boolean findIsDefCovered(ClassExecutionData pData , ProgramVariable pDefinition) {
+    private static boolean findIsDefCovered(ClassExecutionData pData, ProgramVariable pDefinition) {
         for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getDefUseCovered().entrySet()) {
-            if(defUseCovered.getValue().contains(pDefinition)) {
+            if (defUseCovered.getValue().contains(pDefinition)) {
                 return true;
             }
         }

@@ -2,6 +2,7 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.data.Pair;
 import com.jdfc.commons.utils.Files;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.cfg.DefUsePair;
@@ -42,8 +43,6 @@ public class LoadController {
             try {
                 Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml);
                 Node rootTag = doc.getFirstChild();
-                classExecutionData.setDefUsePairs(new TreeMap<>());
-                classExecutionData.setDefUseCovered(new HashMap<>());
                 examineFileRecursive(rootTag, classExecutionData);
                 classExecutionDataNode.setData(classExecutionData);
                 classExecutionDataNode.aggregateDataToRoot();
@@ -64,6 +63,9 @@ public class LoadController {
                 if (node.getNodeName().equals("instanceVariables")) {
                     NodeList instanceVariables = node.getChildNodes();
                     getInstanceVariableData(instanceVariables, classExecutionData);
+                } else if (node.getNodeName().equals("methodRangeMap")){
+                    NodeList methodRanges = node.getChildNodes();
+                    getMethodRangeData(methodRanges, classExecutionData);
                 } else if (node.getNodeName().equals("method")) {
                     // Number of iterations over method labels == methodCount
                     classExecutionData.setMethodCount(classExecutionData.getMethodCount() + 1);
@@ -75,6 +77,20 @@ public class LoadController {
                     String listName = node.getNodeName();
                     collectCoverageData(methodName, defUsePairs, listName, classExecutionData);
                 }
+            }
+        }
+    }
+
+    private static void getMethodRangeData(NodeList pMethodRanges, ClassExecutionData pClassExecutionData) {
+        for(int i = 0; i < pMethodRanges.getLength(); i++) {
+            Node methodRange = pMethodRanges.item(i);
+            NamedNodeMap attr = methodRange.getAttributes();
+            if (attr != null) {
+                String methodName = attr.getNamedItem("methodName").getNodeValue();
+                int fst = Integer.parseInt(attr.getNamedItem("fst").getNodeValue());
+                int snd = Integer.parseInt(attr.getNamedItem("snd").getNodeValue());
+
+                pClassExecutionData.getMethodRangeMap().put(methodName, new Pair<>(fst, snd));
             }
         }
     }

@@ -54,6 +54,14 @@
     background-color: #FF7E7E;
 }
 
+.blue {
+    background-color: #00FFC1;
+}
+
+.pink {
+    background-color: #FD62EF;
+}
+
 .keep-spaces {
     white-space: pre-wrap;
 }

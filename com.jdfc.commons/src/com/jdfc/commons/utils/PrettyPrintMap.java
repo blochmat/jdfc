@@ -1,5 +1,7 @@
 package com.jdfc.commons.utils;
 
+import com.jdfc.commons.data.Pair;
+
 import java.util.*;
 
 public class PrettyPrintMap<K, V> {
@@ -21,6 +23,8 @@ public class PrettyPrintMap<K, V> {
                 sb.append(Arrays.toString(((List<?>) foo).toArray()));
             } else if (foo instanceof Set){
                 sb.append(Arrays.toString(((Set<?>) foo).toArray()));
+            } else if (foo instanceof Pair){
+                sb.append(foo.toString());
             }
             sb.append('"');
             if (iter.hasNext()) {
