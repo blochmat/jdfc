@@ -2,9 +2,7 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
-import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.HTMLFactory;
 import com.jdfc.report.html.resources.Resources;
 
@@ -16,18 +14,27 @@ import java.util.stream.Stream;
 
 public class ReportGenerator {
 
-    public void createReport(final String pExportDir, final String pSourceDir) {
-        File jdfcReportDir = new File(pExportDir);
-        if (!jdfcReportDir.exists()) {
-            jdfcReportDir.mkdir();
+    private final File reportDir;
+    private final File sourceDir;
+    private final HTMLFactory htmlFactory;
+
+    public ReportGenerator(String pReportDir, String pSourceDir) {
+        File reportDir = new File(pReportDir);
+        if (!reportDir.exists()) {
+            reportDir.mkdir();
         }
-        Resources resources = new Resources(jdfcReportDir);
+        this.reportDir = reportDir;
+        this.sourceDir = new File(pSourceDir);
+        Resources resources = new Resources(reportDir);
+        this.htmlFactory = new HTMLFactory(resources, reportDir);
+    }
+
+    public void createReport() {
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         try {
-            resources.copyResource();
             Map<String, ExecutionDataNode<ExecutionData>> packageExecutionData = createHTMLFilesRecursive(
-                    root, null, pExportDir, pSourceDir, resources);
-            HTMLFactory.generateIndexFiles(packageExecutionData, pExportDir, resources);
+                    root, null);
+            htmlFactory.generateIndexFiles(packageExecutionData, reportDir);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,14 +42,11 @@ public class ReportGenerator {
 
     private Map<String, ExecutionDataNode<ExecutionData>> createHTMLFilesRecursive(
             final ExecutionDataNode<ExecutionData> pNode,
-            final String pPathName,
-            final String pExportDir,
-            final String pSourceDir,
-            final Resources pResources)
+            final String pPathName)
             throws IOException {
         String dir;
         Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataMap = new HashMap<>();
-        dir = String.format("%s/%s", pExportDir, pPathName);
+        dir = String.format("%s/%s", reportDir.toString(), pPathName);
 
         File outputFolder = new File(dir);
         Map<String, ExecutionDataNode<ExecutionData>> children = pNode.getChildren();
@@ -55,12 +59,12 @@ public class ReportGenerator {
 
                 if (outputFolder.mkdir() || outputFolder.exists()) {
                     // method overview
-                    HTMLFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), dir, pResources);
+                    htmlFactory.createClassOverview(entry.getKey(), entry.getValue().getData(), outputFolder);
 
                     // class detail view
-                    HTMLFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), dir,
-                            pSourceDir, pResources);
-                    ClassExecutionData pData = (ClassExecutionData) entry.getValue().getData(); }
+                    htmlFactory.createClassDetailView(entry.getKey(), entry.getValue().getData(), outputFolder,
+                            sourceDir);
+                }
             } else {
                 String nextPathName;
 
@@ -71,16 +75,17 @@ public class ReportGenerator {
                 }
 
                 packageExecutionDataMap = mergeMaps(packageExecutionDataMap,
-                        createHTMLFilesRecursive(entry.getValue(), nextPathName, pExportDir, pSourceDir, pResources));
+                        createHTMLFilesRecursive(entry.getValue(), nextPathName));
             }
         }
         if (outputFolder.exists()) {
-            HTMLFactory.generateIndexFiles(classExecutionDataMap, dir, pResources);
+            htmlFactory.generateIndexFiles(classExecutionDataMap, outputFolder);
         }
         return packageExecutionDataMap;
     }
 
-    private Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1, Map<String, ExecutionDataNode<ExecutionData>> map2) {
+    private Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1,
+                                                                    Map<String, ExecutionDataNode<ExecutionData>> map2) {
         return Stream.of(map1, map2)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(

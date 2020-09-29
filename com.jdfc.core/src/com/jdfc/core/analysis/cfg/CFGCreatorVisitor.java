@@ -108,7 +108,6 @@ public class CFGCreatorVisitor extends ClassVisitor {
             classVisitor = pClassVisitor;
             className = pClassName;
             methodName = pMethodName;
-            System.out.println(methodName);
             internalMethodName = pInternalMethodName;
             methodCFGs = pMethodCFGs;
             localVariableTable = pLocalVariableTable;
@@ -399,8 +398,6 @@ public class CFGCreatorVisitor extends ClassVisitor {
                                     localVariable.getDescriptor(),
                                     Integer.MIN_VALUE,
                                     firstLine);
-                    System.out.println(localVariable.getName());
-                    System.out.println(firstLine);
                     parameters.add(variable);
                 }
             }

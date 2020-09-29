@@ -53,7 +53,6 @@ public class ReportMojo extends AbstractMavenReport {
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
         final String target = getProject().getBuild().getDirectory();
-        final String source = getProject().getBuild().getSourceDirectory();
         final String importDir = String.format("%s/jdfc", target);
 
         // Load stored data into CoverageDataStore
@@ -63,8 +62,9 @@ public class ReportMojo extends AbstractMavenReport {
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
 
         final String exportDir = String.format("%s/jdfc-report", target);
-        ReportGenerator reportGenerator = new ReportGenerator();
-        reportGenerator.createReport(exportDir, source);
+        final String source = getProject().getBuild().getSourceDirectory();
+        ReportGenerator reportGenerator = new ReportGenerator(exportDir, source);
+        reportGenerator.createReport();
 
     }
 

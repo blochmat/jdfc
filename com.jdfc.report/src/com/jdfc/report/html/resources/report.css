@@ -42,6 +42,18 @@
     opacity: 1;
 }
 
+.el_report {
+    color: red;
+}
+
+.el_package {
+    color: blue;
+}
+
+.el_class {
+    color: green;
+}
+
 .green {
     background-color: #7EFF8D;
 }

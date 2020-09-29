@@ -19,7 +19,6 @@ public class Resources {
 
     public String getPathToResourcesFrom(final File pFile){
         Path relative = pFile.toPath().relativize(folder.toPath());
-
         return relative.toString().replaceFirst("\\.", "");
     }
 

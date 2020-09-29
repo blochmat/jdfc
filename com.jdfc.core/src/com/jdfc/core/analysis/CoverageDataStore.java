@@ -42,7 +42,6 @@ public class CoverageDataStore {
         ClassExecutionData classNodeData = (ClassExecutionData) findClassDataNode(pClassName).getData();
         classNodeData.setMethodCFGs(pMethodCFGs);
         classNodeData.calculateDefUsePairs();
-        System.out.println(new PrettyPrintMap<>(classNodeData.getDefUsePairs()));
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {

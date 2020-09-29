@@ -13,7 +13,20 @@ import java.util.*;
 
 public class HTMLFactory {
 
-    static final String[] JAVA_KEYWORDS = {"abstract", "assert",
+    private final Resources resources;
+    private final File baseDir;
+
+    public HTMLFactory(Resources pResources, File pBaseDir) {
+        baseDir = pBaseDir;
+        resources = pResources;
+        try {
+            resources.copyResource();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    final String[] JAVA_KEYWORDS = {"abstract", "assert",
             "break", "case", "catch", "class", "const",
             "continue", "default", "do", "else", "extends", "false",
             "final", "finally", "for", "goto", "if", "implements",
@@ -23,19 +36,18 @@ public class HTMLFactory {
             "synchronized", "this", "throw", "throws", "transient", "true",
             "try", "void", "volatile", "while"};
 
-    static final String[] TYPE_KEYWORDS = {"boolean", "byte", "char", "double", "float", "int", "long", "short"};
+    final String[] TYPE_KEYWORDS = {"boolean", "byte", "char", "double", "float", "int", "long", "short"};
 
-    static final String STYLE_SHEET = "report.css";
+    final String STYLE_SHEET = "report.css";
 
-    static final String SCRIPT = "script.js";
+    final String SCRIPT = "script.js";
 
-    public static void generateIndexFiles(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
-                                          final String pWorkDir,
-                                          final Resources pResources) throws IOException {
-        String indexPath = String.format("%s/index.html", pWorkDir);
+    public void generateIndexFiles(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
+                                   final File pWorkDir) throws IOException {
+        String indexPath = String.format("%s/index.html", pWorkDir.toString());
         File index = new File(indexPath);
-        String styleSheetPath = String.format("%s/%s", pResources.getPathToResourcesFrom(index), STYLE_SHEET);
-        String scriptPath = String.format("%s/%s", pResources.getPathToResourcesFrom(index), SCRIPT);
+        String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), STYLE_SHEET);
+        String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), SCRIPT);
         HTMLElement indexHTML = createIndexHTML(pClassFileDataMap, pWorkDir, styleSheetPath, scriptPath);
         Writer writer = new FileWriter(index);
         writer.write(indexHTML.render());
@@ -49,16 +61,15 @@ public class HTMLFactory {
 //        }
     }
 
-    public static void createClassOverview(final String pClassName,
-                                           final ExecutionData pData,
-                                           final String pWorkDir,
-                                           final Resources pResources) throws IOException {
+    public void createClassOverview(final String pClassName,
+                                    final ExecutionData pData,
+                                    final File pWorkDir) throws IOException {
         if (pData instanceof ClassExecutionData) {
-            String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
+            String filePath = String.format("%s/%s.html", pWorkDir.toString(), pClassName);
             File classFile = new File(filePath);
-            String styleSheetPath = String.format("%s/%s", pResources.getPathToResourcesFrom(classFile), STYLE_SHEET);
-            String scriptPath = String.format("%s/%s", pResources.getPathToResourcesFrom(classFile), SCRIPT);
-            HTMLElement classHTML = createClassOverviewHTML((ClassExecutionData) pData, pClassName, styleSheetPath, scriptPath);
+            String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), STYLE_SHEET);
+            String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), SCRIPT);
+            HTMLElement classHTML = createClassOverviewHTML((ClassExecutionData) pData, classFile, pClassName, styleSheetPath, scriptPath);
             Writer writer = new FileWriter(classFile);
             writer.write(classHTML.render());
             writer.close();
@@ -67,23 +78,21 @@ public class HTMLFactory {
         }
     }
 
-    public static void createClassDetailView(final String pClassName,
-                                             final ExecutionData pData,
-                                             final String pWorkDir,
-                                             final String pSourceDir,
-                                             final Resources pResources)
+    public void createClassDetailView(final String pClassName,
+                                      final ExecutionData pData,
+                                      final File pWorkDir,
+                                      final File pSourceDir)
             throws IOException {
         if (pData instanceof ClassExecutionData) {
-            String outPath = String.format("%s/%s.java.html", pWorkDir, pClassName);
+            String outPath = String.format("%s/%s.java.html", pWorkDir.toString(), pClassName);
             File classFile = new File(outPath);
-            String styleSheetPath = String.format("%s/%s", pResources.getPathToResourcesFrom(classFile), STYLE_SHEET);
-            String scriptPath = String.format("%s/%s", pResources.getPathToResourcesFrom(classFile), SCRIPT);
-            String inPath = String.format("%s/%s.java", pSourceDir, ((ClassExecutionData) pData).getRelativePath());
+            String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), STYLE_SHEET);
+            String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), SCRIPT);
+            String inPath = String.format("%s/%s.java", pSourceDir.toString(), ((ClassExecutionData) pData).getRelativePath());
             File inFile = new File(inPath);
             Scanner scanner = new Scanner(inFile);
             HTMLElement htmlMainTag = HTMLElement.html();
             String classFileName = String.format("%s.java", pClassName);
-
             htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, styleSheetPath));
             HTMLElement bodyTag = HTMLElement.body();
             bodyTag.getAttributes().add("class=\"style-class\"");
@@ -92,7 +101,6 @@ public class HTMLFactory {
             bodyTag.getContent().add(HTMLElement.h1(pClassName));
             HTMLElement tableTag = HTMLElement.table();
             tableTag.getAttributes().add("id=\"classDetailView\"");
-            // TODO: Create/Store style files and create links in header
             int lineCounter = 0;
             while (scanner.hasNextLine()) {
                 HTMLElement trTag = HTMLElement.tr();
@@ -117,17 +125,18 @@ public class HTMLFactory {
         }
     }
 
-    private static HTMLElement createIndexHTML(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
-                                               final String pWorkDir,
-                                               final String pPathToStyleSheet,
-                                               final String pPathToScript) {
-        String[] split = pWorkDir.split("/");
+    private HTMLElement createIndexHTML(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
+                                        final File pWorkDir,
+                                        final String pPathToStyleSheet,
+                                        final String pPathToScript) {
+        String[] split = pWorkDir.toString().split("/");
         String title = split[split.length - 1];
         HTMLElement htmlMainTag = HTMLElement.html();
         htmlMainTag.getContent().add(createDefaultHTMLHead(title, pPathToStyleSheet));
         HTMLElement htmlBodyTag = HTMLElement.body();
         htmlBodyTag.getContent().add(HTMLElement.script("text/javascript", pPathToScript));
         htmlBodyTag.getAttributes().add("onload=\"sortTables()\"");
+        htmlBodyTag.getContent().add(createBreadcrumbs(pWorkDir));
         htmlBodyTag.getContent().add(HTMLElement.h1(title));
         List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Total", "Covered", "Missed"));
         htmlBodyTag.getContent().add(createDataTable(columns, pClassFileDataMap));
@@ -135,16 +144,39 @@ public class HTMLFactory {
         return htmlMainTag;
     }
 
-    private static HTMLElement createClassOverviewHTML(final ClassExecutionData pData,
-                                                       final String pClassFileName,
-                                                       final String pPathToStyleSheet,
-                                                       final String pPathToScript) {
+    private HTMLElement createBreadcrumbs(File pWorkDir) {
+        List<String> split = new ArrayList<>(Arrays.asList(pWorkDir.toPath().relativize(baseDir.toPath()).toString().split("/")));
+        HTMLElement breadcrumbs = HTMLElement.div();
+        while (split.size() > 0 && !split.get(0).equals("")) {
+            File parent = pWorkDir.getParentFile();
+            int parentCounter = split.size();
+            for(int i = 1; i < parentCounter; i++) {
+                parent = parent.getParentFile();
+            }
+            if(!pWorkDir.getParentFile().equals(baseDir)) {
+                split.set(0, ".");
+            }
+            String link = String.format("%s/index.html", String.join("/", split));
+            breadcrumbs.getContent().add(HTMLElement.a(link, parent.getName()));
+            breadcrumbs.getContent().add(HTMLElement.noTag(" > "));
+            split.remove(0);
+        }
+        breadcrumbs.getContent().add(HTMLElement.span(pWorkDir.getName()));
+        return breadcrumbs;
+    }
+
+    private HTMLElement createClassOverviewHTML(final ClassExecutionData pData,
+                                                final File pClassFile,
+                                                final String pClassFileName,
+                                                final String pPathToStyleSheet,
+                                                final String pPathToScript) {
         HTMLElement htmlMainTag = HTMLElement.html();
         String classFileName = String.format("%s.java", pClassFileName);
         htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, pPathToStyleSheet));
         HTMLElement htmlBodyTag = HTMLElement.body();
         htmlBodyTag.getAttributes().add("onload=\"sortTables()\"");
         htmlBodyTag.getContent().add(HTMLElement.script("text/javascript", pPathToScript));
+        htmlBodyTag.getContent().add(createBreadcrumbs(pClassFile));
         htmlBodyTag.getContent().add(HTMLElement.h1(pClassFileName));
         List<String> columns = new ArrayList<>(Arrays.asList("Total", "Covered", "Missed"));
         htmlBodyTag.getContent().add(createDataTable(columns, pData, pClassFileName));
@@ -152,7 +184,7 @@ public class HTMLFactory {
         return htmlMainTag;
     }
 
-    private static HTMLElement processLine(String pClassName, int lineNumber, String lineString, ClassExecutionData data) {
+    private HTMLElement processLine(String pClassName, int lineNumber, String lineString, ClassExecutionData data) {
         HTMLElement spanTagLine = HTMLElement.span();
         spanTagLine.getAttributes().add("class=\"keep-spaces\"");
         String[] specialCharsArray = lineString.split("\\w+\\b");
@@ -221,12 +253,14 @@ public class HTMLFactory {
                         spanTag.getAttributes().add("class=\"red\"");
                     }
                 } else {
-                    if(isRedefined(data, lineNumber, word)) {
+                    if (isRedefined(data, lineNumber, word)) {
+                        if (pClassName.equals("BranchingInteger")) {
+                            System.out.printf("%s %s\n", lineNumber, word);
+                        }
                         spanTag = HTMLElement.span(word);
-                        spanTag.getAttributes().add("class=\"blue\"");
-//                    spanTag.getAttributes().add(String.format("class=\"%s\"", getRedefinitionBackgroundColorHex(data, lineNumber, word)));
+                        spanTag.getAttributes().add(String.format("class=\"%s\"", getRedefinitionBackgroundColorHex(data, lineNumber, word)));
                     }
-//                    addCodeHighlighting(spanTag, word);
+                    addCodeHighlighting(spanTag, word);
                 }
             }
             if (isSpecialCharsLonger) {
@@ -245,7 +279,7 @@ public class HTMLFactory {
         return spanTagLine;
     }
 
-    private static String getRedefinitionBackgroundColorHex(ClassExecutionData pData, int pLineNumber, String pName) {
+    private String getRedefinitionBackgroundColorHex(ClassExecutionData pData, int pLineNumber, String pName) {
         boolean covered = false;
         boolean uncovered = false;
         for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getDefUseCovered().entrySet()) {
@@ -269,7 +303,7 @@ public class HTMLFactory {
             }
         }
 
-        if(uncovered && !covered) {
+        if (uncovered && !covered) {
             return "red";
         } else if (covered && !uncovered) {
             return "blue";
@@ -280,8 +314,8 @@ public class HTMLFactory {
         }
     }
 
-    private static HTMLElement createDefaultHTMLHead(final String pTitle,
-                                                     final String pPathToResources) {
+    private HTMLElement createDefaultHTMLHead(final String pTitle,
+                                              final String pPathToResources) {
         HTMLElement headTag = HTMLElement.head();
         headTag.getContent().add(
                 HTMLElement.link("stylesheet", pPathToResources, "text/css"));
@@ -290,7 +324,7 @@ public class HTMLFactory {
         return headTag;
     }
 
-    private static HTMLElement createDataTable(final List<String> pColumns, Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
+    private HTMLElement createDataTable(final List<String> pColumns, Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
         tableTag.getContent().add(createTableBodyTag(pClassFileDataMap));
@@ -298,9 +332,9 @@ public class HTMLFactory {
         return tableTag;
     }
 
-    private static HTMLElement createDataTable(final List<String> pColumns,
-                                               final ClassExecutionData pData,
-                                               final String pClassfileName) {
+    private HTMLElement createDataTable(final List<String> pColumns,
+                                        final ClassExecutionData pData,
+                                        final String pClassfileName) {
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
         for (Map.Entry<String, List<DefUsePair>> entry : pData.getDefUsePairs().entrySet()) {
@@ -326,7 +360,7 @@ public class HTMLFactory {
         return tableTag;
     }
 
-    private static HTMLElement createTableHeadTag(final List<String> pColumns) {
+    private HTMLElement createTableHeadTag(final List<String> pColumns) {
         HTMLElement theadTag = HTMLElement.thead();
         theadTag.getContent().add(HTMLElement.td("Element"));
         for (String col : pColumns) {
@@ -335,7 +369,7 @@ public class HTMLFactory {
         return theadTag;
     }
 
-    private static HTMLElement createTableFootTag(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
+    private HTMLElement createTableFootTag(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         HTMLElement tfootTag = HTMLElement.tfoot();
         Map.Entry<String, ExecutionDataNode<ExecutionData>> entry = pClassFileDataMap.entrySet().iterator().next();
         ExecutionData parentData = entry.getValue().getParent().getData();
@@ -347,7 +381,7 @@ public class HTMLFactory {
         return tfootTag;
     }
 
-    private static HTMLElement createTableFootTag(final ClassExecutionData pData) {
+    private HTMLElement createTableFootTag(final ClassExecutionData pData) {
         HTMLElement tfootTag = HTMLElement.tfoot();
         tfootTag.getContent().add(HTMLElement.td("Total"));
         tfootTag.getContent().add(HTMLElement.td(pData.getTotal()));
@@ -356,7 +390,7 @@ public class HTMLFactory {
         return tfootTag;
     }
 
-    private static HTMLElement createTableBodyTag(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
+    private HTMLElement createTableBodyTag(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         HTMLElement bodyTag = HTMLElement.body();
         for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : pClassFileDataMap.entrySet()) {
             ExecutionData data = entry.getValue().getData();
@@ -380,7 +414,7 @@ public class HTMLFactory {
         return bodyTag;
     }
 
-    private static HTMLElement createTooltip(final String pClassName, final Map<ProgramVariable, Boolean> pUses, final String pText) {
+    private HTMLElement createTooltip(final String pClassName, final Map<ProgramVariable, Boolean> pUses, final String pText) {
         // create table and show colored entries on hover over
         // entries are links to the variable use
         HTMLElement tooltip = HTMLElement.div();
@@ -418,7 +452,7 @@ public class HTMLFactory {
         return tooltip;
     }
 
-    private static void addCodeHighlighting(HTMLElement pSpanTag, String pWord) {
+    private void addCodeHighlighting(HTMLElement pSpanTag, String pWord) {
         if (isJavaKeyword(pWord)) {
             pSpanTag.getAttributes().add("class=\"java-keyword\"");
         } else if (isTypeKeyword(pWord)) {
@@ -426,15 +460,15 @@ public class HTMLFactory {
         }
     }
 
-    private static boolean isJavaKeyword(String pWord) {
+    private boolean isJavaKeyword(String pWord) {
         return (Arrays.binarySearch(JAVA_KEYWORDS, pWord) >= 0);
     }
 
-    private static boolean isTypeKeyword(String pWord) {
+    private boolean isTypeKeyword(String pWord) {
         return (Arrays.binarySearch(TYPE_KEYWORDS, pWord) >= 0);
     }
 
-    private static String getDefinitionBackgroundColorHex(boolean pDefCovered, Map<ProgramVariable, Boolean> pUses) {
+    private String getDefinitionBackgroundColorHex(boolean pDefCovered, Map<ProgramVariable, Boolean> pUses) {
         if (!pDefCovered || pUses.size() == 0 || Collections.frequency(pUses.values(), true) == 0) {
             return "red";
         } else if (Collections.frequency(pUses.values(), true) == pUses.size()) {
@@ -445,7 +479,7 @@ public class HTMLFactory {
     }
 
     // find definition by line number and name
-    private static ProgramVariable findDefinition(ClassExecutionData pData, int pLineNumber, String pName) {
+    private ProgramVariable findDefinition(ClassExecutionData pData, int pLineNumber, String pName) {
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 ProgramVariable definition = defUsePair.getDefinition();
@@ -467,7 +501,20 @@ public class HTMLFactory {
         return null;
     }
 
-    private static boolean isRedefined(ClassExecutionData pData, int pLineNumber, String pName) {
+    private boolean isRedefined(ClassExecutionData pData, int pLineNumber, String pName) {
+        // TODO: Expand functionality to whole class for instance variables.
+        //  Therefore range map of instance variables (so to see the "method" that can be seen as class
+        //  instance needs to be appropriately updated when a local variable with the same name exists.
+//        if (isInstanceVariable(pData, pLineNumber, pName)) {
+//            for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
+//                for (DefUsePair defUsePair : defUsePairs.getValue()) {
+//                    ProgramVariable definition = defUsePair.getDefinition();
+//                    if (definition.getName().equals(pName) && ) {
+//                        return true;
+//                    }
+//                }
+//            }
+//        } else {
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 ProgramVariable definition = defUsePair.getDefinition();
@@ -479,10 +526,20 @@ public class HTMLFactory {
                 }
             }
         }
+//        }
         return false;
     }
 
-    private static ProgramVariable findUsage(ClassExecutionData pData, int pLineNumber, String pName) {
+    private boolean isInstanceVariable(ClassExecutionData pData, int pLineNumber, String pName) {
+        for (InstanceVariable instanceVariable : pData.getInstanceVariables()) {
+            if (instanceVariable.getName().equals(pName) && instanceVariable.getLineNumber() > pLineNumber) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private ProgramVariable findUsage(ClassExecutionData pData, int pLineNumber, String pName) {
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 ProgramVariable usage = defUsePair.getUsage();
@@ -494,7 +551,7 @@ public class HTMLFactory {
         return null;
     }
 
-    private static boolean findIsDefCovered(ClassExecutionData pData, ProgramVariable pDefinition) {
+    private boolean findIsDefCovered(ClassExecutionData pData, ProgramVariable pDefinition) {
         for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getDefUseCovered().entrySet()) {
             if (defUseCovered.getValue().contains(pDefinition)) {
                 return true;
@@ -504,7 +561,7 @@ public class HTMLFactory {
     }
 
     // find all uses for one particular definition
-    private static Map<ProgramVariable, Boolean> getUseCoverageMap(ClassExecutionData pData, ProgramVariable pDefinition) {
+    private Map<ProgramVariable, Boolean> getUseCoverageMap(ClassExecutionData pData, ProgramVariable pDefinition) {
         Map<ProgramVariable, Boolean> uses = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
@@ -518,7 +575,7 @@ public class HTMLFactory {
         return uses;
     }
 
-    private static boolean isUncovered(ClassExecutionData data, ProgramVariable pUsage) {
+    private boolean isUncovered(ClassExecutionData data, ProgramVariable pUsage) {
         for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseUncovered().entrySet()) {
             if (map.getValue().contains(pUsage)) {
                 return true;
@@ -527,7 +584,7 @@ public class HTMLFactory {
         return false;
     }
 
-    private static boolean isCovered(ClassExecutionData pData, ProgramVariable pUsage) {
+    private boolean isCovered(ClassExecutionData pData, ProgramVariable pUsage) {
         for (Map.Entry<String, Set<ProgramVariable>> map : pData.getDefUseCovered().entrySet()) {
             if (map.getValue().contains(pUsage)) {
                 return true;
