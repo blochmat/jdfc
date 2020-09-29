@@ -42,20 +42,8 @@
     opacity: 1;
 }
 
-.el_report {
-    color: red;
-}
-
-.el_package {
-    color: blue;
-}
-
-.el_class {
-    color: green;
-}
-
 .green {
-    background-color: #7EFF8D;
+    background-color: #8FFF9B;
 }
 
 .yellow {
@@ -63,15 +51,11 @@
 }
 
 .red {
-    background-color: #FF7E7E;
+    background-color: #FF7F7F;
 }
 
-.blue {
-    background-color: #00FFC1;
-}
-
-.pink {
-    background-color: #FD62EF;
+.overwritten {
+    background-color: #FFC0A4;
 }
 
 .keep-spaces {

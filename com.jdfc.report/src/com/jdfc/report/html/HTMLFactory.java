@@ -248,17 +248,14 @@ public class HTMLFactory {
                     spanTag.getAttributes().add(String.format("id=\"%s\"", id));
                     if (isCovered(data, usage)) {
                         spanTag.getAttributes().add("class=\"green\"");
-                    }
-                    if (isUncovered(data, usage)) {
+                    } else {
                         spanTag.getAttributes().add("class=\"red\"");
                     }
                 } else {
                     if (isRedefined(data, lineNumber, word)) {
-                        if (pClassName.equals("BranchingInteger")) {
-                            System.out.printf("%s %s\n", lineNumber, word);
-                        }
                         spanTag = HTMLElement.span(word);
-                        spanTag.getAttributes().add(String.format("class=\"%s\"", getRedefinitionBackgroundColorHex(data, lineNumber, word)));
+                        // TODO: Create dropdown for variables being redefined with reference to up-to-date definitions
+                        spanTag.getAttributes().add("class=\"overwritten\"");
                     }
                     addCodeHighlighting(spanTag, word);
                 }
@@ -279,40 +276,31 @@ public class HTMLFactory {
         return spanTagLine;
     }
 
-    private String getRedefinitionBackgroundColorHex(ClassExecutionData pData, int pLineNumber, String pName) {
-        boolean covered = false;
-        boolean uncovered = false;
-        for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getDefUseCovered().entrySet()) {
-            for (ProgramVariable programVariable : defUseCovered.getValue()) {
-                if (programVariable.getLineNumber() > pLineNumber
-                        && programVariable.getName().equals(pName)
-                        && pData.getMethodRangeMap().get(defUseCovered.getKey()).fst < pLineNumber
-                        && pData.getMethodRangeMap().get(defUseCovered.getKey()).snd > pLineNumber) {
-                    covered = true;
-                }
-            }
-        }
-        for (Map.Entry<String, Set<ProgramVariable>> defUseUncovered : pData.getDefUseUncovered().entrySet()) {
-            for (ProgramVariable programVariable : defUseUncovered.getValue()) {
-                if (programVariable.getLineNumber() > pLineNumber
-                        && programVariable.getName().equals(pName)
-                        && pData.getMethodRangeMap().get(defUseUncovered.getKey()).fst < pLineNumber
-                        && pData.getMethodRangeMap().get(defUseUncovered.getKey()).snd > pLineNumber) {
-                    uncovered = true;
-                }
-            }
-        }
-
-        if (uncovered && !covered) {
-            return "red";
-        } else if (covered && !uncovered) {
-            return "blue";
-        } else if (covered) {
-            return "pink";
-        } else {
-            return "";
-        }
-    }
+//    private String getRedefinitionBackgroundColorHex(ClassExecutionData pData, int pLineNumber, String pName) {
+//        boolean covered = false;
+//        boolean uncovered = false;
+//        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getDefUseCovered().entrySet()) {
+//            for (ProgramVariable programVariable : entry.getValue()) {
+//                pData.getDefUseUncovered().get(entry.getKey())
+//                if (programVariable.getLineNumber() > pLineNumber
+//                        && programVariable.getName().equals(pName)
+//                        && pData.getMethodRangeMap().get(entry.getKey()).fst < pLineNumber
+//                        && pData.getMethodRangeMap().get(entry.getKey()).snd > pLineNumber) {
+//                    covered = true;
+//                }
+//            }
+//        }
+//
+//        if (uncovered && !covered) {
+//            return "red";
+//        } else if (covered && !uncovered) {
+//            return "blue";
+//        } else if (covered) {
+//            return "pink";
+//        } else {
+//            return "";
+//        }
+//    }
 
     private HTMLElement createDefaultHTMLHead(final String pTitle,
                                               final String pPathToResources) {
@@ -567,7 +555,7 @@ public class HTMLFactory {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 if (defUsePair.getDefinition().equals(pDefinition)) {
                     ProgramVariable use = defUsePair.getUsage();
-                    boolean covered = pData.getDefUseCovered().get(defUsePairs.getKey()).contains(use);
+                    boolean covered = isCovered(pData, use);
                     uses.put(use, covered);
                 }
             }
@@ -575,21 +563,22 @@ public class HTMLFactory {
         return uses;
     }
 
-    private boolean isUncovered(ClassExecutionData data, ProgramVariable pUsage) {
-        for (Map.Entry<String, Set<ProgramVariable>> map : data.getDefUseUncovered().entrySet()) {
-            if (map.getValue().contains(pUsage)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean isCovered(ClassExecutionData pData, ProgramVariable pUsage) {
-        for (Map.Entry<String, Set<ProgramVariable>> map : pData.getDefUseCovered().entrySet()) {
-            if (map.getValue().contains(pUsage)) {
-                return true;
+        boolean useCovered = false;
+        boolean allDefsCovered = true;
+        // Check if usage is covered
+        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getDefUseCovered().entrySet()) {
+            if (entry.getValue().contains(pUsage)) {
+                useCovered = true;
+
+                // based on found usage check if all depending defs are covered
+                for(DefUsePair pair : pData.getDefUsePairs().get(entry.getKey())){
+                    if(pair.getUsage().equals(pUsage)){
+                        allDefsCovered = allDefsCovered && entry.getValue().contains(pair.getDefinition());
+                    }
+                }
             }
         }
-        return false;
+        return useCovered && allDefsCovered;
     }
 }
