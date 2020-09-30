@@ -2,9 +2,9 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.core.analysis.cfg.DefUsePair;
-import com.jdfc.core.analysis.cfg.InstanceVariable;
-import com.jdfc.core.analysis.cfg.ProgramVariable;
+import com.jdfc.core.analysis.ifg.DefUsePair;
+import com.jdfc.core.analysis.ifg.InstanceVariable;
+import com.jdfc.core.analysis.ifg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.resources.Resources;
 

@@ -1,7 +1,6 @@
-package com.jdfc.core.analysis.cfg;
+package com.jdfc.core.analysis.ifg;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The Control-Flow Graph (CFG) for one method of the original program.

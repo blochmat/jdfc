@@ -1,4 +1,4 @@
-package com.jdfc.core.analysis.cfg;
+package com.jdfc.core.analysis.ifg;
 
 
 import com.google.common.base.Preconditions;
@@ -56,6 +56,8 @@ public class CFGImpl implements CFG {
      */
     @Override
     public void calculateReachingDefinitions() {
+
+        // TODO: update reaching definitions
         LinkedList<CFGNode> workList = new LinkedList<>();
         for (Map.Entry<Integer, CFGNode> node : nodes.entrySet()) {
             node.getValue().resetReachOut();

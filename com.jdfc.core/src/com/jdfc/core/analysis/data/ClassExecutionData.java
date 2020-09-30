@@ -2,7 +2,7 @@ package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.Pair;
-import com.jdfc.core.analysis.cfg.*;
+import com.jdfc.core.analysis.ifg.*;
 
 import java.util.*;
 import java.util.stream.Collectors;

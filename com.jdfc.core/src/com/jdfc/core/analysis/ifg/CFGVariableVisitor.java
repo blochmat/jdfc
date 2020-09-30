@@ -1,4 +1,4 @@
-package com.jdfc.core.analysis.cfg;
+package com.jdfc.core.analysis.ifg;
 
 import static org.objectweb.asm.Opcodes.ASM6;
 import static org.objectweb.asm.Opcodes.PUTFIELD;

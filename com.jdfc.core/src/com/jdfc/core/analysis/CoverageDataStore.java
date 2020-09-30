@@ -1,8 +1,7 @@
 package com.jdfc.core.analysis;
 
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
-import com.jdfc.core.analysis.cfg.CFG;
+import com.jdfc.core.analysis.ifg.CFG;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 

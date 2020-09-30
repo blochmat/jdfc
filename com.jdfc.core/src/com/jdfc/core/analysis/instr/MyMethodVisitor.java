@@ -1,6 +1,6 @@
 package com.jdfc.core.analysis.instr;
 
-import com.jdfc.core.analysis.cfg.CFGImpl;
+import com.jdfc.core.analysis.ifg.CFGImpl;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -77,7 +77,6 @@ public class MyMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-//        System.out.println("visitMethodInsn");
         updateCurrentNode();
         mv.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }

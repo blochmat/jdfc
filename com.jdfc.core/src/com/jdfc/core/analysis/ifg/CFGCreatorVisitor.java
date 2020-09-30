@@ -1,11 +1,10 @@
-package com.jdfc.core.analysis.cfg;
+package com.jdfc.core.analysis.ifg;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.jdfc.commons.data.Pair;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.*;
@@ -197,7 +196,7 @@ public class CFGCreatorVisitor extends ClassVisitor {
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
 //            System.out.println("visitMethodInsn");
             updateCurrentNode();
-            final CFGNode node = new CFGNode(currentInstructionIndex);
+            final IFGNode node = new IFGNode(currentInstructionIndex);
             nodes.put(currentInstructionIndex, node);
 //            System.out.printf("%s %s\n", opcode, currentInstructionIndex);
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
@@ -442,7 +441,7 @@ public class CFGCreatorVisitor extends ClassVisitor {
         @Override
         public void visitEnd() {
             try {
-                CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer();
+                CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer(methodNode);
                 cfgEdgeAnalyzer.analyze(owner, methodNode);
                 edges.putAll(cfgEdgeAnalyzer.getEdges());
             } catch (AnalyzerException e) {
@@ -458,10 +457,12 @@ public class CFGCreatorVisitor extends ClassVisitor {
     private static class CFGEdgeAnalyzer extends Analyzer<SourceValue> {
 
         private final Multimap<Integer, Integer> edges;
+        private final MethodNode methodNode;
 
-        CFGEdgeAnalyzer() {
+        CFGEdgeAnalyzer(MethodNode pMethodNode) {
             super(new SourceInterpreter());
             edges = ArrayListMultimap.create();
+            methodNode = pMethodNode;
         }
 
         Multimap<Integer, Integer> getEdges() {
@@ -470,7 +471,13 @@ public class CFGCreatorVisitor extends ClassVisitor {
 
         @Override
         protected void newControlFlowEdge(int insnIndex, int successorIndex) {
+            if(this.methodNode.name.contains("addXYZ")) {
+                System.out.println(insnIndex+" "+successorIndex);
+            }
             if (!edges.containsKey(insnIndex) || !edges.containsValue(successorIndex)) {
+                if(this.methodNode.name.contains("addXYZ")) {
+                    System.out.println("TRUE: "+insnIndex+" "+successorIndex);
+                }
                 edges.put(insnIndex, successorIndex);
             }
             super.newControlFlowEdge(insnIndex, successorIndex);

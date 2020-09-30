@@ -1,8 +1,7 @@
-package com.jdfc.core.analysis.cfg;
+package com.jdfc.core.analysis.ifg;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.ClassReader;
