@@ -1,8 +1,10 @@
 package com.jdfc.core.analysis.instr;
 
 import com.jdfc.core.analysis.ifg.CFGImpl;
+import com.jdfc.core.analysis.ifg.ProgramVariable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 public class MyMethodVisitor extends MethodVisitor {
@@ -77,6 +79,7 @@ public class MyMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+//        System.out.println("visitMethodInsn");
         updateCurrentNode();
         mv.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
@@ -150,7 +153,7 @@ public class MyMethodVisitor extends MethodVisitor {
     }
 
     private void insertInstanceVariableEntryCreation(final String pOwner, final String pName, final String pDescriptor) {
-        if(!isJacocoInstrumentation(pName)) {
+        if (!isJacocoInstrumentation(pName)) {
             mv.visitLdcInsn(className);
             mv.visitLdcInsn(pOwner);
             mv.visitLdcInsn(methodName);

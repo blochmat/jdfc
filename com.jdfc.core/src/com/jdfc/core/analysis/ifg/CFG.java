@@ -1,6 +1,6 @@
 package com.jdfc.core.analysis.ifg;
 
-import java.util.Map;
+import java.util.NavigableMap;
 
 /**
  * The Control-Flow Graph (CFG) for one method of the original program.
@@ -25,7 +25,7 @@ public interface CFG {
      *
      * @return A map between node ID and {@link CFGNode}
      */
-    Map<Integer, CFGNode> getNodes();
+    NavigableMap<Integer, CFGNode> getNodes();
 
     /**
      * Returns the {@link LocalVariableTable} of this method.
@@ -33,4 +33,11 @@ public interface CFG {
      * @return The {@link LocalVariableTable}
      */
     LocalVariableTable getLocalVariableTable();
+
+    /**
+     * Returns if a method is impure.
+     *
+     * @return isImpure
+     */
+    boolean isImpure();
 }

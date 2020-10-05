@@ -20,6 +20,10 @@ public class DefUsePair {
         return usage;
     }
 
+    public void setDefinition(ProgramVariable definition) {
+        this.definition = definition;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

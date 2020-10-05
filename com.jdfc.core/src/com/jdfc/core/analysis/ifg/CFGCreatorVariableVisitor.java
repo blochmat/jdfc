@@ -22,14 +22,14 @@ import org.objectweb.asm.tree.ClassNode;
  * @see LocalVariableTable
  * @see ClassVisitor
  */
-class CFGVariableVisitor extends ClassVisitor {
+class CFGCreatorVariableVisitor extends ClassVisitor {
 
     private final Map<String, LocalVariableTable> localVariables;
     private final Set<InstanceVariable> instanceVariables;
     private final ClassNode classNode;
     final String jacocoMethodName = "$jacoco";
 
-    CFGVariableVisitor(final ClassNode pClassNode) {
+    CFGCreatorVariableVisitor(final ClassNode pClassNode) {
         super(ASM6);
         localVariables = Maps.newLinkedHashMap();
         instanceVariables = new HashSet<>();
@@ -100,9 +100,9 @@ class CFGVariableVisitor extends ClassVisitor {
         private final String descriptor;
         private final String signature;
         private final Object value;
-        private final CFGVariableVisitor classVisitor;
+        private final CFGCreatorVariableVisitor classVisitor;
 
-        public CFGFieldVisitor(final CFGVariableVisitor pClassVisitor,
+        public CFGFieldVisitor(final CFGCreatorVariableVisitor pClassVisitor,
                                final FieldVisitor pFieldVisitor,
                                final int pAccess,
                                final String pName,
@@ -134,11 +134,11 @@ class CFGVariableVisitor extends ClassVisitor {
         private final String signature;
         private final String[] exceptions;
         private final LocalVariableTable localVariableTable;
-        private final CFGVariableVisitor classVisitor;
+        private final CFGCreatorVariableVisitor classVisitor;
         private int currentLineNumber;
 
         CFGVariableMethodVisitor(
-                final CFGVariableVisitor pClassVisitor,
+                final CFGCreatorVariableVisitor pClassVisitor,
                 final MethodVisitor pMethodVisitor,
                 final String pName,
                 final String pDescriptor,

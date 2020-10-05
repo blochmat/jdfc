@@ -4,6 +4,7 @@ import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
 import com.jdfc.commons.utils.Files;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.ifg.DefUsePair;
 import com.jdfc.core.analysis.ifg.InstanceVariable;
@@ -60,29 +61,62 @@ public class LoadController {
             Node node = nodeList.item(i);
             NamedNodeMap attr = node.getAttributes();
             if (attr != null) {
-                if (node.getNodeName().equals("instanceVariables")) {
-                    NodeList instanceVariables = node.getChildNodes();
-                    getInstanceVariableData(instanceVariables, classExecutionData);
-                } else if (node.getNodeName().equals("methodRangeMap")){
-                    NodeList methodRanges = node.getChildNodes();
-                    getMethodRangeData(methodRanges, classExecutionData);
-                } else if (node.getNodeName().equals("method")) {
-                    // Number of iterations over method labels == methodCount
-                    classExecutionData.setMethodCount(classExecutionData.getMethodCount() + 1);
-                    examineFileRecursive(node, classExecutionData);
-                } else {
-                    // DefUsePair or DefUseCovered list
-                    String methodName = node.getParentNode().getAttributes().getNamedItem("name").getNodeValue();
-                    NodeList defUsePairs = node.getChildNodes();
-                    String listName = node.getNodeName();
-                    collectCoverageData(methodName, defUsePairs, listName, classExecutionData);
+                switch (node.getNodeName()) {
+                    case "instanceVariables":
+                        NodeList instanceVariables = node.getChildNodes();
+                        getInstanceVariableData(instanceVariables, classExecutionData);
+                        break;
+                    case "parameterMatching":
+                        NodeList matching = node.getChildNodes();
+                        getParameterMatching(matching, classExecutionData);
+                        break;
+                    case "methodRangeMap":
+                        NodeList methodRanges = node.getChildNodes();
+                        getMethodRangeData(methodRanges, classExecutionData);
+                        break;
+                    case "method":
+                        // Number of iterations over method labels == methodCount
+                        classExecutionData.setMethodCount(classExecutionData.getMethodCount() + 1);
+                        examineFileRecursive(node, classExecutionData);
+                        break;
+                    default:
+                        // DefUsePair or DefUseCovered list
+                        String methodName = node.getParentNode().getAttributes().getNamedItem("name").getNodeValue();
+                        NodeList defUsePairs = node.getChildNodes();
+                        String listName = node.getNodeName();
+                        collectCoverageData(methodName, defUsePairs, listName, classExecutionData);
+                        break;
+                }
+            }
+        }
+    }
+
+    private static void getParameterMatching(NodeList pMatching, ClassExecutionData pClassExecutionData) {
+        for (int i = 0; i < pMatching.getLength(); i++) {
+            ProgramVariable fst = null;
+            ProgramVariable snd;
+            Node match = pMatching.item(i);
+            NamedNodeMap matchAttr = match.getAttributes();
+            if (matchAttr != null) {
+                NodeList programVariables = match.getChildNodes();
+                for (int j = 0; j < programVariables.getLength(); j++) {
+                    Node programVariable = programVariables.item(j);
+                    NamedNodeMap attr = programVariable.getAttributes();
+                    if (attr != null) {
+                        if (fst == null) {
+                            fst = createProgramVariable(attr);
+                        } else {
+                            snd = createProgramVariable(attr);
+                            pClassExecutionData.getParameterMatching().add(new Pair<>(fst, snd));
+                        }
+                    }
                 }
             }
         }
     }
 
     private static void getMethodRangeData(NodeList pMethodRanges, ClassExecutionData pClassExecutionData) {
-        for(int i = 0; i < pMethodRanges.getLength(); i++) {
+        for (int i = 0; i < pMethodRanges.getLength(); i++) {
             Node methodRange = pMethodRanges.item(i);
             NamedNodeMap attr = methodRange.getAttributes();
             if (attr != null) {
@@ -96,7 +130,7 @@ public class LoadController {
     }
 
     private static void getInstanceVariableData(NodeList pInstanceVariables, ClassExecutionData classExecutionData) {
-        for(int i = 0; i < pInstanceVariables.getLength(); i++) {
+        for (int i = 0; i < pInstanceVariables.getLength(); i++) {
             Node instanceVariable = pInstanceVariables.item(i);
             NamedNodeMap attr = instanceVariable.getAttributes();
             if (attr != null) {
@@ -121,15 +155,20 @@ public class LoadController {
                     Node pair = nodeList.item(j);
                     NamedNodeMap pairAttr = pair.getAttributes();
                     if (pairAttr != null) {
-                        String owner = pairAttr.getNamedItem("owner").getNodeValue();
-                        String name = pairAttr.getNamedItem("name").getNodeValue();
-                        String type = pairAttr.getNamedItem("type").getNodeValue();
-                        int definitionIndex = Integer.parseInt(pairAttr.getNamedItem("definitionIndex").getNodeValue());
-                        int definitionLineNumber = Integer.parseInt(pairAttr.getNamedItem("definitionLineNumber").getNodeValue());
-                        int usageIndex = Integer.parseInt(pairAttr.getNamedItem("usageIndex").getNodeValue());
-                        int usageLineNumber = Integer.parseInt(pairAttr.getNamedItem("usageLineNumber").getNodeValue());
-                        ProgramVariable definition = ProgramVariable.create(owner, name, type, definitionIndex, definitionLineNumber);
-                        ProgramVariable usage = ProgramVariable.create(owner, name, type, usageIndex, usageLineNumber);
+                        String dOwner = pairAttr.getNamedItem("dOwner").getNodeValue();
+                        String dName = pairAttr.getNamedItem("dName").getNodeValue();
+                        String dType = pairAttr.getNamedItem("dType").getNodeValue();
+                        int definitionIndex = Integer.parseInt(pairAttr.getNamedItem("dIndex").getNodeValue());
+                        int definitionLineNumber = Integer.parseInt(pairAttr.getNamedItem("dLineNumber").getNodeValue());
+                        ProgramVariable definition = ProgramVariable.create(dOwner, dName, dType, definitionIndex, definitionLineNumber);
+
+                        String uOwner = pairAttr.getNamedItem("uOwner").getNodeValue();
+                        String uName = pairAttr.getNamedItem("uName").getNodeValue();
+                        String uType = pairAttr.getNamedItem("uType").getNodeValue();
+                        int uIndex = Integer.parseInt(pairAttr.getNamedItem("uIndex").getNodeValue());
+                        int uLineNumber = Integer.parseInt(pairAttr.getNamedItem("uLineNumber").getNodeValue());
+                        ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uIndex, uLineNumber);
+
                         DefUsePair newPair = new DefUsePair(definition, usage);
                         classExecutionData.getDefUsePairs().get(methodName).add(newPair);
                     }
@@ -142,12 +181,7 @@ public class LoadController {
                     Node pair = nodeList.item(j);
                     NamedNodeMap pairAttr = pair.getAttributes();
                     if (pairAttr != null) {
-                        String owner = pairAttr.getNamedItem("owner").getNodeValue();
-                        String name = pairAttr.getNamedItem("name").getNodeValue();
-                        String type = pairAttr.getNamedItem("type").getNodeValue();
-                        int instructionIndex = Integer.parseInt(pairAttr.getNamedItem("instructionIndex").getNodeValue());
-                        int lineNumber = Integer.parseInt(pairAttr.getNamedItem("lineNumber").getNodeValue());
-                        ProgramVariable programVariable = ProgramVariable.create(owner, name, type, instructionIndex, lineNumber);
+                        ProgramVariable programVariable = createProgramVariable(pairAttr);
                         classExecutionData.getDefUseCovered().get(methodName).add(programVariable);
                     }
                 }
@@ -156,5 +190,14 @@ public class LoadController {
             default:
                 throw new IllegalArgumentException("Invalid Tag in XML!");
         }
+    }
+
+    private static ProgramVariable createProgramVariable(NamedNodeMap pAttr) {
+        String owner = pAttr.getNamedItem("owner").getNodeValue();
+        String name = pAttr.getNamedItem("name").getNodeValue();
+        String type = pAttr.getNamedItem("type").getNodeValue();
+        int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
+        int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
+        return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber);
     }
 }

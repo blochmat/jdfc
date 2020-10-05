@@ -37,10 +37,11 @@ public class CoverageDataStore {
         return classList;
     }
 
-    public void setupClassDataNode(String pClassName, Map<String, CFG> pMethodCFGs){
-        ClassExecutionData classNodeData = (ClassExecutionData) findClassDataNode(pClassName).getData();
-        classNodeData.setMethodCFGs(pMethodCFGs);
-        classNodeData.calculateDefUsePairs();
+    public void finishClassExecutionDataSetup(final ClassExecutionData pClassExecutionData,
+                                              final Map<String, CFG> pMethodCFGs){
+        pClassExecutionData.setMethodCFGs(pMethodCFGs);
+        pClassExecutionData.calculateIntraproceduralDefUsePairs();
+        pClassExecutionData.calculateInterproceduralDefUsePairs();
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {

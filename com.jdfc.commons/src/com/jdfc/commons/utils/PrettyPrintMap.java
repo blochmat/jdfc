@@ -25,6 +25,8 @@ public class PrettyPrintMap<K, V> {
                 sb.append(Arrays.toString(((Set<?>) foo).toArray()));
             } else if (foo instanceof Pair){
                 sb.append(foo.toString());
+            } else if (foo instanceof Boolean) {
+                sb.append(foo.toString());
             }
             sb.append('"');
             if (iter.hasNext()) {

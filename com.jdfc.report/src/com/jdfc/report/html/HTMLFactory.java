@@ -2,6 +2,8 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.data.Pair;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.DefUsePair;
 import com.jdfc.core.analysis.ifg.InstanceVariable;
 import com.jdfc.core.analysis.ifg.ProgramVariable;
@@ -150,10 +152,10 @@ public class HTMLFactory {
         while (split.size() > 0 && !split.get(0).equals("")) {
             File parent = pWorkDir.getParentFile();
             int parentCounter = split.size();
-            for(int i = 1; i < parentCounter; i++) {
+            for (int i = 1; i < parentCounter; i++) {
                 parent = parent.getParentFile();
             }
-            if(!pWorkDir.getParentFile().equals(baseDir)) {
+            if (!pWorkDir.getParentFile().equals(baseDir)) {
                 split.set(0, ".");
             }
             String link = String.format("%s/index.html", String.join("/", split));
@@ -206,6 +208,7 @@ public class HTMLFactory {
         boolean isSpecialCharsLonger = specialChars.size() > words.size();
         boolean isComment = false;
 
+        // PER WORD
         for (int i = 0; i < words.size(); i++) {
             String word = words.get(i);
             // Create Comment
@@ -234,7 +237,17 @@ public class HTMLFactory {
             HTMLElement spanTag;
             if (definition != null) {
                 boolean isDefCovered = findIsDefCovered(data, definition);
-                Map<ProgramVariable, Boolean> useCoverageMap = getUseCoverageMap(data, definition);
+                List<ProgramVariable> definitions = new ArrayList<>();
+                definitions.add(definition);
+                for (Pair<ProgramVariable, ProgramVariable> match : data.getParameterMatching()) {
+                    if (match.fst.equals(definition)) {
+                        definitions.add(match.snd);
+                    }
+                }
+                Map<ProgramVariable, Boolean> useCoverageMap = new HashMap<>();
+                for (ProgramVariable def : definitions) {
+                    useCoverageMap.putAll(getUseCoverageMap(data, def));
+                }
                 spanTag = HTMLElement.span();
                 String id = String.format("L%sI%s", definition.getLineNumber(), definition.getInstructionIndex());
                 spanTag.getAttributes().add(String.format("id=\"%s\"", id));
@@ -572,8 +585,8 @@ public class HTMLFactory {
                 useCovered = true;
 
                 // based on found usage check if all depending defs are covered
-                for(DefUsePair pair : pData.getDefUsePairs().get(entry.getKey())){
-                    if(pair.getUsage().equals(pUsage)){
+                for (DefUsePair pair : pData.getDefUsePairs().get(entry.getKey())) {
+                    if (pair.getUsage().equals(pUsage)) {
                         allDefsCovered = allDefsCovered && entry.getValue().contains(pair.getDefinition());
                     }
                 }
