@@ -30,7 +30,6 @@ public class CFGCreatorClassVisitor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-//        System.out.println("visitMethod");
         MethodVisitor mv;
         if (cv != null) {
             mv = cv.visitMethod(access, name, desc, signature, exceptions);
@@ -57,13 +56,13 @@ public class CFGCreatorClassVisitor extends ClassVisitor {
         } else {
             super.visitEnd();
         }
+
         // Create interpocedural edges when we are sure all subgraphs are there
         addInterproceduralEdges(methodCFGs);
         CoverageDataStore.getInstance().finishClassExecutionDataSetup(classExecutionData, methodCFGs);
     }
 
     private MethodNode getMethodNode(String pName) {
-//        System.out.println("getMethodNode");
         for (MethodNode node : classNode.methods) {
             if (node.name.equals(pName)) {
                 return node;
@@ -72,14 +71,16 @@ public class CFGCreatorClassVisitor extends ClassVisitor {
         return null;
     }
 
-    private static void addInterproceduralEdges(Map<String, CFG> pMethodCFGs) {
+    private void addInterproceduralEdges(Map<String, CFG> pMethodCFGs) {
         for(Map.Entry<String, CFG> methodEntry : pMethodCFGs.entrySet()){
             for(Map.Entry<Integer, CFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()){
                 if(cfgNodeEntry.getValue() instanceof IFGNode) {
                     IFGNode self = (IFGNode) cfgNodeEntry.getValue();
-                    CFG other = pMethodCFGs.get(self.getMethodNameDesc());
-                    self.setCallNode(other.getNodes().firstEntry().getValue());
-                    self.setReturnNode(other.getNodes().lastEntry().getValue());
+                    if (!isJacocoInstrumentation(self.getMethodNameDesc())) {
+                        CFG other = pMethodCFGs.get(self.getMethodNameDesc());
+                        self.setCallNode(other.getNodes().firstEntry().getValue());
+                        self.setReturnNode(other.getNodes().lastEntry().getValue());
+                    }
                 }
             }
         }

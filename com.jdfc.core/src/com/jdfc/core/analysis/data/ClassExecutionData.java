@@ -128,7 +128,6 @@ public class ClassExecutionData extends ExecutionData {
                     CFGNode entryNode = ifgNode.getCallNode();
                     String entryMethodName = ifgNode.getMethodNameDesc();
                     processPredRecursive(methodName, entryMethodName, ifgNode.getParameterCount() - 1, ifgNode, ifgNode, entryNode);
-                    System.out.println(defUsePairs);
                 }
             }
         }

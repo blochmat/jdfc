@@ -22,6 +22,7 @@ public class ClassInstrument {
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
         CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
+
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
         final ClassVisitor cv = new MyClassVisitor(cw, classNode);
 

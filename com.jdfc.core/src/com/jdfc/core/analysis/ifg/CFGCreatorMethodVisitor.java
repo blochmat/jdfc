@@ -71,14 +71,12 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
                 firstLine += line;
             }
         }
-//            System.out.println("visitLineNumber");
         currentLineNumber = line;
         super.visitLineNumber(line, start);
     }
 
     @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
-//            System.out.println("visitFrame");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -87,16 +85,13 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitVarInsn(int opcode, int var) {
-//            System.out.println("visitVarInsn");
         updateCurrentNode();
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
-//            System.out.printf("%s %s\n", opcode, currentInstructionIndex);
         super.visitVarInsn(opcode, var);
     }
 
     @Override
     public void visitIincInsn(int var, int increment) {
-//            System.out.println("visitIincInsn");
         updateCurrentNode();
         createCFGNodeForIincInsnNode(var, currentInstructionIndex, currentLineNumber);
         super.visitIincInsn(var, increment);
@@ -104,17 +99,14 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitInsn(int opcode) {
-//            System.out.println("visitInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
-//            System.out.printf("%s %s\n", opcode, currentInstructionIndex);
         super.visitInsn(opcode);
     }
 
     @Override
     public void visitIntInsn(int opcode, int operand) {
-//            System.out.println("visitIntInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -123,7 +115,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
-//            System.out.println("visitTypeInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -132,7 +123,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-//            System.out.println("visitFieldInsn");
         updateCurrentNode();
         createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor);
         super.visitFieldInsn(opcode, owner, name, descriptor);
@@ -140,7 +130,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-//            System.out.println("visitMethodInsn");
 
         // TODO: Clarify interprocedural behavior and implement it
         // TODO: Maybe just delete
@@ -201,7 +190,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-//            System.out.println("visitInvokeDynamicInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -210,17 +198,14 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
-//            System.out.println("visitJumpInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
-//            System.out.printf("%s %s\n", opcode, currentInstructionIndex);
         super.visitJumpInsn(opcode, label);
     }
 
     @Override
     public void visitLdcInsn(Object value) {
-//            System.out.println("visitLdcInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -229,7 +214,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
-//            System.out.println("visitTableSwitchInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -238,7 +222,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-//            System.out.println("visitLookupSwitchInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -247,7 +230,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
-//            System.out.println("visitMultiANewArrayInsn");
         updateCurrentNode();
         final CFGNode node = new CFGNode(currentInstructionIndex);
         nodes.put(currentInstructionIndex, node);
@@ -256,7 +238,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitEnd() {
-//            System.out.println("visitEnd");
 
         edges.putAll(createEdges());
         setPredecessorSuccessorRelation();
@@ -332,7 +313,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
     }
 
     private void createCFGNodeForIincInsnNode(final int varNumber, final int pIndex, final int pLineNumber) {
-//            System.out.println("createCFGNodeForIincInsnNode");
         final ProgramVariable programVariable = getProgramVariable(varNumber, pIndex, pLineNumber);
         final CFGNode node =
                 new CFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex);
@@ -364,7 +344,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
     }
 
     private Multimap<Integer, Integer> createEdges() {
-//            System.out.println("createEdges");
         CFGEdgeAnalyzationVisitor cfgEdgeAnalysationVisitor =
                 new CFGEdgeAnalyzationVisitor(methodName, methodNode);
         methodNode.accept(cfgEdgeAnalysationVisitor);
@@ -372,19 +351,15 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
     }
 
     private void setPredecessorSuccessorRelation() {
-//            System.out.println("setPredecessorSuccessorRelation");
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
             final CFGNode first = nodes.get(edge.getKey());
             final CFGNode second = nodes.get(edge.getValue());
-//                System.out.printf("FIRST: %s\n", first);
-//                System.out.printf("SECOND: %s\n", second);
             first.addSuccessor(second);
             second.addPredecessor(first);
         }
     }
 
     private void addEntryNode(Set<InstanceVariable> pInstanceVariables) {
-//            System.out.println("addDummyStartNode");
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (int i = 0; i < parameterTypes.length; i++) {
             final Optional<LocalVariable> parameterVariable = localVariableTable.getEntry(i + 1);
@@ -424,7 +399,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
     }
 
     private void addExitNode() {
-//        System.out.println("addExitNode");
         // TODO: You may add some parameters here
         final CFGNode lastNode = nodes.get(currentInstructionIndex);
         final CFGNode exitNode = new CFGNode(Integer.MAX_VALUE);

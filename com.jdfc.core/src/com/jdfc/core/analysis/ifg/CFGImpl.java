@@ -71,10 +71,6 @@ public class CFGImpl implements CFG {
         for (Map.Entry<Integer, CFGNode> node : nodes.entrySet()) {
             node.getValue().resetReachOut();
             workList.add(node.getValue());
-//            System.out.printf("%s\n %s\n %s\n",
-//                    node.getValue().getIndex(),
-//                    Arrays.toString(node.getValue().getDefinitions().toArray()),
-//                    Arrays.toString(node.getValue().getUses().toArray()));
         }
 
         while (!workList.isEmpty()) {
