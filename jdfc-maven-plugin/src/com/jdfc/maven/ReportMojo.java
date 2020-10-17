@@ -58,7 +58,7 @@ public class ReportMojo extends AbstractMavenReport {
         // Load stored data into CoverageDataStore
         LoadController.loadDataFromXML(importDir);
 
-        // TODO: REMOVE DEBUG
+        // TODO: Remove Debug
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
 
         final String exportDir = String.format("%s/jdfc-report", target);

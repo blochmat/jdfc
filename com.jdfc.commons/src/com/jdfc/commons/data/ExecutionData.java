@@ -1,6 +1,5 @@
 package com.jdfc.commons.data;
 
-// TODO: Is this class necessary despite for inheritance? Think of something you can add here
 public class ExecutionData {
 
     private int total = 0;

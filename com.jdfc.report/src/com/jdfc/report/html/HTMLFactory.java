@@ -54,13 +54,6 @@ public class HTMLFactory {
         Writer writer = new FileWriter(index);
         writer.write(indexHTML.render());
         writer.close();
-        // if is not root
-//        if (!pOut) {
-//            // TODO: Create indexSource files?
-//            String indexSourcePath = String.format("%s/index.source.html", pWorkDir);
-//            File indexSource = new File(indexSourcePath);
-//            indexSource.createNewFile();
-//        }
     }
 
     public void createClassOverview(final String pClassName,

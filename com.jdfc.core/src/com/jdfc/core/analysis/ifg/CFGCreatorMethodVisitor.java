@@ -130,9 +130,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-
-        // TODO: Clarify interprocedural behavior and implement it
-        // TODO: Maybe just delete
         updateCurrentNode();
         if (owner.equals(className)) {
             String methodNameDesc = name.concat(": " + descriptor);
@@ -150,37 +147,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
             }
             final IFGNode node = new IFGNode(currentInstructionIndex, methodNameDesc, passedParams.size());
             nodes.put(currentInstructionIndex, node);
-
-//            List<AbstractInsnNode> varInsnNodes = new ArrayList<>();
-//            // get passed parameters by instruction index from method node
-//            for (int i = 1; i <= passedParams.size(); i++) {
-//                if (currentInstructionIndex - i >= 0) {
-//                    AbstractInsnNode instruction = methodNode.instructions.get(currentInstructionIndex - i);
-//                    switch (instruction.getOpcode()) {
-//                        case Opcodes.LDC:
-//                            // constants and final variables
-//                            // not decidable yet as we need the value of a variable to decide if its actually a variable
-//                            // and no local constant
-//                            break;
-//                        case Opcodes.ILOAD:
-//                        case Opcodes.DLOAD:
-//                        case Opcodes.FLOAD:
-//                        case Opcodes.LLOAD:
-//                        case Opcodes.ALOAD:
-//                            // Local Variables
-//                            // usage is already tracked and there can not be a new definition because in the scope
-//                            // of the other method the variable is aliased and therefore not tracked
-//
-//                            break;
-//                        case Opcodes.GETFIELD:
-//                            // Instance Variables
-//                            FieldInsnNode getFieldInsnNode = (FieldInsnNode) instruction;
-//                            break;
-//                    }
-//                }
-//            }
-            // create new programVariables or safe as use or definition in corresponding method node
-            // either new define them after method call or make purity analysis after method call
         } else {
             final CFGNode node = new CFGNode(currentInstructionIndex);
             nodes.put(currentInstructionIndex, node);
@@ -399,7 +365,6 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
     }
 
     private void addExitNode() {
-        // TODO: You may add some parameters here
         final CFGNode lastNode = nodes.get(currentInstructionIndex);
         final CFGNode exitNode = new CFGNode(Integer.MAX_VALUE);
         lastNode.addSuccessor(exitNode);

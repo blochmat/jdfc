@@ -54,8 +54,6 @@ public class InstanceVariable {
         this.lineNumber = lineNumber;
     }
 
-    // TODO
-
     @Override
     public int hashCode() {
         return Objects.hash(owner, access, name, descriptor, signature, lineNumber);

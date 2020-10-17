@@ -148,24 +148,6 @@ public class ClassExecutionData extends ExecutionData {
                 for (ProgramVariable usage : usages) {
                     defUsePairs.get(pMethodName).add(new DefUsePair(definition, usage));
                 }
-
-//                if (!(definition.getType().equals("I")
-//                        || definition.getType().equals("F")
-//                        || definition.getType().equals("D")
-//                        || definition.getType().equals("L"))
-//                        && methodCFGs.get(pEntryMethodName).isImpure()) {
-//                    ProgramVariable newDefinition = ProgramVariable.create(definition.getOwner(),
-//                            definition.getName(),
-//                            definition.getType(),
-//                            use.getInstructionIndex(),
-//                            use.getLineNumber());
-//                    for(DefUsePair defUsePair : defUsePairs.get(pMethodName)) {
-//                        if(defUsePair.getDefinition().equals(definition)
-//                                && defUsePair.getUsage().getLineNumber() > use.getLineNumber()) {
-//                            defUsePair.setDefinition(newDefinition);
-//                        }
-//                    }
-//                }
             }
             processPredRecursive(pMethodName, pEntryMethodName, pLoopsLeft - 1, pred, pCallingNode, pEntryNode);
         }
