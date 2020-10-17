@@ -1,11 +1,12 @@
 package com.jdfc.core.analysis.instr;
 
 import com.jdfc.core.analysis.ifg.CFGImpl;
-import com.jdfc.core.analysis.ifg.ProgramVariable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class InstrumentationMethodVisitor extends MethodVisitor {
 
@@ -16,6 +17,8 @@ public class InstrumentationMethodVisitor extends MethodVisitor {
     AbstractInsnNode currentNode = null;
     int currentLineNumber = -1;
     int currentInstructionIndex = -1;
+    List<Integer> returnOpcodes = Arrays.asList(Opcodes.RETURN,
+            Opcodes.IRETURN, Opcodes.DRETURN, Opcodes.ARETURN, Opcodes.FRETURN, Opcodes.LRETURN);
     // workaround not to collide with jacoco:
     final String jacocoMethodName = "$jacoco";
 
@@ -48,6 +51,15 @@ public class InstrumentationMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitInsn(int opcode) {
+        if(returnOpcodes.contains(opcode) && !methodName.contains("<init>")) {
+            mv.visitLdcInsn(className);
+            mv.visitMethodInsn(
+                    Opcodes.INVOKESTATIC,
+                    Type.getInternalName(CFGImpl.class),
+                    "dumpClassExecutionDataToFile",
+                    "(Ljava/lang/String;)V",
+                    false);
+        }
         updateCurrentNode();
         mv.visitInsn(opcode);
     }

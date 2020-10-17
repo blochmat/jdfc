@@ -92,7 +92,7 @@ public class CFGImpl implements CFG {
         String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
         ClassExecutionData classExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
         ProgramVariable programVariable = prepareNewLocalVarEntry(classExecutionData, methodNameDesc, pVarIndex, pInsnIndex, pLineNumber);
-        addCoveredEntry(pClassName, methodNameDesc, classExecutionData, programVariable);
+        addCoveredEntry(methodNameDesc, classExecutionData, programVariable);
     }
 
     public static void addInstanceVarCoveredEntry(final String pClassName,
@@ -106,7 +106,16 @@ public class CFGImpl implements CFG {
         String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
         ClassExecutionData classExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
         ProgramVariable programVariable = prepareNewInstanceVarEntry(classExecutionData, pOwner, pVarName, pVarDesc, pIndex, pLineNumber);
-        addCoveredEntry(pClassName, methodNameDesc, classExecutionData, programVariable);
+        addCoveredEntry(methodNameDesc, classExecutionData, programVariable);
+    }
+
+    public static void dumpClassExecutionDataToFile(final String pClassName) {
+        ClassExecutionData classExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
+        try {
+            CoverageDataExport.dumpClassExecutionDataToFile(pClassName, classExecutionData);
+        } catch (ParserConfigurationException | TransformerException e) {
+            e.printStackTrace();
+        }
     }
 
     static ProgramVariable prepareNewLocalVarEntry(final ClassExecutionData pData,
@@ -139,15 +148,10 @@ public class CFGImpl implements CFG {
         return null;
     }
 
-    private static void addCoveredEntry(String pClassName, String methodNameDesc, ClassExecutionData classExecutionData, ProgramVariable programVariable) {
+    private static void addCoveredEntry(String methodNameDesc, ClassExecutionData classExecutionData, ProgramVariable programVariable) {
         if (programVariable != null) {
             Map<String, Set<ProgramVariable>> coveredList = classExecutionData.getDefUseCovered();
             coveredList.get(methodNameDesc).add(programVariable);
-            try {
-                CoverageDataExport.dumpClassExecutionDataToFile(pClassName, classExecutionData);
-            } catch (ParserConfigurationException | TransformerException e) {
-                e.printStackTrace();
-            }
         }
     }
 
