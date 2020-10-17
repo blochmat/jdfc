@@ -7,7 +7,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-public class MyMethodVisitor extends MethodVisitor {
+public class InstrumentationMethodVisitor extends MethodVisitor {
 
     final String className;
     final String methodName;
@@ -19,7 +19,7 @@ public class MyMethodVisitor extends MethodVisitor {
     // workaround not to collide with jacoco:
     final String jacocoMethodName = "$jacoco";
 
-    public MyMethodVisitor(MethodVisitor pMethodVisitor, String pClassName, String pMethodName, String pMethodDesc, MethodNode pMethodNode) {
+    public InstrumentationMethodVisitor(MethodVisitor pMethodVisitor, String pClassName, String pMethodName, String pMethodDesc, MethodNode pMethodNode) {
         super(Opcodes.ASM6, pMethodVisitor);
         className = pClassName;
         methodName = pMethodName;

@@ -2,7 +2,7 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.core.analysis.CoverageDataStore;
+import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.report.html.HTMLFactory;
 import com.jdfc.report.html.resources.Resources;
 

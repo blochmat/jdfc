@@ -1,8 +1,9 @@
-package com.jdfc.core.analysis.instr;
+package com.jdfc.core.analysis;
 
-import com.jdfc.core.analysis.CoverageDataStore;
+import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.core.analysis.ifg.CFGCreator;
+import com.jdfc.core.analysis.instr.InstrumentationClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -12,7 +13,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import java.io.PrintWriter;
 
 
-public class ClassInstrument {
+public class JDFCInstrument {
 
     public byte[] instrument(final ClassReader classReader) {
         final ClassNode classNode = new ClassNode();
@@ -24,7 +25,7 @@ public class ClassInstrument {
         CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
 
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
-        final ClassVisitor cv = new MyClassVisitor(cw, classNode);
+        final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode);
 
         //TODO: Remove Debug
         if(classNode.name.equals("BranchingInteger")) {

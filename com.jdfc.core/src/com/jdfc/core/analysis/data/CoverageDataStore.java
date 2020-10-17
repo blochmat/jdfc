@@ -1,9 +1,8 @@
-package com.jdfc.core.analysis;
+package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.ifg.CFG;
 import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.core.analysis.data.ClassExecutionData;
 
 import java.io.File;
 import java.nio.file.Path;

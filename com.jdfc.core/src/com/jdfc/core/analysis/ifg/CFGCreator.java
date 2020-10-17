@@ -2,14 +2,11 @@ package com.jdfc.core.analysis.ifg;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.jdfc.commons.utils.PrettyPrintMap;
-import com.jdfc.core.analysis.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -52,14 +49,14 @@ public class CFGCreator {
                 pClassExecutionData, "We need a non-null class execution data to generate CFGs from.");
 
         // Get variables
-        final CFGCreatorVariableVisitor localVariableTableVisitor =
+        final CFGCreatorVariableVisitor variableTableVisitor =
                 new CFGCreatorVariableVisitor(pClassNode);
-        pClassReader.accept(localVariableTableVisitor, 0);
-        pClassExecutionData.setInstanceVariables(localVariableTableVisitor.getInstanceVariables());
+        pClassReader.accept(variableTableVisitor, 0);
+        pClassExecutionData.setInstanceVariables(variableTableVisitor.getInstanceVariables());
 
         // Create method cfgs
         final Map<String, LocalVariableTable> localVariableTables =
-                localVariableTableVisitor.getLocalVariables();
+                variableTableVisitor.getLocalVariables();
         final Map<String, CFG> methodCFGs = Maps.newLinkedHashMap();
         final CFGCreatorClassVisitor cfgCreatorClassVisitor =
                 new CFGCreatorClassVisitor(pClassNode, pClassExecutionData, methodCFGs, localVariableTables);

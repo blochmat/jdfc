@@ -1,12 +1,11 @@
 package com.jdfc.core.analysis.ifg;
 
-import com.jdfc.core.analysis.CoverageDataStore;
+import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.Arrays;
 import java.util.Map;
 
 public class CFGCreatorClassVisitor extends ClassVisitor {

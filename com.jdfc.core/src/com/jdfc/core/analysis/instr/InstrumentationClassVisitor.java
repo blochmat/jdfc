@@ -6,13 +6,13 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-public class MyClassVisitor extends ClassVisitor {
+public class InstrumentationClassVisitor extends ClassVisitor {
 
     final ClassNode classNode;
     final String className;
     final String jacocoMethodName = "$jacoco";
 
-    public MyClassVisitor(ClassVisitor cv, ClassNode pClassNode) {
+    public InstrumentationClassVisitor(ClassVisitor cv, ClassNode pClassNode) {
         super(Opcodes.ASM6, cv);
         classNode = pClassNode;
         className = classNode.name;
@@ -26,7 +26,7 @@ public class MyClassVisitor extends ClassVisitor {
         if (mv != null) {
             if(!isJacocoInstrumentation(name)) {
                 MethodNode methodNode = getMethodNode(name);
-                mv = new MyMethodVisitor(mv, className, name, desc, methodNode);
+                mv = new InstrumentationMethodVisitor(mv, className, name, desc, methodNode);
             }
         }
         return mv;
