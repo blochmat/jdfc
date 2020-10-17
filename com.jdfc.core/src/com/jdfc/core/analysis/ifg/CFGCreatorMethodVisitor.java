@@ -8,7 +8,6 @@ import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
@@ -215,10 +214,7 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
         CFG cfg = new CFGImpl(methodName, nodes, localVariableTable, isImpure);
         cfg.calculateReachingDefinitions();
         methodCFGs.put(internalMethodName, cfg);
-
-        // TODO: Recompute methodRangeMap
-        int lastLine = currentLineNumber;
-        classExecutionData.getMethodRangeMap().put(internalMethodName, new Pair<>(firstLine, lastLine));
+        classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         super.visitEnd();
     }
 

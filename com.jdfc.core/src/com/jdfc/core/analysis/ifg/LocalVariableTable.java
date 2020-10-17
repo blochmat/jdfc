@@ -31,4 +31,13 @@ public class LocalVariableTable {
             return Optional.empty();
         }
     }
+
+    public boolean containsEntry(final String pName, final String pDescriptor) {
+        for(LocalVariable localVariable : localVariableTable.values()) {
+            if(localVariable.getName().equals(pName) && localVariable.getDescriptor().equals(pDescriptor)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

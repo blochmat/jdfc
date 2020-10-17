@@ -10,21 +10,25 @@ import java.util.stream.Collectors;
 public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
+    private Map<String, Integer> methodFirstLine;
     private Set<InstanceVariable> instanceVariables;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
     private Map<String, Set<ProgramVariable>> defUseUncovered;
-    private Map<String, Pair<Integer, Integer>> methodRangeMap;
-    private Set<Pair<ProgramVariable, ProgramVariable>> parameterMatching;
+    private final Map<InstanceVariable, List<Pair<Integer, Integer>>> instVarOutScopeMap;
+
+    //TODO Make parameterMatching a map
+    private final Set<Pair<ProgramVariable, ProgramVariable>> parameterMatching;
     private final String relativePath;
 
     public ClassExecutionData(String pRelativePath) {
+        methodFirstLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
         defUseCovered = new HashMap<>();
         defUseUncovered = new HashMap<>();
         relativePath = pRelativePath;
         instanceVariables = new HashSet<>();
-        methodRangeMap = new HashMap<>();
+        instVarOutScopeMap = new HashMap<>();
         parameterMatching = new HashSet<>();
     }
 
@@ -46,6 +50,10 @@ public class ClassExecutionData extends ExecutionData {
         return methodCFGs;
     }
 
+    public Map<String, Integer> getMethodFirstLine() {
+        return methodFirstLine;
+    }
+
     public TreeMap<String, List<DefUsePair>> getDefUsePairs() {
         return defUsePairs;
     }
@@ -54,12 +62,8 @@ public class ClassExecutionData extends ExecutionData {
         return defUseCovered;
     }
 
-    public Map<String, Set<ProgramVariable>> getDefUseUncovered() {
-        return defUseUncovered;
-    }
-
-    public Map<String, Pair<Integer, Integer>> getMethodRangeMap() {
-        return methodRangeMap;
+    public Map<InstanceVariable, List<Pair<Integer, Integer>>> getInstVarOutScopeMap() {
+        return instVarOutScopeMap;
     }
 
     public Set<InstanceVariable> getInstanceVariables() {
@@ -72,14 +76,6 @@ public class ClassExecutionData extends ExecutionData {
 
     public String getRelativePath() {
         return relativePath;
-    }
-
-    public void setDefUsePairs(TreeMap<String, List<DefUsePair>> defUsePairs) {
-        this.defUsePairs = defUsePairs;
-    }
-
-    public void setDefUseCovered(Map<String, Set<ProgramVariable>> defUseCovered) {
-        this.defUseCovered = defUseCovered;
     }
 
     public Set<Pair<ProgramVariable, ProgramVariable>> getParameterMatching() {
@@ -134,7 +130,12 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     // TODO: Check for refactoring
-    private void processPredRecursive(String pMethodName, String pEntryMethodName, int pLoopsLeft, CFGNode pNode, IFGNode pCallingNode, CFGNode pEntryNode) {
+    private void processPredRecursive(String pMethodName,
+                                      String pEntryMethodName,
+                                      int pLoopsLeft,
+                                      CFGNode pNode,
+                                      IFGNode pCallingNode,
+                                      CFGNode pEntryNode) {
         if (pLoopsLeft >= 0) {
             CFGNode pred = (CFGNode) pNode.getPredecessors().toArray()[0];
             ProgramVariable use = (ProgramVariable) pred.getUses().toArray()[0];

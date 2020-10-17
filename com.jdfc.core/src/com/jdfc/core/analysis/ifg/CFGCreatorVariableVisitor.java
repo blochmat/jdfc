@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
@@ -27,13 +28,15 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
     private final Map<String, LocalVariableTable> localVariables;
     private final Set<InstanceVariable> instanceVariables;
     private final ClassNode classNode;
+    private final ClassExecutionData classExecutionData;
     final String jacocoMethodName = "$jacoco";
 
-    CFGCreatorVariableVisitor(final ClassNode pClassNode) {
+    CFGCreatorVariableVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM6);
         localVariables = Maps.newLinkedHashMap();
         instanceVariables = new HashSet<>();
         classNode = pClassNode;
+        classExecutionData = pClassExecutionData;
     }
 
     @Override
@@ -76,6 +79,12 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
                     this, mv, pName, pDescriptor, pSignature, pExceptions);
         }
         return mv;
+    }
+
+    @Override
+    public void visitEnd() {
+        classExecutionData.setInstanceVariables(instanceVariables);
+        super.visitEnd();
     }
 
     /**

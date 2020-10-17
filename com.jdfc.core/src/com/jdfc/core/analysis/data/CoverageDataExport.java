@@ -84,6 +84,7 @@ public class CoverageDataExport {
             }
             Element methodTag = doc.createElement("method");
             methodTag.setAttribute("name", methodEntry.getKey());
+            methodTag.setAttribute("firstLine", String.valueOf(pClassExecutionData.getMethodFirstLine().get(methodEntry.getKey())));
             rootTag.appendChild(methodTag);
 
             Element defUsePairListTag = doc.createElement("defUsePairs");
@@ -121,17 +122,6 @@ public class CoverageDataExport {
                     defUseCoveredTag.appendChild(programVariableTag);
                 }
             }
-        }
-
-        Element methodRangeMap = doc.createElement("methodRangeMap");
-        rootTag.appendChild(methodRangeMap);
-
-        for (Map.Entry<String, Pair<Integer, Integer>> methodEntry : pClassExecutionData.getMethodRangeMap().entrySet()) {
-            Element methodRange = doc.createElement("methodRange");
-            methodRangeMap.appendChild(methodRange);
-            methodRange.setAttribute("methodName", methodEntry.getKey());
-            methodRange.setAttribute("fst", String.valueOf(methodEntry.getValue().fst));
-            methodRange.setAttribute("snd", String.valueOf(methodEntry.getValue().snd));
         }
 
         Transformer transformer = TransformerFactory.newInstance().newTransformer();

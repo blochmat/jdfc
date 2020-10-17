@@ -69,10 +69,6 @@ public class LoadController {
                         NodeList matching = node.getChildNodes();
                         getParameterMatching(matching, classExecutionData);
                         break;
-                    case "methodRangeMap":
-                        NodeList methodRanges = node.getChildNodes();
-                        getMethodRangeData(methodRanges, classExecutionData);
-                        break;
                     case "method":
                         // Number of iterations over method labels == methodCount
                         classExecutionData.setMethodCount(classExecutionData.getMethodCount() + 1);
@@ -81,6 +77,8 @@ public class LoadController {
                     default:
                         // DefUsePair or DefUseCovered list
                         String methodName = node.getParentNode().getAttributes().getNamedItem("name").getNodeValue();
+                        Integer firstLine = Integer.valueOf(node.getParentNode().getAttributes().getNamedItem("firstLine").getNodeValue());
+                        classExecutionData.getMethodFirstLine().put(methodName, firstLine);
                         NodeList defUsePairs = node.getChildNodes();
                         String listName = node.getNodeName();
                         collectCoverageData(methodName, defUsePairs, listName, classExecutionData);
@@ -110,20 +108,6 @@ public class LoadController {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private static void getMethodRangeData(NodeList pMethodRanges, ClassExecutionData pClassExecutionData) {
-        for (int i = 0; i < pMethodRanges.getLength(); i++) {
-            Node methodRange = pMethodRanges.item(i);
-            NamedNodeMap attr = methodRange.getAttributes();
-            if (attr != null) {
-                String methodName = attr.getNamedItem("methodName").getNodeValue();
-                int fst = Integer.parseInt(attr.getNamedItem("fst").getNodeValue());
-                int snd = Integer.parseInt(attr.getNamedItem("snd").getNodeValue());
-
-                pClassExecutionData.getMethodRangeMap().put(methodName, new Pair<>(fst, snd));
             }
         }
     }

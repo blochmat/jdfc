@@ -50,9 +50,8 @@ public class CFGCreator {
 
         // Get variables
         final CFGCreatorVariableVisitor variableTableVisitor =
-                new CFGCreatorVariableVisitor(pClassNode);
+                new CFGCreatorVariableVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(variableTableVisitor, 0);
-        pClassExecutionData.setInstanceVariables(variableTableVisitor.getInstanceVariables());
 
         // Create method cfgs
         final Map<String, LocalVariableTable> localVariableTables =

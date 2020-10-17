@@ -3,7 +3,6 @@ package com.jdfc.report.html;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.DefUsePair;
 import com.jdfc.core.analysis.ifg.InstanceVariable;
 import com.jdfc.core.analysis.ifg.ProgramVariable;
@@ -340,7 +339,7 @@ public class HTMLFactory {
             int covered = pData.computeCoverageForMethod(entry.getKey());
             int missed = total - covered;
             String link = String.format("%s.java.html#L%s", pClassfileName,
-                    pData.getMethodRangeMap().get(entry.getKey()).fst);
+                    pData.getMethodFirstLine().get(entry.getKey()));
             HTMLElement trTag = HTMLElement.tr();
             HTMLElement tdTag = HTMLElement.td();
             tdTag.getContent().add(HTMLElement.a(link, elementName));
@@ -509,17 +508,17 @@ public class HTMLFactory {
 //                }
 //            }
 //        } else {
-        for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
-            for (DefUsePair defUsePair : defUsePairs.getValue()) {
-                ProgramVariable definition = defUsePair.getDefinition();
-                if (definition.getLineNumber() > pLineNumber
-                        && definition.getName().equals(pName)
-                        && pData.getMethodRangeMap().get(defUsePairs.getKey()).fst <= pLineNumber
-                        && pData.getMethodRangeMap().get(defUsePairs.getKey()).snd >= pLineNumber) {
-                    return true;
-                }
-            }
-        }
+//        for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
+//            for (DefUsePair defUsePair : defUsePairs.getValue()) {
+//                ProgramVariable definition = defUsePair.getDefinition();
+//                if (definition.getLineNumber() > pLineNumber
+//                        && definition.getName().equals(pName)
+//                        && pData.getInstVarOutScopeMap().get(defUsePairs.getKey()).fst <= pLineNumber
+//                        && pData.getInstVarOutScopeMap().get(defUsePairs.getKey()).snd >= pLineNumber) {
+//                    return true;
+//                }
+//            }
+//        }
 //        }
         return false;
     }
