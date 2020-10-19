@@ -53,10 +53,11 @@ public class ReportMojo extends AbstractMavenReport {
     @Override
     protected void executeReport(Locale locale) throws MavenReportException {
         final String target = getProject().getBuild().getDirectory();
+        final String classesDir = getProject().getBuild().getOutputDirectory();
         final String importDir = String.format("%s/jdfc", target);
 
         // Load stored data into CoverageDataStore
-        LoadController.loadDataFromXML(importDir);
+        LoadController.loadExecutionData(classesDir, importDir);
 
         // TODO: Remove Debug
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);

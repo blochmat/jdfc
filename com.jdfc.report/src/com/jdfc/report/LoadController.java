@@ -3,12 +3,13 @@ package com.jdfc.report;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
-import com.jdfc.commons.utils.Files;
+import com.jdfc.core.analysis.JDFCInstrument;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.ifg.DefUsePair;
 import com.jdfc.core.analysis.ifg.InstanceVariable;
 import com.jdfc.core.analysis.ifg.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import org.objectweb.asm.ClassReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -19,27 +20,37 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
 public class LoadController {
 
-    public static void loadDataFromXML(String workDir) {
-        File dir = new File(workDir);
-        Path baseDir = dir.toPath();
-        String fileEnding = ".xml";
+    public static void loadExecutionData(String pClassesDir, String pJDFCDir) {
+        File classes = new File(pClassesDir);
+        Path classesPath = classes.toPath();
+        String classSuffix = ".class";
 
-        // Loading data node structure
+
+        File jdfc = new File(pJDFCDir);
+        Path jdfcPath = jdfc.toPath();
+        String xmlSuffix = ".xml";
+
+        // Loading data node structure from target/classes
         CoverageDataStore.getInstance()
-                .addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), baseDir, fileEnding);
-        // Load simple xml files
-        List<File> xmlFiles = Files.loadFilesFromDirRecursive(dir, ".xml");
+                .addNodesFromDirRecursive(classes, CoverageDataStore.getInstance().getRoot(), classesPath, classSuffix);
+
+        // Load xml files from target/jdfc
+        List<File> xmlFiles = loadFilesFromDirRecursive(jdfc, xmlSuffix);
 
         for (File xml : xmlFiles) {
-            String relativePath = baseDir.relativize(xml.toPath()).toString();
+            String relativePath = jdfcPath.relativize(xml.toPath()).toString();
             String relativePathWithoutType = relativePath.split("\\.")[0];
             ExecutionDataNode<ExecutionData> classExecutionDataNode = CoverageDataStore.getInstance().findClassDataNode(relativePathWithoutType);
             ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
+
+            // ClassList works as worklist to keep track of loaded files
+            CoverageDataStore.getInstance().getClassList().remove(relativePathWithoutType);
             try {
                 Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml);
                 Node rootTag = doc.getFirstChild();
@@ -51,7 +62,35 @@ public class LoadController {
             }
         }
 
+        // If untested classes exist => compute def use pairs
+        if (!CoverageDataStore.getInstance().getClassList().isEmpty()) {
+            JDFCInstrument JDFCInstrument = new JDFCInstrument();
+            List<File> classFiles = loadFilesFromDirRecursive(classes, classSuffix);
+            for(File classFile : classFiles) {
+                try {
+                    byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+                    ClassReader cr = new ClassReader(classFileBuffer);
+                    JDFCInstrument.instrument(cr);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
+    public static List<File> loadFilesFromDirRecursive(File file, String suffix) {
+        List<File> returnList = new ArrayList<>();
+        File[] children = file.listFiles();
+        if (children != null) {
+            for (File child : children) {
+                returnList.addAll(loadFilesFromDirRecursive(child, suffix));
+            }
+        } else {
+            if (file.getName().endsWith(suffix)){
+                returnList.add(file);
+            }
+        }
+        return returnList;
     }
 
     private static void examineFileRecursive(Node pXMLNode, ClassExecutionData classExecutionData) {
