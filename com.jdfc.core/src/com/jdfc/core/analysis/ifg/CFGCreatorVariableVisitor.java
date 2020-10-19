@@ -5,7 +5,7 @@ import static org.objectweb.asm.Opcodes.PUTFIELD;
 
 import com.google.common.collect.Maps;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +26,6 @@ import org.objectweb.asm.tree.ClassNode;
 class CFGCreatorVariableVisitor extends ClassVisitor {
 
     private final Map<String, LocalVariableTable> localVariables;
-    private final Set<InstanceVariable> instanceVariables;
     private final ClassNode classNode;
     private final ClassExecutionData classExecutionData;
     final String jacocoMethodName = "$jacoco";
@@ -34,7 +33,6 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
     CFGCreatorVariableVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM6);
         localVariables = Maps.newLinkedHashMap();
-        instanceVariables = new HashSet<>();
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
     }
@@ -81,12 +79,6 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
         return mv;
     }
 
-    @Override
-    public void visitEnd() {
-        classExecutionData.setInstanceVariables(instanceVariables);
-        super.visitEnd();
-    }
-
     /**
      * Returns the information of the local variable tables for each method in a map of method name
      * and {@link LocalVariableTable}.
@@ -95,10 +87,6 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
      */
     Map<String, LocalVariableTable> getLocalVariables() {
         return localVariables;
-    }
-
-    Set<InstanceVariable> getInstanceVariables() {
-        return instanceVariables;
     }
 
     private static class CFGFieldVisitor extends FieldVisitor {
@@ -129,41 +117,48 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
         @Override
         public void visitEnd() {
             final InstanceVariable variable =
-                    new InstanceVariable(classVisitor.classNode.name, access, name, descriptor, signature, -1);
-            classVisitor.instanceVariables.add(variable);
+                    InstanceVariable.create(classVisitor.classNode.name, access, name, descriptor, signature, -1);
+            classVisitor.classExecutionData.getInstanceVariables().add(variable);
             super.visitEnd();
         }
     }
 
     private static class CFGVariableMethodVisitor extends MethodVisitor {
 
-        private final String name;
+        private final String methodName;
         private final String descriptor;
         private final String signature;
         private final String[] exceptions;
         private final LocalVariableTable localVariableTable;
         private final CFGCreatorVariableVisitor classVisitor;
-        private int currentLineNumber;
+        private int currentLineNumber = -1;
+        private int firstLine = -1;
 
         CFGVariableMethodVisitor(
                 final CFGCreatorVariableVisitor pClassVisitor,
                 final MethodVisitor pMethodVisitor,
-                final String pName,
+                final String pMethodName,
                 final String pDescriptor,
                 final String pSignature,
                 final String[] pExceptions) {
             super(ASM6, pMethodVisitor);
             classVisitor = pClassVisitor;
-            name = pName;
+            methodName = pMethodName;
             descriptor = pDescriptor;
             signature = pSignature;
             exceptions = pExceptions;
             localVariableTable = new LocalVariableTable();
-            currentLineNumber = -1;
         }
 
         @Override
         public void visitLineNumber(int line, Label start) {
+            if (firstLine == -1) {
+                if (methodName.equals("<init>")) {
+                    firstLine = line;
+                } else {
+                    firstLine += line;
+                }
+            }
             currentLineNumber = line;
             super.visitLineNumber(line, start);
         }
@@ -171,7 +166,7 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
         @Override
         public void visitFieldInsn(int pOpcode, String pOwner, String pName, String pDescription) {
             if (pOpcode == PUTFIELD) {
-                Set<InstanceVariable> instanceVariables = classVisitor.getInstanceVariables();
+                Set<InstanceVariable> instanceVariables = classVisitor.classExecutionData.getInstanceVariables();
                 for (InstanceVariable instanceVariable : instanceVariables) {
                     if (instanceVariable.getOwner().equals(pOwner)
                             && instanceVariable.getName().equals(pName)
@@ -204,8 +199,14 @@ class CFGCreatorVariableVisitor extends ClassVisitor {
          */
         @Override
         public void visitEnd() {
+            for(InstanceVariable instanceVariable : classVisitor.classExecutionData.getInstanceVariables()) {
+                if(localVariableTable.containsEntry(instanceVariable.getName(), instanceVariable.getDescriptor())) {
+                    instanceVariable.getOutOfScope().put(firstLine, currentLineNumber);
+                }
+            }
+
             final String methodName =
-                    CFGCreator.computeInternalMethodName(name, descriptor, signature, exceptions);
+                    CFGCreator.computeInternalMethodName(this.methodName, descriptor, signature, exceptions);
             classVisitor.localVariables.put(methodName, localVariableTable);
         }
     }

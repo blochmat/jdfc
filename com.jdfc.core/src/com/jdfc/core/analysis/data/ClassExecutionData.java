@@ -10,12 +10,11 @@ import java.util.stream.Collectors;
 public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
-    private Map<String, Integer> methodFirstLine;
+    private final Map<String, Integer> methodFirstLine;
     private Set<InstanceVariable> instanceVariables;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
     private Map<String, Set<ProgramVariable>> defUseUncovered;
-    private final Map<InstanceVariable, List<Pair<Integer, Integer>>> instVarOutScopeMap;
 
     //TODO Make parameterMatching a map
     private final Set<Pair<ProgramVariable, ProgramVariable>> parameterMatching;
@@ -28,7 +27,6 @@ public class ClassExecutionData extends ExecutionData {
         defUseUncovered = new HashMap<>();
         relativePath = pRelativePath;
         instanceVariables = new HashSet<>();
-        instVarOutScopeMap = new HashMap<>();
         parameterMatching = new HashSet<>();
     }
 
@@ -60,10 +58,6 @@ public class ClassExecutionData extends ExecutionData {
 
     public Map<String, Set<ProgramVariable>> getDefUseCovered() {
         return defUseCovered;
-    }
-
-    public Map<InstanceVariable, List<Pair<Integer, Integer>>> getInstVarOutScopeMap() {
-        return instVarOutScopeMap;
     }
 
     public Set<InstanceVariable> getInstanceVariables() {

@@ -50,6 +50,12 @@ public class CoverageDataExport {
             instanceVarTag.setAttribute("descriptor", instanceVariable.getDescriptor());
             instanceVarTag.setAttribute("signature", instanceVariable.getSignature());
             instanceVarTag.setAttribute("lineNumber", String.valueOf(instanceVariable.getLineNumber()));
+            for(Map.Entry<Integer, Integer> entry : instanceVariable.getOutOfScope().entrySet()) {
+                Element outScopeTag = doc.createElement("outScope");
+                instanceVarTag.appendChild(outScopeTag);
+                outScopeTag.setAttribute("fstLine", String.valueOf(entry.getKey()));
+                outScopeTag.setAttribute("sndLine", String.valueOf(entry.getValue()));
+            }
             instanceVariablesTag.appendChild(instanceVarTag);
         }
 

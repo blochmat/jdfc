@@ -124,7 +124,19 @@ public class LoadController {
                 String signature = attr.getNamedItem("signature").getNodeValue();
                 int lineNumber = Integer.parseInt(attr.getNamedItem("lineNumber").getNodeValue());
 
-                InstanceVariable newVar = new InstanceVariable(owner, access, name, descriptor, signature, lineNumber);
+                InstanceVariable newVar = InstanceVariable.create(owner, access, name, descriptor, signature, lineNumber);
+
+                NodeList outScopeList = instanceVariable.getChildNodes();
+                for(int j = 0; j < outScopeList.getLength(); j++) {
+                    Node outScope = outScopeList.item(j);
+                    NamedNodeMap outScopeAttr = outScope.getAttributes();
+                    if(outScopeAttr != null) {
+                        Integer methodFirstLine = Integer.valueOf(outScopeAttr.getNamedItem("fstLine").getNodeValue());
+                        Integer methodLastLine = Integer.valueOf(outScopeAttr.getNamedItem("sndLine").getNodeValue());
+                        newVar.getOutOfScope().put(methodFirstLine, methodLastLine);
+                    }
+                }
+
                 classExecutionData.getInstanceVariables().add(newVar);
             }
         }

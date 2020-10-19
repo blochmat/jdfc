@@ -1,5 +1,7 @@
 package com.jdfc.core.analysis.ifg;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class InstanceVariable {
@@ -10,8 +12,9 @@ public class InstanceVariable {
     private final String descriptor;
     private final String signature;
     private int lineNumber;
+    private Map<Integer, Integer> outOfScope;
 
-    public InstanceVariable(
+    private InstanceVariable(
             final String pOwner,
             final int pAccess,
             final String pName,
@@ -24,6 +27,16 @@ public class InstanceVariable {
         descriptor = pDescriptor;
         signature = pSignature;
         lineNumber = pLineNumber;
+        outOfScope = new HashMap<>();
+    }
+
+    public static InstanceVariable create(final String pOwner,
+                                          final int pAccess,
+                                          final String pName,
+                                          final String pDescriptor,
+                                          final String pSignature,
+                                          final int pLineNumber) {
+        return new InstanceVariable(pOwner, pAccess, pName, pDescriptor, pSignature, pLineNumber);
     }
 
     public int getAccess() {
@@ -52,6 +65,10 @@ public class InstanceVariable {
 
     public void setLineNumber(int lineNumber) {
         this.lineNumber = lineNumber;
+    }
+
+    public Map<Integer, Integer> getOutOfScope() {
+        return outOfScope;
     }
 
     @Override
