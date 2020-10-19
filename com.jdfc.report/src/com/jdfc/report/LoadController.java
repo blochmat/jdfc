@@ -62,18 +62,24 @@ public class LoadController {
             }
         }
 
+        List<String> classList = CoverageDataStore.getInstance().getClassList();
+        JDFCInstrument JDFCInstrument = new JDFCInstrument();
+        List<File> classFiles = new ArrayList<>();
         // If untested classes exist => compute def use pairs
-        if (!CoverageDataStore.getInstance().getClassList().isEmpty()) {
-            JDFCInstrument JDFCInstrument = new JDFCInstrument();
-            List<File> classFiles = loadFilesFromDirRecursive(classes, classSuffix);
-            for(File classFile : classFiles) {
-                try {
-                    byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
-                    ClassReader cr = new ClassReader(classFileBuffer);
-                    JDFCInstrument.instrument(cr);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
+        for (String relPath : classList) {
+            String classFilePath = String.format("%s/%s%s", pClassesDir, relPath, classSuffix);
+            File classFile = new File(classFilePath);
+            classFiles.add(classFile);
+        }
+
+        for (File classFile : classFiles) {
+            try {
+                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+                ClassReader cr = new ClassReader(classFileBuffer);
+                JDFCInstrument.instrument(cr);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -86,7 +92,7 @@ public class LoadController {
                 returnList.addAll(loadFilesFromDirRecursive(child, suffix));
             }
         } else {
-            if (file.getName().endsWith(suffix)){
+            if (file.getName().endsWith(suffix)) {
                 returnList.add(file);
             }
         }
@@ -166,10 +172,10 @@ public class LoadController {
                 InstanceVariable newVar = InstanceVariable.create(owner, access, name, descriptor, signature, lineNumber);
 
                 NodeList outScopeList = instanceVariable.getChildNodes();
-                for(int j = 0; j < outScopeList.getLength(); j++) {
+                for (int j = 0; j < outScopeList.getLength(); j++) {
                     Node outScope = outScopeList.item(j);
                     NamedNodeMap outScopeAttr = outScope.getAttributes();
-                    if(outScopeAttr != null) {
+                    if (outScopeAttr != null) {
                         Integer methodFirstLine = Integer.valueOf(outScopeAttr.getNamedItem("fstLine").getNodeValue());
                         Integer methodLastLine = Integer.valueOf(outScopeAttr.getNamedItem("sndLine").getNodeValue());
                         newVar.getOutOfScope().put(methodFirstLine, methodLastLine);
