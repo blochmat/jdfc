@@ -335,9 +335,9 @@ public class HTMLFactory {
             if (elementName.contains("<init>")) {
                 elementName = elementName.replace("<init>", "init");
             }
-            int total = entry.getValue().size();
-            int covered = pData.computeCoverageForMethod(entry.getKey());
-            int missed = total - covered;
+            String total = "createDataTable";
+            String covered = "createDataTable";
+            String missed = "createDataTable";
             String link = String.format("%s.java.html#L%s", pClassfileName,
                     pData.getMethodFirstLine().get(entry.getKey()));
             HTMLElement trTag = HTMLElement.tr();
@@ -370,7 +370,7 @@ public class HTMLFactory {
         tfootTag.getContent().add(HTMLElement.td(parentData.getMethodCount()));
         tfootTag.getContent().add(HTMLElement.td(parentData.getTotal()));
         tfootTag.getContent().add(HTMLElement.td(parentData.getCovered()));
-        tfootTag.getContent().add(HTMLElement.td(parentData.getMissed()));
+        tfootTag.getContent().add(HTMLElement.td(parentData.getTotal() - parentData.getCovered()));
         return tfootTag;
     }
 
@@ -379,7 +379,7 @@ public class HTMLFactory {
         tfootTag.getContent().add(HTMLElement.td("Total"));
         tfootTag.getContent().add(HTMLElement.td(pData.getTotal()));
         tfootTag.getContent().add(HTMLElement.td(pData.getCovered()));
-        tfootTag.getContent().add(HTMLElement.td(pData.getMissed()));
+        tfootTag.getContent().add(HTMLElement.td(pData.getTotal() - pData.getCovered()));
         return tfootTag;
     }
 
@@ -401,7 +401,7 @@ public class HTMLFactory {
             trTag.getContent().add(HTMLElement.td(data.getMethodCount()));
             trTag.getContent().add(HTMLElement.td(data.getTotal()));
             trTag.getContent().add(HTMLElement.td(data.getCovered()));
-            trTag.getContent().add(HTMLElement.td(data.getMissed()));
+            trTag.getContent().add(HTMLElement.td(data.getTotal() - data.getCovered()));
             bodyTag.getContent().add(trTag);
         }
         return bodyTag;

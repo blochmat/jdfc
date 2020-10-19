@@ -72,7 +72,7 @@ public class ReportMojo extends AbstractMavenReport {
     private void debugPrintChildren(ExecutionDataNode<ExecutionData> pNode, int indent) {
         if (pNode.isRoot()) {
             ExecutionData rootData = pNode.getData();
-            String root = String.format("root %s %s %s %s", rootData.getMethodCount(), rootData.getTotal(), rootData.getCovered(), rootData.getMissed());
+            String root = String.format("root %s %s %s %s", rootData.getMethodCount(), rootData.getTotal(), rootData.getCovered(), rootData.getTotal() - rootData.getCovered());
             System.out.println(root);
         }
 
@@ -84,7 +84,7 @@ public class ReportMojo extends AbstractMavenReport {
         for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : map.entrySet()) {
             ExecutionData data = entry.getValue().getData();
             String str = String.format("%s%s %s %s %s %s", strip,
-                    entry.getKey(), data.getMethodCount(), data.getTotal(), data.getCovered(), data.getMissed());
+                    entry.getKey(), data.getMethodCount(), data.getTotal(), data.getCovered(), data.getTotal() - data.getCovered());
             System.out.println(str);
             debugPrintChildren(entry.getValue(), indent + 1);
         }

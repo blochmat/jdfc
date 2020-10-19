@@ -4,7 +4,6 @@ public class ExecutionData {
 
     private int total = 0;
     private int covered = 0;
-    private int missed = 0;
     private int methodCount = 0;
 
     public int getTotal() {
@@ -21,14 +20,6 @@ public class ExecutionData {
 
     public void setCovered(int covered) {
         this.covered = covered;
-    }
-
-    public int getMissed() {
-        return missed;
-    }
-
-    public void setMissed(int missed) {
-        this.missed = missed;
     }
 
     public int getMethodCount() {

@@ -65,8 +65,8 @@ public class LoadController {
         List<String> classList = CoverageDataStore.getInstance().getClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
         List<File> classFiles = new ArrayList<>();
-        // If untested classes exist => compute def use pairs
 
+        // If untested classes exist => compute def use pairs
         for (String relPath : classList) {
             String classFilePath = String.format("%s/%s%s", pClassesDir, relPath, classSuffix);
             File classFile = new File(classFilePath);
@@ -115,8 +115,6 @@ public class LoadController {
                         getParameterMatching(matching, classExecutionData);
                         break;
                     case "method":
-                        // Number of iterations over method labels == methodCount
-                        classExecutionData.setMethodCount(classExecutionData.getMethodCount() + 1);
                         examineFileRecursive(node, classExecutionData);
                         break;
                     default:
@@ -181,7 +179,6 @@ public class LoadController {
                         newVar.getOutOfScope().put(methodFirstLine, methodLastLine);
                     }
                 }
-
                 classExecutionData.getInstanceVariables().add(newVar);
             }
         }
@@ -213,7 +210,6 @@ public class LoadController {
                         classExecutionData.getDefUsePairs().get(methodName).add(newPair);
                     }
                 }
-                classExecutionData.setTotal(classExecutionData.getDefUsePairs().get(methodName).size());
                 break;
             case "defUseCovered":
                 classExecutionData.getDefUseCovered().put(methodName, new HashSet<>());
@@ -225,7 +221,6 @@ public class LoadController {
                         classExecutionData.getDefUseCovered().get(methodName).add(programVariable);
                     }
                 }
-                classExecutionData.computeCoverage();
                 break;
             default:
                 throw new IllegalArgumentException("Invalid Tag in XML!");

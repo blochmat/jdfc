@@ -194,7 +194,6 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
             this.setCovered(covered);
-            this.setMissed(this.getTotal() - this.getCovered());
         }
     }
 

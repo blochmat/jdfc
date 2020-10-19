@@ -89,20 +89,17 @@ public class ExecutionDataNode<T extends ExecutionData> {
         if (!this.isRoot()) {
             int newTotal = 0;
             int newCovered = 0;
-            int newMissed = 0;
             int newMethodCount = 0;
 
             for(Map.Entry<String, ExecutionDataNode<T>> child : this.parent.getChildren().entrySet()){
                 newTotal += child.getValue().getData().getTotal();
                 newCovered += child.getValue().getData().getCovered();
-                newMissed += child.getValue().getData().getMissed();
                 newMethodCount += child.getValue().getData().getMethodCount();
 
             }
             ExecutionData parentData = this.parent.getData();
             parentData.setTotal(newTotal);
             parentData.setCovered(newCovered);
-            parentData.setMissed(newMissed);
             parentData.setMethodCount(newMethodCount);
             this.parent.aggregateDataToRoot();
         }

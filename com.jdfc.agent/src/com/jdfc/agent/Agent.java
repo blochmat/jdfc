@@ -21,29 +21,29 @@ public final class Agent {
         Path baseDir = dir.toPath();
         String fileEnding = ".class";
         CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), baseDir, fileEnding);
-        debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
+//        debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
         inst.addTransformer(new ClassTransformer());
     }
 
     // TODO: Remove debug
-    private static void debugPrintChildren(ExecutionDataNode<ExecutionData> pNode, int indent) {
-        if (pNode.isRoot()) {
-            ExecutionData rootData = pNode.getData();
-            String root = String.format("root %s %s %s %s", rootData.getMethodCount(), rootData.getTotal(), rootData.getCovered(), rootData.getMissed());
-            System.out.println(root);
-        }
-
-        Map<String, ExecutionDataNode<ExecutionData>> map = pNode.getChildren();
-        String strip = "";
-        for (int i = 0; i < indent; i++) {
-            strip = strip.concat("- ");
-        }
-        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : map.entrySet()) {
-            ExecutionData data = entry.getValue().getData();
-            String str = String.format("%s%s %s %s %s %s", strip,
-                    entry.getKey(), data.getMethodCount(), data.getTotal(), data.getCovered(), data.getMissed());
-            System.out.println(str);
-            debugPrintChildren(entry.getValue(), indent + 1);
-        }
-    }
+//    private static void debugPrintChildren(ExecutionDataNode<ExecutionData> pNode, int indent) {
+//        if (pNode.isRoot()) {
+//            ExecutionData rootData = pNode.getData();
+//            String root = String.format("root %s %s %s %s", rootData.getMethodCount(), rootData.getTotal(), rootData.getCovered(), rootData.getMissed());
+//            System.out.println(root);
+//        }
+//
+//        Map<String, ExecutionDataNode<ExecutionData>> map = pNode.getChildren();
+//        String strip = "";
+//        for (int i = 0; i < indent; i++) {
+//            strip = strip.concat("- ");
+//        }
+//        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : map.entrySet()) {
+//            ExecutionData data = entry.getValue().getData();
+//            String str = String.format("%s%s %s %s %s %s", strip,
+//                    entry.getKey(), data.getMethodCount(), data.getTotal(), data.getCovered(), data.getMissed());
+//            System.out.println(str);
+//            debugPrintChildren(entry.getValue(), indent + 1);
+//        }
+//    }
 }
