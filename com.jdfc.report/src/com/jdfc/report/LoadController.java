@@ -55,8 +55,10 @@ public class LoadController {
                 Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml);
                 Node rootTag = doc.getFirstChild();
                 examineFileRecursive(rootTag, classExecutionData);
-                classExecutionDataNode.setData(classExecutionData);
+                classExecutionData.calculateMethodCount();
+                classExecutionData.calculateTotal();
                 classExecutionData.computeCoverageForClass();
+                classExecutionDataNode.setData(classExecutionData);
                 classExecutionDataNode.aggregateDataToRoot();
             } catch (SAXException | IOException | ParserConfigurationException e) {
                 e.printStackTrace();
@@ -114,7 +116,6 @@ public class LoadController {
                         getParameterMatching(matching, classExecutionData);
                         break;
                     case "method":
-                        classExecutionData.increaseMethodCount();
                         examineFileRecursive(node, classExecutionData);
                         break;
                     default:
@@ -187,7 +188,7 @@ public class LoadController {
     private static void collectCoverageData(String methodName, NodeList nodeList, String list, ClassExecutionData classExecutionData) {
         switch (list) {
             case "defUsePairs":
-                classExecutionData.getDefUsePairs().put(methodName, new ArrayList<>());
+                List<DefUsePair> defUsePairs = new ArrayList<>();
                 for (int j = 0; j < nodeList.getLength(); j++) {
                     Node pair = nodeList.item(j);
                     NamedNodeMap pairAttr = pair.getAttributes();
@@ -205,23 +206,23 @@ public class LoadController {
                         int uIndex = Integer.parseInt(pairAttr.getNamedItem("uIndex").getNodeValue());
                         int uLineNumber = Integer.parseInt(pairAttr.getNamedItem("uLineNumber").getNodeValue());
                         ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uIndex, uLineNumber);
-
                         DefUsePair newPair = new DefUsePair(definition, usage);
-                        classExecutionData.getDefUsePairs().get(methodName).add(newPair);
-                        classExecutionData.increaseTotal();
+                        defUsePairs.add(newPair);
                     }
                 }
+                classExecutionData.getDefUsePairs().put(methodName, defUsePairs);
                 break;
             case "defUseCovered":
-                classExecutionData.getDefUseCovered().put(methodName, new HashSet<>());
+                Set<ProgramVariable> defUseCovered = new HashSet<>();
                 for (int j = 0; j < nodeList.getLength(); j++) {
                     Node pair = nodeList.item(j);
                     NamedNodeMap pairAttr = pair.getAttributes();
                     if (pairAttr != null) {
                         ProgramVariable programVariable = createProgramVariable(pairAttr);
-                        classExecutionData.getDefUseCovered().get(methodName).add(programVariable);
+                        defUseCovered.add(programVariable);
                     }
                 }
+                classExecutionData.getDefUseCovered().put(methodName, defUseCovered);
                 break;
             default:
                 throw new IllegalArgumentException("Invalid Tag in XML!");

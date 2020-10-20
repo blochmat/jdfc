@@ -172,6 +172,8 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void computeCoverageForClass() {
+        this.calculateMethodCount();
+        this.calculateTotal();
         int covered = 0;
         defUseUncovered = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
@@ -213,5 +215,13 @@ public class ClassExecutionData extends ExecutionData {
             }
         }
         return covered;
+    }
+
+    public void calculateTotal() {
+        this.setTotal(defUsePairs.values().stream().mapToInt(List::size).sum());
+    }
+
+    public void calculateMethodCount() {
+        this.setMethodCount((int) defUsePairs.entrySet().stream().filter(x -> x.getValue().size()!= 0).count());
     }
 }

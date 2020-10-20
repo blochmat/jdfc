@@ -65,17 +65,14 @@ class CFGVariableMethodVisitor extends JDFCMethodVisitor {
      */
     @Override
     public void visitEnd() {
-        for(InstanceVariable instanceVariable : classVisitor.classExecutionData.getInstanceVariables()) {
-            if(localVariableTable.containsEntry(instanceVariable.getName(), instanceVariable.getDescriptor())) {
+        for (InstanceVariable instanceVariable : classVisitor.classExecutionData.getInstanceVariables()) {
+            if (localVariableTable.containsEntry(instanceVariable.getName(), instanceVariable.getDescriptor())) {
                 instanceVariable.getOutOfScope().put(firstLine, currentLineNumber);
             }
         }
 
-//        if(!isStandardConstructor(classDescriptor)) {
-            final String methodName =
-                    CFGCreator.computeInternalMethodName(this.methodName, descriptor, signature, exceptions);
-            classVisitor.getLocalVariableTables().put(methodName, localVariableTable);
-            classVisitor.classExecutionData.increaseMethodCount();
-//        }
+        final String methodName =
+                CFGCreator.computeInternalMethodName(this.methodName, descriptor, signature, exceptions);
+        classVisitor.getLocalVariableTables().put(methodName, localVariableTable);//        }
     }
 }
