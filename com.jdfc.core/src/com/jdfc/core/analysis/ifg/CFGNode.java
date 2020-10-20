@@ -2,6 +2,7 @@ package com.jdfc.core.analysis.ifg;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
 import java.util.Collections;
 import java.util.Set;

@@ -3,9 +3,9 @@ package com.jdfc.report.html;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
-import com.jdfc.core.analysis.ifg.DefUsePair;
-import com.jdfc.core.analysis.ifg.InstanceVariable;
-import com.jdfc.core.analysis.ifg.ProgramVariable;
+import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.InstanceVariable;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.report.html.resources.Resources;
 
@@ -332,22 +332,26 @@ public class HTMLFactory {
         tableTag.getContent().add(createTableHeadTag(pColumns));
         for (Map.Entry<String, List<DefUsePair>> entry : pData.getDefUsePairs().entrySet()) {
             String elementName = entry.getKey();
-            if (elementName.contains("<init>")) {
-                elementName = elementName.replace("<init>", "init");
+
+            // Methods with 0 DefUsePairs are standard object constructors; we do not want to show those.
+            if(entry.getValue().size() != 0) {
+                if (elementName.contains("<init>")) {
+                    elementName = elementName.replace("<init>", "init");
+                }
+                int total = entry.getValue().size();
+                int covered = pData.computeCoveredForMethod(entry.getKey());
+                int missed = total - covered;
+                String link = String.format("%s.java.html#L%s", pClassfileName,
+                        pData.getMethodFirstLine().get(entry.getKey()));
+                HTMLElement trTag = HTMLElement.tr();
+                HTMLElement tdTag = HTMLElement.td();
+                tdTag.getContent().add(HTMLElement.a(link, elementName));
+                trTag.getContent().add(tdTag);
+                trTag.getContent().add(HTMLElement.td(total));
+                trTag.getContent().add(HTMLElement.td(covered));
+                trTag.getContent().add(HTMLElement.td(missed));
+                tableTag.getContent().add(trTag);
             }
-            String total = "createDataTable";
-            String covered = "createDataTable";
-            String missed = "createDataTable";
-            String link = String.format("%s.java.html#L%s", pClassfileName,
-                    pData.getMethodFirstLine().get(entry.getKey()));
-            HTMLElement trTag = HTMLElement.tr();
-            HTMLElement tdTag = HTMLElement.td();
-            tdTag.getContent().add(HTMLElement.a(link, elementName));
-            trTag.getContent().add(tdTag);
-            trTag.getContent().add(HTMLElement.td(total));
-            trTag.getContent().add(HTMLElement.td(covered));
-            trTag.getContent().add(HTMLElement.td(missed));
-            tableTag.getContent().add(trTag);
         }
         tableTag.getContent().add(createTableFootTag(pData));
         return tableTag;

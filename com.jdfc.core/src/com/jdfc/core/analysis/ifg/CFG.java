@@ -1,5 +1,7 @@
 package com.jdfc.core.analysis.ifg;
 
+import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
+
 import java.util.NavigableMap;
 
 /**

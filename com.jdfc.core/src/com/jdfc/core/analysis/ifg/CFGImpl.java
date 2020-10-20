@@ -5,6 +5,10 @@ import com.google.common.base.Preconditions;
 import com.jdfc.core.analysis.data.CoverageDataExport;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.ifg.data.InstanceVariable;
+import com.jdfc.core.analysis.ifg.data.LocalVariable;
+import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;

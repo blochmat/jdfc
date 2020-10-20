@@ -95,7 +95,6 @@ public class ExecutionDataNode<T extends ExecutionData> {
                 newTotal += child.getValue().getData().getTotal();
                 newCovered += child.getValue().getData().getCovered();
                 newMethodCount += child.getValue().getData().getMethodCount();
-
             }
             ExecutionData parentData = this.parent.getData();
             parentData.setTotal(newTotal);

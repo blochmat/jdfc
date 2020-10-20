@@ -3,6 +3,8 @@ package com.jdfc.core.analysis.ifg;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.ifg.data.CFGVariableClassVisitor;
+import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -49,13 +51,13 @@ public class CFGCreator {
                 pClassExecutionData, "We need a non-null class execution data to generate CFGs from.");
 
         // Get variables
-        final CFGCreatorVariableVisitor variableTableVisitor =
-                new CFGCreatorVariableVisitor(pClassNode, pClassExecutionData);
+        final CFGVariableClassVisitor variableTableVisitor =
+                new CFGVariableClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(variableTableVisitor, 0);
 
         // Create method cfgs
         final Map<String, LocalVariableTable> localVariableTables =
-                variableTableVisitor.getLocalVariables();
+                variableTableVisitor.getLocalVariableTables();
         final Map<String, CFG> methodCFGs = Maps.newLinkedHashMap();
         final CFGCreatorClassVisitor cfgCreatorClassVisitor =
                 new CFGCreatorClassVisitor(pClassNode, pClassExecutionData, methodCFGs, localVariableTables);

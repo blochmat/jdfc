@@ -4,74 +4,48 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.jdfc.commons.data.Pair;
-import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.JDFCMethodVisitor;
+import com.jdfc.core.analysis.ifg.data.InstanceVariable;
+import com.jdfc.core.analysis.ifg.data.LocalVariable;
+import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.analysis.Analyzer;
-import org.objectweb.asm.tree.analysis.AnalyzerException;
-import org.objectweb.asm.tree.analysis.SourceInterpreter;
-import org.objectweb.asm.tree.analysis.SourceValue;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.objectweb.asm.Opcodes.*;
 
-class CFGCreatorMethodVisitor extends MethodVisitor {
+class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
-    private final String className;
-    private final ClassExecutionData classExecutionData;
     private final MethodNode methodNode;
-    private final String methodName;
     private final String internalMethodName;
     private final Map<String, CFG> methodCFGs;
-    private final LocalVariableTable localVariableTable;
     private final Type[] parameterTypes;
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, CFGNode> nodes;
 
-    private int currentLineNumber = -1;
     private AbstractInsnNode currentNode = null;
     private int currentInstructionIndex = -1;
-    private int firstLine = -1;
     private boolean isImpure = false;
 
-    public CFGCreatorMethodVisitor(final String pClassName,
-                                   final ClassExecutionData pClassExecutionData,
+    public CFGCreatorMethodVisitor(final CFGCreatorClassVisitor pClassVisitor,
                                    final MethodVisitor pMethodVisitor,
-                                   final MethodNode pMethodNode,
                                    final String pMethodName,
+                                   final MethodNode pMethodNode,
                                    final String pInternalMethodName,
                                    final Map<String, CFG> pMethodCFGs,
                                    final LocalVariableTable pLocalVariableTable,
-                                   final Type[] pParameterTypes
-    ) {
-        super(ASM6, pMethodVisitor);
-        className = pClassName;
-        classExecutionData = pClassExecutionData;
+                                   final Type[] pParameterTypes) {
+        super(ASM6, pClassVisitor, pMethodVisitor, pMethodName, pLocalVariableTable);
         methodNode = pMethodNode;
-        methodName = pMethodName;
         internalMethodName = pInternalMethodName;
         methodCFGs = pMethodCFGs;
-        localVariableTable = pLocalVariableTable;
         parameterTypes = pParameterTypes;
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
-    }
-
-    @Override
-    public void visitLineNumber(int line, Label start) {
-        if (firstLine == -1) {
-            if (methodName.equals("<init>")) {
-                firstLine = line;
-            } else {
-                firstLine += line;
-            }
-        }
-        currentLineNumber = line;
-        super.visitLineNumber(line, start);
     }
 
     @Override
@@ -130,7 +104,7 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         updateCurrentNode();
-        if (owner.equals(className)) {
+        if (owner.equals(classVisitor.classNode.name)) {
             String methodNameDesc = name.concat(": " + descriptor);
             List<String> allParams =
                     Arrays.stream(descriptor.split("[(;)]")).filter(x -> !x.equals("")).collect(Collectors.toList());
@@ -208,13 +182,13 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
         setPredecessorSuccessorRelation();
 
         // Add all instance variables to dummy start node as they are defined for all methods
-        addEntryNode(classExecutionData.getInstanceVariables());
+        addEntryNode(classVisitor.classExecutionData.getInstanceVariables());
         addExitNode();
 
         CFG cfg = new CFGImpl(methodName, nodes, localVariableTable, isImpure);
         cfg.calculateReachingDefinitions();
         methodCFGs.put(internalMethodName, cfg);
-        classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
+        classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         super.visitEnd();
     }
 
@@ -236,7 +210,7 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
                 node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), currentInstructionIndex);
                 break;
             case PUTFIELD:
-                if (pOwner.equals(className)) {
+                if (pOwner.equals(classVisitor.classNode.name)) {
                     isImpure = true;
                 }
 
@@ -250,27 +224,31 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
     }
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {
-        final ProgramVariable programVariable = getProgramVariable(varNumber, pIndex, lineNumber);
         final CFGNode node;
-        switch (opcode) {
-            case ISTORE:
-            case LSTORE:
-            case FSTORE:
-            case DSTORE:
-            case ASTORE:
-                node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex);
-                break;
-            case ILOAD:
-            case LLOAD:
-            case FLOAD:
-            case DLOAD:
-            case ALOAD:
-                node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex);
-                break;
-            default:
-                node = new CFGNode(pIndex);
-                break;
-        }
+//        if(!isStandardConstructor(classDescriptor)) {
+            final ProgramVariable programVariable = getProgramVariable(varNumber, pIndex, lineNumber);
+            switch (opcode) {
+                case ISTORE:
+                case LSTORE:
+                case FSTORE:
+                case DSTORE:
+                case ASTORE:
+                    node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex);
+                    break;
+                case ILOAD:
+                case LLOAD:
+                case FLOAD:
+                case DLOAD:
+                case ALOAD:
+                    node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex);
+                    break;
+                default:
+                    node = new CFGNode(pIndex);
+                    break;
+            }
+//        } else {
+//            node = new CFGNode(pIndex);
+//        }
         nodes.put(pIndex, node);
     }
 
@@ -365,64 +343,5 @@ class CFGCreatorMethodVisitor extends MethodVisitor {
         final CFGNode exitNode = new CFGNode(Integer.MAX_VALUE);
         lastNode.addSuccessor(exitNode);
         nodes.put(Integer.MAX_VALUE, exitNode);
-    }
-
-    private static class CFGEdgeAnalyzationVisitor extends MethodVisitor {
-
-        private final String owner;
-        private final MethodNode methodNode;
-        private final Multimap<Integer, Integer> edges;
-
-        CFGEdgeAnalyzationVisitor(final String pOwner, final MethodNode pMethodNode) {
-            super(ASM6);
-            owner = pOwner;
-            methodNode = pMethodNode;
-            edges = ArrayListMultimap.create();
-        }
-
-        @Override
-        public void visitEnd() {
-            try {
-                CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer();
-                cfgEdgeAnalyzer.analyze(owner, methodNode);
-                edges.putAll(cfgEdgeAnalyzer.getEdges());
-            } catch (AnalyzerException e) {
-                e.printStackTrace();
-            }
-        }
-
-        Multimap<Integer, Integer> getEdges() {
-            return edges;
-        }
-    }
-
-    private static class CFGEdgeAnalyzer extends Analyzer<SourceValue> {
-
-        private final Multimap<Integer, Integer> edges;
-
-        CFGEdgeAnalyzer() {
-            super(new SourceInterpreter());
-            edges = ArrayListMultimap.create();
-        }
-
-        Multimap<Integer, Integer> getEdges() {
-            return edges;
-        }
-
-        @Override
-        protected void newControlFlowEdge(int insnIndex, int successorIndex) {
-            if (!edges.containsKey(insnIndex) || !edges.containsValue(successorIndex)) {
-                edges.put(insnIndex, successorIndex);
-            }
-            super.newControlFlowEdge(insnIndex, successorIndex);
-        }
-
-        @Override
-        protected boolean newControlFlowExceptionEdge(int insnIndex, int successorIndex) {
-            if (!edges.containsKey(insnIndex) || !edges.containsValue(successorIndex)) {
-                edges.put(insnIndex, successorIndex);
-            }
-            return super.newControlFlowExceptionEdge(insnIndex, successorIndex);
-        }
     }
 }

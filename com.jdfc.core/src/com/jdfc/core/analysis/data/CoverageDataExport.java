@@ -1,9 +1,9 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.Pair;
-import com.jdfc.core.analysis.ifg.DefUsePair;
-import com.jdfc.core.analysis.ifg.InstanceVariable;
-import com.jdfc.core.analysis.ifg.ProgramVariable;
+import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.InstanceVariable;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,11 +37,11 @@ public class CoverageDataExport {
 
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 
-        Element rootTag = doc.createElement("root");
-        doc.appendChild(rootTag);
+        Element classTag = doc.createElement("class");
+        doc.appendChild(classTag);
 
         Element instanceVariablesTag = doc.createElement("instanceVariables");
-        rootTag.appendChild(instanceVariablesTag);
+        classTag.appendChild(instanceVariablesTag);
         for (InstanceVariable instanceVariable : pClassExecutionData.getInstanceVariables()) {
             Element instanceVarTag = doc.createElement("instanceVariable");
             instanceVarTag.setAttribute("owner", instanceVariable.getOwner());
@@ -60,7 +60,7 @@ public class CoverageDataExport {
         }
 
         Element parameterMatching = doc.createElement("parameterMatching");
-        rootTag.appendChild(parameterMatching);
+        classTag.appendChild(parameterMatching);
         for(Pair<ProgramVariable, ProgramVariable> matching : pClassExecutionData.getParameterMatching()) {
             Element match = doc.createElement("match");
             parameterMatching.appendChild(match);
@@ -91,7 +91,7 @@ public class CoverageDataExport {
             Element methodTag = doc.createElement("method");
             methodTag.setAttribute("name", methodEntry.getKey());
             methodTag.setAttribute("firstLine", String.valueOf(pClassExecutionData.getMethodFirstLine().get(methodEntry.getKey())));
-            rootTag.appendChild(methodTag);
+            classTag.appendChild(methodTag);
 
             Element defUsePairListTag = doc.createElement("defUsePairs");
             methodTag.appendChild(defUsePairListTag);

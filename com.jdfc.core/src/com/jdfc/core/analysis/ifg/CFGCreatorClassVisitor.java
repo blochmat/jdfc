@@ -1,50 +1,48 @@
 package com.jdfc.core.analysis.ifg;
 
+import com.jdfc.core.analysis.JDFCClassVisitor;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Map;
 
-public class CFGCreatorClassVisitor extends ClassVisitor {
+class CFGCreatorClassVisitor extends JDFCClassVisitor {
 
-    private final ClassNode classNode;
-    private final ClassExecutionData classExecutionData;
     private final Map<String, CFG> methodCFGs;
-    private final Map<String, LocalVariableTable> localVariableTables;
-    final String jacocoMethodName = "$jacoco";
 
     public CFGCreatorClassVisitor(final ClassNode pClassNode,
                                   final ClassExecutionData pClassExecutionData,
                                   final Map<String, CFG> pMethodCFGs,
                                   final Map<String, LocalVariableTable> pLocalVariableTables) {
-        super(Opcodes.ASM6);
-        classNode = pClassNode;
+        super(Opcodes.ASM6, pClassNode, pClassExecutionData, pLocalVariableTables);
         methodCFGs = pMethodCFGs;
-        localVariableTables = pLocalVariableTables;
-        classExecutionData = pClassExecutionData;
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        MethodVisitor mv;
+    public MethodVisitor visitMethod(final int pAccess,
+                                     final String pName,
+                                     final String pDescriptor,
+                                     final String pSignature,
+                                     final String[] pExceptions) {
+        final MethodVisitor mv;
         if (cv != null) {
-            mv = cv.visitMethod(access, name, desc, signature, exceptions);
+            mv = cv.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         } else {
             mv = null;
         }
-        final String internalMethodName = CFGCreator.computeInternalMethodName(name, desc, signature, exceptions);
+        final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         final LocalVariableTable localVariableTable = localVariableTables.get(internalMethodName);
-        final Type[] parameterTypes = Type.getArgumentTypes(desc);
-        final MethodNode methodNode = getMethodNode(name);
+        final Type[] parameterTypes = Type.getArgumentTypes(pDescriptor);
+        final MethodNode methodNode = getMethodNode(pName);
 
-        if (methodNode != null && !isJacocoInstrumentation(name)) {
-            return new CFGCreatorMethodVisitor(
-                    classNode.name, classExecutionData, mv, methodNode, name, internalMethodName, methodCFGs, localVariableTable, parameterTypes);
+        if (methodNode != null && isInstrumentationRequired(pName)) {
+            return new CFGCreatorMethodVisitor(this, mv, pName, methodNode,
+                    internalMethodName, methodCFGs, localVariableTable, parameterTypes);
         }
-
         return mv;
     }
 
@@ -56,26 +54,16 @@ public class CFGCreatorClassVisitor extends ClassVisitor {
             super.visitEnd();
         }
 
-        // Create interpocedural edges when we are sure all subgraphs are there
-        addInterproceduralEdges(methodCFGs);
+        addInterProceduralEdges(methodCFGs);
         CoverageDataStore.getInstance().finishClassExecutionDataSetup(classExecutionData, methodCFGs);
     }
 
-    private MethodNode getMethodNode(String pName) {
-        for (MethodNode node : classNode.methods) {
-            if (node.name.equals(pName)) {
-                return node;
-            }
-        }
-        return null;
-    }
-
-    private void addInterproceduralEdges(Map<String, CFG> pMethodCFGs) {
+    private void addInterProceduralEdges(Map<String, CFG> pMethodCFGs) {
         for(Map.Entry<String, CFG> methodEntry : pMethodCFGs.entrySet()){
             for(Map.Entry<Integer, CFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()){
                 if(cfgNodeEntry.getValue() instanceof IFGNode) {
                     IFGNode self = (IFGNode) cfgNodeEntry.getValue();
-                    if (!isJacocoInstrumentation(self.getMethodNameDesc())) {
+                    if (isInstrumentationRequired(self.getMethodNameDesc())) {
                         CFG other = pMethodCFGs.get(self.getMethodNameDesc());
                         self.setCallNode(other.getNodes().firstEntry().getValue());
                         self.setReturnNode(other.getNodes().lastEntry().getValue());
@@ -83,10 +71,6 @@ public class CFGCreatorClassVisitor extends ClassVisitor {
                 }
             }
         }
-    }
-
-    private boolean isJacocoInstrumentation(String pString) {
-        return pString.contains(jacocoMethodName);
     }
 }
 

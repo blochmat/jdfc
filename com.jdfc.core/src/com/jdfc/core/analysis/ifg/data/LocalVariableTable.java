@@ -1,4 +1,4 @@
-package com.jdfc.core.analysis.ifg;
+package com.jdfc.core.analysis.ifg.data;
 
 import com.google.common.collect.Maps;
 
@@ -14,7 +14,7 @@ public class LocalVariableTable {
 
     private final Map<Integer, LocalVariable> localVariableTable;
 
-    LocalVariableTable() {
+    public LocalVariableTable() {
         localVariableTable = Maps.newLinkedHashMap();
     }
 
@@ -33,11 +33,11 @@ public class LocalVariableTable {
     }
 
     public boolean containsEntry(final String pName, final String pDescriptor) {
-        for(LocalVariable localVariable : localVariableTable.values()) {
-            if(localVariable.getName().equals(pName) && localVariable.getDescriptor().equals(pDescriptor)) {
-                return true;
-            }
-        }
-        return false;
+        return localVariableTable.values().stream()
+                .anyMatch(x -> x.getName().equals(pName) && x.getDescriptor().equals(pDescriptor));
+    }
+
+    public int size() {
+        return  localVariableTable.size();
     }
 }

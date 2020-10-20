@@ -5,9 +5,9 @@ import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.JDFCInstrument;
 import com.jdfc.core.analysis.data.CoverageDataStore;
-import com.jdfc.core.analysis.ifg.DefUsePair;
-import com.jdfc.core.analysis.ifg.InstanceVariable;
-import com.jdfc.core.analysis.ifg.ProgramVariable;
+import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.InstanceVariable;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.ClassReader;
 import org.w3c.dom.Document;
@@ -44,18 +44,19 @@ public class LoadController {
         List<File> xmlFiles = loadFilesFromDirRecursive(jdfc, xmlSuffix);
 
         for (File xml : xmlFiles) {
-            String relativePath = jdfcPath.relativize(xml.toPath()).toString();
-            String relativePathWithoutType = relativePath.split("\\.")[0];
-            ExecutionDataNode<ExecutionData> classExecutionDataNode = CoverageDataStore.getInstance().findClassDataNode(relativePathWithoutType);
+            String relativePathWithType = jdfcPath.relativize(xml.toPath()).toString();
+            String relativePath = relativePathWithType.split("\\.")[0];
+            ExecutionDataNode<ExecutionData> classExecutionDataNode = CoverageDataStore.getInstance().findClassDataNode(relativePath);
             ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
 
             // ClassList works as worklist to keep track of loaded files
-            CoverageDataStore.getInstance().getClassList().remove(relativePathWithoutType);
+            CoverageDataStore.getInstance().getClassList().remove(relativePath);
             try {
                 Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml);
                 Node rootTag = doc.getFirstChild();
                 examineFileRecursive(rootTag, classExecutionData);
                 classExecutionDataNode.setData(classExecutionData);
+                classExecutionData.computeCoverageForClass();
                 classExecutionDataNode.aggregateDataToRoot();
             } catch (SAXException | IOException | ParserConfigurationException e) {
                 e.printStackTrace();
@@ -64,20 +65,18 @@ public class LoadController {
 
         List<String> classList = CoverageDataStore.getInstance().getClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
-        List<File> classFiles = new ArrayList<>();
 
         // If untested classes exist => compute def use pairs
         for (String relPath : classList) {
             String classFilePath = String.format("%s/%s%s", pClassesDir, relPath, classSuffix);
             File classFile = new File(classFilePath);
-            classFiles.add(classFile);
-        }
-
-        for (File classFile : classFiles) {
             try {
                 byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
                 ClassReader cr = new ClassReader(classFileBuffer);
                 JDFCInstrument.instrument(cr);
+                ExecutionDataNode<ExecutionData> classExecutionDataNode =
+                        CoverageDataStore.getInstance().findClassDataNode(relPath);
+                classExecutionDataNode.aggregateDataToRoot();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -115,6 +114,7 @@ public class LoadController {
                         getParameterMatching(matching, classExecutionData);
                         break;
                     case "method":
+                        classExecutionData.increaseMethodCount();
                         examineFileRecursive(node, classExecutionData);
                         break;
                     default:
@@ -208,6 +208,7 @@ public class LoadController {
 
                         DefUsePair newPair = new DefUsePair(definition, usage);
                         classExecutionData.getDefUsePairs().get(methodName).add(newPair);
+                        classExecutionData.increaseTotal();
                     }
                 }
                 break;

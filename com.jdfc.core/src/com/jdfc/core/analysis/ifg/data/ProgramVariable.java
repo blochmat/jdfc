@@ -1,4 +1,4 @@
-package com.jdfc.core.analysis.ifg;
+package com.jdfc.core.analysis.ifg.data;
 
 import java.util.Objects;
 

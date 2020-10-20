@@ -30,4 +30,16 @@ public class ExecutionData {
         this.methodCount = methodCount;
     }
 
+    public void increaseMethodCount(){
+        this.methodCount += 1;
+    }
+
+    public void increaseTotal(){
+        this.total += 1;
+    }
+
+    public void increaseCovered(){
+        this.covered += 1;
+    }
+
 }

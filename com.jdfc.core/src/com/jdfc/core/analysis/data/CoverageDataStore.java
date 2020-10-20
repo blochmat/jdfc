@@ -39,8 +39,8 @@ public class CoverageDataStore {
     public void finishClassExecutionDataSetup(final ClassExecutionData pClassExecutionData,
                                               final Map<String, CFG> pMethodCFGs){
         pClassExecutionData.setMethodCFGs(pMethodCFGs);
-        pClassExecutionData.calculateIntraproceduralDefUsePairs();
-        pClassExecutionData.calculateInterproceduralDefUsePairs();
+        pClassExecutionData.calculateIntraProceduralDefUsePairs();
+        pClassExecutionData.calculateInterProceduralDefUsePairs();
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
@@ -70,12 +70,12 @@ public class CoverageDataStore {
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
                 addNodesFromDirRecursive(f, newPkgExecutionDataNode, pBaseDir, suffix);
             } else if (f.isFile() && f.getName().endsWith(suffix)) {
-                String relativePath = pBaseDir.relativize(f.toPath()).toString();
-                String relativePathWithoutType = relativePath.split("\\.")[0];
+                String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
+                String relativePath = relativePathWithType.split("\\.")[0];
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
-                classList.add(relativePathWithoutType);
+                classList.add(relativePath);
                 String nameWithoutType = f.getName().split("\\.")[0];
-                ClassExecutionData classNodeData = new ClassExecutionData(relativePathWithoutType);
+                ClassExecutionData classNodeData = new ClassExecutionData(relativePath);
                 if(pExecutionDataNode.isRoot()){
                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                 } else {

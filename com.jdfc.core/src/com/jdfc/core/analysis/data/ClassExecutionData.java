@@ -3,6 +3,9 @@ package com.jdfc.core.analysis.data;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.ifg.*;
+import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.InstanceVariable;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -79,7 +82,7 @@ public class ClassExecutionData extends ExecutionData {
     /**
      * Calculates all possible Def-Use-Pairs.
      */
-    public void calculateIntraproceduralDefUsePairs() {
+    public void calculateIntraProceduralDefUsePairs() {
         defUsePairs = new TreeMap<>();
         defUseCovered = new HashMap<>();
         for (CFG graph : methodCFGs.values()) {
@@ -96,7 +99,7 @@ public class ClassExecutionData extends ExecutionData {
             for (CFGNode node : graph.getNodes().values()) {
                 for (ProgramVariable def : node.getReach()) {
                     for (ProgramVariable use : node.getUses()) {
-                        if (def.getName().equals(use.getName())) {
+                        if (def.getName().equals(use.getName()) && !def.getType().equals("UNKNOWN")) {
                             defUsePairs.get(name).add(new DefUsePair(def, use));
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
                                 defUseCovered.get(name).add(def);
@@ -108,7 +111,7 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
-    public void calculateInterproceduralDefUsePairs() {
+    public void calculateInterProceduralDefUsePairs() {
         for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
             String methodName = methodCFGs.getKey();
             CFG graph = methodCFGs.getValue();
@@ -168,14 +171,14 @@ public class ClassExecutionData extends ExecutionData {
         return result;
     }
 
-    public void computeCoverage() {
+    public void computeCoverageForClass() {
+        int covered = 0;
         defUseUncovered = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
             if (entry.getValue().size() == 0) {
                 continue;
             }
             String methodName = entry.getKey();
-            int covered = 0;
             defUseUncovered.put(methodName, new HashSet<>());
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
@@ -193,11 +196,11 @@ public class ClassExecutionData extends ExecutionData {
                     }
                 }
             }
-            this.setCovered(covered);
         }
+        this.setCovered(covered);
     }
 
-    public int computeCoverageForMethod(String pKey) {
+    public int computeCoveredForMethod(String pKey) {
         List<DefUsePair> list = defUsePairs.get(pKey);
         Set<ProgramVariable> set = defUseCovered.get(pKey);
 
