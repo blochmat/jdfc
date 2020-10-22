@@ -111,6 +111,9 @@ public class LoadController {
                         NodeList instanceVariables = node.getChildNodes();
                         getInstanceVariableData(instanceVariables, classExecutionData);
                         break;
+                    case "instanceVariableOccurrences":
+                        NodeList instanceVariableOccurrences = node.getChildNodes();
+                        getInstanceVariableOccurrencesData(instanceVariableOccurrences, classExecutionData);
                     case "parameterMatching":
                         NodeList matching = node.getChildNodes();
                         getParameterMatching(matching, classExecutionData);
@@ -128,6 +131,39 @@ public class LoadController {
                         collectCoverageData(methodName, defUsePairs, listName, classExecutionData);
                         break;
                 }
+            }
+        }
+    }
+
+    private static void getInstanceVariableOccurrencesData(NodeList pInstanceVariableOccurrences, ClassExecutionData pClassExecutionData) {
+
+    }
+
+    private static void getInstanceVariableData(NodeList pInstanceVariables, ClassExecutionData classExecutionData) {
+        for (int i = 0; i < pInstanceVariables.getLength(); i++) {
+            Node instanceVariable = pInstanceVariables.item(i);
+            NamedNodeMap attr = instanceVariable.getAttributes();
+            if (attr != null) {
+                String owner = attr.getNamedItem("owner").getNodeValue();
+                int access = Integer.parseInt(attr.getNamedItem("access").getNodeValue());
+                String name = attr.getNamedItem("name").getNodeValue();
+                String descriptor = attr.getNamedItem("descriptor").getNodeValue();
+                String signature = attr.getNamedItem("signature").getNodeValue();
+                int lineNumber = Integer.parseInt(attr.getNamedItem("lineNumber").getNodeValue());
+
+                InstanceVariable newVar = InstanceVariable.create(owner, null, access, name, descriptor, signature, lineNumber);
+
+                NodeList outScopeList = instanceVariable.getChildNodes();
+                for (int j = 0; j < outScopeList.getLength(); j++) {
+                    Node outScope = outScopeList.item(j);
+                    NamedNodeMap outScopeAttr = outScope.getAttributes();
+                    if (outScopeAttr != null) {
+                        Integer methodFirstLine = Integer.valueOf(outScopeAttr.getNamedItem("fstLine").getNodeValue());
+                        Integer methodLastLine = Integer.valueOf(outScopeAttr.getNamedItem("sndLine").getNodeValue());
+                        newVar.getOutOfScope().put(methodFirstLine, methodLastLine);
+                    }
+                }
+                classExecutionData.getInstanceVariables().add(newVar);
             }
         }
     }
@@ -152,35 +188,6 @@ public class LoadController {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private static void getInstanceVariableData(NodeList pInstanceVariables, ClassExecutionData classExecutionData) {
-        for (int i = 0; i < pInstanceVariables.getLength(); i++) {
-            Node instanceVariable = pInstanceVariables.item(i);
-            NamedNodeMap attr = instanceVariable.getAttributes();
-            if (attr != null) {
-                String owner = attr.getNamedItem("owner").getNodeValue();
-                int access = Integer.parseInt(attr.getNamedItem("access").getNodeValue());
-                String name = attr.getNamedItem("name").getNodeValue();
-                String descriptor = attr.getNamedItem("descriptor").getNodeValue();
-                String signature = attr.getNamedItem("signature").getNodeValue();
-                int lineNumber = Integer.parseInt(attr.getNamedItem("lineNumber").getNodeValue());
-
-                InstanceVariable newVar = InstanceVariable.create(owner, access, name, descriptor, signature, lineNumber);
-
-                NodeList outScopeList = instanceVariable.getChildNodes();
-                for (int j = 0; j < outScopeList.getLength(); j++) {
-                    Node outScope = outScopeList.item(j);
-                    NamedNodeMap outScopeAttr = outScope.getAttributes();
-                    if (outScopeAttr != null) {
-                        Integer methodFirstLine = Integer.valueOf(outScopeAttr.getNamedItem("fstLine").getNodeValue());
-                        Integer methodLastLine = Integer.valueOf(outScopeAttr.getNamedItem("sndLine").getNodeValue());
-                        newVar.getOutOfScope().put(methodFirstLine, methodLastLine);
-                    }
-                }
-                classExecutionData.getInstanceVariables().add(newVar);
             }
         }
     }

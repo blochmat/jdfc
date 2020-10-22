@@ -2,8 +2,10 @@ package com.jdfc.core.analysis.ifg;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.ifg.data.CFGVariableClassVisitor;
+import com.jdfc.core.analysis.ifg.data.CFGInstanceVariableClassVisitor;
+import com.jdfc.core.analysis.ifg.data.CFGLocalVariableClassVisitor;
 import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
@@ -50,14 +52,22 @@ public class CFGCreator {
         Preconditions.checkNotNull(
                 pClassExecutionData, "We need a non-null class execution data to generate CFGs from.");
 
-        // Get variables
-        final CFGVariableClassVisitor variableTableVisitor =
-                new CFGVariableClassVisitor(pClassNode, pClassExecutionData);
-        pClassReader.accept(variableTableVisitor, 0);
+        // Get local variable information
+        final CFGLocalVariableClassVisitor localVariableVisitor =
+                new CFGLocalVariableClassVisitor(pClassNode, pClassExecutionData);
+        pClassReader.accept(localVariableVisitor, 0);
 
-        // Create method cfgs
         final Map<String, LocalVariableTable> localVariableTables =
-                variableTableVisitor.getLocalVariableTables();
+                localVariableVisitor.getLocalVariableTables();
+
+        // Get instance variable information
+        final CFGInstanceVariableClassVisitor instanceVariableVisitor =
+                new CFGInstanceVariableClassVisitor(pClassNode, pClassExecutionData, localVariableTables);
+        pClassReader.accept(instanceVariableVisitor, 0);
+
+        System.out.println("DEBUG");
+        System.out.println(Arrays.toString(pClassExecutionData.getInstanceVariablesOccurrences().toArray()));
+        // Create method cfgs
         final Map<String, CFG> methodCFGs = Maps.newLinkedHashMap();
         final CFGCreatorClassVisitor cfgCreatorClassVisitor =
                 new CFGCreatorClassVisitor(pClassNode, pClassExecutionData, methodCFGs, localVariableTables);

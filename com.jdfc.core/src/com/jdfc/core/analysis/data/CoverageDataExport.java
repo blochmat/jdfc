@@ -45,6 +45,7 @@ public class CoverageDataExport {
         for (InstanceVariable instanceVariable : pClassExecutionData.getInstanceVariables()) {
             Element instanceVarTag = doc.createElement("instanceVariable");
             instanceVarTag.setAttribute("owner", instanceVariable.getOwner());
+            instanceVarTag.setAttribute("holder", "null");
             instanceVarTag.setAttribute("access", String.valueOf(instanceVariable.getAccess()));
             instanceVarTag.setAttribute("name", instanceVariable.getName());
             instanceVarTag.setAttribute("descriptor", instanceVariable.getDescriptor());
@@ -57,6 +58,27 @@ public class CoverageDataExport {
                 outScopeTag.setAttribute("sndLine", String.valueOf(entry.getValue()));
             }
             instanceVariablesTag.appendChild(instanceVarTag);
+        }
+
+        Element instanceVariablesOccurrencesTag = doc.createElement("instanceVariablesOccurrences");
+        classTag.appendChild(instanceVariablesOccurrencesTag);
+        for(InstanceVariable instanceVariableOcc : pClassExecutionData.getInstanceVariablesOccurrences()) {
+            Element instanceVarOccTag = doc.createElement("instanceVariableOccurrence");
+            instanceVarOccTag.setAttribute("owner", instanceVariableOcc.getOwner());
+            Element holder = doc.createElement("holder");
+            instanceVarOccTag.appendChild(holder);
+            holder.setAttribute("owner", instanceVariableOcc.getHolder().getOwner());
+            holder.setAttribute("name", instanceVariableOcc.getHolder().getName());
+            holder.setAttribute("type", instanceVariableOcc.getHolder().getType());
+            holder.setAttribute("instructionIndex",
+                    Integer.toString(instanceVariableOcc.getHolder().getInstructionIndex()));
+            holder.setAttribute("lineNumber",
+                    Integer.toString(instanceVariableOcc.getHolder().getInstructionIndex()));
+            instanceVarOccTag.setAttribute("access", String.valueOf(instanceVariableOcc.getAccess()));
+            instanceVarOccTag.setAttribute("name", instanceVariableOcc.getName());
+            instanceVarOccTag.setAttribute("descriptor", instanceVariableOcc.getDescriptor());
+            instanceVarOccTag.setAttribute("signature", instanceVariableOcc.getSignature());
+            instanceVarOccTag.setAttribute("lineNumber", String.valueOf(instanceVariableOcc.getLineNumber()));
         }
 
         Element parameterMatching = doc.createElement("parameterMatching");

@@ -1,6 +1,7 @@
 package com.jdfc.core.analysis.ifg.data;
 
 import com.google.common.collect.Maps;
+import com.jdfc.commons.utils.PrettyPrintMap;
 
 import java.util.Map;
 import java.util.Optional;
@@ -39,5 +40,9 @@ public class LocalVariableTable {
 
     public int size() {
         return  localVariableTable.size();
+    }
+
+    public void print() {
+        System.out.println(new PrettyPrintMap<>(this.localVariableTable));
     }
 }

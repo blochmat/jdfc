@@ -7,21 +7,23 @@ import java.util.Objects;
 public class InstanceVariable {
 
     private final String owner;
+    private final ProgramVariable holder;
     private final int access;
     private final String name;
     private final String descriptor;
     private final String signature;
-    private int lineNumber;
-    private Map<Integer, Integer> outOfScope;
+    private final int lineNumber;
+    private final Map<Integer, Integer> outOfScope;
 
-    private InstanceVariable(
-            final String pOwner,
-            final int pAccess,
-            final String pName,
-            final String pDescriptor,
-            final String pSignature,
-            final int pLineNumber) {
+    private InstanceVariable(final String pOwner,
+                             final ProgramVariable pHolder,
+                             final int pAccess,
+                             final String pName,
+                             final String pDescriptor,
+                             final String pSignature,
+                             final int pLineNumber) {
         owner = pOwner;
+        holder = pHolder;
         access = pAccess;
         name = pName;
         descriptor = pDescriptor;
@@ -31,12 +33,13 @@ public class InstanceVariable {
     }
 
     public static InstanceVariable create(final String pOwner,
+                                          final ProgramVariable pHolder,
                                           final int pAccess,
                                           final String pName,
                                           final String pDescriptor,
                                           final String pSignature,
                                           final int pLineNumber) {
-        return new InstanceVariable(pOwner, pAccess, pName, pDescriptor, pSignature, pLineNumber);
+        return new InstanceVariable(pOwner, pHolder, pAccess, pName, pDescriptor, pSignature, pLineNumber);
     }
 
     public int getAccess() {
@@ -63,10 +66,10 @@ public class InstanceVariable {
         return lineNumber;
     }
 
-    public void setLineNumber(int lineNumber) {
-        this.lineNumber = lineNumber;
+    public ProgramVariable getHolder() {
+        return holder;
     }
-
+    
     public Map<Integer, Integer> getOutOfScope() {
         return outOfScope;
     }
@@ -78,10 +81,10 @@ public class InstanceVariable {
 
     @Override
     public boolean equals(final Object pOther) {
-        if (this == pOther){
+        if (this == pOther) {
             return true;
         }
-        if(pOther == null || getClass() != pOther.getClass()) {
+        if (pOther == null || getClass() != pOther.getClass()) {
             return false;
         }
         final InstanceVariable that = (InstanceVariable) pOther;
@@ -113,6 +116,10 @@ public class InstanceVariable {
                 + ", lineNumber='"
                 + lineNumber
                 + '\''
+                + ","
+                + " holder: {"
+                + holder
+                + "}"
                 + '}';
     }
 }

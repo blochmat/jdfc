@@ -15,6 +15,7 @@ public class ClassExecutionData extends ExecutionData {
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private Set<InstanceVariable> instanceVariables;
+    private Set<InstanceVariable> instanceVariablesOccurrences;
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     private Map<String, Set<ProgramVariable>> defUseCovered;
     private Map<String, Set<ProgramVariable>> defUseUncovered;
@@ -31,6 +32,7 @@ public class ClassExecutionData extends ExecutionData {
         relativePath = pRelativePath;
         instanceVariables = new HashSet<>();
         parameterMatching = new HashSet<>();
+        instanceVariablesOccurrences = new HashSet<>();
     }
 
     /**
@@ -67,8 +69,8 @@ public class ClassExecutionData extends ExecutionData {
         return instanceVariables;
     }
 
-    public void setInstanceVariables(Set<InstanceVariable> instanceVariables) {
-        this.instanceVariables = instanceVariables;
+    public Set<InstanceVariable> getInstanceVariablesOccurrences() {
+        return instanceVariablesOccurrences;
     }
 
     public String getRelativePath() {
@@ -127,6 +129,7 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     // TODO: Check for refactoring
+    // Finds parameters of method to setup matching
     private void processPredRecursive(String pMethodName,
                                       String pEntryMethodName,
                                       int pLoopsLeft,
@@ -149,7 +152,6 @@ public class ClassExecutionData extends ExecutionData {
             }
             processPredRecursive(pMethodName, pEntryMethodName, pLoopsLeft - 1, pred, pCallingNode, pEntryNode);
         }
-
     }
 
     private ProgramVariable findDefinitionByUse(String pMethodName, ProgramVariable pUsage) {

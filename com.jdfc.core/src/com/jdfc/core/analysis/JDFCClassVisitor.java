@@ -2,8 +2,10 @@ package com.jdfc.core.analysis;
 
 import com.google.common.collect.Maps;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.ifg.CFGCreator;
 import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -33,6 +35,22 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
         localVariableTables = pLocalVariableTables;
+    }
+
+    @Override
+    public MethodVisitor visitMethod(final int pAccess,
+                                     final String pName,
+                                     final String pDescriptor,
+                                     final String pSignature,
+                                     final String[] pExceptions) {
+        final MethodVisitor mv;
+        if (cv != null) {
+            mv = cv.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
+        } else {
+            mv = null;
+        }
+
+        return mv;
     }
 
     public MethodNode getMethodNode(String pName) {
