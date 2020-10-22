@@ -43,8 +43,8 @@ public class HTMLFactory {
 
     final String SCRIPT = "script.js";
 
-    public void generateIndexFiles(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
-                                   final File pWorkDir) throws IOException {
+    public void generateIndexFile(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
+                                  final File pWorkDir) throws IOException {
         String indexPath = String.format("%s/index.html", pWorkDir.toString());
         File index = new File(indexPath);
         String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), STYLE_SHEET);
@@ -334,7 +334,7 @@ public class HTMLFactory {
             String elementName = entry.getKey();
 
             // Methods with 0 DefUsePairs are standard object constructors; we do not want to show those.
-            if(entry.getValue().size() != 0) {
+            if (entry.getValue().size() != 0) {
                 if (elementName.contains("<init>")) {
                     elementName = elementName.replace("<init>", "init");
                 }
