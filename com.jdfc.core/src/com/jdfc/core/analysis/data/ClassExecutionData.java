@@ -14,16 +14,17 @@ public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
-    private Set<InstanceVariable> instanceVariables;
-    private Set<InstanceVariable> instanceVariablesOccurrences;
-    private TreeMap<String, List<DefUsePair>> defUsePairs;
-    private Map<String, Set<ProgramVariable>> defUseCovered;
-    private Map<String, Set<ProgramVariable>> defUseUncovered;
+    private final Set<InstanceVariable> instanceVariables;
+    private final Set<InstanceVariable> instanceVariablesOccurrences;
+    private final TreeMap<String, List<DefUsePair>> defUsePairs;
+    private final Map<String, Set<ProgramVariable>> defUseCovered;
+    private final Map<String, Set<ProgramVariable>> defUseUncovered;
 
     //TODO Make parameterMatching a map
     private final Set<Pair<ProgramVariable, ProgramVariable>> parameterMatching;
     private final String relativePath;
 
+    // TODO Initialize methodCFGs here
     public ClassExecutionData(String pRelativePath) {
         methodFirstLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
@@ -85,8 +86,6 @@ public class ClassExecutionData extends ExecutionData {
      * Calculates all possible Def-Use-Pairs.
      */
     public void calculateIntraProceduralDefUsePairs() {
-        defUsePairs = new TreeMap<>();
-        defUseCovered = new HashMap<>();
         for (CFG graph : methodCFGs.values()) {
             String name =
                     methodCFGs
@@ -177,7 +176,6 @@ public class ClassExecutionData extends ExecutionData {
         this.calculateMethodCount();
         this.calculateTotal();
         int covered = 0;
-        defUseUncovered = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
             if (entry.getValue().size() == 0) {
                 continue;

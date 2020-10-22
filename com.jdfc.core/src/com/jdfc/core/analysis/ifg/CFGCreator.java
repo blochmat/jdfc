@@ -65,8 +65,6 @@ public class CFGCreator {
                 new CFGInstanceVariableClassVisitor(pClassNode, pClassExecutionData, localVariableTables);
         pClassReader.accept(instanceVariableVisitor, 0);
 
-        System.out.println("DEBUG");
-        System.out.println(Arrays.toString(pClassExecutionData.getInstanceVariablesOccurrences().toArray()));
         // Create method cfgs
         final Map<String, CFG> methodCFGs = Maps.newLinkedHashMap();
         final CFGCreatorClassVisitor cfgCreatorClassVisitor =

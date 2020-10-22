@@ -39,11 +39,6 @@ class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
      */
     @Override
     public void visitEnd() {
-        for (InstanceVariable instanceVariable : classVisitor.classExecutionData.getInstanceVariables()) {
-            if (localVariableTable.containsEntry(instanceVariable.getName(), instanceVariable.getDescriptor())) {
-                instanceVariable.getOutOfScope().put(firstLine, currentLineNumber);
-            }
-        }
         classVisitor.getLocalVariableTables().put(internalMethodName, localVariableTable);
     }
 }

@@ -13,7 +13,6 @@ public class InstanceVariable {
     private final String descriptor;
     private final String signature;
     private final int lineNumber;
-    private final Map<Integer, Integer> outOfScope;
 
     private InstanceVariable(final String pOwner,
                              final ProgramVariable pHolder,
@@ -29,7 +28,6 @@ public class InstanceVariable {
         descriptor = pDescriptor;
         signature = pSignature;
         lineNumber = pLineNumber;
-        outOfScope = new HashMap<>();
     }
 
     public static InstanceVariable create(final String pOwner,
@@ -68,10 +66,6 @@ public class InstanceVariable {
 
     public ProgramVariable getHolder() {
         return holder;
-    }
-    
-    public Map<Integer, Integer> getOutOfScope() {
-        return outOfScope;
     }
 
     @Override
