@@ -2,8 +2,6 @@ package com.jdfc.report;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
-import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.report.html.HTMLFactory;
 import com.jdfc.report.html.resources.Resources;
@@ -30,7 +28,7 @@ public class ReportGenerator {
             try {
                 Resources resources = new Resources(reportDir);
                 HTMLFactory factory = new HTMLFactory(resources, reportDir);
-                createPackageAndClassHTMLFiles(factory, root, reportDir.toString());
+                createPackageRelatedHTMLFilesRecursive(factory, root, reportDir.toString());
                 createInitialIndexFile(factory, root, reportDir);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -38,28 +36,22 @@ public class ReportGenerator {
         }
     }
 
-    private void createPackageAndClassHTMLFiles(final HTMLFactory pFactory,
-                                                final ExecutionDataNode<ExecutionData> pNode,
-                                                final String pPathName) throws IOException {
+    private void createPackageRelatedHTMLFilesRecursive(final HTMLFactory pFactory,
+                                                        final ExecutionDataNode<ExecutionData> pNode,
+                                                        final String pPathName) throws IOException {
         Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = pNode.getChildren();
         Map<String, ExecutionDataNode<ExecutionData>> classExecutionDataNodeMap = new HashMap<>();
-
+        File outputFolder = new File(pPathName);
         for (Map.Entry<String, ExecutionDataNode<ExecutionData>> childEntry : currentNodeChildren.entrySet()) {
             if (childEntry.getValue().isLeaf()) {
-                File outputFolder = new File(pPathName);
+                classExecutionDataNodeMap.put(childEntry.getKey(), childEntry.getValue());
                 if (outputFolder.exists() || outputFolder.mkdir()) {
-                    // TODO: Refactoring, pretty sure
-                    classExecutionDataNodeMap.put(childEntry.getKey(), childEntry.getValue());
                     // method overview
                     pFactory.createClassOverview(childEntry.getKey(), childEntry.getValue().getData(), outputFolder);
-
                     // class detail view
-                    pFactory.createClassDetailView(childEntry.getKey(), childEntry.getValue().getData(), outputFolder,
+                    pFactory.createClassSourceView(childEntry.getKey(), childEntry.getValue().getData(), outputFolder,
                             sourceDir);
-
-                    pFactory.generateIndexFile(classExecutionDataNodeMap, outputFolder);
                 }
-
             } else {
                 String nextPathName;
                 if (pPathName.equals(reportDir.toString())) {
@@ -67,8 +59,11 @@ public class ReportGenerator {
                 } else {
                     nextPathName = String.format("%s.%s", pPathName, childEntry.getKey());
                 }
-                createPackageAndClassHTMLFiles(pFactory, childEntry.getValue(), nextPathName);
+                createPackageRelatedHTMLFilesRecursive(pFactory, childEntry.getValue(), nextPathName);
             }
+        }
+        if (!classExecutionDataNodeMap.isEmpty()) {
+            pFactory.createIndex(classExecutionDataNodeMap, outputFolder);
         }
     }
 
@@ -77,9 +72,11 @@ public class ReportGenerator {
                                         final File pReportDir) throws IOException {
         Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataNodeMap =
                 getClassContainingPackagesRecursive(pRoot, "");
-        pFactory.generateIndexFile(packageExecutionDataNodeMap, pReportDir);
+        pFactory.createIndex(packageExecutionDataNodeMap, pReportDir);
     }
 
+    // TODO: Does not need to be recursive.
+    //  Get names of children of jdfc-report -> replace . with / -> search for ExecutionData via findExecutionData
     private Map<String, ExecutionDataNode<ExecutionData>> getClassContainingPackagesRecursive(
             final ExecutionDataNode<ExecutionData> pNode,
             final String pPackageName) {
