@@ -1,6 +1,5 @@
 package com.jdfc.report.html;
 
-import com.google.common.io.Files;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
@@ -166,51 +165,56 @@ public class HTMLFactory {
                                                   final ClassExecutionData pData,
                                                   final String pClassName,
                                                   final String pPathToStyleSheet,
-                                                  final String pPathToScript) throws FileNotFoundException {
-        Scanner scanner = new Scanner(pClassFile);
+                                                  final String pPathToScript) {
         String classFileName = String.format("%s.java", pClassName);
         HTMLElement htmlMainTag = HTMLElement.html();
         htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, pPathToStyleSheet));
+
         HTMLElement htmlBodyTag = createDefaultHTMLBody(pClassName, null, pPathToScript, "code");
         htmlMainTag.getContent().add(htmlBodyTag);
-        HTMLElement tableTag = HTMLElement.table();
-        htmlBodyTag.getContent().add(tableTag);
-        tableTag.getAttributes().add("id=\"classDetailView\"");
-        int lineCounter = 0;
-        while (scanner.hasNextLine()) {
-            HTMLElement trTag = HTMLElement.tr();
-            String current = scanner.nextLine();
-            lineCounter += 1;
-            HTMLElement lineCell = HTMLElement.td(lineCounter);
-            lineCell.getAttributes().add(String.format("id=\"%s\"", lineCounter));
-            trTag.getContent().add(lineCell);
-            HTMLElement textCell = HTMLElement.td();
-            textCell.getContent().add(processLine(pClassName, lineCounter, current, pData));
-            trTag.getContent().add(textCell);
-            tableTag.getContent().add(trTag);
+        try {
+            htmlBodyTag.getContent().add(createSourceCode(pClassFile, pData, pClassName));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
-        scanner.close();
         return htmlMainTag;
     }
 
-    private HTMLElement processLine(String pClassName, int pLineNumber, String pLineString, ClassExecutionData pData) {
+    private HTMLElement createSourceCode(final File pClassFile,
+                                         final ClassExecutionData pData,
+                                         final String pClassName) throws FileNotFoundException {
+        Scanner scanner = new Scanner(pClassFile);
+        HTMLElement table = HTMLElement.table();
+        table.getAttributes().add("id=\"classDetailView\"");
+        int currentLineCounter = 0;
+        while (scanner.hasNextLine()) {
+            currentLineCounter += 1;
+            String currentLineString = scanner.nextLine();
+
+            HTMLElement row = HTMLElement.tr();
+            table.getContent().add(row);
+
+            HTMLElement sourceCodeLine = HTMLElement.td(currentLineCounter);
+            sourceCodeLine.getAttributes().add(String.format("id=\"%s\"", currentLineCounter));
+            row.getContent().add(sourceCodeLine);
+
+            HTMLElement sourceCodeText = HTMLElement.td();
+            row.getContent().add(sourceCodeText);
+
+            HTMLElement finalizedText = finalizeText(pClassName, currentLineCounter, currentLineString, pData);
+            sourceCodeText.getContent().add(finalizedText);
+        }
+        scanner.close();
+        return table;
+    }
+
+    private HTMLElement finalizeText(String pClassName, int pLineNumber, String pLineString, ClassExecutionData pData) {
         HTMLElement spanTagLine = HTMLElement.span();
         spanTagLine.getAttributes().add("class=\"keep-spaces\"");
-        String[] specialCharsArray = pLineString.split("\\w+\\b");
-        String[] wordsArray = pLineString.split("\\W+");
 
-        List<String> specialChars = new ArrayList<>();
-        for (String str : specialCharsArray) {
-            if (!str.equals("")) {
-                specialChars.add(str);
-            }
-        }
-        List<String> words = new ArrayList<>();
-        for (String str : wordsArray) {
-            if (!str.equals("")) {
-                words.add(str);
-            }
-        }
+        List<String> specialChars = extractChars(pLineString, "\\w+\\b");
+        List<String> words = extractChars(pLineString, "\\W+");
+        List<String> workList = createWorkList(words, specialChars);
 
         boolean isSpecialCharsLonger = specialChars.size() > words.size();
         boolean isComment = false;
@@ -296,6 +300,67 @@ public class HTMLFactory {
         return spanTagLine;
     }
 
+    private List<String> extractChars(String pLineString, String pRegex) {
+        String[] extract = pLineString.split(pRegex);
+        List<String> list = new ArrayList<>();
+        for (String str : extract) {
+            if (!str.equals("")) {
+                list.add(str);
+            }
+        }
+        return list;
+    }
+
+    private List<String> createWorkList(List<String> pWords, List<String> pSpecialChars) {
+        List<String> workListWords = new ArrayList<>(pWords);
+        List<String> workListSpec = new ArrayList<>(pSpecialChars);
+
+        boolean isSpecialCharsLonger = false;
+        boolean isCommentLine = false;
+
+        if (!workListSpec.isEmpty()) {
+            isSpecialCharsLonger = workListSpec.size() > workListWords.size();
+            isCommentLine = workListSpec.get(0).contains("//");
+        }
+
+        List<String> merge = new ArrayList<>();
+
+        while (workListWords.size() > 0) {
+            // Inline comment
+            if (workListSpec.get(0).contains("//") && workListWords.size() < pWords.size()) {
+                int index = workListSpec.get(0).indexOf("//");
+                String remainder = workListSpec.get(0).substring(0, index);
+                String commentSlashes = workListSpec.get(0).substring(index);
+
+                merge.add(remainder);
+                merge.add(commentSlashes);
+                merge.add(workListWords.get(0));
+
+                workListSpec.remove(0);
+                workListWords.remove(0);
+
+            } else if (isSpecialCharsLonger || isCommentLine) {
+                merge.add(workListSpec.get(0));
+                merge.add(workListWords.get(0));
+                workListWords.remove(0);
+                workListSpec.remove(0);
+
+            } else {
+                merge.add(workListWords.get(0));
+                merge.add(workListSpec.get(0));
+                workListWords.remove(0);
+                workListSpec.remove(0);
+            }
+        }
+
+        if (isSpecialCharsLonger) {
+            merge.add(workListSpec.get(0));
+            workListSpec.remove(0);
+        }
+
+        return merge;
+    }
+
 //    private String getRedefinitionBackgroundColorHex(ClassExecutionData pData, int pLineNumber, String pName) {
 //        boolean covered = false;
 //        boolean uncovered = false;
@@ -340,7 +405,7 @@ public class HTMLFactory {
         }
         htmlBodyTag.getAttributes().add("onload=\"sortTables()\"");
         htmlBodyTag.getContent().add(HTMLElement.script("text/javascript", pPathToScript));
-        if(pFile != null) {
+        if (pFile != null) {
             htmlBodyTag.getContent().add(createBreadcrumbs(pFile));
         }
         htmlBodyTag.getContent().add(HTMLElement.h1(pTitle));
