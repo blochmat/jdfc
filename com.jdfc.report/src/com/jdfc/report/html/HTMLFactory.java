@@ -11,6 +11,8 @@ import com.jdfc.report.html.resources.Resources;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HTMLFactory {
 
@@ -195,7 +197,7 @@ public class HTMLFactory {
             table.getContent().add(row);
 
             HTMLElement sourceCodeLine = HTMLElement.td(currentLineCounter);
-            sourceCodeLine.getAttributes().add(String.format("id=\"%s\"", currentLineCounter));
+            sourceCodeLine.getAttributes().add(String.format("id=\"L%s\"", currentLineCounter));
             row.getContent().add(sourceCodeLine);
 
             HTMLElement sourceCodeText = HTMLElement.td();
@@ -209,95 +211,57 @@ public class HTMLFactory {
     }
 
     private HTMLElement finalizeText(String pClassName, int pLineNumber, String pLineString, ClassExecutionData pData) {
-        HTMLElement spanTagLine = HTMLElement.span();
-        spanTagLine.getAttributes().add("class=\"keep-spaces\"");
+        HTMLElement divTagLine = HTMLElement.div();
+        divTagLine.getAttributes().add("class=\"line\"");
 
         List<String> specialChars = extractChars(pLineString, "\\w+\\b");
         List<String> words = extractChars(pLineString, "\\W+");
         List<String> workList = createWorkList(words, specialChars);
 
-        boolean isSpecialCharsLonger = specialChars.size() > words.size();
-        boolean isComment = false;
+        while(!workList.isEmpty()) {
+            String item = workList.get(0);
+            workList.remove(0);
 
-        // PER WORD
-        for (int i = 0; i < words.size(); i++) {
-            String word = words.get(i);
-            // Create Comment
-            if (specialChars.get(i).contains("//")) {
-                int index = specialChars.get(i).indexOf("//");
-                String remainder = specialChars.get(i).substring(0, index);
-                String commentSlashes = specialChars.get(i).substring(index);
-                spanTagLine.getContent().add(HTMLElement.noTag(remainder));
-                HTMLElement comment = HTMLElement.span();
-                comment.getAttributes().add("class=\"comment\"");
-                comment.getContent().add(HTMLElement.noTag(commentSlashes));
-                comment.getContent().add(HTMLElement.noTag(words.get(i)));
-                for (int j = i + 1; j < words.size(); j++) {
-                    comment.getContent().add(HTMLElement.noTag(specialChars.get(j)));
-                    comment.getContent().add(HTMLElement.noTag(words.get(j)));
-                }
-                if (isSpecialCharsLonger) {
-                    comment.getContent().add(HTMLElement.noTag(specialChars.get(specialChars.size() - 1)));
-                    isComment = true;
-                }
-                spanTagLine.getContent().add(comment);
-                break;
-            }
+            Pattern specCharPattern = Pattern.compile("\\W+");
+            Matcher specCharMatcher = specCharPattern.matcher(item);
 
-            ProgramVariable definition = findDefinition(pData, pLineNumber, word);
-            HTMLElement spanTag;
-            if (definition != null) {
-                boolean isDefCovered = findIsDefCovered(pData, definition);
-                List<ProgramVariable> definitions = new ArrayList<>();
-                definitions.add(definition);
-                for (Pair<ProgramVariable, ProgramVariable> match : pData.getParameterMatching()) {
-                    if (match.fst.equals(definition)) {
-                        definitions.add(match.snd);
-                    }
+            if(specCharMatcher.matches()) {
+                if(item.contains("//")) {
+                    divTagLine.getContent().add(createCommentSpan(item, workList));
+                } else {
+                    divTagLine.getContent().add(HTMLElement.pre(item));
                 }
-                Map<ProgramVariable, Boolean> useCoverageMap = new HashMap<>();
-                for (ProgramVariable def : definitions) {
-                    useCoverageMap.putAll(getUseCoverageMap(pData, def));
-                }
-                spanTag = HTMLElement.span();
-                String id = String.format("L%sI%s", definition.getLineNumber(), definition.getInstructionIndex());
-                spanTag.getAttributes().add(String.format("id=\"%s\"", id));
-                spanTag.getAttributes().add(String.format("class=\"%s\"", getDefinitionBackgroundColorHex(isDefCovered, useCoverageMap)));
-                spanTag.getContent().add(createTooltip(pClassName, useCoverageMap, word));
             } else {
-                ProgramVariable usage = findUsage(pData, pLineNumber, word);
-                spanTag = HTMLElement.span(word);
-                if (usage != null) {
-                    String id = String.format("L%sI%s", usage.getLineNumber(), usage.getInstructionIndex());
-                    spanTag.getAttributes().add(String.format("id=\"%s\"", id));
+                ProgramVariable definition = findDefinition(pData, pLineNumber, item);
+                ProgramVariable usage = findUsage(pData, pLineNumber, item);
+                if(definition != null) {
+                    boolean isDefCovered = findIsDefCovered(pData, definition);
+                    List<ProgramVariable> correspondingDefsList = createCorrespondingDefsList(definition, pData);
+                    Map<ProgramVariable, Boolean> useCoverageMap = createUseCoverageMap(correspondingDefsList, pData);
+                    String backgroundColor = getDefinitionBackgroundColorHex(isDefCovered, useCoverageMap);
+                    divTagLine.getContent().add(createTooltip(pClassName, useCoverageMap, item, backgroundColor));
+                } else if (usage != null){
+                    HTMLElement spanTag = HTMLElement.span(item);
+                    divTagLine.getContent().add(spanTag);
                     if (isCovered(pData, usage)) {
                         spanTag.getAttributes().add("class=\"green\"");
                     } else {
                         spanTag.getAttributes().add("class=\"red\"");
                     }
+                } else if (isRedefined(pData, pLineNumber, item)) {
+                    HTMLElement spanTag = HTMLElement.span(item);
+                    divTagLine.getContent().add(spanTag);
+                    // TODO: Create dropdown for variables being redefined with reference to up-to-date definitions
+                    spanTag.getAttributes().add("class=\"overwritten\"");
                 } else {
-                    if (isRedefined(pData, pLineNumber, word)) {
-                        spanTag = HTMLElement.span(word);
-                        // TODO: Create dropdown for variables being redefined with reference to up-to-date definitions
-                        spanTag.getAttributes().add("class=\"overwritten\"");
-                    }
-                    addCodeHighlighting(spanTag, word);
+                    HTMLElement spanTag = HTMLElement.span(item);
+                    divTagLine.getContent().add(spanTag);
+                    addCodeHighlighting(spanTag, item);
                 }
             }
-            if (isSpecialCharsLonger) {
-                spanTagLine.getContent().add(HTMLElement.noTag(specialChars.get(i)));
-                spanTagLine.getContent().add(spanTag);
-            } else {
-                spanTagLine.getContent().add(spanTag);
-                spanTagLine.getContent().add(HTMLElement.noTag(specialChars.get(i)));
-            }
-        }
-        // Add last special char
-        if (isSpecialCharsLonger && !isComment) {
-            spanTagLine.getContent().add(HTMLElement.noTag(specialChars.get(specialChars.size() - 1)));
         }
 
-        return spanTagLine;
+        return divTagLine;
     }
 
     private List<String> extractChars(String pLineString, String pRegex) {
@@ -323,42 +287,72 @@ public class HTMLFactory {
             isCommentLine = workListSpec.get(0).contains("//");
         }
 
-        List<String> merge = new ArrayList<>();
+        List<String> result = new ArrayList<>();
 
-        while (workListWords.size() > 0) {
+        while (!workListWords.isEmpty()) {
             // Inline comment
             if (workListSpec.get(0).contains("//") && workListWords.size() < pWords.size()) {
                 int index = workListSpec.get(0).indexOf("//");
                 String remainder = workListSpec.get(0).substring(0, index);
                 String commentSlashes = workListSpec.get(0).substring(index);
 
-                merge.add(remainder);
-                merge.add(commentSlashes);
-                merge.add(workListWords.get(0));
+                result.add(remainder);
+                result.add(commentSlashes);
+                result.add(workListWords.get(0));
 
                 workListSpec.remove(0);
                 workListWords.remove(0);
 
             } else if (isSpecialCharsLonger || isCommentLine) {
-                merge.add(workListSpec.get(0));
-                merge.add(workListWords.get(0));
+                result.add(workListSpec.get(0));
+                result.add(workListWords.get(0));
                 workListWords.remove(0);
                 workListSpec.remove(0);
 
             } else {
-                merge.add(workListWords.get(0));
-                merge.add(workListSpec.get(0));
+                result.add(workListWords.get(0));
+                result.add(workListSpec.get(0));
                 workListWords.remove(0);
                 workListSpec.remove(0);
             }
         }
 
         if (isSpecialCharsLonger) {
-            merge.add(workListSpec.get(0));
+            result.add(workListSpec.get(0));
             workListSpec.remove(0);
         }
 
-        return merge;
+        return result;
+    }
+
+    private HTMLElement createCommentSpan(String pCommentSlashItem, List<String> pRemainder) {
+        HTMLElement comment = HTMLElement.pre();
+        comment.getAttributes().add("class=\"comment\"");
+        comment.getContent().add(HTMLElement.noTag(pCommentSlashItem));
+        while(!pRemainder.isEmpty()) {
+            comment.getContent().add(HTMLElement.noTag(pRemainder.get(0)));
+            pRemainder.remove(0);
+        }
+        return comment;
+    }
+
+    private List<ProgramVariable> createCorrespondingDefsList(ProgramVariable pDefinition, ClassExecutionData pData) {
+        List<ProgramVariable> correspondingDefsList = new ArrayList<>();
+        correspondingDefsList.add(pDefinition);
+        for (Pair<ProgramVariable, ProgramVariable> match : pData.getParameterMatching()) {
+            if (match.fst.equals(pDefinition)) {
+                correspondingDefsList.add(match.snd);
+            }
+        }
+        return correspondingDefsList;
+    }
+
+    private Map<ProgramVariable, Boolean> createUseCoverageMap(List<ProgramVariable> pCorrespondingDefsList, ClassExecutionData pData) {
+        Map<ProgramVariable, Boolean> useCoverageMap = new HashMap<>();
+        for (ProgramVariable definition : pCorrespondingDefsList) {
+            useCoverageMap.putAll(createUseCoverageMapForDefinition(pData, definition));
+        }
+        return useCoverageMap;
     }
 
 //    private String getRedefinitionBackgroundColorHex(ClassExecutionData pData, int pLineNumber, String pName) {
@@ -454,36 +448,42 @@ public class HTMLFactory {
 
     private HTMLElement createTableHeadTag(final List<String> pColumns) {
         HTMLElement theadTag = HTMLElement.thead();
-        theadTag.getContent().add(HTMLElement.td("Element"));
+        HTMLElement rowTag = HTMLElement.tr();
+        theadTag.getContent().add(rowTag);
+        rowTag.getContent().add(HTMLElement.td("Element"));
         for (String col : pColumns) {
-            theadTag.getContent().add(HTMLElement.td(col));
+            rowTag.getContent().add(HTMLElement.td(col));
         }
         return theadTag;
     }
 
     private HTMLElement createTableFootTag(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
         HTMLElement tfootTag = HTMLElement.tfoot();
+        HTMLElement rowTag = HTMLElement.tr();
+        tfootTag.getContent().add(rowTag);
         Map.Entry<String, ExecutionDataNode<ExecutionData>> entry = pClassFileDataMap.entrySet().iterator().next();
         ExecutionData parentData = entry.getValue().getParent().getData();
-        tfootTag.getContent().add(HTMLElement.td("Total"));
-        tfootTag.getContent().add(HTMLElement.td(parentData.getMethodCount()));
-        tfootTag.getContent().add(HTMLElement.td(parentData.getTotal()));
-        tfootTag.getContent().add(HTMLElement.td(parentData.getCovered()));
-        tfootTag.getContent().add(HTMLElement.td(parentData.getTotal() - parentData.getCovered()));
+        rowTag.getContent().add(HTMLElement.td("Total"));
+        rowTag.getContent().add(HTMLElement.td(parentData.getMethodCount()));
+        rowTag.getContent().add(HTMLElement.td(parentData.getTotal()));
+        rowTag.getContent().add(HTMLElement.td(parentData.getCovered()));
+        rowTag.getContent().add(HTMLElement.td(parentData.getTotal() - parentData.getCovered()));
         return tfootTag;
     }
 
     private HTMLElement createTableFootTag(final ClassExecutionData pData) {
         HTMLElement tfootTag = HTMLElement.tfoot();
-        tfootTag.getContent().add(HTMLElement.td("Total"));
-        tfootTag.getContent().add(HTMLElement.td(pData.getTotal()));
-        tfootTag.getContent().add(HTMLElement.td(pData.getCovered()));
-        tfootTag.getContent().add(HTMLElement.td(pData.getTotal() - pData.getCovered()));
+        HTMLElement rowTag = HTMLElement.tr();
+        tfootTag.getContent().add(rowTag);
+        rowTag.getContent().add(HTMLElement.td("Total"));
+        rowTag.getContent().add(HTMLElement.td(pData.getTotal()));
+        rowTag.getContent().add(HTMLElement.td(pData.getCovered()));
+        rowTag.getContent().add(HTMLElement.td(pData.getTotal() - pData.getCovered()));
         return tfootTag;
     }
 
     private HTMLElement createTableBodyTag(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
-        HTMLElement bodyTag = HTMLElement.body();
+        HTMLElement bodyTag = HTMLElement.tbody();
         for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : pClassFileDataMap.entrySet()) {
             ExecutionData data = entry.getValue().getData();
             HTMLElement trTag = HTMLElement.tr();
@@ -506,11 +506,17 @@ public class HTMLFactory {
         return bodyTag;
     }
 
-    private HTMLElement createTooltip(final String pClassName, final Map<ProgramVariable, Boolean> pUses, final String pText) {
+    private HTMLElement createTooltip(final String pClassName,
+                                      final Map<ProgramVariable, Boolean> pUses,
+                                      final String pText,
+                                      final String pBackgroundColor) {
+
+        // TODO: Show text of whole line in tooltip
         // create table and show colored entries on hover over
         // entries are links to the variable use
         HTMLElement tooltip = HTMLElement.div();
-        tooltip.getAttributes().add("class=\"tooltip\"");
+        String classAttribute = String.format("class=\"tooltip %s\"", pBackgroundColor);
+        tooltip.getAttributes().add(classAttribute);
         tooltip.getContent().add(HTMLElement.span(pText));
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getAttributes().add("class=\"tooltipcontent\"");
@@ -532,7 +538,7 @@ public class HTMLFactory {
                 tr.getContent().add(HTMLElement.td(lineNumber));
                 HTMLElement td = HTMLElement.td();
                 tr.getContent().add(td);
-                String link = String.format("%s.java.html#L%sI%s", pClassName, variable.getLineNumber(), variable.getInstructionIndex());
+                String link = String.format("%s.java.html#L%s", pClassName, variable.getLineNumber());
                 td.getContent().add(HTMLElement.a(link, variable.getName()));
                 if (use.getValue()) {
                     td.getAttributes().add("class=\"green\"");
@@ -653,18 +659,18 @@ public class HTMLFactory {
     }
 
     // find all uses for one particular definition
-    private Map<ProgramVariable, Boolean> getUseCoverageMap(ClassExecutionData pData, ProgramVariable pDefinition) {
-        Map<ProgramVariable, Boolean> uses = new HashMap<>();
+    private Map<ProgramVariable, Boolean> createUseCoverageMapForDefinition(ClassExecutionData pData, ProgramVariable pDefinition) {
+        Map<ProgramVariable, Boolean> useCoverageMap = new HashMap<>();
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 if (defUsePair.getDefinition().equals(pDefinition)) {
                     ProgramVariable use = defUsePair.getUsage();
                     boolean covered = isCovered(pData, use);
-                    uses.put(use, covered);
+                    useCoverageMap.put(use, covered);
                 }
             }
         }
-        return uses;
+        return useCoverageMap;
     }
 
     private boolean isCovered(ClassExecutionData pData, ProgramVariable pUsage) {
