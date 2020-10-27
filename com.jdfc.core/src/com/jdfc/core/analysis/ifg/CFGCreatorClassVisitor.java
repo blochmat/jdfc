@@ -55,19 +55,29 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
             super.visitEnd();
         }
 
-        addInterProceduralEdges(methodCFGs);
+        propagateInterProceduralInformation(methodCFGs);
         CoverageDataStore.getInstance().finishClassExecutionDataSetup(classExecutionData, methodCFGs);
     }
 
-    private void addInterProceduralEdges(Map<String, CFG> pMethodCFGs) {
-        for(Map.Entry<String, CFG> methodEntry : pMethodCFGs.entrySet()){
-            for(Map.Entry<Integer, CFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()){
-                if(cfgNodeEntry.getValue() instanceof IFGNode) {
-                    IFGNode self = (IFGNode) cfgNodeEntry.getValue();
-                    if (isInstrumentationRequired(self.getMethodNameDesc())) {
-                        CFG other = pMethodCFGs.get(self.getMethodNameDesc());
-                        self.setCallNode(other.getNodes().firstEntry().getValue());
-                        self.setReturnNode(other.getNodes().lastEntry().getValue());
+    private void propagateInterProceduralInformation(Map<String, CFG> pMethodCFGs) {
+        boolean propagateChange = true;
+        while (propagateChange) {
+            propagateChange = false;
+            for (Map.Entry<String, CFG> methodEntry : pMethodCFGs.entrySet()) {
+                for (Map.Entry<Integer, CFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()) {
+                    if (cfgNodeEntry.getValue() instanceof IFGNode) {
+                        IFGNode ifgNode = (IFGNode) cfgNodeEntry.getValue();
+                        if (isInstrumentationRequired(ifgNode.getMethodNameDesc())) {
+                            CFG otherCFG = pMethodCFGs.get(ifgNode.getMethodNameDesc());
+                            if(ifgNode.getCallNode() == null || ifgNode.getReturnNode() == null) {
+                                ifgNode.setCallNode(otherCFG.getNodes().firstEntry().getValue());
+                                ifgNode.setReturnNode(otherCFG.getNodes().lastEntry().getValue());
+                            }
+                            if (otherCFG.isImpure() && !methodEntry.getValue().isImpure()) {
+                                methodEntry.getValue().setImpure();
+                                propagateChange = true;
+                            }
+                        }
                     }
                 }
             }

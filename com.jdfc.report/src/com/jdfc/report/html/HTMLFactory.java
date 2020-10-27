@@ -203,14 +203,18 @@ public class HTMLFactory {
             HTMLElement sourceCodeText = HTMLElement.td();
             row.getContent().add(sourceCodeText);
 
-            HTMLElement finalizedText = finalizeText(pClassName, currentLineCounter, currentLineString, pData);
+            HTMLElement finalizedText = finalizeText(pClassFile, pClassName, currentLineCounter, currentLineString, pData);
             sourceCodeText.getContent().add(finalizedText);
         }
         scanner.close();
         return table;
     }
 
-    private HTMLElement finalizeText(String pClassName, int pLineNumber, String pLineString, ClassExecutionData pData) {
+    private HTMLElement finalizeText(final File pClassFile,
+                                     final String pClassName,
+                                     final int pLineNumber,
+                                     final String pLineString,
+                                     final ClassExecutionData pData) {
         HTMLElement divTagLine = HTMLElement.div();
         divTagLine.getAttributes().add("class=\"line\"");
 
@@ -218,15 +222,15 @@ public class HTMLFactory {
         List<String> words = extractChars(pLineString, "\\W+");
         List<String> workList = createWorkList(words, specialChars);
 
-        while(!workList.isEmpty()) {
+        while (!workList.isEmpty()) {
             String item = workList.get(0);
             workList.remove(0);
 
             Pattern specCharPattern = Pattern.compile("\\W+");
             Matcher specCharMatcher = specCharPattern.matcher(item);
 
-            if(specCharMatcher.matches()) {
-                if(item.contains("//")) {
+            if (specCharMatcher.matches()) {
+                if (item.contains("//")) {
                     divTagLine.getContent().add(createCommentSpan(item, workList));
                 } else {
                     divTagLine.getContent().add(HTMLElement.pre(item));
@@ -234,19 +238,21 @@ public class HTMLFactory {
             } else {
                 ProgramVariable definition = findDefinition(pData, pLineNumber, item);
                 ProgramVariable usage = findUsage(pData, pLineNumber, item);
-                if(definition != null) {
+                if (definition != null) {
                     boolean isDefCovered = findIsDefCovered(pData, definition);
                     List<ProgramVariable> correspondingDefsList = createCorrespondingDefsList(definition, pData);
                     Map<ProgramVariable, Boolean> useCoverageMap = createUseCoverageMap(correspondingDefsList, pData);
                     String backgroundColor = getDefinitionBackgroundColorHex(isDefCovered, useCoverageMap);
-                    divTagLine.getContent().add(createTooltip(pClassName, useCoverageMap, item, backgroundColor));
-                } else if (usage != null){
-                    HTMLElement spanTag = HTMLElement.span(item);
-                    divTagLine.getContent().add(spanTag);
-                    if (isCovered(pData, usage)) {
+                    divTagLine.getContent().add(createTooltip(pClassFile, pClassName, useCoverageMap, item, backgroundColor));
+                } else if (usage != null) {
+                    boolean useCovered = isUseCovered(pData, usage);
+                    boolean allDefsCovered = isAllDefsCovered(pData, usage);
+                    if (useCovered && allDefsCovered) {
+                        HTMLElement spanTag = HTMLElement.span(item);
+                        divTagLine.getContent().add(spanTag);
                         spanTag.getAttributes().add("class=\"green\"");
                     } else {
-                        spanTag.getAttributes().add("class=\"red\"");
+                        divTagLine.getContent().add(createTooltip(item, useCovered, allDefsCovered));
                     }
                 } else if (isRedefined(pData, pLineNumber, item)) {
                     HTMLElement spanTag = HTMLElement.span(item);
@@ -329,7 +335,7 @@ public class HTMLFactory {
         HTMLElement comment = HTMLElement.pre();
         comment.getAttributes().add("class=\"comment\"");
         comment.getContent().add(HTMLElement.noTag(pCommentSlashItem));
-        while(!pRemainder.isEmpty()) {
+        while (!pRemainder.isEmpty()) {
             comment.getContent().add(HTMLElement.noTag(pRemainder.get(0)));
             pRemainder.remove(0);
         }
@@ -506,12 +512,11 @@ public class HTMLFactory {
         return bodyTag;
     }
 
-    private HTMLElement createTooltip(final String pClassName,
+    private HTMLElement createTooltip(final File pClassFile,
+                                      final String pClassName,
                                       final Map<ProgramVariable, Boolean> pUses,
                                       final String pText,
                                       final String pBackgroundColor) {
-
-        // TODO: Show text of whole line in tooltip
         // create table and show colored entries on hover over
         // entries are links to the variable use
         HTMLElement tooltip = HTMLElement.div();
@@ -523,6 +528,8 @@ public class HTMLFactory {
         tooltip.getContent().add(tableTag);
         HTMLElement tbody = HTMLElement.tbody();
         tableTag.getContent().add(tbody);
+        tbody.getContent().add(createTypeRow(true));
+        tbody.getContent().add(createColumnIdentifier());
         if (pUses.size() == 0) {
             HTMLElement tr = HTMLElement.tr();
             tbody.getContent().add(tr);
@@ -539,15 +546,75 @@ public class HTMLFactory {
                 HTMLElement td = HTMLElement.td();
                 tr.getContent().add(td);
                 String link = String.format("%s.java.html#L%s", pClassName, variable.getLineNumber());
-                td.getContent().add(HTMLElement.a(link, variable.getName()));
+                try {
+                    td.getContent().add(HTMLElement.a(link, getLineFromFile(pClassFile, lineNumber)));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
                 if (use.getValue()) {
-                    td.getAttributes().add("class=\"green\"");
+                    td.getAttributes().add("class=\"green tooltipcell\"");
                 } else {
-                    td.getAttributes().add("class=\"red\"");
+                    td.getAttributes().add("class=\"red tooltipcell\"");
                 }
             }
         }
         return tooltip;
+    }
+
+    private HTMLElement createTooltip(String pText, boolean pUseCovered, boolean pAllDefsCovered) {
+        String tooltipString;
+        if(!pUseCovered && !pAllDefsCovered) {
+            tooltipString = "Use and Definition(s) uncovered";
+        } else if (!pUseCovered) {
+            tooltipString = "Use uncovered";
+        } else {
+            tooltipString = "Definition(s) uncovered";
+        }
+        HTMLElement tooltip = HTMLElement.div();
+        tooltip.getAttributes().add("class=\"tooltip red\"");
+        tooltip.getContent().add(HTMLElement.span(pText));
+        HTMLElement tableTag = HTMLElement.table();
+        tableTag.getAttributes().add("class=\"tooltipcontent\"");
+        tooltip.getContent().add(tableTag);
+        HTMLElement tbody = HTMLElement.tbody();
+        tableTag.getContent().add(tbody);
+        tbody.getContent().add(createTypeRow(false));
+        HTMLElement tr = HTMLElement.tr();
+        tbody.getContent().add(tr);
+        HTMLElement td = HTMLElement.td(tooltipString);
+        tr.getContent().add(td);
+        td.getAttributes().add("class=\"red tooltipcell\"");
+        return tooltip;
+    }
+
+    private HTMLElement createColumnIdentifier(){
+        HTMLElement tr = HTMLElement.tr();
+        tr.getContent().add(HTMLElement.td("Line"));
+        tr.getContent().add(HTMLElement.td("Statement"));
+        return tr;
+    }
+
+    private HTMLElement createTypeRow(boolean pIsDefinition) {
+        HTMLElement tr = HTMLElement.tr();
+        tr.getAttributes().add("class=\"headerRow\"");
+        if(pIsDefinition) {
+            tr.getContent().add(HTMLElement.td("Type: Definition"));
+        } else {
+            tr.getContent().add(HTMLElement.td("Type: Usage"));
+        }
+        return tr;
+    }
+
+    private String getLineFromFile(final File pClassFile,
+                                   final int pLineNumber) throws FileNotFoundException {
+        Scanner scanner = new Scanner(pClassFile);
+        String lineString = null;
+        int lineCounter = pLineNumber;
+        while (scanner.hasNextLine() && lineCounter != 0) {
+            lineString = scanner.nextLine();
+            lineCounter--;
+        }
+        return lineString;
     }
 
     private void addCodeHighlighting(HTMLElement pSpanTag, String pWord) {
@@ -665,7 +732,7 @@ public class HTMLFactory {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 if (defUsePair.getDefinition().equals(pDefinition)) {
                     ProgramVariable use = defUsePair.getUsage();
-                    boolean covered = isCovered(pData, use);
+                    boolean covered = isUseCovered(pData, use);
                     useCoverageMap.put(use, covered);
                 }
             }
@@ -673,15 +740,19 @@ public class HTMLFactory {
         return useCoverageMap;
     }
 
-    private boolean isCovered(ClassExecutionData pData, ProgramVariable pUsage) {
-        boolean useCovered = false;
-        boolean allDefsCovered = true;
-        // Check if usage is covered
+    private boolean isUseCovered(ClassExecutionData pData, ProgramVariable pUsage) {
         for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getDefUseCovered().entrySet()) {
             if (entry.getValue().contains(pUsage)) {
-                useCovered = true;
+                return true;
+            }
+        }
+        return false;
+    }
 
-                // based on found usage check if all depending defs are covered
+    private boolean isAllDefsCovered(ClassExecutionData pData, ProgramVariable pUsage) {
+        boolean allDefsCovered = true;
+        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getDefUseCovered().entrySet()) {
+            if (entry.getValue().contains(pUsage)) {
                 for (DefUsePair pair : pData.getDefUsePairs().get(entry.getKey())) {
                     if (pair.getUsage().equals(pUsage)) {
                         allDefsCovered = allDefsCovered && entry.getValue().contains(pair.getDefinition());
@@ -689,6 +760,6 @@ public class HTMLFactory {
                 }
             }
         }
-        return useCovered && allDefsCovered;
+        return allDefsCovered;
     }
 }

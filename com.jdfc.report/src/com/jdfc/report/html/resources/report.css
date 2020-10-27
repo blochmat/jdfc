@@ -13,15 +13,9 @@
     border-bottom: 1px dotted black;
 }
 
-.tooltip {
-    position: relative;
-    display: inline-block;
-    border-bottom: 1px dotted black;
-}
-
 .tooltip .tooltipcontent {
+    table-layout: auto;
     visibility: hidden;
-    width: 120px;
     background-color: #D5D5D5;
     color: #fff;
     text-align: center;
@@ -40,6 +34,14 @@
 .tooltip:hover .tooltipcontent {
     visibility: visible;
     opacity: 1;
+}
+
+.tooltipcell {
+    white-space: nowrap;
+}
+
+.headerRow {
+    white-space: nowrap;
 }
 
 .line {

@@ -22,7 +22,7 @@ public class CFGImpl implements CFG {
     private final String methodName;
     private final NavigableMap<Integer, CFGNode> nodes;
     private final LocalVariableTable localVariableTable;
-    private final boolean isImpure;
+    private boolean isImpure;
 
     CFGImpl(
             final String pMethodName,
@@ -57,6 +57,9 @@ public class CFGImpl implements CFG {
     public boolean isImpure() {
         return isImpure;
     }
+
+    @Override
+    public void setImpure() { this.isImpure = true; };
 
     /**
      * {@inheritDoc}

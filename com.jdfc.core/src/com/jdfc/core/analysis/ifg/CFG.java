@@ -42,4 +42,6 @@ public interface CFG {
      * @return isImpure
      */
     boolean isImpure();
+
+    void setImpure();
 }

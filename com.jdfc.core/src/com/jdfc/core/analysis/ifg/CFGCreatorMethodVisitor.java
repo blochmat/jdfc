@@ -176,7 +176,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node;
         switch (pOpcode) {
             case GETFIELD:
-                //TODO: look one node before to find owner
                 node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), currentInstructionIndex);
                 break;
             case PUTFIELD:
