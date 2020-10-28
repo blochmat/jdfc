@@ -2,6 +2,7 @@ package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.Pair;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
@@ -9,6 +10,7 @@ import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ClassExecutionData extends ExecutionData {
 
@@ -82,28 +84,25 @@ public class ClassExecutionData extends ExecutionData {
         return parameterMatching;
     }
 
+    public void setupMethodEntries() {
+        for(Map.Entry<String, CFG> entry : methodCFGs.entrySet()){
+            defUsePairs.put(entry.getKey(), new ArrayList<>());
+            defUseCovered.put(entry.getKey(), new HashSet<>());
+        }
+    }
+
     /**
      * Calculates all possible Def-Use-Pairs.
      */
-    public void calculateIntraProceduralDefUsePairs() {
-        for (CFG graph : methodCFGs.values()) {
-            String name =
-                    methodCFGs
-                            .entrySet()
-                            .stream()
-                            .filter(stringCFGEntry -> stringCFGEntry.getValue().equals(graph))
-                            .collect(Collectors.toList())
-                            .get(0)
-                            .getKey();
-            defUsePairs.put(name, new ArrayList<>());
-            defUseCovered.put(name, new HashSet<>());
-            for (CFGNode node : graph.getNodes().values()) {
+    public void setupIntraProceduralDefUseInformation() {
+        for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
+            for (CFGNode node : entry.getValue().getNodes().values()) {
                 for (ProgramVariable def : node.getReach()) {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getType().equals("UNKNOWN")) {
-                            defUsePairs.get(name).add(new DefUsePair(def, use));
+                            defUsePairs.get(entry.getKey()).add(new DefUsePair(def, use));
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                                defUseCovered.get(name).add(def);
+                                defUseCovered.get(entry.getKey()).add(def);
                             }
                         }
                     }
@@ -112,7 +111,7 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
-    public void calculateInterProceduralDefUsePairs() {
+    public void setupInterProceduralDefUseInformation() {
         for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
             String methodName = methodCFGs.getKey();
             CFG graph = methodCFGs.getValue();
@@ -121,36 +120,86 @@ public class ClassExecutionData extends ExecutionData {
                     IFGNode ifgNode = (IFGNode) node.getValue();
                     CFGNode entryNode = ifgNode.getCallNode();
                     String entryMethodName = ifgNode.getMethodNameDesc();
-                    processPredRecursive(methodName, entryMethodName, ifgNode.getParameterCount() - 1, ifgNode, ifgNode, entryNode);
+                    Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
+                            getUsageDefinitionMatchRecursive(
+                                    ifgNode.getParameterCount() - 1, null, ifgNode, entryNode);
+                    matchPairs(methodName, entryMethodName, usageDefinitionMatch);
+
+                    if(ifgNode.getRelatedCFG().isImpure()) {
+                        insertNewDefinitions(ifgNode, usageDefinitionMatch.keySet());
+                    }
                 }
             }
         }
     }
 
-    // TODO: Check for refactoring
-    // Finds parameters of method to setup matching
-    private void processPredRecursive(String pMethodName,
-                                      String pEntryMethodName,
-                                      int pLoopsLeft,
-                                      CFGNode pNode,
-                                      IFGNode pCallingNode,
-                                      CFGNode pEntryNode) {
+    public void insertNewDefinitions(IFGNode pNode, Collection<ProgramVariable> pMethodParameters) {
+        for(ProgramVariable parameter : pMethodParameters) {
+            if(!isSimpleType(parameter.getType())) {
+                ProgramVariable newParamDefinition =
+                        ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getType(),
+                                pNode.getIndex(), pNode.getLineNumber());
+                pNode.addDefinition(newParamDefinition);
+            }
+        }
+
+        ProgramVariable caller = pNode.getMethodCaller();
+
+        ProgramVariable newCallerDefinition =
+                ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getType(),
+                        pNode.getIndex(), pNode.getLineNumber());
+        pNode.addDefinition(newCallerDefinition);
+    }
+
+    private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pLoopsLeft,
+                                                                                   final CFGNode pNode,
+                                                                                   final IFGNode pCallingNode,
+                                                                                   final CFGNode pEntryNode) {
+        Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
+        // for each parameter: process one node (predecessor of pNode)
         if (pLoopsLeft >= 0) {
-            CFGNode pred = (CFGNode) pNode.getPredecessors().toArray()[0];
-            ProgramVariable use = (ProgramVariable) pred.getUses().toArray()[0];
-            ProgramVariable entryDefinition = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft];
+            CFGNode pred;
+            if (pNode != null) {
+                pred = (CFGNode) pNode.getPredecessors().toArray()[0];
+            } else {
+                pred = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
+            }
 
-            ProgramVariable definition = findDefinitionByUse(pMethodName, use);
+            // find use in procedure A
+            ProgramVariable usageA = (ProgramVariable) pred.getUses().toArray()[0];
+            // find correlated definition in procedure B
+            ProgramVariable definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft];
 
-            if (definition != null) {
-                parameterMatching.add(new Pair<>(definition, entryDefinition));
-                List<ProgramVariable> usages = findUsagesByDefinition(pEntryMethodName, entryDefinition);
-                for (ProgramVariable usage : usages) {
-                    defUsePairs.get(pMethodName).add(new DefUsePair(definition, usage));
+            matchMap.put(usageA, definitionB);
+
+            matchMap = mergeMaps(matchMap,
+                    getUsageDefinitionMatchRecursive(
+                            pLoopsLeft - 1, pred, pCallingNode, pEntryNode));
+
+        }
+        return matchMap;
+    }
+
+    private void matchPairs(final String pMethodName,
+                            final String pEntryMethodName,
+                            final Map<ProgramVariable, ProgramVariable> pUsageDefinitionMatch) {
+        for(Map.Entry<ProgramVariable, ProgramVariable> usageDefinitionMatch : pUsageDefinitionMatch.entrySet()) {
+            ProgramVariable usageA = usageDefinitionMatch.getKey();
+            ProgramVariable definitionB = usageDefinitionMatch.getValue();
+            // find definition by use of procedure A
+            ProgramVariable definitionA = findDefinitionByUse(pMethodName, usageA);
+            if (definitionA != null) {
+                // match definitions of procedure A and B
+                parameterMatching.add(new Pair<>(definitionA, definitionB));
+                // find all usages of definition of procedure B
+                List<ProgramVariable> usagesB = findUsagesByDefinition(pEntryMethodName, definitionB);
+                // add new pairs
+                for (ProgramVariable usageB : usagesB) {
+                    defUsePairs.get(pMethodName).add(new DefUsePair(definitionA, usageB));
                 }
             }
-            processPredRecursive(pMethodName, pEntryMethodName, pLoopsLeft - 1, pred, pCallingNode, pEntryNode);
         }
+
     }
 
     private ProgramVariable findDefinitionByUse(String pMethodName, ProgramVariable pUsage) {
@@ -222,6 +271,24 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void calculateMethodCount() {
-        this.setMethodCount((int) defUsePairs.entrySet().stream().filter(x -> x.getValue().size()!= 0).count());
+        this.setMethodCount((int) defUsePairs.entrySet().stream().filter(x -> x.getValue().size() != 0).count());
+    }
+
+    private Map<ProgramVariable, ProgramVariable> mergeMaps(Map<ProgramVariable, ProgramVariable> map1,
+                                                                    Map<ProgramVariable, ProgramVariable> map2) {
+        return Stream.of(map1, map2)
+                .flatMap(map -> map.entrySet().stream())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ));
+    }
+
+    private boolean isSimpleType(final String pDescriptor){
+        return pDescriptor.equals("I")
+                || pDescriptor.equals("D")
+                || pDescriptor.equals("F")
+                || pDescriptor.equals("L")
+                || pDescriptor.equals("Ljava/lang/String;");
     }
 }

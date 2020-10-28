@@ -11,7 +11,11 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class JDFCMethodVisitor extends MethodVisitor {
 
@@ -28,6 +32,9 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     public final int PUTFIELD_STANDARD = 2;
     public final int GETFIELD_STANDARD = 1;
+    public final int INVOKE_STANDARD = 1;
+
+    public final String jacocoPrefix = "$jacoco";
 
     public JDFCMethodVisitor(final int pApi,
                              final JDFCClassVisitor pClassVisitor,
@@ -183,6 +190,24 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         return (VarInsnNode) abstractInsnNode;
     }
 
+    // TODO: DELETE?
+    protected int getParamsCount(String pDescriptor) {
+        List<String> allParams =
+                Arrays.stream(pDescriptor.split("[(;)]")).filter(x -> !x.equals("")).collect(Collectors.toList());
+        String returnParam = allParams.get(allParams.size() - 1);
+        allParams.remove(allParams.size() - 1);
+        List<String> passedParams = new ArrayList<>();
+        for (String param : allParams) {
+            if (!param.contains("/")) {
+                passedParams.addAll(Arrays.asList(param.split("")));
+            } else {
+                passedParams.add(param);
+            }
+        }
+
+        return passedParams.size();
+    }
+
     private int recalculateCounter(AbstractInsnNode abstractInsnNode) {
         switch (abstractInsnNode.getOpcode()) {
             case Opcodes.PUTFIELD:
@@ -212,7 +237,7 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         return true;
     }
 
-    public boolean isSimpleType(final String pDescriptor){
+    private boolean isSimpleType(final String pDescriptor){
         return pDescriptor.equals("I")
                 || pDescriptor.equals("D")
                 || pDescriptor.equals("F")
@@ -247,5 +272,9 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         } else {
             return "UNKNOWN";
         }
+    }
+
+    protected boolean isInstrumentationRequired(String pString) {
+        return !pString.contains(jacocoPrefix);
     }
 }

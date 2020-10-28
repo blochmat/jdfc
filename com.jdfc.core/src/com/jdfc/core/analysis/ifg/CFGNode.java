@@ -124,6 +124,10 @@ public class CFGNode {
         return Collections.unmodifiableSet(predecessors);
     }
 
+    public void addDefinition(ProgramVariable pDefinition) {
+        definitions.add(pDefinition);
+    }
+
     /**
      * Returns the set of {@link ProgramVariable}s that get defined at this {@link CFGNode}.
      *

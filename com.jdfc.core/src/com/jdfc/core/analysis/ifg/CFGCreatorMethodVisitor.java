@@ -11,9 +11,9 @@ import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -82,21 +82,13 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-        if (owner.equals(classVisitor.classNode.name)) {
-            String methodNameDesc = name.concat(": " + descriptor);
-            List<String> allParams =
-                    Arrays.stream(descriptor.split("[(;)]")).filter(x -> !x.equals("")).collect(Collectors.toList());
-            String returnParam = allParams.get(allParams.size() - 1);
-            allParams.remove(allParams.size() - 1);
-            List<String> passedParams = new ArrayList<>();
-            for (String param : allParams) {
-                if (!param.contains("/")) {
-                    passedParams.addAll(Arrays.asList(param.split("")));
-                } else {
-                    passedParams.add(param);
-                }
-            }
-            final IFGNode node = new IFGNode(currentInstructionIndex, methodNameDesc, passedParams.size());
+        String methodNameDesc = name.concat(": " + descriptor);
+        if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(methodNameDesc)) {
+            int paramsCount = Type.getArgumentTypes(descriptor).length;
+            VarInsnNode ownerNode = getOwnerNode(INVOKE_STANDARD + paramsCount);
+            ProgramVariable caller =
+                    getProgramVariableFromLocalVar(ownerNode.var, currentInstructionIndex, currentLineNumber);
+            final IFGNode node = new IFGNode(currentInstructionIndex, currentLineNumber, caller, methodNameDesc, paramsCount);
             nodes.put(currentInstructionIndex, node);
         } else {
             final CFGNode node = new CFGNode(currentInstructionIndex);
@@ -201,6 +193,9 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             case FSTORE:
             case DSTORE:
             case ASTORE:
+                if(programVariable.getName().equals("this")) {
+                    System.out.printf("DEFINITION: %s %s\n", lineNumber, programVariable);
+                }
                 node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex);
                 break;
             case ILOAD:
@@ -208,6 +203,9 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             case FLOAD:
             case DLOAD:
             case ALOAD:
+                if(programVariable.getName().equals("this")) {
+                    System.out.printf("USE: %s %s\n", lineNumber, programVariable);
+                }
                 node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex);
                 break;
             default:
@@ -242,8 +240,8 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private void addEntryNode(Set<InstanceVariable> pInstanceVariables) {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
-        for (int i = 0; i < parameterTypes.length; i++) {
-            final Optional<LocalVariable> parameterVariable = localVariableTable.getEntry(i + 1);
+        for (int i = 0; i <= parameterTypes.length; i++) {
+            final Optional<LocalVariable> parameterVariable = localVariableTable.getEntry(i);
             if (parameterVariable.isPresent()) {
                 final LocalVariable localVariable = parameterVariable.get();
                 final ProgramVariable variable =

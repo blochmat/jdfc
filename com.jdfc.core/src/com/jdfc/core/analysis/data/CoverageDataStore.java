@@ -1,6 +1,7 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionDataNode;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.CFG;
 import com.jdfc.commons.data.ExecutionData;
 
@@ -39,9 +40,15 @@ public class CoverageDataStore {
     public void finishClassExecutionDataSetup(final ClassExecutionData pClassExecutionData,
                                               final Map<String, CFG> pMethodCFGs){
         pClassExecutionData.setMethodCFGs(pMethodCFGs);
-        pClassExecutionData.calculateIntraProceduralDefUsePairs();
-        pClassExecutionData.calculateInterProceduralDefUsePairs();
+        pClassExecutionData.setupMethodEntries();
+        pClassExecutionData.setupInterProceduralDefUseInformation();
+        pClassExecutionData.setupIntraProceduralDefUseInformation();
         pClassExecutionData.computeCoverageForClass();
+
+//        System.out.println("DEFUSEPAIRs");
+//        System.out.println(new PrettyPrintMap<>(pClassExecutionData.getDefUsePairs()));
+//        System.out.println("COVERED");
+//        System.out.println(new PrettyPrintMap<>(pClassExecutionData.getDefUseCovered()));
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {

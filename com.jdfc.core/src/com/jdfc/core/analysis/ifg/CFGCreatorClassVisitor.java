@@ -69,9 +69,8 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
                         IFGNode ifgNode = (IFGNode) cfgNodeEntry.getValue();
                         if (isInstrumentationRequired(ifgNode.getMethodNameDesc())) {
                             CFG otherCFG = pMethodCFGs.get(ifgNode.getMethodNameDesc());
-                            if(ifgNode.getCallNode() == null || ifgNode.getReturnNode() == null) {
-                                ifgNode.setCallNode(otherCFG.getNodes().firstEntry().getValue());
-                                ifgNode.setReturnNode(otherCFG.getNodes().lastEntry().getValue());
+                            if(ifgNode.getRelatedCFG() == null) {
+                                ifgNode.setupMethodRelation(otherCFG);
                             }
                             if (otherCFG.isImpure() && !methodEntry.getValue().isImpure()) {
                                 methodEntry.getValue().setImpure();

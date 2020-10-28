@@ -1,18 +1,24 @@
 package com.jdfc.core.analysis.ifg;
 
-import com.jdfc.commons.data.Pair;
-
-import java.util.Set;
+import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
 public class IFGNode extends CFGNode{
 
+    private final int lineNumber;
+    private final ProgramVariable methodCaller;
     private final String methodNameDesc;
+    private final int parameterCount;
     private CFGNode callNode;
-    private CFGNode returnNode;
-    private int parameterCount;
+    private CFG relatedCFG;
 
-    IFGNode(int pIndex, String pMethodNameDesc, int pParameterCount) {
+    IFGNode(final int pIndex,
+            final int pLineNumber,
+            final ProgramVariable pMethodCaller,
+            final String pMethodNameDesc,
+            final int pParameterCount) {
         super(pIndex);
+        lineNumber = pLineNumber;
+        methodCaller = pMethodCaller;
         methodNameDesc = pMethodNameDesc;
         parameterCount = pParameterCount;
     }
@@ -25,19 +31,24 @@ public class IFGNode extends CFGNode{
         return callNode;
     }
 
-    public void setCallNode(CFGNode callNode) {
-        this.callNode = callNode;
-    }
-
-    public CFGNode getReturnNode() {
-        return returnNode;
-    }
-
-    public void setReturnNode(CFGNode returnNode) {
-        this.returnNode = returnNode;
+    public CFG getRelatedCFG() {
+        return relatedCFG;
     }
 
     public int getParameterCount() {
         return parameterCount;
+    }
+
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    public ProgramVariable getMethodCaller() {
+        return methodCaller;
+    }
+
+    public void setupMethodRelation(CFG pRelatedMethod) {
+        this.relatedCFG = pRelatedMethod;
+        this.callNode = pRelatedMethod.getNodes().firstEntry().getValue();
     }
 }
