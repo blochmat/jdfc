@@ -11,11 +11,8 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public abstract class JDFCMethodVisitor extends MethodVisitor {
 
@@ -165,12 +162,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         super.visitEnd();
     }
 
-    protected boolean isStandardConstructor(String pDescriptor) {
-        return methodNode.name.equals("<init>")
-                && localVariableTable.size() == 1
-                && localVariableTable.containsEntry("this", pDescriptor);
-    }
-
     protected void updateCurrentNode() {
         if (currentNode == null) {
             currentNode = methodNode.instructions.getFirst();
@@ -190,24 +181,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         return (VarInsnNode) abstractInsnNode;
     }
 
-    // TODO: DELETE?
-    protected int getParamsCount(String pDescriptor) {
-        List<String> allParams =
-                Arrays.stream(pDescriptor.split("[(;)]")).filter(x -> !x.equals("")).collect(Collectors.toList());
-        String returnParam = allParams.get(allParams.size() - 1);
-        allParams.remove(allParams.size() - 1);
-        List<String> passedParams = new ArrayList<>();
-        for (String param : allParams) {
-            if (!param.contains("/")) {
-                passedParams.addAll(Arrays.asList(param.split("")));
-            } else {
-                passedParams.add(param);
-            }
-        }
-
-        return passedParams.size();
-    }
-
     private int recalculateCounter(AbstractInsnNode abstractInsnNode) {
         switch (abstractInsnNode.getOpcode()) {
             case Opcodes.PUTFIELD:
@@ -217,18 +190,18 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
             case Opcodes.IDIV:
                 return 2;
             case Opcodes.GETFIELD:
-                return  1;
+                return 1;
             default:
                 return 0;
         }
     }
 
-    protected boolean isLocalVariableReferenceToField(final int pIndex, final String pDescriptor){
-        if(!isSimpleType(pDescriptor)) {
-            for(AbstractInsnNode abstractInsnNode : methodNode.instructions) {
-                if(abstractInsnNode instanceof VarInsnNode) {
+    protected boolean isLocalVariableReferenceToField(final int pIndex, final String pDescriptor) {
+        if (!isSimpleType(pDescriptor)) {
+            for (AbstractInsnNode abstractInsnNode : methodNode.instructions) {
+                if (abstractInsnNode instanceof VarInsnNode) {
                     VarInsnNode varInsnNode = (VarInsnNode) abstractInsnNode;
-                    if(varInsnNode.getOpcode() == Opcodes.ASTORE && varInsnNode.var == pIndex) {
+                    if (varInsnNode.getOpcode() == Opcodes.ASTORE && varInsnNode.var == pIndex) {
                         return false;
                     }
                 }
@@ -237,17 +210,12 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         return true;
     }
 
-    private boolean isSimpleType(final String pDescriptor){
+    private boolean isSimpleType(final String pDescriptor) {
         return pDescriptor.equals("I")
                 || pDescriptor.equals("D")
                 || pDescriptor.equals("F")
                 || pDescriptor.equals("L")
                 || pDescriptor.equals("Ljava/lang/String;");
-    }
-
-    // TODO
-    protected ProgramVariable getProgramVariableFromInstanceVar() {
-        return null;
     }
 
     protected ProgramVariable getProgramVariableFromLocalVar(int varNumber, final int pIndex, final int pLineNumber) {

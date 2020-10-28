@@ -1,58 +1,30 @@
 package com.jdfc.core.analysis.instr;
 
+import com.jdfc.core.analysis.JDFCMethodVisitor;
 import com.jdfc.core.analysis.ifg.CFGImpl;
 import org.objectweb.asm.*;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class InstrumentationMethodVisitor extends MethodVisitor {
+import static org.objectweb.asm.Opcodes.*;
 
-    final String className;
-    final String methodName;
-    final String methodDesc;
-    final MethodNode methodNode;
-    AbstractInsnNode currentNode = null;
-    int currentLineNumber = -1;
-    int currentInstructionIndex = -1;
-    List<Integer> returnOpcodes = Arrays.asList(Opcodes.RETURN,
-            Opcodes.IRETURN, Opcodes.DRETURN, Opcodes.ARETURN, Opcodes.FRETURN, Opcodes.LRETURN);
-    // workaround not to collide with jacoco:
-    final String jacocoMethodName = "$jacoco";
+public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
-    public InstrumentationMethodVisitor(MethodVisitor pMethodVisitor, String pClassName, String pMethodName, String pMethodDesc, MethodNode pMethodNode) {
-        super(Opcodes.ASM6, pMethodVisitor);
-        className = pClassName;
-        methodName = pMethodName;
-        methodDesc = pMethodDesc;
-        methodNode = pMethodNode;
-    }
+    List<Integer> returnOpcodes = Arrays.asList(RETURN, IRETURN, DRETURN, ARETURN, FRETURN, LRETURN);
 
-    @Override
-    public void visitLineNumber(int line, Label start) {
-        currentLineNumber = line;
-        mv.visitLineNumber(line, start);
-    }
-
-    @Override
-    public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
-        updateCurrentNode();
-        mv.visitFrame(type, numLocal, local, numStack, stack);
-    }
-
-    @Override
-    public void visitIincInsn(int var, int increment) {
-        updateCurrentNode();
-        mv.visitIincInsn(var, increment);
-        insertLocalVariableEntryCreation(var);
+    public InstrumentationMethodVisitor(InstrumentationClassVisitor pClassVisitor,
+                                        MethodVisitor pMethodVisitor,
+                                        MethodNode pMethodNode,
+                                        String internalMethodName) {
+        super(ASM6, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
     }
 
     @Override
     public void visitInsn(int opcode) {
-        if(returnOpcodes.contains(opcode) && !methodName.contains("<init>")) {
-            mv.visitLdcInsn(className);
+        if(returnOpcodes.contains(opcode) && !methodNode.name.contains("<init>")) {
+            mv.visitLdcInsn(classVisitor.classNode.name);
             mv.visitMethodInsn(
                     Opcodes.INVOKESTATIC,
                     Type.getInternalName(CFGImpl.class),
@@ -60,82 +32,31 @@ public class InstrumentationMethodVisitor extends MethodVisitor {
                     "(Ljava/lang/String;)V",
                     false);
         }
-        updateCurrentNode();
-        mv.visitInsn(opcode);
-    }
-
-    @Override
-    public void visitIntInsn(int opcode, int operand) {
-        updateCurrentNode();
-        mv.visitIntInsn(opcode, operand);
-    }
-
-    @Override
-    public void visitTypeInsn(int opcode, String type) {
-        updateCurrentNode();
-        mv.visitTypeInsn(opcode, type);
-    }
-
-    @Override
-    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        updateCurrentNode();
-        insertInstanceVariableEntryCreation(owner, name, descriptor);
-        mv.visitFieldInsn(opcode, owner, name, descriptor);
-    }
-
-    @Override
-    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-        updateCurrentNode();
-        mv.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-    }
-
-    @Override
-    public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-        updateCurrentNode();
-        mv.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
-    }
-
-    @Override
-    public void visitJumpInsn(int opcode, Label label) {
-        updateCurrentNode();
-        mv.visitJumpInsn(opcode, label);
-    }
-
-    @Override
-    public void visitLdcInsn(Object value) {
-        updateCurrentNode();
-        mv.visitLdcInsn(value);
-    }
-
-    @Override
-    public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
-        updateCurrentNode();
-        mv.visitTableSwitchInsn(min, max, dflt, labels);
-    }
-
-    @Override
-    public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-        updateCurrentNode();
-        mv.visitLookupSwitchInsn(dflt, keys, labels);
-    }
-
-    @Override
-    public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
-        updateCurrentNode();
-        mv.visitMultiANewArrayInsn(descriptor, numDimensions);
+        super.visitInsn(opcode);
     }
 
     @Override
     public void visitVarInsn(int opcode, int var) {
-        updateCurrentNode();
-        mv.visitVarInsn(opcode, var);
+        super.visitVarInsn(opcode, var);
+        insertLocalVariableEntryCreation(var);
+    }
+
+    @Override
+    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+        super.visitFieldInsn(opcode, owner, name, descriptor);
+        insertInstanceVariableEntryCreation(owner, name, descriptor);
+    }
+
+    @Override
+    public void visitIincInsn(int var, int increment) {
+        super.visitIincInsn(var, increment);
         insertLocalVariableEntryCreation(var);
     }
 
     private void insertLocalVariableEntryCreation(final int var) {
-        mv.visitLdcInsn(className);
-        mv.visitLdcInsn(methodName);
-        mv.visitLdcInsn(methodDesc);
+        mv.visitLdcInsn(classVisitor.classNode.name);
+        mv.visitLdcInsn(methodNode.name);
+        mv.visitLdcInsn(methodNode.desc);
         mv.visitLdcInsn(var);
         mv.visitLdcInsn(currentInstructionIndex);
         mv.visitLdcInsn(currentLineNumber);
@@ -151,11 +72,11 @@ public class InstrumentationMethodVisitor extends MethodVisitor {
     }
 
     private void insertInstanceVariableEntryCreation(final String pOwner, final String pName, final String pDescriptor) {
-        if (!isJacocoInstrumentation(pName)) {
-            mv.visitLdcInsn(className);
+        if (isInstrumentationRequired(pName)) {
+            mv.visitLdcInsn(classVisitor.classNode.name);
             mv.visitLdcInsn(pOwner);
-            mv.visitLdcInsn(methodName);
-            mv.visitLdcInsn(methodDesc);
+            mv.visitLdcInsn(methodNode.name);
+            mv.visitLdcInsn(methodNode.desc);
             mv.visitLdcInsn(pName);
             mv.visitLdcInsn(pDescriptor);
             mv.visitLdcInsn(currentInstructionIndex);
@@ -173,19 +94,5 @@ public class InstrumentationMethodVisitor extends MethodVisitor {
                             "II)V",
                     false);
         }
-    }
-
-    // TODO: Twice (see CFGCreatorVisitor)
-    private void updateCurrentNode() {
-        if (currentNode == null) {
-            currentNode = methodNode.instructions.getFirst();
-        } else {
-            currentNode = currentNode.getNext();
-        }
-        currentInstructionIndex = methodNode.instructions.indexOf(currentNode);
-    }
-
-    private boolean isJacocoInstrumentation(String pString) {
-        return pString.contains(jacocoMethodName);
     }
 }

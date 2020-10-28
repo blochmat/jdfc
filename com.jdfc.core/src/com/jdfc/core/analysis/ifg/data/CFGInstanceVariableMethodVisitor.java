@@ -32,7 +32,12 @@ public class CFGInstanceVariableMethodVisitor extends JDFCMethodVisitor {
      */
     @Override
     public void visitFieldInsn(int pOpcode, String pOwner, String pName, String pDescription) {
-        super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
+        if(mv != null) {
+            mv.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
+        } else {
+            super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
+        }
+
         if (pOpcode == PUTFIELD) {
             VarInsnNode ownerNode = getOwnerNode(PUTFIELD_STANDARD);
             ProgramVariable ownerVariable =

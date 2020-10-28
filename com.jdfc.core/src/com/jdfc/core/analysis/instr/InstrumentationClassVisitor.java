@@ -1,48 +1,36 @@
 package com.jdfc.core.analysis.instr;
 
+import com.jdfc.core.analysis.JDFCClassVisitor;
+import com.jdfc.core.analysis.data.ClassExecutionData;
+import com.jdfc.core.analysis.ifg.CFGCreator;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-public class InstrumentationClassVisitor extends ClassVisitor {
+import static org.objectweb.asm.Opcodes.ASM6;
 
-    final ClassNode classNode;
-    final String className;
-    final String jacocoMethodName = "$jacoco";
+public class InstrumentationClassVisitor extends JDFCClassVisitor {
 
-    public InstrumentationClassVisitor(ClassVisitor cv, ClassNode pClassNode) {
-        super(Opcodes.ASM6, cv);
-        classNode = pClassNode;
-        className = classNode.name;
+    public InstrumentationClassVisitor(final ClassVisitor pClassVisitor,
+                                       final ClassNode pClassNode,
+                                       final ClassExecutionData pClassExecutionData) {
+        super(ASM6, pClassVisitor, pClassNode, pClassExecutionData);
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name,
-                                     String desc, String signature, String[] exceptions) {
-        MethodVisitor mv;
-        mv = cv.visitMethod(access, name, desc, signature, exceptions);
-        if (mv != null) {
-            if(!isJacocoInstrumentation(name)) {
-                MethodNode methodNode = getMethodNode(name);
-                mv = new InstrumentationMethodVisitor(mv, className, name, desc, methodNode);
-            }
+    public MethodVisitor visitMethod(final int pAccess,
+                                     final String pName,
+                                     final String pDescriptor,
+                                     final String pSignature,
+                                     final String[] pExceptions) {
+        MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
+        if (isInstrumentationRequired(pName)) {
+            MethodNode methodNode = getMethodNode(pName);
+            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName);
         }
+
         return mv;
-    }
-
-    // TODO: Twice (see CFGCreatorVisitor)
-    private MethodNode getMethodNode(String pName) {
-        for (MethodNode node : classNode.methods) {
-            if (node.name.equals(pName)) {
-                return node;
-            }
-        }
-        return null;
-    }
-
-    private boolean isJacocoInstrumentation(String pString) {
-        return pString.contains(jacocoMethodName);
     }
 }

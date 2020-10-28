@@ -26,14 +26,14 @@ public class JDFCInstrument {
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
 
         //TODO: Remove Debug
-//        if (classNode.name.equals("BranchingInteger")) {
-//            final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-////            final ClassVisitor cv = new InstrumentationClassVisitor(tcv, classNode);
-//            classReader.accept(tcv, 0);
-//        } else {
-            final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode);
+        if (classNode.name.equals("BranchingInteger")) {
+            final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+            final ClassVisitor cv = new InstrumentationClassVisitor(tcv, classNode, classExecutionData);
             classReader.accept(cv, 0);
-//        }
+        } else {
+            final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
+            classReader.accept(cv, 0);
+        }
         return cw.toByteArray();
     }
 }

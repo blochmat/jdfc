@@ -28,6 +28,16 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
     }
 
     public JDFCClassVisitor(final int pApi,
+                            final ClassVisitor pClassVisitor,
+                            final ClassNode pClassNode,
+                            final ClassExecutionData pClassExecutionData) {
+        super(pApi, pClassVisitor);
+        classNode = pClassNode;
+        classExecutionData = pClassExecutionData;
+        localVariableTables = Maps.newLinkedHashMap();
+    }
+
+    public JDFCClassVisitor(final int pApi,
                             final ClassNode pClassNode,
                             final ClassExecutionData pClassExecutionData,
                             final Map<String, LocalVariableTable> pLocalVariableTables) {

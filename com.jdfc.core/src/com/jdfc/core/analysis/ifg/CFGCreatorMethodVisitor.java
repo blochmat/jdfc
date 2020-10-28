@@ -193,9 +193,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             case FSTORE:
             case DSTORE:
             case ASTORE:
-                if(programVariable.getName().equals("this")) {
-                    System.out.printf("DEFINITION: %s %s\n", lineNumber, programVariable);
-                }
                 node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex);
                 break;
             case ILOAD:
@@ -203,9 +200,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             case FLOAD:
             case DLOAD:
             case ALOAD:
-                if(programVariable.getName().equals("this")) {
-                    System.out.printf("USE: %s %s\n", lineNumber, programVariable);
-                }
                 node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex);
                 break;
             default:

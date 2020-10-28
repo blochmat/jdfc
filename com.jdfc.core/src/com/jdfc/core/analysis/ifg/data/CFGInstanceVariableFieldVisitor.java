@@ -31,9 +31,14 @@ class CFGInstanceVariableFieldVisitor extends FieldVisitor {
 
     @Override
     public void visitEnd() {
+        if (fv != null) {
+            fv.visitEnd();
+        } else {
+            super.visitEnd();
+        }
+
         final InstanceVariable variable =
                 InstanceVariable.create(classVisitor.classNode.name, null, access, name, descriptor, signature, -1);
         classVisitor.classExecutionData.getInstanceVariables().add(variable);
-        super.visitEnd();
     }
 }
