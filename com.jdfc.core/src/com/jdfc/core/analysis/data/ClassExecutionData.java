@@ -2,6 +2,7 @@ package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.Pair;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.Field;
@@ -21,9 +22,7 @@ public class ClassExecutionData extends ExecutionData {
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
     private final Map<String, Set<ProgramVariable>> defUseCovered;
     private final Map<String, Set<ProgramVariable>> defUseUncovered;
-
-    //TODO Make parameterMatching a map
-    private final Set<Pair<ProgramVariable, ProgramVariable>> parameterMatching;
+    private final Map<ProgramVariable, ProgramVariable> interProceduralMatches;
     private final String relativePath;
 
     // TODO Initialize methodCFGs here
@@ -34,7 +33,7 @@ public class ClassExecutionData extends ExecutionData {
         defUseUncovered = new HashMap<>();
         relativePath = pRelativePath;
         fields = new HashSet<>();
-        parameterMatching = new HashSet<>();
+        interProceduralMatches = new HashMap<>();
         instanceVariables = new HashSet<>();
     }
 
@@ -80,29 +79,54 @@ public class ClassExecutionData extends ExecutionData {
         return relativePath;
     }
 
-    public Set<Pair<ProgramVariable, ProgramVariable>> getParameterMatching() {
-        return parameterMatching;
+    public Map<ProgramVariable, ProgramVariable> getInterProceduralMatches() {
+        return interProceduralMatches;
     }
 
-    public void setupMethodEntries() {
-        for(Map.Entry<String, CFG> entry : methodCFGs.entrySet()){
+    public void initializeDefUseLists() {
+        for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
             defUsePairs.put(entry.getKey(), new ArrayList<>());
             defUseCovered.put(entry.getKey(), new HashSet<>());
+        }
+    }
+
+    public void insertAdditionalDefs() {
+        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+            for (Map.Entry<Integer, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+                CFGNode node = entry.getValue();
+                if (node instanceof IFGNode) {
+                    IFGNode ifgNode = (IFGNode) node;
+                    if (ifgNode.getRelatedCFG().isImpure()) {
+                        CFGNode entryNode = ifgNode.getCallNode();
+                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
+                                getUsageDefinitionMatchRecursive(
+                                        ifgNode.getParameterCount(), null, ifgNode, entryNode);
+                        insertNewDefinitions(ifgNode, usageDefinitionMatch.keySet());
+                    }
+                }
+            }
+        }
+    }
+
+    public void calculateReachingDefs(){
+        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+            methodCFGsEntry.getValue().calculateReachingDefinitions();
         }
     }
 
     /**
      * Calculates all possible Def-Use-Pairs.
      */
-    public void setupIntraProceduralDefUseInformation() {
-        for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
-            for (CFGNode node : entry.getValue().getNodes().values()) {
+    public void calculateIntraProceduralDefUsePairs() {
+        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+            for (Map.Entry<Integer, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+                CFGNode node = entry.getValue();
                 for (ProgramVariable def : node.getReach()) {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
-                            defUsePairs.get(entry.getKey()).add(new DefUsePair(def, use));
+                            defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                                defUseCovered.get(entry.getKey()).add(def);
+                                defUseCovered.get(methodCFGsEntry.getKey()).add(def);
                             }
                         }
                     }
@@ -111,7 +135,7 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
-    public void setupInterProceduralDefUseInformation() {
+    public void setupInterProceduralMatches() {
         for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
             String methodName = methodCFGs.getKey();
             CFG graph = methodCFGs.getValue();
@@ -122,20 +146,16 @@ public class ClassExecutionData extends ExecutionData {
                     String entryMethodName = ifgNode.getMethodNameDesc();
                     Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                             getUsageDefinitionMatchRecursive(
-                                    ifgNode.getParameterCount() - 1, null, ifgNode, entryNode);
+                                    ifgNode.getParameterCount(), null, ifgNode, entryNode);
                     matchPairs(methodName, entryMethodName, usageDefinitionMatch);
-
-                    if(ifgNode.getRelatedCFG().isImpure()) {
-                        insertNewDefinitions(ifgNode, usageDefinitionMatch.keySet());
-                    }
                 }
             }
         }
     }
 
     public void insertNewDefinitions(IFGNode pNode, Collection<ProgramVariable> pMethodParameters) {
-        for(ProgramVariable parameter : pMethodParameters) {
-            if(!isSimpleType(parameter.getDescriptor())) {
+        for (ProgramVariable parameter : pMethodParameters) {
+            if (!isSimpleType(parameter.getDescriptor())) {
                 ProgramVariable newParamDefinition =
                         ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
                                 pNode.getIndex(), pNode.getLineNumber());
@@ -157,25 +177,25 @@ public class ClassExecutionData extends ExecutionData {
                                                                                    final CFGNode pEntryNode) {
         Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
         // for each parameter: process one node (predecessor of pNode)
-        if (pLoopsLeft >= 0) {
-            CFGNode pred;
+        if (pLoopsLeft > 0) {
+            CFGNode predecessor;
             if (pNode != null) {
-                pred = (CFGNode) pNode.getPredecessors().toArray()[0];
+                predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
             } else {
-                pred = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
+                predecessor = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
             }
 
-            // find use in procedure A
-            ProgramVariable usageA = (ProgramVariable) pred.getUses().toArray()[0];
-            // find correlated definition in procedure B
-            ProgramVariable definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft];
+            Set<ProgramVariable> usages = predecessor.getUses();
 
-            matchMap.put(usageA, definitionB);
+            for (ProgramVariable var : usages) {
+                // find correlated definition in procedure B
+                ProgramVariable definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft];
+                matchMap.put(var, definitionB);
+            }
 
             matchMap = mergeMaps(matchMap,
                     getUsageDefinitionMatchRecursive(
-                            pLoopsLeft - 1, pred, pCallingNode, pEntryNode));
-
+                            pLoopsLeft - 1, predecessor, pCallingNode, pEntryNode));
         }
         return matchMap;
     }
@@ -183,14 +203,15 @@ public class ClassExecutionData extends ExecutionData {
     private void matchPairs(final String pMethodName,
                             final String pEntryMethodName,
                             final Map<ProgramVariable, ProgramVariable> pUsageDefinitionMatch) {
-        for(Map.Entry<ProgramVariable, ProgramVariable> usageDefinitionMatch : pUsageDefinitionMatch.entrySet()) {
+        System.out.printf("DEBUG %s %s\n", pMethodName, pEntryMethodName);
+        for (Map.Entry<ProgramVariable, ProgramVariable> usageDefinitionMatch : pUsageDefinitionMatch.entrySet()) {
             ProgramVariable usageA = usageDefinitionMatch.getKey();
             ProgramVariable definitionB = usageDefinitionMatch.getValue();
             // find definition by use of procedure A
             ProgramVariable definitionA = findDefinitionByUse(pMethodName, usageA);
             if (definitionA != null) {
                 // match definitions of procedure A and B
-                parameterMatching.add(new Pair<>(definitionA, definitionB));
+                interProceduralMatches.put(definitionA, definitionB);
                 // find all usages of definition of procedure B
                 List<ProgramVariable> usagesB = findUsagesByDefinition(pEntryMethodName, definitionB);
                 // add new pairs
@@ -275,7 +296,7 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     private Map<ProgramVariable, ProgramVariable> mergeMaps(Map<ProgramVariable, ProgramVariable> map1,
-                                                                    Map<ProgramVariable, ProgramVariable> map2) {
+                                                            Map<ProgramVariable, ProgramVariable> map2) {
         return Stream.of(map1, map2)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(
@@ -284,7 +305,7 @@ public class ClassExecutionData extends ExecutionData {
                 ));
     }
 
-    private boolean isSimpleType(final String pDescriptor){
+    private boolean isSimpleType(final String pDescriptor) {
         return pDescriptor.equals("I")
                 || pDescriptor.equals("D")
                 || pDescriptor.equals("F")

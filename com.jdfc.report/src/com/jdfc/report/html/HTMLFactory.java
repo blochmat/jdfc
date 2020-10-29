@@ -346,9 +346,9 @@ public class HTMLFactory {
     private List<ProgramVariable> createCorrespondingDefsList(ProgramVariable pDefinition, ClassExecutionData pData) {
         List<ProgramVariable> correspondingDefsList = new ArrayList<>();
         correspondingDefsList.add(pDefinition);
-        for (Pair<ProgramVariable, ProgramVariable> match : pData.getParameterMatching()) {
-            if (match.fst.equals(pDefinition)) {
-                correspondingDefsList.add(match.snd);
+        for (Map.Entry<ProgramVariable, ProgramVariable> entry : pData.getInterProceduralMatches().entrySet()) {
+            if (entry.getKey().equals(pDefinition)) {
+                correspondingDefsList.add(entry.getValue());
             }
         }
         return correspondingDefsList;

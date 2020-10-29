@@ -153,7 +153,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         addExitNode();
 
         CFG cfg = new CFGImpl(methodNode.name, nodes, localVariableTable, isImpure);
-        cfg.calculateReachingDefinitions();
         methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
     }

@@ -17,10 +17,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class CoverageDataExport {
 
@@ -44,7 +41,7 @@ public class CoverageDataExport {
         Set<InstanceVariable> instanceVariables = pClassExecutionData.getInstanceVariables();
         classTag.appendChild(createInstanceVariables(doc, instanceVariables));
 
-        Set<Pair<ProgramVariable, ProgramVariable>> parameterMatching = pClassExecutionData.getParameterMatching();
+        Map<ProgramVariable, ProgramVariable> parameterMatching = pClassExecutionData.getInterProceduralMatches();
         classTag.appendChild(createParameterMatching(doc, parameterMatching));
 
         Map<String, Integer> methodFirstLine = pClassExecutionData.getMethodFirstLine();
@@ -99,29 +96,15 @@ public class CoverageDataExport {
         return instanceVarList;
     }
 
-    private static Element createParameterMatching(Document pDoc, Set<Pair<ProgramVariable, ProgramVariable>> pParameterMatching) {
+    private static Element createParameterMatching(Document pDoc, Map<ProgramVariable, ProgramVariable> pParameterMatching) {
         Element parameterMatchingTag = pDoc.createElement("parameterMatching");
-        for(Pair<ProgramVariable, ProgramVariable> element : pParameterMatching) {
+        for(Map.Entry<ProgramVariable, ProgramVariable> element : pParameterMatching.entrySet()) {
             Element match = pDoc.createElement("match");
             parameterMatchingTag.appendChild(match);
-            Element firstVar = pDoc.createElement("programVariable");
+            Element firstVar = creatProgramVariable(pDoc, element.getKey());
             match.appendChild(firstVar);
-            Element secondVar = pDoc.createElement("programVariable");
+            Element secondVar = creatProgramVariable(pDoc, element.getValue());
             match.appendChild(secondVar);
-            firstVar.setAttribute("owner", element.fst.getOwner());
-            firstVar.setAttribute("name", element.fst.getName());
-            firstVar.setAttribute("type", element.fst.getDescriptor());
-            firstVar.setAttribute("instructionIndex",
-                    Integer.toString(element.fst.getInstructionIndex()));
-            firstVar.setAttribute("lineNumber",
-                    Integer.toString(element.fst.getLineNumber()));
-            secondVar.setAttribute("owner", element.snd.getOwner());
-            secondVar.setAttribute("name", element.snd.getName());
-            secondVar.setAttribute("type", element.snd.getDescriptor());
-            secondVar.setAttribute("instructionIndex",
-                    Integer.toString(element.snd.getInstructionIndex()));
-            secondVar.setAttribute("lineNumber",
-                    Integer.toString(element.snd.getLineNumber()));
         }
         return parameterMatchingTag;
     }
@@ -164,16 +147,21 @@ public class CoverageDataExport {
     private static Element createDefUseCovered(Document pDoc, Set<ProgramVariable> pProgramVarsCovered) {
         Element defUseCoveredTag = pDoc.createElement("defUseCovered");
         for (ProgramVariable programVariable : pProgramVarsCovered) {
-            Element programVariableTag = pDoc.createElement("programVariable");
+            Element programVariableTag = creatProgramVariable(pDoc, programVariable);
             defUseCoveredTag.appendChild(programVariableTag);
-            programVariableTag.setAttribute("owner", programVariable.getOwner());
-            programVariableTag.setAttribute("name", programVariable.getName());
-            programVariableTag.setAttribute("type", programVariable.getDescriptor());
-            programVariableTag.setAttribute("instructionIndex",
-                    Integer.toString(programVariable.getInstructionIndex()));
-            programVariableTag.setAttribute("lineNumber",
-                    Integer.toString(programVariable.getLineNumber()));
         }
         return defUseCoveredTag;
+    }
+
+    private static Element creatProgramVariable(Document pDoc, ProgramVariable pProgramVariable) {
+        Element programVariable = pDoc.createElement("programVariable");
+        programVariable.setAttribute("owner", pProgramVariable.getOwner());
+        programVariable.setAttribute("name", pProgramVariable.getName());
+        programVariable.setAttribute("descriptor", pProgramVariable.getDescriptor());
+        programVariable.setAttribute("instructionIndex",
+                Integer.toString(pProgramVariable.getInstructionIndex()));
+        programVariable.setAttribute("lineNumber",
+                Integer.toString(pProgramVariable.getLineNumber()));
+        return programVariable;
     }
 }

@@ -176,16 +176,16 @@ public class LoadController {
 
     private static void collectMatchData(Node pMatch, ClassExecutionData pClassExecutionData) {
         NodeList programVars = pMatch.getChildNodes();
-        ProgramVariable fst = null;
-        ProgramVariable snd;
+        ProgramVariable firstVar = null;
+        ProgramVariable secondVar;
         for(int i = 0; i < programVars.getLength(); i++) {
             NamedNodeMap programVarAttr = programVars.item(i).getAttributes();
             if(programVarAttr != null) {
-                if(fst == null) {
-                    fst = createProgramVariable(programVarAttr);
+                if(firstVar == null) {
+                    firstVar = createProgramVariable(programVarAttr);
                 } else {
-                    snd = createProgramVariable(programVarAttr);
-                    pClassExecutionData.getParameterMatching().add(new Pair<>(fst, snd));
+                    secondVar = createProgramVariable(programVarAttr);
+                    pClassExecutionData.getInterProceduralMatches().put(firstVar, secondVar);
                 }
             }
         }
@@ -226,7 +226,7 @@ public class LoadController {
     private static ProgramVariable createProgramVariable(NamedNodeMap pAttr) {
         String owner = pAttr.getNamedItem("owner").getNodeValue();
         String name = pAttr.getNamedItem("name").getNodeValue();
-        String type = pAttr.getNamedItem("type").getNodeValue();
+        String type = pAttr.getNamedItem("descriptor").getNodeValue();
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
         return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber);
