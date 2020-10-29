@@ -9,7 +9,7 @@ public class ProgramVariable {
 
     private final String owner;
     private final String name;
-    private final String type;
+    private final String descriptor;
     private final int instructionIndex;
     private final int lineNumber;
 
@@ -17,7 +17,7 @@ public class ProgramVariable {
             final String pOwner, final String pName, final String pType, final int pInstructionIndex, final int pLineNumber) {
         owner = pOwner;
         name = pName;
-        type = pType;
+        descriptor = pType;
         instructionIndex = pInstructionIndex;
         lineNumber = pLineNumber;
     }
@@ -41,8 +41,8 @@ public class ProgramVariable {
      *
      * @return The variable's type
      */
-    public String getType() {
-        return type;
+    public String getDescriptor() {
+        return descriptor;
     }
 
     public int getInstructionIndex() {
@@ -71,7 +71,7 @@ public class ProgramVariable {
         final ProgramVariable that = (ProgramVariable) pOther;
         return Objects.equals(owner, that.owner)
                 && Objects.equals(name, that.name)
-                && Objects.equals(type, that.type)
+                && Objects.equals(descriptor, that.descriptor)
                 && instructionIndex == that.instructionIndex
                 && lineNumber == that.lineNumber;
     }
@@ -81,7 +81,7 @@ public class ProgramVariable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(owner, name, type, instructionIndex, lineNumber);
+        return Objects.hash(owner, name, descriptor, instructionIndex, lineNumber);
     }
 
     /**
@@ -90,6 +90,15 @@ public class ProgramVariable {
     @Override
     public String toString() {
         return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d, Owner: %s)",
-                name, type, instructionIndex, lineNumber, owner);
+                name, descriptor, instructionIndex, lineNumber, owner);
+    }
+
+    public static String encode(ProgramVariable pVar) {
+        return String.format("%s,%s,%s,%s,%s", pVar.owner, pVar.name, pVar.descriptor, pVar.instructionIndex, pVar.lineNumber);
+    }
+
+    public static ProgramVariable decode (String pEncoded) {
+        String[] props = pEncoded.split(",");
+        return ProgramVariable.create(props[0], props[1], props[2], Integer.parseInt(props[3]), Integer.parseInt(props[4]));
     }
 }

@@ -1,17 +1,11 @@
 package com.jdfc.core.analysis.ifg.data;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
-public class InstanceVariable {
+public class InstanceVariable extends Field{
 
-    private final String owner;
     private final ProgramVariable holder;
-    private final int access;
-    private final String name;
-    private final String descriptor;
-    private final String signature;
+    private final int instructionIndex;
     private final int lineNumber;
 
     private InstanceVariable(final String pOwner,
@@ -20,13 +14,11 @@ public class InstanceVariable {
                              final String pName,
                              final String pDescriptor,
                              final String pSignature,
+                             final int pInstructionIndex,
                              final int pLineNumber) {
-        owner = pOwner;
+        super(pOwner, pAccess, pName, pDescriptor, pSignature);
         holder = pHolder;
-        access = pAccess;
-        name = pName;
-        descriptor = pDescriptor;
-        signature = pSignature;
+        instructionIndex = pInstructionIndex;
         lineNumber = pLineNumber;
     }
 
@@ -36,36 +28,21 @@ public class InstanceVariable {
                                           final String pName,
                                           final String pDescriptor,
                                           final String pSignature,
+                                          final int pInstructionIndex,
                                           final int pLineNumber) {
-        return new InstanceVariable(pOwner, pHolder, pAccess, pName, pDescriptor, pSignature, pLineNumber);
+        return new InstanceVariable(pOwner, pHolder, pAccess, pName, pDescriptor, pSignature, pInstructionIndex, pLineNumber);
     }
 
-    public int getAccess() {
-        return access;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescriptor() {
-        return descriptor;
-    }
-
-    public String getSignature() {
-        return signature;
-    }
-
-    public String getOwner() {
-        return owner;
+    public ProgramVariable getHolder() {
+        return holder;
     }
 
     public int getLineNumber() {
         return lineNumber;
     }
 
-    public ProgramVariable getHolder() {
-        return holder;
+    public int getInstructionIndex() {
+        return instructionIndex;
     }
 
     @Override
@@ -87,6 +64,8 @@ public class InstanceVariable {
                 && Objects.equals(name, that.name)
                 && Objects.equals(descriptor, that.descriptor)
                 && Objects.equals(signature, that.signature)
+                && holder.equals(that.holder)
+                && instructionIndex == that.instructionIndex
                 && lineNumber == that.lineNumber;
     }
 
@@ -107,13 +86,17 @@ public class InstanceVariable {
                 + '\''
                 + ", signature="
                 + signature
+                + '\''
+                + ", instructionIndex="
+                + instructionIndex
+                + '\''
                 + ", lineNumber='"
                 + lineNumber
                 + '\''
-                + ","
-                + " holder: {"
+                + ", holderInformation='"
                 + holder
-                + "}"
+                + '\''
                 + '}';
     }
 }
+

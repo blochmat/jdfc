@@ -2,6 +2,7 @@ package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import org.w3c.dom.Document;
@@ -37,11 +38,11 @@ public class CoverageDataExport {
         Element classTag = doc.createElement("class");
         doc.appendChild(classTag);
 
+        Set<Field> fields = pClassExecutionData.getFields();
+        classTag.appendChild(createFields(doc, fields));
+
         Set<InstanceVariable> instanceVariables = pClassExecutionData.getInstanceVariables();
         classTag.appendChild(createInstanceVariables(doc, instanceVariables));
-
-        Set<InstanceVariable> instanceVarOccurrences = pClassExecutionData.getInstanceVariablesOccurrences();
-        classTag.appendChild(createInstanceVarOccurrences(doc, instanceVarOccurrences));
 
         Set<Pair<ProgramVariable, ProgramVariable>> parameterMatching = pClassExecutionData.getParameterMatching();
         classTag.appendChild(createParameterMatching(doc, parameterMatching));
@@ -67,70 +68,60 @@ public class CoverageDataExport {
         transformer.transform(domSource, streamResult);
     }
 
-    private static Element createInstanceVariables(Document pDoc, Set<InstanceVariable> pInstanceVariables) {
-        Element instanceVariablesTag = pDoc.createElement("instanceVariables");
-        for (InstanceVariable instVar : pInstanceVariables) {
-            Element instanceVariableTag = pDoc.createElement("instanceVariable");
-            instanceVariablesTag.appendChild(instanceVariableTag);
-            instanceVariableTag.setAttribute("owner", instVar.getOwner());
-            instanceVariableTag.setAttribute("holder", "null");
-            instanceVariableTag.setAttribute("access", String.valueOf(instVar.getAccess()));
-            instanceVariableTag.setAttribute("name", instVar.getName());
-            instanceVariableTag.setAttribute("descriptor", instVar.getDescriptor());
-            instanceVariableTag.setAttribute("signature", instVar.getSignature());
-            instanceVariableTag.setAttribute("lineNumber", String.valueOf(instVar.getLineNumber()));
+    private static Element createFields(Document pDoc, Set<Field> pFields) {
+        Element fieldList = pDoc.createElement("fieldList");
+        for (Field element : pFields) {
+            Element field = pDoc.createElement("field");
+            fieldList.appendChild(field);
+            field.setAttribute("owner", element.getOwner());
+            field.setAttribute("access", String.valueOf(element.getAccess()));
+            field.setAttribute("name", element.getName());
+            field.setAttribute("descriptor", element.getDescriptor());
+            field.setAttribute("signature", element.getSignature());
         }
-        return instanceVariablesTag;
+        return fieldList;
     }
 
-    private static Element createInstanceVarOccurrences(Document pDoc, Set<InstanceVariable> pInstanceVarOccurrences) {
-        Element instanceVarOccurrencesTag = pDoc.createElement("instanceVarOccurrences");
-        for(InstanceVariable occ : pInstanceVarOccurrences) {
-            Element instanceVarTag = pDoc.createElement("instanceVariable");
-            instanceVarOccurrencesTag.appendChild(instanceVarTag);
-            instanceVarTag.setAttribute("owner", occ.getOwner());
-            instanceVarTag.setAttribute("holder", occ.getHolder().getName());
-            Element holder = pDoc.createElement("programVariable");
-            instanceVarTag.appendChild(holder);
-            holder.setAttribute("owner", occ.getHolder().getOwner());
-            holder.setAttribute("name", occ.getHolder().getName());
-            holder.setAttribute("type", occ.getHolder().getType());
-            holder.setAttribute("instructionIndex",
-                    Integer.toString(occ.getHolder().getInstructionIndex()));
-            holder.setAttribute("lineNumber",
-                    Integer.toString(occ.getHolder().getInstructionIndex()));
-            instanceVarTag.setAttribute("access", String.valueOf(occ.getAccess()));
-            instanceVarTag.setAttribute("name", occ.getName());
-            instanceVarTag.setAttribute("descriptor", occ.getDescriptor());
-            instanceVarTag.setAttribute("signature", occ.getSignature());
-            instanceVarTag.setAttribute("lineNumber", String.valueOf(occ.getLineNumber()));
+    private static Element createInstanceVariables(Document pDoc, Set<InstanceVariable> pInstanceVariables) {
+        Element instanceVarList = pDoc.createElement("instanceVariableList");
+        for(InstanceVariable element : pInstanceVariables) {
+            Element instanceVar = pDoc.createElement("instanceVariable");
+            instanceVarList.appendChild(instanceVar);
+            instanceVar.setAttribute("owner", element.getOwner());
+            instanceVar.setAttribute("holder", ProgramVariable.encode(element.getHolder()));
+            instanceVar.setAttribute("access", String.valueOf(element.getAccess()));
+            instanceVar.setAttribute("name", element.getName());
+            instanceVar.setAttribute("descriptor", element.getDescriptor());
+            instanceVar.setAttribute("signature", element.getSignature());
+            instanceVar.setAttribute("instructionIndex", String.valueOf(element.getInstructionIndex()));
+            instanceVar.setAttribute("lineNumber", String.valueOf(element.getLineNumber()));
         }
-        return instanceVarOccurrencesTag;
+        return instanceVarList;
     }
 
     private static Element createParameterMatching(Document pDoc, Set<Pair<ProgramVariable, ProgramVariable>> pParameterMatching) {
         Element parameterMatchingTag = pDoc.createElement("parameterMatching");
-        for(Pair<ProgramVariable, ProgramVariable> matching : pParameterMatching) {
+        for(Pair<ProgramVariable, ProgramVariable> element : pParameterMatching) {
             Element match = pDoc.createElement("match");
             parameterMatchingTag.appendChild(match);
             Element firstVar = pDoc.createElement("programVariable");
             match.appendChild(firstVar);
             Element secondVar = pDoc.createElement("programVariable");
             match.appendChild(secondVar);
-            firstVar.setAttribute("owner", matching.fst.getOwner());
-            firstVar.setAttribute("name", matching.fst.getName());
-            firstVar.setAttribute("type", matching.fst.getType());
+            firstVar.setAttribute("owner", element.fst.getOwner());
+            firstVar.setAttribute("name", element.fst.getName());
+            firstVar.setAttribute("type", element.fst.getDescriptor());
             firstVar.setAttribute("instructionIndex",
-                    Integer.toString(matching.fst.getInstructionIndex()));
+                    Integer.toString(element.fst.getInstructionIndex()));
             firstVar.setAttribute("lineNumber",
-                    Integer.toString(matching.fst.getLineNumber()));
-            secondVar.setAttribute("owner", matching.snd.getOwner());
-            secondVar.setAttribute("name", matching.snd.getName());
-            secondVar.setAttribute("type", matching.snd.getType());
+                    Integer.toString(element.fst.getLineNumber()));
+            secondVar.setAttribute("owner", element.snd.getOwner());
+            secondVar.setAttribute("name", element.snd.getName());
+            secondVar.setAttribute("type", element.snd.getDescriptor());
             secondVar.setAttribute("instructionIndex",
-                    Integer.toString(matching.snd.getInstructionIndex()));
+                    Integer.toString(element.snd.getInstructionIndex()));
             secondVar.setAttribute("lineNumber",
-                    Integer.toString(matching.snd.getLineNumber()));
+                    Integer.toString(element.snd.getLineNumber()));
         }
         return parameterMatchingTag;
     }
@@ -157,13 +148,13 @@ public class CoverageDataExport {
             defUsePairsTag.appendChild(defUsePairTag);
             defUsePairTag.setAttribute("dOwner", duPair.getDefinition().getOwner());
             defUsePairTag.setAttribute("dName", duPair.getDefinition().getName());
-            defUsePairTag.setAttribute("dType", duPair.getDefinition().getType());
+            defUsePairTag.setAttribute("dType", duPair.getDefinition().getDescriptor());
             defUsePairTag.setAttribute("dIndex", Integer.toString(duPair.getDefinition().getInstructionIndex()));
             defUsePairTag.setAttribute("dLineNumber", Integer.toString(duPair.getDefinition().getLineNumber()));
 
             defUsePairTag.setAttribute("uOwner", duPair.getUsage().getOwner());
             defUsePairTag.setAttribute("uName", duPair.getUsage().getName());
-            defUsePairTag.setAttribute("uType", duPair.getUsage().getType());
+            defUsePairTag.setAttribute("uType", duPair.getUsage().getDescriptor());
             defUsePairTag.setAttribute("uIndex", Integer.toString(duPair.getUsage().getInstructionIndex()));
             defUsePairTag.setAttribute("uLineNumber", Integer.toString(duPair.getUsage().getLineNumber()));
         }
@@ -177,7 +168,7 @@ public class CoverageDataExport {
             defUseCoveredTag.appendChild(programVariableTag);
             programVariableTag.setAttribute("owner", programVariable.getOwner());
             programVariableTag.setAttribute("name", programVariable.getName());
-            programVariableTag.setAttribute("type", programVariable.getType());
+            programVariableTag.setAttribute("type", programVariable.getDescriptor());
             programVariableTag.setAttribute("instructionIndex",
                     Integer.toString(programVariable.getInstructionIndex()));
             programVariableTag.setAttribute("lineNumber",

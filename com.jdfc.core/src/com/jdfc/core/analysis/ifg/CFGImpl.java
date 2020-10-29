@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import com.jdfc.core.analysis.data.CoverageDataExport;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.ifg.data.InstanceVariable;
+import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
@@ -146,8 +146,8 @@ public class CFGImpl implements CFG {
                                                       final int pInstructionIndex,
                                                       final int pLineNumber) {
         if(pClassExecutionData != null) {
-            Set<InstanceVariable> set = pClassExecutionData.getInstanceVariables();
-            InstanceVariable variable = findInstanceVariable(set, pOwner, pVarName, pVarDesc);
+            Set<Field> set = pClassExecutionData.getFields();
+            Field variable = findInstanceVariable(set, pOwner, pVarName, pVarDesc);
             if (variable != null) {
                 return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(), pInstructionIndex, pLineNumber);
             }
@@ -167,8 +167,8 @@ public class CFGImpl implements CFG {
         return o.orElse(null);
     }
 
-    static InstanceVariable findInstanceVariable(Set<InstanceVariable> pSet, String pOwner, String pVarName, String pVarDesc) {
-        for (InstanceVariable variable : pSet) {
+    static Field findInstanceVariable(Set<Field> pSet, String pOwner, String pVarName, String pVarDesc) {
+        for (Field variable : pSet) {
             if (variable.getOwner().equals(pOwner)
                     && variable.getName().equals(pVarName)
                     && variable.getDescriptor().equals(pVarDesc)) {

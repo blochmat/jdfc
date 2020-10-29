@@ -2,9 +2,9 @@ package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.Pair;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
@@ -16,8 +16,8 @@ public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
+    private final Set<Field> fields;
     private final Set<InstanceVariable> instanceVariables;
-    private final Set<InstanceVariable> instanceVariablesOccurrences;
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
     private final Map<String, Set<ProgramVariable>> defUseCovered;
     private final Map<String, Set<ProgramVariable>> defUseUncovered;
@@ -33,9 +33,9 @@ public class ClassExecutionData extends ExecutionData {
         defUseCovered = new HashMap<>();
         defUseUncovered = new HashMap<>();
         relativePath = pRelativePath;
-        instanceVariables = new HashSet<>();
+        fields = new HashSet<>();
         parameterMatching = new HashSet<>();
-        instanceVariablesOccurrences = new HashSet<>();
+        instanceVariables = new HashSet<>();
     }
 
     /**
@@ -68,12 +68,12 @@ public class ClassExecutionData extends ExecutionData {
         return defUseCovered;
     }
 
-    public Set<InstanceVariable> getInstanceVariables() {
-        return instanceVariables;
+    public Set<Field> getFields() {
+        return fields;
     }
 
-    public Set<InstanceVariable> getInstanceVariablesOccurrences() {
-        return instanceVariablesOccurrences;
+    public Set<InstanceVariable> getInstanceVariables() {
+        return instanceVariables;
     }
 
     public String getRelativePath() {
@@ -99,7 +99,7 @@ public class ClassExecutionData extends ExecutionData {
             for (CFGNode node : entry.getValue().getNodes().values()) {
                 for (ProgramVariable def : node.getReach()) {
                     for (ProgramVariable use : node.getUses()) {
-                        if (def.getName().equals(use.getName()) && !def.getType().equals("UNKNOWN")) {
+                        if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
                             defUsePairs.get(entry.getKey()).add(new DefUsePair(def, use));
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
                                 defUseCovered.get(entry.getKey()).add(def);
@@ -135,9 +135,9 @@ public class ClassExecutionData extends ExecutionData {
 
     public void insertNewDefinitions(IFGNode pNode, Collection<ProgramVariable> pMethodParameters) {
         for(ProgramVariable parameter : pMethodParameters) {
-            if(!isSimpleType(parameter.getType())) {
+            if(!isSimpleType(parameter.getDescriptor())) {
                 ProgramVariable newParamDefinition =
-                        ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getType(),
+                        ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
                                 pNode.getIndex(), pNode.getLineNumber());
                 pNode.addDefinition(newParamDefinition);
             }
@@ -146,7 +146,7 @@ public class ClassExecutionData extends ExecutionData {
         ProgramVariable caller = pNode.getMethodCaller();
 
         ProgramVariable newCallerDefinition =
-                ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getType(),
+                ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getDescriptor(),
                         pNode.getIndex(), pNode.getLineNumber());
         pNode.addDefinition(newCallerDefinition);
     }

@@ -6,6 +6,7 @@ import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.JDFCInstrument;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
@@ -108,8 +109,8 @@ public class LoadController {
             NamedNodeMap attr = node.getAttributes();
             if (attr != null) {
                 switch (node.getNodeName()) {
-                    case "instanceVariables":
-                    case "instanceVarOccurrences":
+                    case "fieldList":
+                    case "instanceVariableList":
                     case "parameterMatching":
                     case "defUsePairs":
                     case "defUseCovered":
@@ -134,13 +135,14 @@ public class LoadController {
                     case "instanceVariable":
                         NamedNodeMap instanceVarAttr = node.getAttributes();
                         if (instanceVarAttr != null) {
-                            if (pParent.equals("instanceVarOccurrences")) {
-                                collectInstanceVariableOccData(node, classExecutionData);
-                                break;
-                            } else if (pParent.equals("instanceVariables")){
-                                collectInstanceVariableData(instanceVarAttr, classExecutionData);
-                                break;
-                            }
+                            collectInstanceVariableData(instanceVarAttr, classExecutionData);
+                            break;
+                        }
+                    case "field":
+                        NamedNodeMap fieldAttr = node.getAttributes();
+                        if (fieldAttr != null) {
+                            collectFieldData(fieldAttr, classExecutionData);
+                            break;
                         }
                     case "programVariable":
                         NamedNodeMap programVarAttr = node.getAttributes();
@@ -158,18 +160,18 @@ public class LoadController {
         }
     }
 
-    private static void collectInstanceVariableOccData(Node pInstanceVariable, ClassExecutionData pClassExecutionData) {
-        NamedNodeMap instVarAttr = pInstanceVariable.getAttributes();
-        ProgramVariable holder = null;
-        NodeList nodeList = pInstanceVariable.getChildNodes();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            NamedNodeMap nodeAttr = nodeList.item(i).getAttributes();
-            if (nodeAttr != null) {
-                holder = createProgramVariable(nodeAttr);
-            }
-        }
-        InstanceVariable newVar = createInstanceVariable(instVarAttr, holder);
-        pClassExecutionData.getInstanceVariablesOccurrences().add(newVar);
+    private static void collectInstanceVariableData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
+        String owner = pAttr.getNamedItem("owner").getNodeValue();
+        ProgramVariable holder = ProgramVariable.decode(pAttr.getNamedItem("holder").getNodeValue());
+        int access = Integer.parseInt(pAttr.getNamedItem("access").getNodeValue());
+        String name = pAttr.getNamedItem("name").getNodeValue();
+        String descriptor = pAttr.getNamedItem("descriptor").getNodeValue();
+        String signature = pAttr.getNamedItem("signature").getNodeValue();
+        int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
+        int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
+
+        InstanceVariable newVar = InstanceVariable.create(owner, holder, access, name, descriptor, signature, instructionIndex, lineNumber);
+        pClassExecutionData.getInstanceVariables().add(newVar);
     }
 
     private static void collectMatchData(Node pMatch, ClassExecutionData pClassExecutionData) {
@@ -189,9 +191,14 @@ public class LoadController {
         }
     }
 
-    private static void collectInstanceVariableData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
-        InstanceVariable newVar = createInstanceVariable(pAttr, null);
-        pClassExecutionData.getInstanceVariables().add(newVar);
+    private static void collectFieldData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
+        String owner = pAttr.getNamedItem("owner").getNodeValue();
+        int access = Integer.parseInt(pAttr.getNamedItem("access").getNodeValue());
+        String name = pAttr.getNamedItem("name").getNodeValue();
+        String descriptor = pAttr.getNamedItem("descriptor").getNodeValue();
+        String signature = pAttr.getNamedItem("signature").getNodeValue();
+        Field newField = Field.create(owner, access, name, descriptor, signature);
+        pClassExecutionData.getFields().add(newField);
     }
 
     private static void collectProgramVariableData(String pMethodName, NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
@@ -223,16 +230,6 @@ public class LoadController {
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
         return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber);
-    }
-
-    private static InstanceVariable createInstanceVariable(NamedNodeMap pAttr, ProgramVariable pHolder) {
-        String owner = pAttr.getNamedItem("owner").getNodeValue();
-        int access = Integer.parseInt(pAttr.getNamedItem("access").getNodeValue());
-        String name = pAttr.getNamedItem("name").getNodeValue();
-        String descriptor = pAttr.getNamedItem("descriptor").getNodeValue();
-        String signature = pAttr.getNamedItem("signature").getNodeValue();
-        int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
-        return InstanceVariable.create(owner, pHolder, access, name, descriptor, signature, lineNumber);
     }
 
     private static DefUsePair createDefUsePair(NamedNodeMap pAttr) {

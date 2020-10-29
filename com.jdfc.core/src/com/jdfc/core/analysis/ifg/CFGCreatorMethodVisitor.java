@@ -5,10 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.jdfc.core.analysis.JDFCMethodVisitor;
-import com.jdfc.core.analysis.ifg.data.InstanceVariable;
-import com.jdfc.core.analysis.ifg.data.LocalVariable;
-import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
-import com.jdfc.core.analysis.ifg.data.ProgramVariable;
+import com.jdfc.core.analysis.ifg.data.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
@@ -150,8 +147,9 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         edges.putAll(createEdges());
         setPredecessorSuccessorRelation();
 
-        // Add all instance variables to dummy start node as they are defined for all methods
-        addEntryNode(classVisitor.classExecutionData.getInstanceVariables());
+        // Add all fields to dummy start node as they are defined for all methods and may be used without local
+        // redefinition
+        addEntryNode(classVisitor.classExecutionData.getFields());
         addExitNode();
 
         CFG cfg = new CFGImpl(methodNode.name, nodes, localVariableTable, isImpure);
@@ -164,7 +162,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         // TODO: getProgramVariableFromInstanceVariableOcc due to object owner information
         final ProgramVariable programVariable =
                 ProgramVariable.create(pOwner, pName, pDescriptor, currentInstructionIndex, currentLineNumber);
-//        System.out.printf("DEBUG TRACKING FIELD: \n%s\n", programVariable);
+        System.out.printf("DEBUG TRACKING FIELD: \n%s\n", programVariable);
         final CFGNode node;
         switch (pOpcode) {
             case GETFIELD:
@@ -232,7 +230,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private void addEntryNode(Set<InstanceVariable> pInstanceVariables) {
+    private void addEntryNode(Set<Field> pFields) {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (int i = 0; i <= parameterTypes.length; i++) {
             final Optional<LocalVariable> parameterVariable = localVariableTable.getEntry(i);
@@ -248,14 +246,14 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             }
         }
 
-        for (InstanceVariable instanceVariable : pInstanceVariables) {
+        for (Field element : pFields) {
             final ProgramVariable variable =
                     ProgramVariable.create(
-                            instanceVariable.getOwner(),
-                            instanceVariable.getName(),
-                            instanceVariable.getDescriptor(),
+                            element.getOwner(),
+                            element.getName(),
+                            element.getDescriptor(),
                             Integer.MIN_VALUE,
-                            instanceVariable.getLineNumber());
+                            Integer.MIN_VALUE);
             parameters.add(variable);
         }
 

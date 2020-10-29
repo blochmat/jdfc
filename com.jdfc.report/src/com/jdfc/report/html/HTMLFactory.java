@@ -4,6 +4,7 @@ import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
+import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
@@ -653,14 +654,24 @@ public class HTMLFactory {
                 }
             }
         }
-        for (InstanceVariable instanceVariable : pData.getInstanceVariables()) {
-            if (instanceVariable.getLineNumber() == pLineNumber && instanceVariable.getName().equals(pName)) {
+        for (InstanceVariable element : pData.getInstanceVariables()) {
+            if (element.getLineNumber() == pLineNumber && element.getName().equals(pName)) {
                 return ProgramVariable.create(
-                        instanceVariable.getOwner(),
-                        instanceVariable.getName(),
-                        instanceVariable.getDescriptor(),
+                        element.getOwner(),
+                        element.getName(),
+                        element.getDescriptor(),
+                        element.getInstructionIndex(),
+                        element.getLineNumber());
+            }
+        }
+        for (Field element : pData.getFields()) {
+            if (element.getName().equals(pName)) {
+                return ProgramVariable.create(
+                        element.getOwner(),
+                        element.getName(),
+                        element.getDescriptor(),
                         Integer.MIN_VALUE,
-                        instanceVariable.getLineNumber());
+                        Integer.MIN_VALUE);
             }
         }
         return null;
@@ -695,14 +706,14 @@ public class HTMLFactory {
         return false;
     }
 
-    private boolean isInstanceVariable(ClassExecutionData pData, int pLineNumber, String pName) {
-        for (InstanceVariable instanceVariable : pData.getInstanceVariables()) {
-            if (instanceVariable.getName().equals(pName) && instanceVariable.getLineNumber() > pLineNumber) {
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean isInstanceVariable(ClassExecutionData pData, int pLineNumber, String pName) {
+//        for (Field field : pData.getFields()) {
+//            if (field.getName().equals(pName) && field.getLineNumber() > pLineNumber) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     private ProgramVariable findUsage(ClassExecutionData pData, int pLineNumber, String pName) {
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {

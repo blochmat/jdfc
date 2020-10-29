@@ -38,26 +38,33 @@ public class CFGInstanceVariableMethodVisitor extends JDFCMethodVisitor {
             super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         }
 
-        if (pOpcode == PUTFIELD) {
-            VarInsnNode ownerNode = getOwnerNode(PUTFIELD_STANDARD);
-            ProgramVariable ownerVariable =
-                    getProgramVariableFromLocalVar(ownerNode.var, currentInstructionIndex, currentLineNumber);
-            Set<InstanceVariable> instanceVariables = classVisitor.classExecutionData.getInstanceVariables();
-            for (InstanceVariable instanceVariable : instanceVariables) {
-                if (instanceVariable.getOwner().equals(pOwner)
-                        && instanceVariable.getName().equals(pName)
-                        && instanceVariable.getDescriptor().equals(pDescription)) {
-                    classVisitor.classExecutionData.getInstanceVariablesOccurrences().add(
-                            InstanceVariable.create(instanceVariable.getOwner(),
-                                    ownerVariable,
-                                    instanceVariable.getAccess(),
-                                    pName,
-                                    pDescription,
-                                    instanceVariable.getSignature(),
-                                    currentLineNumber)
-                    );
+        Set<Field> fields = classVisitor.classExecutionData.getFields();
+        for (Field field : fields) {
+            if (field.getOwner().equals(pOwner)
+                    && field.getName().equals(pName)
+                    && field.getDescriptor().equals(pDescription)) {
+                VarInsnNode ownerNode;
+                if (pOpcode == PUTFIELD) {
+                    ownerNode = getOwnerNode(PUTFIELD_STANDARD);
+                } else {
+                    ownerNode = getOwnerNode(GETFIELD_STANDARD);
                 }
+                ProgramVariable ownerVariable =
+                        getProgramVariableFromLocalVar(ownerNode.var, currentInstructionIndex-1, currentLineNumber);
+
+                classVisitor.classExecutionData.getInstanceVariables().add(
+                        InstanceVariable.create(pOwner,
+                                ownerVariable,
+                                field.getAccess(),
+                                pName,
+                                pDescription,
+                                field.getSignature(),
+                                currentInstructionIndex,
+                                currentLineNumber)
+                );
+                break;
             }
         }
+
     }
 }

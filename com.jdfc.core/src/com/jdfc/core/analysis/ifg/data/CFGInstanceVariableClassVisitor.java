@@ -3,6 +3,7 @@ package com.jdfc.core.analysis.ifg.data;
 import com.jdfc.core.analysis.JDFCClassVisitor;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.core.analysis.ifg.CFGCreator;
+import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
