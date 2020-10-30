@@ -9,6 +9,7 @@ import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
+import org.objectweb.asm.ClassReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -19,6 +20,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -52,7 +54,7 @@ public class LoadController {
             try {
                 Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml);
                 Node rootTag = doc.getFirstChild();
-                examineFileRecursive(null, rootTag, classExecutionData);
+                examineFileRecursive(rootTag, classExecutionData);
                 classExecutionData.computeCoverageForClass();
                 classExecutionDataNode.setData(classExecutionData);
                 classExecutionDataNode.aggregateDataToRoot();
@@ -65,21 +67,20 @@ public class LoadController {
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
         // If untested classes exist => compute def use pairs
-        // TODO: Important func
-//        for (String relPath : classList) {
-//            String classFilePath = String.format("%s/%s%s", pClassesDir, relPath, classSuffix);
-//            File classFile = new File(classFilePath);
-//            try {
-//                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
-//                ClassReader cr = new ClassReader(classFileBuffer);
-//                JDFCInstrument.instrument(cr);
-//                ExecutionDataNode<ExecutionData> classExecutionDataNode =
-//                        CoverageDataStore.getInstance().findClassDataNode(relPath);
-//                classExecutionDataNode.aggregateDataToRoot();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        for (String relPath : classList) {
+            String classFilePath = String.format("%s/%s%s", pClassesDir, relPath, classSuffix);
+            File classFile = new File(classFilePath);
+            try {
+                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+                ClassReader cr = new ClassReader(classFileBuffer);
+                JDFCInstrument.instrument(cr);
+                ExecutionDataNode<ExecutionData> classExecutionDataNode =
+                        CoverageDataStore.getInstance().findClassDataNode(relPath);
+                classExecutionDataNode.aggregateDataToRoot();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static List<File> loadFilesFromDirRecursive(File file, String suffix) {
@@ -97,7 +98,7 @@ public class LoadController {
         return returnList;
     }
 
-    private static void examineFileRecursive(String pParent, Node pXMLNode, ClassExecutionData classExecutionData) {
+    private static void examineFileRecursive(Node pXMLNode, ClassExecutionData classExecutionData) {
         NodeList nodeList = pXMLNode.getChildNodes();
         String methodName;
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -107,10 +108,10 @@ public class LoadController {
                 switch (node.getNodeName()) {
                     case "fieldList":
                     case "instanceVariableList":
-                    case "parameterMatching":
-                    case "defUsePairs":
-                    case "defUseCovered":
-                        examineFileRecursive(node.getNodeName(), node, classExecutionData);
+                    case "interProceduralMatchList":
+                    case "defUsePairList":
+                    case "variablesCoveredList":
+                        examineFileRecursive(node, classExecutionData);
                         break;
                     case "match":
                         collectMatchData(node, classExecutionData);
@@ -121,11 +122,11 @@ public class LoadController {
                         Integer lastLine = Integer.valueOf(node.getAttributes().getNamedItem("lastLine").getNodeValue());
                         classExecutionData.getMethodFirstLine().put(methodName, firstLine);
                         classExecutionData.getMethodLastLine().put(methodName, lastLine);
-                        examineFileRecursive(node.getNodeName(), node, classExecutionData);
+                        examineFileRecursive(node, classExecutionData);
                         break;
                     case "defUsePair":
                         NamedNodeMap defUsePairAttr = node.getAttributes();
-                        if(defUsePairAttr != null) {
+                        if (defUsePairAttr != null) {
                             methodName = node.getParentNode().getParentNode().getAttributes().getNamedItem("name").getNodeValue();
                             collectDefUsePairData(methodName, defUsePairAttr, classExecutionData);
                             break;
@@ -144,12 +145,11 @@ public class LoadController {
                         }
                     case "programVariable":
                         NamedNodeMap programVarAttr = node.getAttributes();
-                        if(programVarAttr != null) {
-                            if (pParent.equals("defUseCovered")) {
-                                methodName = node.getParentNode().getParentNode().getAttributes().getNamedItem("name").getNodeValue();
-                                collectProgramVariableData(methodName, programVarAttr, classExecutionData);
-                                break;
-                            }
+                        if (programVarAttr != null) {
+                            methodName = node.getParentNode().getParentNode().getAttributes().getNamedItem("name").getNodeValue();
+                            collectProgramVariableData(methodName, programVarAttr, classExecutionData);
+                            break;
+
                         }
                     default:
                         throw new IllegalArgumentException("Invalid Tag in XML! " + node.getNodeName());
@@ -176,10 +176,10 @@ public class LoadController {
         NodeList programVars = pMatch.getChildNodes();
         ProgramVariable firstVar = null;
         ProgramVariable secondVar;
-        for(int i = 0; i < programVars.getLength(); i++) {
+        for (int i = 0; i < programVars.getLength(); i++) {
             NamedNodeMap programVarAttr = programVars.item(i).getAttributes();
-            if(programVarAttr != null) {
-                if(firstVar == null) {
+            if (programVarAttr != null) {
+                if (firstVar == null) {
                     firstVar = createProgramVariable(programVarAttr);
                 } else {
                     secondVar = createProgramVariable(programVarAttr);
@@ -201,10 +201,10 @@ public class LoadController {
 
     private static void collectProgramVariableData(String pMethodName, NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
         ProgramVariable programVariable = createProgramVariable(pAttr);
-        if(pClassExecutionData.getVariablesCovered().get(pMethodName) == null) {
-            Set<ProgramVariable> defUseCovered = new HashSet<>();
-            defUseCovered.add(programVariable);
-            pClassExecutionData.getVariablesCovered().put(pMethodName, defUseCovered);
+        if (pClassExecutionData.getVariablesCovered().get(pMethodName) == null) {
+            Set<ProgramVariable> variablesCovered = new HashSet<>();
+            variablesCovered.add(programVariable);
+            pClassExecutionData.getVariablesCovered().put(pMethodName, variablesCovered);
         } else {
             pClassExecutionData.getVariablesCovered().get(pMethodName).add(programVariable);
         }
@@ -212,7 +212,7 @@ public class LoadController {
 
     private static void collectDefUsePairData(String pMethodName, NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
         DefUsePair defUsePair = createDefUsePair(pAttr);
-        if(pClassExecutionData.getDefUsePairs().get(pMethodName) == null) {
+        if (pClassExecutionData.getDefUsePairs().get(pMethodName) == null) {
             List<DefUsePair> defUsePairs = new ArrayList<>();
             defUsePairs.add(defUsePair);
             pClassExecutionData.getDefUsePairs().put(pMethodName, defUsePairs);
@@ -249,7 +249,7 @@ public class LoadController {
     }
 
     private static String getValueOrNull(String pValue) {
-        if(pValue.equals("")) {
+        if (pValue.equals("")) {
             return null;
         }
         return pValue;

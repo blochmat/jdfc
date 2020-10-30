@@ -727,8 +727,8 @@ public class HTMLFactory {
     }
 
     private boolean findIsDefCovered(ClassExecutionData pData, ProgramVariable pDefinition) {
-        for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getVariablesCovered().entrySet()) {
-            if (defUseCovered.getValue().contains(pDefinition)) {
+        for (Map.Entry<String, Set<ProgramVariable>> variablesCovered : pData.getVariablesCovered().entrySet()) {
+            if (variablesCovered.getValue().contains(pDefinition)) {
                 return true;
             }
         }

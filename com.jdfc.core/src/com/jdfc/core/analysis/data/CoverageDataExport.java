@@ -40,19 +40,19 @@ public class CoverageDataExport {
         Set<InstanceVariable> instanceVariables = pClassExecutionData.getInstanceVariables();
         classTag.appendChild(createInstanceVariables(doc, instanceVariables));
 
-        Map<ProgramVariable, ProgramVariable> parameterMatching = pClassExecutionData.getInterProceduralMatches();
-        classTag.appendChild(createParameterMatching(doc, parameterMatching));
+        Map<ProgramVariable, ProgramVariable> interProceduralMatches = pClassExecutionData.getInterProceduralMatches();
+        classTag.appendChild(createInterProceduralMatchList(doc, interProceduralMatches));
 
         Map<String, Integer> methodFirstLine = pClassExecutionData.getMethodFirstLine();
         Map<String, Integer> methodLastLine = pClassExecutionData.getMethodLastLine();
         TreeMap<String, List<DefUsePair>> defUsePairs = pClassExecutionData.getDefUsePairs();
-        Map<String, Set<ProgramVariable>> defUseCovered = pClassExecutionData.getVariablesCovered();
+        Map<String, Set<ProgramVariable>> variablesCovered = pClassExecutionData.getVariablesCovered();
         for (Map.Entry<String, List<DefUsePair>> methodEntry : defUsePairs.entrySet()) {
             if (methodEntry.getValue().size() != 0) {
                 String methodName = methodEntry.getKey();
                 classTag.appendChild(createMethod(doc, methodName,
                         methodFirstLine.get(methodName), methodLastLine.get(methodName),
-                        methodEntry.getValue(), defUseCovered.get(methodName)));
+                        methodEntry.getValue(), variablesCovered.get(methodName)));
             }
         }
 
@@ -97,17 +97,17 @@ public class CoverageDataExport {
         return instanceVarList;
     }
 
-    private static Element createParameterMatching(Document pDoc, Map<ProgramVariable, ProgramVariable> pParameterMatching) {
-        Element parameterMatchingTag = pDoc.createElement("parameterMatching");
-        for(Map.Entry<ProgramVariable, ProgramVariable> element : pParameterMatching.entrySet()) {
+    private static Element createInterProceduralMatchList(Document pDoc, Map<ProgramVariable, ProgramVariable> pParameterMatches) {
+        Element interProceduralMatches = pDoc.createElement("interProceduralMatchList");
+        for(Map.Entry<ProgramVariable, ProgramVariable> element : pParameterMatches.entrySet()) {
             Element match = pDoc.createElement("match");
-            parameterMatchingTag.appendChild(match);
+            interProceduralMatches.appendChild(match);
             Element firstVar = creatProgramVariable(pDoc, element.getKey());
             match.appendChild(firstVar);
             Element secondVar = creatProgramVariable(pDoc, element.getValue());
             match.appendChild(secondVar);
         }
-        return parameterMatchingTag;
+        return interProceduralMatches;
     }
 
     private static Element createMethod(Document pDoc,
@@ -122,38 +122,38 @@ public class CoverageDataExport {
         methodTag.setAttribute("lastLine", String.valueOf(pMethodLastLine));
         methodTag.appendChild(createDefUsePairs(pDoc, pDefUsePairs));
         if (pDefUseCovered != null) {
-            methodTag.appendChild(createDefUseCovered(pDoc, pDefUseCovered));
+            methodTag.appendChild(createVariablesCovered(pDoc, pDefUseCovered));
         }
         return methodTag;
     }
 
     private static Element createDefUsePairs(Document pDoc, List<DefUsePair> pDefUsePairList) {
-        Element defUsePairsTag = pDoc.createElement("defUsePairs");
-        for (DefUsePair duPair : pDefUsePairList) {
-            Element defUsePairTag = pDoc.createElement("defUsePair");
-            defUsePairsTag.appendChild(defUsePairTag);
-            defUsePairTag.setAttribute("dOwner", duPair.getDefinition().getOwner());
-            defUsePairTag.setAttribute("dName", duPair.getDefinition().getName());
-            defUsePairTag.setAttribute("dType", duPair.getDefinition().getDescriptor());
-            defUsePairTag.setAttribute("dIndex", Integer.toString(duPair.getDefinition().getInstructionIndex()));
-            defUsePairTag.setAttribute("dLineNumber", Integer.toString(duPair.getDefinition().getLineNumber()));
+        Element defUsePairList = pDoc.createElement("defUsePairList");
+        for (DefUsePair element : pDefUsePairList) {
+            Element defUsePair = pDoc.createElement("defUsePair");
+            defUsePairList.appendChild(defUsePair);
+            defUsePair.setAttribute("dOwner", element.getDefinition().getOwner());
+            defUsePair.setAttribute("dName", element.getDefinition().getName());
+            defUsePair.setAttribute("dType", element.getDefinition().getDescriptor());
+            defUsePair.setAttribute("dIndex", Integer.toString(element.getDefinition().getInstructionIndex()));
+            defUsePair.setAttribute("dLineNumber", Integer.toString(element.getDefinition().getLineNumber()));
 
-            defUsePairTag.setAttribute("uOwner", duPair.getUsage().getOwner());
-            defUsePairTag.setAttribute("uName", duPair.getUsage().getName());
-            defUsePairTag.setAttribute("uType", duPair.getUsage().getDescriptor());
-            defUsePairTag.setAttribute("uIndex", Integer.toString(duPair.getUsage().getInstructionIndex()));
-            defUsePairTag.setAttribute("uLineNumber", Integer.toString(duPair.getUsage().getLineNumber()));
+            defUsePair.setAttribute("uOwner", element.getUsage().getOwner());
+            defUsePair.setAttribute("uName", element.getUsage().getName());
+            defUsePair.setAttribute("uType", element.getUsage().getDescriptor());
+            defUsePair.setAttribute("uIndex", Integer.toString(element.getUsage().getInstructionIndex()));
+            defUsePair.setAttribute("uLineNumber", Integer.toString(element.getUsage().getLineNumber()));
         }
-        return defUsePairsTag;
+        return defUsePairList;
     }
 
-    private static Element createDefUseCovered(Document pDoc, Set<ProgramVariable> pProgramVarsCovered) {
-        Element defUseCoveredTag = pDoc.createElement("defUseCovered");
-        for (ProgramVariable programVariable : pProgramVarsCovered) {
-            Element programVariableTag = creatProgramVariable(pDoc, programVariable);
-            defUseCoveredTag.appendChild(programVariableTag);
+    private static Element createVariablesCovered(Document pDoc, Set<ProgramVariable> pProgramVarsCovered) {
+        Element variablesCoveredList = pDoc.createElement("variablesCoveredList");
+        for (ProgramVariable element : pProgramVarsCovered) {
+            Element programVariableTag = creatProgramVariable(pDoc, element);
+            variablesCoveredList.appendChild(programVariableTag);
         }
-        return defUseCoveredTag;
+        return variablesCoveredList;
     }
 
     private static Element creatProgramVariable(Document pDoc, ProgramVariable pProgramVariable) {

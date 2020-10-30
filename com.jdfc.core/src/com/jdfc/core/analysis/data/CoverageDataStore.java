@@ -44,7 +44,6 @@ public class CoverageDataStore {
         pClassExecutionData.calculateReachingDefs();
         pClassExecutionData.calculateIntraProceduralDefUsePairs();
         pClassExecutionData.setupInterProceduralMatches();
-        pClassExecutionData.computeCoverageForClass();
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {

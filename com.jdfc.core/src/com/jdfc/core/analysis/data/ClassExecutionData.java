@@ -294,8 +294,6 @@ public class ClassExecutionData extends ExecutionData {
                    }
                }
             }
-            System.out.println(methodName);
-            System.out.println(new PrettyPrintMap<>(defUsePairsCovered.get(methodName)));
         }
         this.calculateMethodCount();
         this.calculateTotal();
