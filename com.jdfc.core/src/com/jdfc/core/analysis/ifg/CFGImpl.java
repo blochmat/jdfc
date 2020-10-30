@@ -77,7 +77,7 @@ public class CFGImpl implements CFG {
             Set<ProgramVariable> oldValue = node.getReachOut();
             node.update();
             if (!node.getReachOut().equals(oldValue)) {
-                node.getSuccessors().forEach(workList::addLast);
+                workList.addAll(node.getPredecessors());
             }
         }
     }
@@ -157,7 +157,7 @@ public class CFGImpl implements CFG {
 
     private static void addCoveredEntry(String methodNameDesc, ClassExecutionData classExecutionData, ProgramVariable programVariable) {
         if (programVariable != null) {
-            Map<String, Set<ProgramVariable>> coveredList = classExecutionData.getDefUseCovered();
+            Map<String, Set<ProgramVariable>> coveredList = classExecutionData.getVariablesCovered();
             coveredList.get(methodNameDesc).add(programVariable);
         }
     }

@@ -37,9 +37,6 @@ class CFGInstanceVariableFieldVisitor extends FieldVisitor {
             super.visitEnd();
         }
 
-        System.out.println("INSTANCEVAR: " + name);
-        System.out.println("ACCESS: " + access);
-        System.out.println("DESCRIPTOR: " + descriptor);
         final Field variable =
                 Field.create(classVisitor.classNode.name, access, name, descriptor, signature);
         classVisitor.classExecutionData.getFields().add(variable);

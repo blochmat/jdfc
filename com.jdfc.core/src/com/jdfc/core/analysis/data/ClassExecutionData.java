@@ -1,7 +1,6 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.commons.data.Pair;
 import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
@@ -17,20 +16,24 @@ public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
+    private final Map<String, Integer> methodLastLine;
     private final Set<Field> fields;
     private final Set<InstanceVariable> instanceVariables;
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
-    private final Map<String, Set<ProgramVariable>> defUseCovered;
-    private final Map<String, Set<ProgramVariable>> defUseUncovered;
+    private final TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
+    private final Map<String, Set<ProgramVariable>> variablesCovered;
+    private final Map<String, Set<ProgramVariable>> variablesUncovered;
     private final Map<ProgramVariable, ProgramVariable> interProceduralMatches;
     private final String relativePath;
 
     // TODO Initialize methodCFGs here
     public ClassExecutionData(String pRelativePath) {
+        methodLastLine = new HashMap<>();
         methodFirstLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
-        defUseCovered = new HashMap<>();
-        defUseUncovered = new HashMap<>();
+        defUsePairsCovered = new TreeMap<>();
+        variablesCovered = new HashMap<>();
+        variablesUncovered = new HashMap<>();
         relativePath = pRelativePath;
         fields = new HashSet<>();
         interProceduralMatches = new HashMap<>();
@@ -59,12 +62,20 @@ public class ClassExecutionData extends ExecutionData {
         return methodFirstLine;
     }
 
+    public Map<String, Integer> getMethodLastLine() {
+        return methodLastLine;
+    }
+
     public TreeMap<String, List<DefUsePair>> getDefUsePairs() {
         return defUsePairs;
     }
 
-    public Map<String, Set<ProgramVariable>> getDefUseCovered() {
-        return defUseCovered;
+    public TreeMap<String, Map<DefUsePair, Boolean>> getDefUsePairsCovered() {
+        return defUsePairsCovered;
+    }
+
+    public Map<String, Set<ProgramVariable>> getVariablesCovered() {
+        return variablesCovered;
     }
 
     public Set<Field> getFields() {
@@ -86,7 +97,8 @@ public class ClassExecutionData extends ExecutionData {
     public void initializeDefUseLists() {
         for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
             defUsePairs.put(entry.getKey(), new ArrayList<>());
-            defUseCovered.put(entry.getKey(), new HashSet<>());
+            defUsePairsCovered.put(entry.getKey(), new HashMap<>());
+            variablesCovered.put(entry.getKey(), new HashSet<>());
         }
     }
 
@@ -108,7 +120,7 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
-    public void calculateReachingDefs(){
+    public void calculateReachingDefs() {
         for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
             methodCFGsEntry.getValue().calculateReachingDefinitions();
         }
@@ -126,7 +138,7 @@ public class ClassExecutionData extends ExecutionData {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
                             defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                                defUseCovered.get(methodCFGsEntry.getKey()).add(def);
+                                variablesCovered.get(methodCFGsEntry.getKey()).add(def);
                             }
                         }
                     }
@@ -203,7 +215,6 @@ public class ClassExecutionData extends ExecutionData {
     private void matchPairs(final String pMethodName,
                             final String pEntryMethodName,
                             final Map<ProgramVariable, ProgramVariable> pUsageDefinitionMatch) {
-        System.out.printf("DEBUG %s %s\n", pMethodName, pEntryMethodName);
         for (Map.Entry<ProgramVariable, ProgramVariable> usageDefinitionMatch : pUsageDefinitionMatch.entrySet()) {
             ProgramVariable usageA = usageDefinitionMatch.getKey();
             ProgramVariable definitionB = usageDefinitionMatch.getValue();
@@ -243,56 +254,68 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void computeCoverageForClass() {
-        this.calculateMethodCount();
-        this.calculateTotal();
-        int covered = 0;
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
             if (entry.getValue().size() == 0) {
                 continue;
             }
             String methodName = entry.getKey();
-            defUseUncovered.put(methodName, new HashSet<>());
+            variablesUncovered.put(methodName, new HashSet<>());
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
-                boolean defCovered = defUseCovered.get(methodName).contains(def);
-                boolean useCovered = defUseCovered.get(methodName).contains(use);
-                if (defCovered && useCovered) {
-                    covered += 1;
+                boolean isDefCovered = variablesCovered.get(methodName).contains(def);
+                boolean isUseCovered = variablesCovered.get(methodName).contains(use);
+
+                if (isDefCovered && isUseCovered) {
+                    defUsePairsCovered.get(methodName).put(pair, true);
                 } else {
-                    if (!defCovered) {
-                        defUseUncovered.get(methodName).add(def);
+                    if (!isDefCovered) {
+                        variablesUncovered.get(methodName).add(def);
                     }
-                    if (!useCovered) {
-                        defUseUncovered.get(methodName).add(use);
+                    if (!isUseCovered) {
+                        variablesUncovered.get(methodName).add(use);
                     }
                 }
             }
+
+            for(Map.Entry<DefUsePair, Boolean> element : defUsePairsCovered.get(methodName).entrySet()) {
+               for(Map.Entry<DefUsePair, Boolean> compare : defUsePairsCovered.get(methodName).entrySet()) {
+                   boolean isDefNameEqual = element.getKey().getDefinition().getName().equals(compare.getKey().getDefinition().getName());
+                   boolean isUseEqual = element.getKey().getUsage().equals(compare.getKey().getUsage());
+                   boolean isElementDefIndexSmaller = element.getKey().getDefinition().getInstructionIndex() < compare.getKey().getDefinition().getInstructionIndex();
+                   boolean isElementUseIndexBiggerThanCompareDefIndex = element.getKey().getUsage().getInstructionIndex() > compare.getKey().getDefinition().getInstructionIndex();
+                   boolean isCompareCovered = compare.getValue();
+                   if(isDefNameEqual && isUseEqual
+                           && isElementDefIndexSmaller
+                           && isElementUseIndexBiggerThanCompareDefIndex
+                           && isCompareCovered) {
+                       element.setValue(false);
+                       break;
+                   }
+               }
+            }
+            System.out.println(methodName);
+            System.out.println(new PrettyPrintMap<>(defUsePairsCovered.get(methodName)));
         }
-        this.setCovered(covered);
+        this.calculateMethodCount();
+        this.calculateTotal();
+        this.calculateCovered();
     }
 
     public int computeCoveredForMethod(String pKey) {
-        List<DefUsePair> list = defUsePairs.get(pKey);
-        Set<ProgramVariable> set = defUseCovered.get(pKey);
+        return (int) defUsePairsCovered.get(pKey).values().stream().filter(x -> x).count();
+    }
 
-        int covered = 0;
-
-        for (DefUsePair pair : list) {
-            if (set.contains(pair.getDefinition())
-                    && set.contains(pair.getUsage())) {
-                covered += 1;
-            }
-        }
-        return covered;
+    public void calculateMethodCount() {
+        this.setMethodCount((int) defUsePairs.entrySet().stream().filter(x -> x.getValue().size() != 0).count());
     }
 
     public void calculateTotal() {
         this.setTotal(defUsePairs.values().stream().mapToInt(List::size).sum());
     }
 
-    public void calculateMethodCount() {
-        this.setMethodCount((int) defUsePairs.entrySet().stream().filter(x -> x.getValue().size() != 0).count());
+    public void calculateCovered() {
+        this.setCovered(defUsePairsCovered.keySet().stream().mapToInt(this::computeCoveredForMethod).sum());
     }
 
     private Map<ProgramVariable, ProgramVariable> mergeMaps(Map<ProgramVariable, ProgramVariable> map1,

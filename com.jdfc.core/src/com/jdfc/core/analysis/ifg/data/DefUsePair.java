@@ -39,6 +39,6 @@ public class DefUsePair {
 
     @Override
     public String toString() {
-        return String.format("(%s, %s)\n", definition.toString(), usage.toString());
+        return String.format("(%s, %s)", definition.toString(), usage.toString());
     }
 }

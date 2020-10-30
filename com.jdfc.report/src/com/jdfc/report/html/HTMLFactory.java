@@ -2,7 +2,6 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
@@ -691,17 +690,17 @@ public class HTMLFactory {
 //                }
 //            }
 //        } else {
-//        for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
-//            for (DefUsePair defUsePair : defUsePairs.getValue()) {
-//                ProgramVariable definition = defUsePair.getDefinition();
-//                if (definition.getLineNumber() > pLineNumber
-//                        && definition.getName().equals(pName)
-//                        && pData.getInstVarOutScopeMap().get(defUsePairs.getKey()).fst <= pLineNumber
-//                        && pData.getInstVarOutScopeMap().get(defUsePairs.getKey()).snd >= pLineNumber) {
-//                    return true;
-//                }
-//            }
-//        }
+        for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
+            for (DefUsePair defUsePair : defUsePairs.getValue()) {
+                ProgramVariable definition = defUsePair.getDefinition();
+                if (definition.getLineNumber() > pLineNumber
+                        && definition.getName().equals(pName)
+                        && pData.getMethodFirstLine().get(defUsePairs.getKey()) <= pLineNumber
+                        && pData.getMethodLastLine().get(defUsePairs.getKey()) >= pLineNumber) {
+                    return true;
+                }
+            }
+        }
 //        }
         return false;
     }
@@ -728,7 +727,7 @@ public class HTMLFactory {
     }
 
     private boolean findIsDefCovered(ClassExecutionData pData, ProgramVariable pDefinition) {
-        for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getDefUseCovered().entrySet()) {
+        for (Map.Entry<String, Set<ProgramVariable>> defUseCovered : pData.getVariablesCovered().entrySet()) {
             if (defUseCovered.getValue().contains(pDefinition)) {
                 return true;
             }
@@ -752,7 +751,7 @@ public class HTMLFactory {
     }
 
     private boolean isUseCovered(ClassExecutionData pData, ProgramVariable pUsage) {
-        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getDefUseCovered().entrySet()) {
+        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getVariablesCovered().entrySet()) {
             if (entry.getValue().contains(pUsage)) {
                 return true;
             }
@@ -762,7 +761,7 @@ public class HTMLFactory {
 
     private boolean isAllDefsCovered(ClassExecutionData pData, ProgramVariable pUsage) {
         boolean allDefsCovered = true;
-        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getDefUseCovered().entrySet()) {
+        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getVariablesCovered().entrySet()) {
             if (entry.getValue().contains(pUsage)) {
                 for (DefUsePair pair : pData.getDefUsePairs().get(entry.getKey())) {
                     if (pair.getUsage().equals(pUsage)) {

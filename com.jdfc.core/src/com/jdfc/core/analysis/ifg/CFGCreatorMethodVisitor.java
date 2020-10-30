@@ -155,13 +155,13 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         CFG cfg = new CFGImpl(methodNode.name, nodes, localVariableTable, isImpure);
         methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
+        classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
     }
 
     private void createCFGNodeForFieldInsnNode(final int pOpcode, String pOwner, String pName, String pDescriptor) {
         // TODO: getProgramVariableFromInstanceVariableOcc due to object owner information
         final ProgramVariable programVariable =
                 ProgramVariable.create(pOwner, pName, pDescriptor, currentInstructionIndex, currentLineNumber);
-        System.out.printf("DEBUG TRACKING FIELD: \n%s\n", programVariable);
         final CFGNode node;
         switch (pOpcode) {
             case GETFIELD:

@@ -1,6 +1,5 @@
 package com.jdfc.core.analysis.data;
 
-import com.jdfc.commons.data.Pair;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
@@ -45,13 +44,15 @@ public class CoverageDataExport {
         classTag.appendChild(createParameterMatching(doc, parameterMatching));
 
         Map<String, Integer> methodFirstLine = pClassExecutionData.getMethodFirstLine();
+        Map<String, Integer> methodLastLine = pClassExecutionData.getMethodLastLine();
         TreeMap<String, List<DefUsePair>> defUsePairs = pClassExecutionData.getDefUsePairs();
-        Map<String, Set<ProgramVariable>> defUseCovered = pClassExecutionData.getDefUseCovered();
+        Map<String, Set<ProgramVariable>> defUseCovered = pClassExecutionData.getVariablesCovered();
         for (Map.Entry<String, List<DefUsePair>> methodEntry : defUsePairs.entrySet()) {
             if (methodEntry.getValue().size() != 0) {
                 String methodName = methodEntry.getKey();
                 classTag.appendChild(createMethod(doc, methodName,
-                        methodFirstLine.get(methodName), methodEntry.getValue(), defUseCovered.get(methodName)));
+                        methodFirstLine.get(methodName), methodLastLine.get(methodName),
+                        methodEntry.getValue(), defUseCovered.get(methodName)));
             }
         }
 
@@ -112,11 +113,13 @@ public class CoverageDataExport {
     private static Element createMethod(Document pDoc,
                                         String pMethodName,
                                         Integer pMethodFirstLine,
+                                        Integer pMethodLastLine,
                                         List<DefUsePair> pDefUsePairs,
                                         Set<ProgramVariable> pDefUseCovered) {
         Element methodTag = pDoc.createElement("method");
         methodTag.setAttribute("name", pMethodName);
         methodTag.setAttribute("firstLine", String.valueOf(pMethodFirstLine));
+        methodTag.setAttribute("lastLine", String.valueOf(pMethodLastLine));
         methodTag.appendChild(createDefUsePairs(pDoc, pDefUsePairs));
         if (pDefUseCovered != null) {
             methodTag.appendChild(createDefUseCovered(pDoc, pDefUseCovered));
