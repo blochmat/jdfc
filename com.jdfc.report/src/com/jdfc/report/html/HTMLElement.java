@@ -144,6 +144,11 @@ public class HTMLElement {
         return new HTMLElement(preTag, pText);
     }
 
+    static HTMLElement button(final String pText) {
+        String buttonTag = "<button%s>%s</button>";
+        return new HTMLElement(buttonTag, pText);
+    }
+
     static HTMLElement noTag(final String pText) {
         return new HTMLElement(null, pText);
     }

@@ -269,6 +269,7 @@ public class ClassExecutionData extends ExecutionData {
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
                 } else {
+                    defUsePairsCovered.get(methodName).put(pair, false);
                     if (!isDefCovered) {
                         variablesUncovered.get(methodName).add(def);
                     }
