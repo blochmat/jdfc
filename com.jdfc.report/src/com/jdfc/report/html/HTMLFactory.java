@@ -2,7 +2,6 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
@@ -236,51 +235,34 @@ public class HTMLFactory {
                     divTagLine.getContent().add(HTMLElement.pre(item));
                 }
             } else {
-                int sameWordCount = (int) workList.stream().filter(x -> x.equals(item)).count();
-                ProgramVariable definition = findDefinition(pData, pLineNumber, item, sameWordCount);
-                ProgramVariable usage = findUsage(pData, pLineNumber, item);
-                if (definition != null) {
-                    boolean isDefCovered = findIsDefCovered(pData, definition);
-                    List<ProgramVariable> correspondingDefsList = createCorrespondingDefsList(definition, pData);
-                    Map<DefUsePair, Boolean> defUsePairCovered = getDefUsePairCoveredForAllDefs(pData, correspondingDefsList);
-                    if(definition.getName().equals("a")) {
-                        System.out.println("DEBUG: CORRESPONDING");
-                        System.out.println(Arrays.toString(correspondingDefsList.toArray()));
-                        System.out.println("DEBUG: DEFUSE");
-                        System.out.println(new PrettyPrintMap<>(defUsePairCovered));
-                    }
-                    Map<DefUsePair, Boolean> useDefPairCovered = getUseDefPairCoveredForDef(pData, definition);
-                    if(definition.getName().equals("a")) {
-                        System.out.println("DEBUG: USEDEF");
-                        System.out.println(new PrettyPrintMap<>(useDefPairCovered));
-                    }
-//                    Map<ProgramVariable, Boolean> useCoverageMap = createUseCoverageMap(correspondingDefsList, pData);
-                    String backgroundColor = getDefinitionBackgroundColorHex(isDefCovered, defUsePairCovered);
-                    divTagLine.getContent().add(
-                            createVariableInformation(pData, pClassFile, pClassName, defUsePairCovered, useDefPairCovered, item, backgroundColor));
-                } else if (usage != null) {
-                    boolean useCovered = isVariableCovered(pData, usage);
-                    boolean allDefsCovered = isAllDefsCovered(pData, usage);
-                    if (useCovered && allDefsCovered) {
-                        HTMLElement spanTag = HTMLElement.span(item);
-                        divTagLine.getContent().add(spanTag);
-                        spanTag.getAttributes().add("class=\"green\"");
-                    } else {
-                        divTagLine.getContent().add(createVariableInformation(item, useCovered, allDefsCovered));
-                    }
-                } else if (isRedefined(pData, pLineNumber, item)) {
-                    HTMLElement spanTag = HTMLElement.span(item);
-                    divTagLine.getContent().add(spanTag);
-                    // TODO: Create dropdown for variables being redefined with reference to up-to-date definitions
-                    spanTag.getAttributes().add("class=\"overwritten\"");
-                } else {
+                int sameWordsLeft = (int) workList.stream().filter(x -> x.equals(item)).count();
+                ProgramVariable programVariable = findProgramVariable(pData, pLineNumber, item, sameWordsLeft);
+                if (programVariable == null) {
                     HTMLElement spanTag = HTMLElement.span(item);
                     divTagLine.getContent().add(spanTag);
                     addCodeHighlighting(spanTag, item);
+
+                } else {
+                    if (isRedefined(pData, pLineNumber, item)) {
+                        HTMLElement spanTag = HTMLElement.span(item);
+                        divTagLine.getContent().add(spanTag);
+                        spanTag.getAttributes().add("class=\"overwritten\"");
+                    } else {
+                        boolean isVarCovered = isVarCovered(pData, programVariable);
+                        List<ProgramVariable> correlatedVars = getCorrelatedVars(programVariable, pData);
+                        Map<DefUsePair, Boolean> defusePairsCovered = getDefUsePairCovered(pData, correlatedVars);
+                        String backgroundColor = getVariableBackgroundColor(isVarCovered, defusePairsCovered);
+                        try {
+                            divTagLine.getContent().add(
+                                    createVariableInformation(pData, pClassFile, pClassName,
+                                            defusePairsCovered, programVariable, backgroundColor));
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }
-
         return divTagLine;
     }
 
@@ -356,21 +338,21 @@ public class HTMLFactory {
         return comment;
     }
 
-    private List<ProgramVariable> createCorrespondingDefsList(ProgramVariable pDefinition, ClassExecutionData pData) {
-        List<ProgramVariable> correspondingDefsList = new ArrayList<>();
-        correspondingDefsList.add(pDefinition);
+    private List<ProgramVariable> getCorrelatedVars(ProgramVariable pVariable, ClassExecutionData pData) {
+        List<ProgramVariable> result = new ArrayList<>();
+        result.add(pVariable);
         for (Map.Entry<ProgramVariable, ProgramVariable> entry : pData.getInterProceduralMatches().entrySet()) {
-            if (entry.getKey().equals(pDefinition)) {
-                correspondingDefsList.add(entry.getValue());
+            if (entry.getKey().equals(pVariable)) {
+                result.add(entry.getValue());
             }
         }
-        return correspondingDefsList;
+        return result;
     }
 
-    private Map<DefUsePair, Boolean> getDefUsePairCoveredForAllDefs(ClassExecutionData pData, List<ProgramVariable> pCorrespondingDefs) {
+    private Map<DefUsePair, Boolean> getDefUsePairCovered(ClassExecutionData pData, List<ProgramVariable> pCorrelatedVars) {
         Map<DefUsePair, Boolean> result = new HashMap<>();
-        for(ProgramVariable element : pCorrespondingDefs) {
-            result.putAll(findDefUsePairCovered(pData, element));
+        for (ProgramVariable element : pCorrelatedVars) {
+            result.putAll(getDefUsePairsCoveredForVar(pData, element));
         }
         return result;
     }
@@ -549,100 +531,77 @@ public class HTMLFactory {
     private HTMLElement createVariableInformation(final ClassExecutionData pData,
                                                   final File pClassFile,
                                                   final String pClassName,
-                                                  final Map<DefUsePair, Boolean> pUses,
-                                                  final Map<DefUsePair, Boolean> pDefs,
-                                                  final String pVariableName,
-                                                  final String pBackgroundColor) {
+                                                  final Map<DefUsePair, Boolean> pDefUseCovered,
+                                                  final ProgramVariable pVariable,
+                                                  final String pBackgroundColor) throws FileNotFoundException {
+        boolean isDefinition = isDefinition(pVariable, pDefUseCovered.keySet());
+        boolean isUsage = isUsage(pVariable, pDefUseCovered.keySet());
         // create table and show colored entries on hover over
         // entries are links to the variable use
         HTMLElement variableDiv = HTMLElement.div();
         variableDiv.getAttributes().add("class=\"variable\"");
-        HTMLElement variableSpan = HTMLElement.span(pVariableName);
+        HTMLElement variableSpan = HTMLElement.span(pVariable.getName());
         variableDiv.getContent().add(variableSpan);
         String variableSpanAttr = String.format("class=\"link %s\"", pBackgroundColor);
         variableSpan.getAttributes().add(variableSpanAttr);
 
-        try {
-            variableDiv.getContent().add(createTooltip(pData, pClassFile, pClassName, pUses, pDefs, pVariableName));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-//        HTMLElement tableTag = HTMLElement.table();
-//        tableTag.getAttributes().add("class=\"tooltipcontent\"");
-//        variableDiv.getContent().add(tableTag);
-//        HTMLElement tbody = HTMLElement.tbody();
-//        tableTag.getContent().add(tbody);
-//        tbody.getContent().add(createTypeRow(true));
-//        tbody.getContent().add(createColumnIdentifier());
-//        if (pUses.size() == 0) {
-//            HTMLElement tr = HTMLElement.tr();
-//            tbody.getContent().add(tr);
-//            HTMLElement td = HTMLElement.td("No use found.");
-//            tr.getContent().add(td);
-//            td.getAttributes().add("class=\"red\"");
-//        } else {
-//            for (Map.Entry<ProgramVariable, Boolean> use : pUses.entrySet()) {
-//                ProgramVariable variable = use.getKey();
-//                int lineNumber = variable.getLineNumber();
-//                HTMLElement tr = HTMLElement.tr();
-//                tbody.getContent().add(tr);
-//                tr.getContent().add(HTMLElement.td(lineNumber));
-//                HTMLElement td = HTMLElement.td();
-//                tr.getContent().add(td);
-//                String link = String.format("%s.java.html#L%s", pClassName, variable.getLineNumber());
-//                try {
-//                    td.getContent().add(HTMLElement.a(link, getLineFromFile(pClassFile, lineNumber)));
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
-//                if (use.getValue()) {
-//                    td.getAttributes().add("class=\"green tooltipcell\"");
-//                } else {
-//                    td.getAttributes().add("class=\"red tooltipcell\"");
-//                }
-//            }
-//        }
-        return variableDiv;
-    }
-
-    private HTMLElement createTooltip(final ClassExecutionData pData,
-                                      final File pClassFile,
-                                      final String pClassName,
-                                      final Map<DefUsePair, Boolean> pUses,
-                                      final Map<DefUsePair, Boolean> pDefs,
-                                      final String pVariableName) throws FileNotFoundException {
-        System.out.println("createTooltip");
+//        try {
         HTMLElement tooltipDiv = HTMLElement.div();
+        variableDiv.getContent().add(tooltipDiv);
         tooltipDiv.getAttributes().add("class=\"tooltipDef red rounded-corners\"");
         HTMLElement table = HTMLElement.table();
         tooltipDiv.getContent().add(table);
         table.getAttributes().add("class=\"yellow rounded-corners\"");
-        table.getContent().add(createTabButtons(pUses, pDefs));
+        table.getContent().add(createTabButtons(pVariable, isDefinition, isUsage));
 
-        // Definition tab
-        Set<ProgramVariable> correspondingDefs = extractCorrespondingDefs(pUses, pVariableName);
-        if(!correspondingDefs.isEmpty()) {
-            table.getContent().add(createDefInfo(pClassName, correspondingDefs, true));
+        if (isDefinition) {
+            Set<ProgramVariable> correlatedDefs = extractCorrelatedDefs(pDefUseCovered, pVariable);
+            table.getContent().add(createCorrelatedDefInfo(pClassName, pVariable, correlatedDefs));
+            table.getContent().add(createTabInfoTable(pClassFile, pClassName, pVariable, pDefUseCovered, true));
         }
-        table.getContent().add(createInformationTable(pClassFile, pClassName, pData, pUses, true));
 
-        // Usage tab
-        Set<ProgramVariable> possibleDefinitions = extractPossibleDefs(pDefs);
-        if(!possibleDefinitions.isEmpty()) {
-            table.getContent().add(createDefInfo(pClassName, possibleDefinitions, false));
+        if(isUsage) {
+            table.getContent().add(createTabInfoTable(pClassFile, pClassName, pVariable, pDefUseCovered, false));
         }
-        table.getContent().add(createInformationTable(pClassFile, pClassName, pData, pUses, false));
 
-        return tooltipDiv;
+        return variableDiv;
     }
 
-    private HTMLElement createInformationTable(final File pClassFile,
-                                               final String pClassName,
-                                               final ClassExecutionData pData,
-                                               final Map<DefUsePair, Boolean> pVariableInfo,
-                                               final boolean isDef) throws FileNotFoundException {
-        System.out.println("createInformationTable");
+//    private HTMLElement createTooltip(final ClassExecutionData pData,
+//                                      final File pClassFile,
+//                                      final String pClassName,
+//                                      final Map<DefUsePair, Boolean> pUses,
+//                                      final Map<DefUsePair, Boolean> pDefs,
+//                                      final ProgramVariable pVariable) throws FileNotFoundException {
+//        HTMLElement tooltipDiv = HTMLElement.div();
+//        tooltipDiv.getAttributes().add("class=\"tooltipDef red rounded-corners\"");
+//        HTMLElement table = HTMLElement.table();
+//        tooltipDiv.getContent().add(table);
+//        table.getAttributes().add("class=\"yellow rounded-corners\"");
+//        table.getContent().add(createTabButtons(pVariable, pUses, pDefs));
+//
+//        // Definition tab
+//        Set<ProgramVariable> correspondingDefs = extractCorrespondingDefs(pUses, pVariable);
+//        if (!correspondingDefs.isEmpty()) {
+//            table.getContent().add(createDefInfo(pClassName, correspondingDefs, true));
+//        }
+//        table.getContent().add(createInformationTable(pClassFile, pClassName, pData, pUses, true));
+//
+//        // Usage tab
+//        Set<ProgramVariable> possibleDefinitions = extractPossibleDefs(pDefs);
+//        if (!possibleDefinitions.isEmpty()) {
+//            table.getContent().add(createDefInfo(pClassName, possibleDefinitions, false));
+//        }
+//        table.getContent().add(createInformationTable(pClassFile, pClassName, pData, pUses, false));
+//
+//        return tooltipDiv;
+//    }
+
+    private HTMLElement createTabInfoTable(final File pClassFile,
+                                           final String pClassName,
+                                           final ProgramVariable pVariable,
+                                           final Map<DefUsePair, Boolean> pVariableInfo,
+                                           final boolean isDefinitionTab) throws FileNotFoundException {
         HTMLElement row = HTMLElement.tr();
         HTMLElement cell = HTMLElement.td();
         row.getContent().add(cell);
@@ -654,36 +613,43 @@ public class HTMLFactory {
         table.getContent().add(createHeaderRow());
 
         Map<ProgramVariable, Boolean> variableCovered;
-        if(isDef) {
-            div.getAttributes().add("class=\"definition bla margin4 tabcontent green\"");
-            variableCovered = getUsesCoverageInformation(pData, pVariableInfo);
+        if (isDefinitionTab) {
+            String defTab = String.format("class=\"%s%s%sDefTab margin10 green\"", pVariable.getName(),
+                    pVariable.getLineNumber(), pVariable.getInstructionIndex());
+            div.getAttributes().add(defTab);
         } else {
-            div.getAttributes().add("class=\"usage bla margin4 tabcontent green\"");
-            variableCovered = getDefsCoverageInformation(pData, pVariableInfo);
+            String useTab = String.format("class=\"%s%s%sUseTab margin10 green\"", pVariable.getName(),
+                    pVariable.getLineNumber(), pVariable.getInstructionIndex());
+            div.getAttributes().add(useTab);
         }
+        variableCovered = getCoverageInformation(pVariableInfo, isDefinitionTab);
 
-        for(Map.Entry<ProgramVariable, Boolean> element : variableCovered.entrySet()) {
+        for (Map.Entry<ProgramVariable, Boolean> element : variableCovered.entrySet()) {
             table.getContent().add(createDataRow(pClassFile, pClassName, element.getKey(), element.getValue()));
         }
 
         return row;
     }
 
-    private Map<ProgramVariable, Boolean> getUsesCoverageInformation(final ClassExecutionData pData,
-                                                                     final Map<DefUsePair, Boolean> pVariableInfo) {
-        Map<ProgramVariable, Boolean> result = new HashMap<>();
-        for(DefUsePair element : pVariableInfo.keySet()) {
-            ProgramVariable usage = element.getUsage();
-            Boolean covered = isVariableCovered(pData, usage);
-            result.put(usage, covered);
+    private Map<ProgramVariable, Boolean> getCoverageInformation(final Map<DefUsePair, Boolean> pVariableInfo,
+                                                                 final boolean isDefinitionTab) {
+        Map<ProgramVariable, Boolean> result = new TreeMap<>();
+        for (Map.Entry<DefUsePair, Boolean> entry : pVariableInfo.entrySet()) {
+            if(isDefinitionTab) {
+                ProgramVariable usage = entry.getKey().getUsage();
+                result.put(usage, entry.getValue());
+            } else {
+                ProgramVariable definition = entry.getKey().getDefinition();
+                result.put(definition, entry.getValue());
+            }
         }
         return result;
     }
 
-    private Map<ProgramVariable, Boolean> getDefsCoverageInformation(final ClassExecutionData pData,
-                                                                     final Map<DefUsePair, Boolean> pVariableInfo) {
+    private Map<ProgramVariable, Boolean> getDefinitionsCoverageInformation(final ClassExecutionData pData,
+                                                                            final Map<DefUsePair, Boolean> pVariableInfo) {
         Map<ProgramVariable, Boolean> result = new HashMap<>();
-        for(DefUsePair element : pVariableInfo.keySet()) {
+        for (DefUsePair element : pVariableInfo.keySet()) {
             ProgramVariable definition = element.getDefinition();
             Boolean covered = isVariableCovered(pData, definition);
             result.put(definition, covered);
@@ -708,7 +674,7 @@ public class HTMLFactory {
         String statement = getLineFromFile(pClassFile, pVariable.getLineNumber());
         HTMLElement a = HTMLElement.a(link, statement);
         statementCell.getContent().add(a);
-        if(pCovered) {
+        if (pCovered) {
             a.getAttributes().add("class=\"green\"");
         } else {
             a.getAttributes().add("class=\"red\"");
@@ -730,8 +696,9 @@ public class HTMLFactory {
         return row;
     }
 
-    private HTMLElement createTabButtons(Map<DefUsePair, Boolean> pUses, Map<DefUsePair, Boolean> pDefs) {
-        System.out.println("createTabButtons");
+    private HTMLElement createTabButtons(final ProgramVariable pVariable,
+                                         final boolean isDefinition,
+                                         final boolean isUsage) {
         HTMLElement row = HTMLElement.tr();
         HTMLElement cell = HTMLElement.td();
         row.getContent().add(cell);
@@ -741,71 +708,76 @@ public class HTMLFactory {
 
 
         HTMLElement definitionButton = null;
-        if(pUses != null && !pUses.isEmpty()) {
+        if (isDefinition) {
             definitionButton = HTMLElement.button("Definition");
-            definitionButton.getAttributes().add("onclick=\"openTab(this, 'definition')\"");
-            definitionButton.getAttributes().add("class=\"defaultOpen tablinks inner\"");
+            String id = String.format("id=\"%s%s%sDefTabButton\"", pVariable.getName(), pVariable.getLineNumber(), pVariable.getInstructionIndex());
+            definitionButton.getAttributes().add(id);
+            definitionButton.getAttributes().add("onclick=\"openTab(this)\"");
+            definitionButton.getAttributes().add("class=\"defaultOpen inner\"");
             div.getContent().add(definitionButton);
         }
 
         HTMLElement usageButton;
-        if(pDefs != null && !pDefs.isEmpty()) {
+        if (isUsage) {
             usageButton = HTMLElement.button("Usage");
-            usageButton.getAttributes().add("onclick=\"openTab(this, 'usage')\"");
-            if(definitionButton == null) {
-                usageButton.getAttributes().add("class=\"defaultOpen tablinks inner\"");
+            String id = String.format("id=\"%s%s%sUseTabButton\"", pVariable.getName(), pVariable.getLineNumber(), pVariable.getInstructionIndex());
+            usageButton.getAttributes().add(id);
+            usageButton.getAttributes().add("onclick=\"openTab(this)\"");
+            if (definitionButton == null) {
+                usageButton.getAttributes().add("class=\"defaultOpen inner\"");
             } else {
-                usageButton.getAttributes().add("class=\"tablinks inner\"");
+                usageButton.getAttributes().add("class=\" inner\"");
             }
             div.getContent().add(usageButton);
         }
         return row;
     }
 
-    private Set<ProgramVariable> extractCorrespondingDefs(final Map<DefUsePair, Boolean> pUses,
-                                                         final String pVariableName) {
+    private Set<ProgramVariable> extractCorrelatedDefs(final Map<DefUsePair, Boolean> pDefUseCovered,
+                                                       final ProgramVariable pVariable) {
         Set<ProgramVariable> result = new HashSet<>();
-        for(DefUsePair element : pUses.keySet()) {
-            if (!element.getDefinition().getName().equals(pVariableName)) {
+        for (DefUsePair element : pDefUseCovered.keySet()) {
+            if (!element.getDefinition().equals(pVariable)) {
                 result.add(element.getDefinition());
             }
         }
-
         return result;
     }
 
     private Set<ProgramVariable> extractPossibleDefs(final Map<DefUsePair, Boolean> pDefinitions) {
         Set<ProgramVariable> result = new HashSet<>();
-        for(DefUsePair element : pDefinitions.keySet()) {
+        for (DefUsePair element : pDefinitions.keySet()) {
             result.add(element.getDefinition());
         }
         return result;
     }
 
-    private HTMLElement createDefInfo(final String pClassName,
-                                      final Set<ProgramVariable> pVariables,
-                                      final boolean isDef) {
-        System.out.println("createDefInfo");
+    private HTMLElement createCorrelatedDefInfo(final String pClassName,
+                                                final ProgramVariable pVariable,
+                                                final Set<ProgramVariable> pVariables) {
         HTMLElement row = HTMLElement.tr();
         HTMLElement cell = HTMLElement.td();
         row.getContent().add(cell);
 
         HTMLElement div = HTMLElement.div();
+        String defTab = String.format("class=\"%s%s%sDefTab\"", pVariable.getName(),
+                pVariable.getLineNumber(), pVariable.getInstructionIndex());
+        div.getAttributes().add(defTab);
         cell.getContent().add(div);
 
-        HTMLElement span;
-        if(isDef) {
-            div.getAttributes().add("class=\"definition bla\"");
-            span = HTMLElement.span("Corresponding Definitions:");
-        } else {
-            div.getAttributes().add("class=\"usage bla\"");
-            span = HTMLElement.span("Definitions:");
-        }
+        HTMLElement span = HTMLElement.span("Correlated Definitions:");
+        span.getAttributes().add("class=\"margin10 nowrap\"");
         div.getContent().add(span);
-        span.getAttributes().add("class=\"margin4 nowrap\"");
-        for(ProgramVariable element : pVariables) {
+        div.getContent().add(HTMLElement.pre(" "));
+
+        if (pVariables.isEmpty()) {
+            div.getContent().add(HTMLElement.span("None"));
+        }
+
+        for (ProgramVariable element : pVariables) {
             String link = String.format("%s.java.html#L%s", pClassName, element.getLineNumber());
             div.getContent().add(HTMLElement.a(link, element.getName()));
+            div.getContent().add(HTMLElement.pre(" "));
         }
         return row;
     }
@@ -883,8 +855,8 @@ public class HTMLFactory {
         return (Arrays.binarySearch(TYPE_KEYWORDS, pWord) >= 0);
     }
 
-    private String getDefinitionBackgroundColorHex(boolean pDefCovered, Map<DefUsePair, Boolean> pDefUsePairCovered) {
-        if (!pDefCovered || pDefUsePairCovered.size() == 0 || Collections.frequency(pDefUsePairCovered.values(), true) == 0) {
+    private String getVariableBackgroundColor(boolean pIsVarCovered, Map<DefUsePair, Boolean> pDefUsePairCovered) {
+        if (!pIsVarCovered || pDefUsePairCovered.size() == 0 || Collections.frequency(pDefUsePairCovered.values(), true) == 0) {
             return "red";
         } else if (Collections.frequency(pDefUsePairCovered.values(), true) == pDefUsePairCovered.size()) {
             return "green";
@@ -894,19 +866,19 @@ public class HTMLFactory {
     }
 
     // find definition by line number and name
-    private ProgramVariable findDefinition(ClassExecutionData pData, int pLineNumber, String pName, int pSameWordCount) {
-        List<ProgramVariable> localDefinitions = getPossibleLocalDefinitions(pData.getDefUsePairs(), pLineNumber, pName);
-        if (!localDefinitions.isEmpty()) {
-            localDefinitions.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
-            int index = (localDefinitions.size()-1) - pSameWordCount;
-            return localDefinitions.get(index);
+    private ProgramVariable findProgramVariable(ClassExecutionData pData, int pLineNumber, String pName, int pSameWordsLeft) {
+        List<ProgramVariable> possibleDefUsePairs = getPossibleVars(pData, pLineNumber, pName);
+        if (!possibleDefUsePairs.isEmpty()) {
+            possibleDefUsePairs.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
+            int index = (possibleDefUsePairs.size() - 1) - pSameWordsLeft;
+            return possibleDefUsePairs.get(index);
         }
 
         List<InstanceVariable> instanceVarDefinitions = getPossibleInstanceVarDefinitions(pData.getInstanceVariables(), pLineNumber, pName);
         if (!instanceVarDefinitions.isEmpty()) {
             instanceVarDefinitions.sort(Comparator.comparing(InstanceVariable::getInstructionIndex));
-            int index = (instanceVarDefinitions.size()-1) - pSameWordCount;
-            InstanceVariable definition =  instanceVarDefinitions.get(index);
+            int index = (instanceVarDefinitions.size() - 1) - pSameWordsLeft;
+            InstanceVariable definition = instanceVarDefinitions.get(index);
             return ProgramVariable.create(
                     definition.getOwner(),
                     definition.getName(),
@@ -928,15 +900,23 @@ public class HTMLFactory {
         return null;
     }
 
-    private List<ProgramVariable> getPossibleLocalDefinitions(final Map<String, List<DefUsePair>> pDefUsePairs,
-                                                              final int pLineNumber,
-                                                              final String pName) {
+    private List<ProgramVariable> getPossibleVars(final ClassExecutionData pData,
+                                                  final int pLineNumber,
+                                                  final String pName) {
         List<ProgramVariable> result = new ArrayList<>();
-        for (Map.Entry<String, List<DefUsePair>> element : pDefUsePairs.entrySet()) {
-            for (DefUsePair defUsePair : element.getValue()) {
-                ProgramVariable definition = defUsePair.getDefinition();
-                if (definition.getLineNumber() == pLineNumber && definition.getName().equals(pName)) {
-                    result.add(definition);
+        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getVariablesCovered().entrySet()) {
+            for (ProgramVariable element : entry.getValue()) {
+                if (element.getLineNumber() == pLineNumber
+                        && element.getName().equals(pName)
+                        && !result.contains(element)) {
+                    result.add(element);
+                }
+            }
+            for (ProgramVariable element : pData.getVariablesUncovered().get(entry.getKey())) {
+                if (element.getLineNumber() == pLineNumber
+                        && element.getName().equals(pName)
+                        && !result.contains(element)) {
+                    result.add(element);
                 }
             }
         }
@@ -969,18 +949,19 @@ public class HTMLFactory {
 //                }
 //            }
 //        } else {
+
         for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
             for (DefUsePair defUsePair : defUsePairs.getValue()) {
                 ProgramVariable definition = defUsePair.getDefinition();
                 if (definition.getLineNumber() > pLineNumber
                         && definition.getName().equals(pName)
                         && pData.getMethodFirstLine().get(defUsePairs.getKey()) <= pLineNumber
-                        && pData.getMethodLastLine().get(defUsePairs.getKey()) >= pLineNumber) {
+                        && pData.getMethodLastLine().get(defUsePairs.getKey()) >= pLineNumber
+                        && !pData.isAnalyzedDefinition(pName, pLineNumber)) {
                     return true;
                 }
             }
         }
-//        }
         return false;
     }
 
@@ -1005,9 +986,27 @@ public class HTMLFactory {
         return null;
     }
 
-    private boolean findIsDefCovered(ClassExecutionData pData, ProgramVariable pDefinition) {
+    private boolean isVarCovered(ClassExecutionData pData, ProgramVariable pVariable) {
         for (Map.Entry<String, Set<ProgramVariable>> variablesCovered : pData.getVariablesCovered().entrySet()) {
-            if (variablesCovered.getValue().contains(pDefinition)) {
+            if (variablesCovered.getValue().contains(pVariable)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isDefinition(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
+        for (DefUsePair defUsePair : pDefUsePairs) {
+            if (defUsePair.getDefinition().equals(pVariable)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isUsage(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
+        for (DefUsePair defUsePair : pDefUsePairs) {
+            if (defUsePair.getUsage().equals(pVariable)) {
                 return true;
             }
         }
@@ -1015,11 +1014,11 @@ public class HTMLFactory {
     }
 
     // find all uses for one particular definition
-    private Map<DefUsePair, Boolean> findDefUsePairCovered(ClassExecutionData pData, ProgramVariable pDefinition) {
+    private Map<DefUsePair, Boolean> getDefUsePairsCoveredForVar(ClassExecutionData pData, ProgramVariable pVariable) {
         Map<DefUsePair, Boolean> result = new HashMap<>();
-        for (Map.Entry<String, Map<DefUsePair, Boolean>> duCoveredMapEntry : pData.getDefUsePairsCovered().entrySet()) {
-            for (Map.Entry<DefUsePair, Boolean> element : duCoveredMapEntry.getValue().entrySet()) {
-                if (element.getKey().getDefinition().equals(pDefinition)) {
+        for (Map<DefUsePair, Boolean> duCoveredMap : pData.getDefUsePairsCovered().values()) {
+            for (Map.Entry<DefUsePair, Boolean> element : duCoveredMap.entrySet()) {
+                if (element.getKey().getDefinition().equals(pVariable) || element.getKey().getUsage().equals(pVariable)) {
                     result.put(element.getKey(), element.getValue());
                 }
             }

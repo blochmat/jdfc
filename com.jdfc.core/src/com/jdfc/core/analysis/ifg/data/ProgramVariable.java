@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Represents a program variable that is identified by its name and type.
  */
-public class ProgramVariable {
+public class ProgramVariable implements Comparable<Object>{
 
     private final String owner;
     private final String name;
@@ -100,5 +100,30 @@ public class ProgramVariable {
     public static ProgramVariable decode (String pEncoded) {
         String[] props = pEncoded.split(",");
         return ProgramVariable.create(props[0], props[1], props[2], Integer.parseInt(props[3]), Integer.parseInt(props[4]));
+    }
+
+    @Override
+    public int compareTo(Object pOther) {
+        if(pOther == null) {
+            throw new NullPointerException("Can't compare to null.");
+        }
+        ProgramVariable that = (ProgramVariable) pOther;
+
+        if(this.equals(that)) {
+            return 0;
+        }
+        if(this.getLineNumber() == that.getLineNumber()) {
+            if (this.getInstructionIndex() < that.getInstructionIndex()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            if (this.getLineNumber() < that.getLineNumber()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
     }
 }

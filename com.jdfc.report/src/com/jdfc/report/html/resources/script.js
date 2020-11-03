@@ -47,19 +47,31 @@ function compare(a, b) {
     return a - b;
 }
 
-function openTab(element, tabName) {
-    let i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("bla");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
+function openTab(element) {
+    let i, otherTabButtonId, otherTabButton, tabElements, otherTabElements;
+
+    if(element.id.includes("DefTabButton")) {
+        otherTabButtonId = element.id.replace("DefTabButton", "UseTabButton");
+        otherTabButton = document.getElementById(otherTabButtonId);
+    } else {
+        otherTabButtonId = element.id.replace("UseTabButton", "DefTabButton");
+        otherTabButton = document.getElementById(otherTabButtonId);
     }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    const elements = document.getElementsByClassName(tabName);
-    for (i = 0; i < elements.length; i++) {
-        elements[i].style.display = "block";
-    }
+
     element.className += " active";
+    let tabElementClass = element.id.replace("Button", "")
+    tabElements = document.getElementsByClassName(tabElementClass);
+    console.log(tabElements);
+    for (i = 0; i < tabElements.length; i++) {
+        tabElements[i].style.display = "flex";
+    }
+
+    if(otherTabButton != null) {
+        otherTabButton.className =  otherTabButton.className.replace(" active", "");
+        let otherTabElementClass = otherTabButtonId.replace("Button", "")
+        otherTabElements = document.getElementsByClassName(otherTabElementClass);
+        for (i = 0; i < otherTabElements.length; i++) {
+            otherTabElements[i].style.display = "none";
+        }
+    }
 }

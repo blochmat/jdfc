@@ -9,6 +9,7 @@ import com.jdfc.report.html.resources.Resources;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,7 +41,7 @@ public class ReportGenerator {
                                                         final ExecutionDataNode<ExecutionData> pNode,
                                                         final String pPathName) throws IOException {
         Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = pNode.getChildren();
-        Map<String, ExecutionDataNode<ExecutionData>> classExecutionDataNodeMap = new HashMap<>();
+        Map<String, ExecutionDataNode<ExecutionData>> classExecutionDataNodeMap = new TreeMap<>();
         File outputFolder = new File(pPathName);
         for (Map.Entry<String, ExecutionDataNode<ExecutionData>> childEntry : currentNodeChildren.entrySet()) {
             if (childEntry.getValue().isLeaf()) {

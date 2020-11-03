@@ -76,6 +76,8 @@ public class LoadController {
                 JDFCInstrument.instrument(cr);
                 ExecutionDataNode<ExecutionData> classExecutionDataNode =
                         CoverageDataStore.getInstance().findClassDataNode(relPath);
+                ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
+                classExecutionData.computeCoverageForClass();
                 classExecutionDataNode.aggregateDataToRoot();
             } catch (IOException e) {
                 e.printStackTrace();

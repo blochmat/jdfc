@@ -78,6 +78,10 @@ public class ClassExecutionData extends ExecutionData {
         return variablesCovered;
     }
 
+    public Map<String, Set<ProgramVariable>> getVariablesUncovered() {
+        return variablesUncovered;
+    }
+
     public Set<Field> getFields() {
         return fields;
     }
@@ -255,11 +259,11 @@ public class ClassExecutionData extends ExecutionData {
 
     public void computeCoverageForClass() {
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
+            String methodName = entry.getKey();
+            variablesUncovered.put(methodName, new HashSet<>());
             if (entry.getValue().size() == 0) {
                 continue;
             }
-            String methodName = entry.getKey();
-            variablesUncovered.put(methodName, new HashSet<>());
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
@@ -333,5 +337,17 @@ public class ClassExecutionData extends ExecutionData {
                 || pDescriptor.equals("F")
                 || pDescriptor.equals("L")
                 || pDescriptor.equals("Ljava/lang/String;");
+    }
+
+    public boolean isAnalyzedDefinition(String pName, int pLineNumber) {
+        for(Map<DefUsePair, Boolean> entryMap : defUsePairsCovered.values()) {
+            for (DefUsePair element : entryMap.keySet()) {
+                if(element.getDefinition().getName().equals(pName)
+                        && element.getDefinition().getLineNumber() == pLineNumber) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

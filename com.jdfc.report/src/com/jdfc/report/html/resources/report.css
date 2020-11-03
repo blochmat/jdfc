@@ -34,7 +34,7 @@
     position: absolute;
     z-index: 1;
     top: -5px;
-    left: 110%;
+    left: 100%;
     font: 400 15px Arial;
     opacity: 0;
     transition: opacity 0.5s;
@@ -76,7 +76,6 @@
     border-radius: 5px;
     cursor: pointer;
     padding: 14px 16px;
-    transition: 0.3s;
 }
 
 .buttonContainer button:hover {background-color: #3e8e41}
@@ -89,7 +88,7 @@
     margin: 2px;
 }
 
-.margint4 {
+.margin10 {
     margin-left: 10px;
 }
 
@@ -126,6 +125,7 @@
 
 .tooltipTable {
     table-layout: auto;
+    width: 100%;
 }
 
 
