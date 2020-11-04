@@ -87,6 +87,7 @@ public class CoverageDataExport {
             instanceVarList.appendChild(instanceVar);
             instanceVar.setAttribute("owner", element.getOwner());
             instanceVar.setAttribute("holder", ProgramVariable.encode(element.getHolder()));
+            instanceVar.setAttribute("method", element.getMethod());
             instanceVar.setAttribute("access", String.valueOf(element.getAccess()));
             instanceVar.setAttribute("name", element.getName());
             instanceVar.setAttribute("descriptor", element.getDescriptor());
@@ -137,12 +138,15 @@ public class CoverageDataExport {
             defUsePair.setAttribute("dType", element.getDefinition().getDescriptor());
             defUsePair.setAttribute("dIndex", Integer.toString(element.getDefinition().getInstructionIndex()));
             defUsePair.setAttribute("dLineNumber", Integer.toString(element.getDefinition().getLineNumber()));
+            defUsePair.setAttribute("dIsReference", Boolean.toString(element.getDefinition().isReference()));
 
             defUsePair.setAttribute("uOwner", element.getUsage().getOwner());
             defUsePair.setAttribute("uName", element.getUsage().getName());
             defUsePair.setAttribute("uType", element.getUsage().getDescriptor());
             defUsePair.setAttribute("uIndex", Integer.toString(element.getUsage().getInstructionIndex()));
             defUsePair.setAttribute("uLineNumber", Integer.toString(element.getUsage().getLineNumber()));
+            defUsePair.setAttribute("uIsReference", Boolean.toString(element.getUsage().isReference()));
+
         }
         return defUsePairList;
     }
@@ -165,6 +169,8 @@ public class CoverageDataExport {
                 Integer.toString(pProgramVariable.getInstructionIndex()));
         programVariable.setAttribute("lineNumber",
                 Integer.toString(pProgramVariable.getLineNumber()));
+        programVariable.setAttribute("isReference",
+                Boolean.toString(pProgramVariable.isReference()));
         return programVariable;
     }
 }

@@ -5,10 +5,7 @@ import com.google.common.base.Preconditions;
 import com.jdfc.core.analysis.data.CoverageDataExport;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.ifg.data.Field;
-import com.jdfc.core.analysis.ifg.data.LocalVariable;
-import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
-import com.jdfc.core.analysis.ifg.data.ProgramVariable;
+import com.jdfc.core.analysis.ifg.data.*;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
@@ -59,7 +56,11 @@ public class CFGImpl implements CFG {
     }
 
     @Override
-    public void setImpure() { this.isImpure = true; };
+    public void setImpure() {
+        this.isImpure = true;
+    }
+
+    ;
 
     /**
      * {@inheritDoc}
@@ -134,22 +135,41 @@ public class CFGImpl implements CFG {
         LocalVariableTable table = cfg.getLocalVariableTable();
         LocalVariable variable = findLocalVariable(table, pVarIndex);
         if (variable != null) {
-            return ProgramVariable.create(null, variable.getName(), variable.getDescriptor(), pInsnIndex, pLineNumber);
+            ProgramVariable programVariable =
+                    ProgramVariable.create(null, variable.getName(), variable.getDescriptor(),
+                            pInsnIndex, pLineNumber, false);
+            programVariable.setReference(isHolder(pData, programVariable));
+            return programVariable;
         }
         return null;
     }
 
-    static ProgramVariable prepareNewInstanceVarEntry(final ClassExecutionData pClassExecutionData,
+    static boolean isHolder(final ClassExecutionData pData,
+                            final ProgramVariable pVariable) {
+        for (InstanceVariable element : pData.getInstanceVariables()) {
+            ProgramVariable holder = element.getHolder();
+            if (holder.getOwner() == null && pVariable.getOwner() == null
+                    && holder.getName().equals(pVariable.getName())
+                    && holder.getDescriptor().equals(pVariable.getDescriptor())
+                    && holder.getLineNumber() == pVariable.getLineNumber()
+                    && holder.getInstructionIndex() == pVariable.getInstructionIndex()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static ProgramVariable prepareNewInstanceVarEntry(final ClassExecutionData pData,
                                                       final String pOwner,
                                                       final String pVarName,
                                                       final String pVarDesc,
                                                       final int pInstructionIndex,
                                                       final int pLineNumber) {
-        if(pClassExecutionData != null) {
-            Set<Field> set = pClassExecutionData.getFields();
-            Field variable = findInstanceVariable(set, pOwner, pVarName, pVarDesc);
+        if (pData != null) {
+            Set<InstanceVariable> instanceVariables = pData.getInstanceVariables();
+            InstanceVariable variable = findInstanceVariable(instanceVariables, pOwner, pVarName, pVarDesc);
             if (variable != null) {
-                return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(), pInstructionIndex, pLineNumber);
+                return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(), pInstructionIndex, pLineNumber, false);
             }
         }
         return null;
@@ -167,8 +187,11 @@ public class CFGImpl implements CFG {
         return o.orElse(null);
     }
 
-    static Field findInstanceVariable(Set<Field> pSet, String pOwner, String pVarName, String pVarDesc) {
-        for (Field variable : pSet) {
+    static InstanceVariable findInstanceVariable(final Set<InstanceVariable> pInstanceVariables,
+                                                 final String pOwner,
+                                                 final String pVarName,
+                                                 final String pVarDesc) {
+        for (InstanceVariable variable : pInstanceVariables) {
             if (variable.getOwner().equals(pOwner)
                     && variable.getName().equals(pVarName)
                     && variable.getDescriptor().equals(pVarDesc)) {

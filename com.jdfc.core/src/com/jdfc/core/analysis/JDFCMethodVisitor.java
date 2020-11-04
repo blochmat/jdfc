@@ -1,5 +1,6 @@
 package com.jdfc.core.analysis;
 
+import com.jdfc.core.analysis.ifg.CFGNode;
 import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
@@ -12,6 +13,7 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 
+import java.util.NavigableMap;
 import java.util.Optional;
 
 public abstract class JDFCMethodVisitor extends MethodVisitor {
@@ -171,14 +173,35 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         currentInstructionIndex = methodNode.instructions.indexOf(currentNode);
     }
 
-    protected VarInsnNode getOwnerNode(int startCounter) {
-        int counter = startCounter;
+    protected VarInsnNode getOwnerNode(int pStartCounter) {
+        int counter = pStartCounter;
         AbstractInsnNode abstractInsnNode = null;
         for (int i = 1; i <= counter; i++) {
             abstractInsnNode = methodNode.instructions.get(currentInstructionIndex - i);
             counter += recalculateCounter(abstractInsnNode);
         }
         return (VarInsnNode) abstractInsnNode;
+    }
+
+    protected CFGNode getOwnerNode(int pStartCounter, NavigableMap<Integer, CFGNode> pNodes) {
+        int counter = pStartCounter;
+        AbstractInsnNode abstractInsnNode;
+        for (int i = 1; i <= counter; i++) {
+            abstractInsnNode = methodNode.instructions.get(currentInstructionIndex - i);
+            counter += recalculateCounter(abstractInsnNode);
+        }
+
+        return pNodes.get(currentInstructionIndex - counter);
+    }
+
+    protected int getInstructionIndex(int pStartCounter) {
+        int counter = pStartCounter;
+        AbstractInsnNode abstractInsnNode;
+        for (int i = 1; i <= counter; i++) {
+            abstractInsnNode = methodNode.instructions.get(currentInstructionIndex - i);
+            counter += recalculateCounter(abstractInsnNode);
+        }
+        return currentInstructionIndex - counter;
     }
 
     private int recalculateCounter(AbstractInsnNode abstractInsnNode) {
@@ -221,7 +244,7 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     protected ProgramVariable getProgramVariableFromLocalVar(int varNumber, final int pIndex, final int pLineNumber) {
         final String varName = getVariableNameFromLocalVariablesTable(varNumber);
         final String varType = getVariableTypeFromLocalVariablesTable(varNumber);
-        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber);
+        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, false);
     }
 
     private String getVariableNameFromLocalVariablesTable(final int pVarNumber) {

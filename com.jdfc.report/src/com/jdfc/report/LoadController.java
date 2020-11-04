@@ -163,6 +163,7 @@ public class LoadController {
     private static void collectInstanceVariableData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
         String owner = getValueOrNull(pAttr.getNamedItem("owner").getNodeValue());
         ProgramVariable holder = ProgramVariable.decode(pAttr.getNamedItem("holder").getNodeValue());
+        String method = getValueOrNull(pAttr.getNamedItem("method").getNodeValue());
         int access = Integer.parseInt(pAttr.getNamedItem("access").getNodeValue());
         String name = getValueOrNull(pAttr.getNamedItem("name").getNodeValue());
         String descriptor = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
@@ -170,7 +171,7 @@ public class LoadController {
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
 
-        InstanceVariable newVar = InstanceVariable.create(owner, holder, access, name, descriptor, signature, instructionIndex, lineNumber);
+        InstanceVariable newVar = InstanceVariable.create(owner, holder, method, access, name, descriptor, signature, instructionIndex, lineNumber);
         pClassExecutionData.getInstanceVariables().add(newVar);
     }
 
@@ -230,7 +231,8 @@ public class LoadController {
         String type = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
-        return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber);
+        boolean isReference = Boolean.parseBoolean(pAttr.getNamedItem("isReference").getNodeValue());
+        return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber, isReference);
     }
 
     private static DefUsePair createDefUsePair(NamedNodeMap pAttr) {
@@ -239,14 +241,16 @@ public class LoadController {
         String dType = getValueOrNull(pAttr.getNamedItem("dType").getNodeValue());
         int dIndex = Integer.parseInt(pAttr.getNamedItem("dIndex").getNodeValue());
         int dLineNumber = Integer.parseInt(pAttr.getNamedItem("dLineNumber").getNodeValue());
-        ProgramVariable definition = ProgramVariable.create(dOwner, dName, dType, dIndex, dLineNumber);
+        boolean dIsReference = Boolean.parseBoolean(pAttr.getNamedItem("dIsReference").getNodeValue());
+        ProgramVariable definition = ProgramVariable.create(dOwner, dName, dType, dIndex, dLineNumber, dIsReference);
 
         String uOwner = getValueOrNull(pAttr.getNamedItem("uOwner").getNodeValue());
         String uName = getValueOrNull(pAttr.getNamedItem("uName").getNodeValue());
         String uType = getValueOrNull(pAttr.getNamedItem("uType").getNodeValue());
         int uIndex = Integer.parseInt(pAttr.getNamedItem("uIndex").getNodeValue());
         int uLineNumber = Integer.parseInt(pAttr.getNamedItem("uLineNumber").getNodeValue());
-        ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uIndex, uLineNumber);
+        boolean uIsReference = Boolean.parseBoolean(pAttr.getNamedItem("uIsReference").getNodeValue());
+        ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uIndex, uLineNumber, uIsReference);
         return new DefUsePair(definition, usage);
     }
 

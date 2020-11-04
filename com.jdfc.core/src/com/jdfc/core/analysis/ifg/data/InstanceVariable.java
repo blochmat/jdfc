@@ -2,14 +2,16 @@ package com.jdfc.core.analysis.ifg.data;
 
 import java.util.Objects;
 
-public class InstanceVariable extends Field{
+public class InstanceVariable extends Field implements Comparable<Object>{
 
     private final ProgramVariable holder;
+    private final String method;
     private final int instructionIndex;
     private final int lineNumber;
 
     private InstanceVariable(final String pOwner,
                              final ProgramVariable pHolder,
+                             final String pMethod,
                              final int pAccess,
                              final String pName,
                              final String pDescriptor,
@@ -17,6 +19,7 @@ public class InstanceVariable extends Field{
                              final int pInstructionIndex,
                              final int pLineNumber) {
         super(pOwner, pAccess, pName, pDescriptor, pSignature);
+        method = pMethod;
         holder = pHolder;
         instructionIndex = pInstructionIndex;
         lineNumber = pLineNumber;
@@ -24,13 +27,14 @@ public class InstanceVariable extends Field{
 
     public static InstanceVariable create(final String pOwner,
                                           final ProgramVariable pHolder,
+                                          final String pMethod,
                                           final int pAccess,
                                           final String pName,
                                           final String pDescriptor,
                                           final String pSignature,
                                           final int pInstructionIndex,
                                           final int pLineNumber) {
-        return new InstanceVariable(pOwner, pHolder, pAccess, pName, pDescriptor, pSignature, pInstructionIndex, pLineNumber);
+        return new InstanceVariable(pOwner, pHolder, pMethod, pAccess, pName, pDescriptor, pSignature, pInstructionIndex, pLineNumber);
     }
 
     public ProgramVariable getHolder() {
@@ -45,9 +49,13 @@ public class InstanceVariable extends Field{
         return instructionIndex;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(owner, access, name, descriptor, signature, lineNumber);
+        return Objects.hash(owner, method, access, name, descriptor, signature, lineNumber);
     }
 
     @Override
@@ -60,6 +68,7 @@ public class InstanceVariable extends Field{
         }
         final InstanceVariable that = (InstanceVariable) pOther;
         return Objects.equals(owner, that.owner)
+                && method.equals(that.method)
                 && access == that.access
                 && Objects.equals(name, that.name)
                 && Objects.equals(descriptor, that.descriptor)
@@ -75,6 +84,9 @@ public class InstanceVariable extends Field{
                 + "owner='"
                 + owner
                 + '\''
+                + ", method='"
+                + method
+                + '\''
                 + ", access='"
                 + access
                 + '\''
@@ -84,19 +96,42 @@ public class InstanceVariable extends Field{
                 + ", descriptor='"
                 + descriptor
                 + '\''
-                + ", signature="
+                + ", signature='"
                 + signature
                 + '\''
-                + ", instructionIndex="
+                + ", instructionIndex= "
                 + instructionIndex
-                + '\''
-                + ", lineNumber='"
+                + ", lineNumber= "
                 + lineNumber
-                + '\''
                 + ", holderInformation='"
                 + holder
                 + '\''
                 + '}';
+    }
+
+    @Override
+    public int compareTo(Object pOther) {
+        if(pOther == null) {
+            throw new NullPointerException("Can't compare to null.");
+        }
+        InstanceVariable that = (InstanceVariable) pOther;
+
+        if(this.equals(that)) {
+            return 0;
+        }
+        if(this.getLineNumber() == that.getLineNumber()) {
+            if (this.getInstructionIndex() < that.getInstructionIndex()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            if (this.getLineNumber() < that.getLineNumber()) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
     }
 }
 

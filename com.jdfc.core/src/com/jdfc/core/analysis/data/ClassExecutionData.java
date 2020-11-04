@@ -18,7 +18,7 @@ public class ClassExecutionData extends ExecutionData {
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
     private final Set<Field> fields;
-    private final Set<InstanceVariable> instanceVariables;
+    private final TreeSet<InstanceVariable> instanceVariables;
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
     private final TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
     private final Map<String, Set<ProgramVariable>> variablesCovered;
@@ -37,7 +37,7 @@ public class ClassExecutionData extends ExecutionData {
         relativePath = pRelativePath;
         fields = new HashSet<>();
         interProceduralMatches = new HashMap<>();
-        instanceVariables = new HashSet<>();
+        instanceVariables = new TreeSet<>();
     }
 
     /**
@@ -174,7 +174,7 @@ public class ClassExecutionData extends ExecutionData {
             if (!isSimpleType(parameter.getDescriptor())) {
                 ProgramVariable newParamDefinition =
                         ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
-                                pNode.getIndex(), pNode.getLineNumber());
+                                pNode.getIndex(), pNode.getLineNumber(), parameter.isReference());
                 pNode.addDefinition(newParamDefinition);
             }
         }
@@ -183,7 +183,7 @@ public class ClassExecutionData extends ExecutionData {
 
         ProgramVariable newCallerDefinition =
                 ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getDescriptor(),
-                        pNode.getIndex(), pNode.getLineNumber());
+                        pNode.getIndex(), pNode.getLineNumber(), caller.isReference());
         pNode.addDefinition(newCallerDefinition);
     }
 
