@@ -1,11 +1,14 @@
 package com.jdfc.core.analysis.ifg.data;
 
+import com.google.common.base.Strings;
+
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
  * Represents a program variable that is identified by its name and type.
  */
-public class ProgramVariable implements Comparable<Object>{
+public class ProgramVariable implements Comparable<Object> {
 
     private final String owner;
     private final String name;
@@ -92,12 +95,13 @@ public class ProgramVariable implements Comparable<Object>{
             return false;
         }
         final ProgramVariable that = (ProgramVariable) pOther;
+
         return Objects.equals(owner, that.owner)
                 && Objects.equals(name, that.name)
                 && Objects.equals(descriptor, that.descriptor)
-                && instructionIndex == that.instructionIndex
-                && lineNumber == that.lineNumber
-                && isReference == that.isReference;
+                && (instructionIndex == that.instructionIndex)
+                && (lineNumber == that.lineNumber)
+                && Boolean.compare(isReference, that.isReference) == 0;
     }
 
     /**
@@ -122,24 +126,29 @@ public class ProgramVariable implements Comparable<Object>{
                 pVar.owner, pVar.name, pVar.descriptor, pVar.instructionIndex, pVar.lineNumber, pVar.isReference);
     }
 
-    public static ProgramVariable decode (String pEncoded) {
+    public static ProgramVariable decode(String pEncoded) {
         String[] props = pEncoded.split(",");
-        return ProgramVariable.create(
-                props[0], props[1], props[2],
-                Integer.parseInt(props[3]), Integer.parseInt(props[4]), Boolean.getBoolean(props[5]));
+        String owner = (props[0].equals("null") ? null : props[0]);
+        String name = (props[1].equals("null") ? null : props[1]);
+        String descriptor = (props[2].equals("null") ? null : props[2]);
+        int instructionIndex = Integer.parseInt(props[3]);
+        int lineNumber = Integer.parseInt(props[4]);
+        boolean isReference = Boolean.parseBoolean(props[5]);
+
+        return ProgramVariable.create(owner, name, descriptor, instructionIndex, lineNumber, isReference);
     }
 
     @Override
     public int compareTo(Object pOther) {
-        if(pOther == null) {
+        if (pOther == null) {
             throw new NullPointerException("Can't compare to null.");
         }
         ProgramVariable that = (ProgramVariable) pOther;
 
-        if(this.equals(that)) {
+        if (this.equals(that)) {
             return 0;
         }
-        if(this.getLineNumber() == that.getLineNumber()) {
+        if (this.getLineNumber() == that.getLineNumber()) {
             if (this.getInstructionIndex() < that.getInstructionIndex()) {
                 return -1;
             } else {

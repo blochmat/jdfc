@@ -259,17 +259,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             }
         }
 
-//        for (Field element : pFields) {
-//            final ProgramVariable variable =
-//                    ProgramVariable.create(
-//                            element.getOwner(),
-//                            element.getName(),
-//                            element.getDescriptor(),
-//                            Integer.MIN_VALUE,
-//                            Integer.MIN_VALUE);
-//            parameters.add(variable);
-//        }
-
         final CFGNode firstNode = nodes.get(0);
         final CFGNode entryNode =
                 new CFGNode(

@@ -20,18 +20,18 @@ public class JDFCInstrument {
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
 //        if (classNode.name.equals("asd/f/GCD")) {
-            ClassExecutionData classExecutionData =
-                    (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
+        ClassExecutionData classExecutionData =
+                (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
-            CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
+        CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
 
 
 //            final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
 //            final ClassVisitor cv = new InstrumentationClassVisitor(tcv, classNode, classExecutionData);
 //            classReader.accept(cv, 0);
 //        } else {
-            final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
-            classReader.accept(cv, 0);
+        final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
+        classReader.accept(cv, 0);
 //        } else {
 //            classReader.accept(cw, 0);
 //        }

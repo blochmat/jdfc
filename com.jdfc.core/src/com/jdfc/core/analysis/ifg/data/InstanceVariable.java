@@ -53,6 +53,16 @@ public class InstanceVariable extends Field implements Comparable<Object>{
         return method;
     }
 
+    public ProgramVariable convertToProgramVariable() {
+        return ProgramVariable.create(
+                this.getOwner(),
+                this.getName(),
+                this.getDescriptor(),
+                this.getInstructionIndex(),
+                this.getLineNumber(),
+                false);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(owner, method, access, name, descriptor, signature, lineNumber);
