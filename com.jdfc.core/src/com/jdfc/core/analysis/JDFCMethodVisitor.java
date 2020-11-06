@@ -16,6 +16,9 @@ import org.objectweb.asm.tree.VarInsnNode;
 import java.util.NavigableMap;
 import java.util.Optional;
 
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
+
 public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     public final JDFCClassVisitor classVisitor;
@@ -241,10 +244,14 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
                 || pDescriptor.equals("Ljava/lang/String;");
     }
 
-    protected ProgramVariable getProgramVariableFromLocalVar(int varNumber, final int pIndex, final int pLineNumber) {
+    protected ProgramVariable getProgramVariableFromLocalVar(final int varNumber,
+                                                             final int pOpcode,
+                                                             final int pIndex,
+                                                             final int pLineNumber) {
         final String varName = getVariableNameFromLocalVariablesTable(varNumber);
         final String varType = getVariableTypeFromLocalVariablesTable(varNumber);
-        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, false);
+        final boolean isDefinition = isDefinition(pOpcode);
+        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, false, isDefinition);
     }
 
     private String getVariableNameFromLocalVariablesTable(final int pVarNumber) {
@@ -267,5 +274,19 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     protected boolean isInstrumentationRequired(String pString) {
         return !pString.contains(jacocoPrefix);
+    }
+
+    protected boolean isDefinition(final int pOpcode) {
+        switch (pOpcode) {
+            case ISTORE:
+            case LSTORE:
+            case FSTORE:
+            case DSTORE:
+            case ASTORE:
+            case PUTFIELD:
+                return true;
+            default:
+                return false;
+        }
     }
 }

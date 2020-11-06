@@ -85,7 +85,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             VarInsnNode ownerNode = getOwnerNode(INVOKE_STANDARD + paramsCount);
             int ownerInstructionIndex = getInstructionIndex(INVOKE_STANDARD);
             ProgramVariable caller =
-                    getProgramVariableFromLocalVar(ownerNode.var, ownerInstructionIndex, currentLineNumber);
+                    getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), ownerInstructionIndex, currentLineNumber);
             final IFGNode node = new IFGNode(currentInstructionIndex, currentLineNumber, caller, methodNameDesc, paramsCount);
             nodes.put(currentInstructionIndex, node);
         } else {
@@ -158,12 +158,13 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void createCFGNodeForFieldInsnNode(final int pOpcode, String pOwner, String pName, String pDescriptor) {
-        final ProgramVariable programVariable =
-                ProgramVariable.create(pOwner, pName, pDescriptor,
-                        currentInstructionIndex, currentLineNumber, false);
+        final ProgramVariable programVariable;
+
         final CFGNode node;
         switch (pOpcode) {
             case GETFIELD:
+                programVariable = ProgramVariable.create(pOwner, pName, pDescriptor, currentInstructionIndex,
+                        currentLineNumber, false, false);
                 node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), currentInstructionIndex);
                 markAndRedefineHolder(GETFIELD_STANDARD, null);
                 break;
@@ -171,6 +172,8 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
                 if (pOwner.equals(classVisitor.classNode.name)) {
                     isImpure = true;
                 }
+                programVariable = ProgramVariable.create(pOwner, pName, pDescriptor, currentInstructionIndex,
+                        currentLineNumber, false, true);
                 node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), currentInstructionIndex);
                 markAndRedefineHolder(PUTFIELD_STANDARD, node);
                 break;
@@ -189,7 +192,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             if(pNode != null) {
                 ProgramVariable newDefinition =
                         ProgramVariable.create(element.getOwner(), element.getName(), element.getDescriptor(),
-                                currentInstructionIndex, ownerInstructionIndex, false);
+                                currentInstructionIndex, ownerInstructionIndex, false, true);
                 pNode.addDefinition(newDefinition);
             }
         }
@@ -197,13 +200,14 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {
         final CFGNode node;
-        final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, pIndex, lineNumber);
+        final ProgramVariable programVariable;
         switch (opcode) {
             case ISTORE:
             case LSTORE:
             case FSTORE:
             case DSTORE:
             case ASTORE:
+                programVariable = getProgramVariableFromLocalVar(varNumber, opcode, pIndex, lineNumber);
                 node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex);
                 break;
             case ILOAD:
@@ -211,6 +215,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             case FLOAD:
             case DLOAD:
             case ALOAD:
+                programVariable = getProgramVariableFromLocalVar(varNumber, opcode, pIndex, lineNumber);
                 node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex);
                 break;
             default:
@@ -221,7 +226,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void createCFGNodeForIincInsnNode(final int varNumber, final int pIndex, final int pLineNumber) {
-        final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, pIndex, pLineNumber);
+        final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, ISTORE, pIndex, pLineNumber);
         final CFGNode node =
                 new CFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex);
         nodes.put(pIndex, node);
@@ -254,7 +259,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
                                 localVariable.getName(),
                                 localVariable.getDescriptor(),
                                 Integer.MIN_VALUE,
-                                firstLine, false);
+                                firstLine, false, true);
                 parameters.add(variable);
             }
         }

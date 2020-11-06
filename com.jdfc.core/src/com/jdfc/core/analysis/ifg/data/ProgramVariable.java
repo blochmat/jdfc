@@ -1,8 +1,5 @@
 package com.jdfc.core.analysis.ifg.data;
 
-import com.google.common.base.Strings;
-
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -16,19 +13,22 @@ public class ProgramVariable implements Comparable<Object> {
     private final int instructionIndex;
     private final int lineNumber;
     private boolean isReference;
+    private boolean isDefinition;
 
     private ProgramVariable(final String pOwner,
                             final String pName,
                             final String pDescriptor,
                             final int pInstructionIndex,
                             final int pLineNumber,
-                            final boolean pIsReference) {
+                            final boolean pIsReference,
+                            final boolean pIsDefinition) {
         owner = pOwner;
         name = pName;
         descriptor = pDescriptor;
         instructionIndex = pInstructionIndex;
         lineNumber = pLineNumber;
         isReference = pIsReference;
+        isDefinition = pIsDefinition;
     }
 
     public static ProgramVariable create(final String pOwner,
@@ -36,13 +36,13 @@ public class ProgramVariable implements Comparable<Object> {
                                          final String pDescriptor,
                                          final int pInstructionIndex,
                                          final int pLineNumber,
-                                         final boolean pIsReference) {
-        return new ProgramVariable(pOwner, pName, pDescriptor, pInstructionIndex, pLineNumber, pIsReference);
+                                         final boolean pIsReference,
+                                         final boolean pIsDefinition) {
+        return new ProgramVariable(pOwner, pName, pDescriptor, pInstructionIndex, pLineNumber, pIsReference, pIsDefinition);
     }
 
     public ProgramVariable clone() throws CloneNotSupportedException {
-        ProgramVariable clone = (ProgramVariable) super.clone();
-        return clone;
+        return (ProgramVariable) super.clone();
     }
 
     /**
@@ -83,6 +83,14 @@ public class ProgramVariable implements Comparable<Object> {
         return isReference;
     }
 
+    public void setDefinition(boolean definition) {
+        isDefinition = definition;
+    }
+
+    public boolean isDefinition() {
+        return isDefinition;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -101,7 +109,8 @@ public class ProgramVariable implements Comparable<Object> {
                 && Objects.equals(descriptor, that.descriptor)
                 && (instructionIndex == that.instructionIndex)
                 && (lineNumber == that.lineNumber)
-                && Boolean.compare(isReference, that.isReference) == 0;
+                && Boolean.compare(isReference, that.isReference) == 0
+                && Boolean.compare(isDefinition, that.isDefinition) == 0;
     }
 
     /**
@@ -109,7 +118,7 @@ public class ProgramVariable implements Comparable<Object> {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(owner, name, descriptor, instructionIndex, lineNumber);
+        return Objects.hash(owner, name, descriptor, instructionIndex, lineNumber, isReference, isDefinition);
     }
 
     /**
@@ -117,13 +126,13 @@ public class ProgramVariable implements Comparable<Object> {
      */
     @Override
     public String toString() {
-        return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d, Owner: %s, isReference: %s)",
-                name, descriptor, instructionIndex, lineNumber, owner, isReference);
+        return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d, Owner: %s, isReference: %s, isDefinition: %s)",
+                name, descriptor, instructionIndex, lineNumber, owner, isReference, isDefinition);
     }
 
     public static String encode(ProgramVariable pVar) {
-        return String.format("%s,%s,%s,%s,%s,%s",
-                pVar.owner, pVar.name, pVar.descriptor, pVar.instructionIndex, pVar.lineNumber, pVar.isReference);
+        return String.format("%s,%s,%s,%s,%s,%s,%s",
+                pVar.owner, pVar.name, pVar.descriptor, pVar.instructionIndex, pVar.lineNumber, pVar.isReference, pVar.isDefinition);
     }
 
     public static ProgramVariable decode(String pEncoded) {
@@ -134,8 +143,9 @@ public class ProgramVariable implements Comparable<Object> {
         int instructionIndex = Integer.parseInt(props[3]);
         int lineNumber = Integer.parseInt(props[4]);
         boolean isReference = Boolean.parseBoolean(props[5]);
+        boolean isDefinition = Boolean.parseBoolean(props[6]);
 
-        return ProgramVariable.create(owner, name, descriptor, instructionIndex, lineNumber, isReference);
+        return ProgramVariable.create(owner, name, descriptor, instructionIndex, lineNumber, isReference, isDefinition);
     }
 
     @Override

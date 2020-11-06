@@ -3,6 +3,7 @@ package com.jdfc.core.report;
 import com.jdfc.core.analysis.JDFCClassVisitor;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.core.analysis.ifg.CFGCreator;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -11,7 +12,7 @@ import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.ASM6;
 
-public class ReportClassVisitor extends JDFCClassVisitor {
+public class ReportClassVisitor extends ClassVisitor {
 
     private Map<Integer, Integer> opcodes;
     private final int lineNumber;
@@ -23,7 +24,7 @@ public class ReportClassVisitor extends JDFCClassVisitor {
     public ReportClassVisitor(final ClassNode pNode,
                               final ClassExecutionData pData,
                               final int pLineNumber) {
-        super(ASM6, pNode, pData);
+        super(ASM6);
         lineNumber = pLineNumber;
     }
 

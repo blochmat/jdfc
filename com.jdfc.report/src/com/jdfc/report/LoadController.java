@@ -170,8 +170,8 @@ public class LoadController {
         String signature = getValueOrNull(pAttr.getNamedItem("signature").getNodeValue());
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
-
-        InstanceVariable newVar = InstanceVariable.create(owner, holder, method, access, name, descriptor, signature, instructionIndex, lineNumber);
+        boolean isDefinition = Boolean.parseBoolean(pAttr.getNamedItem("isDefinition").getNodeValue());
+        InstanceVariable newVar = InstanceVariable.create(owner, holder, method, access, name, descriptor, signature, instructionIndex, lineNumber, isDefinition);
         pClassExecutionData.getInstanceVariables().add(newVar);
     }
 
@@ -232,7 +232,8 @@ public class LoadController {
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
         boolean isReference = Boolean.parseBoolean(pAttr.getNamedItem("isReference").getNodeValue());
-        return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber, isReference);
+        boolean isDefinition = Boolean.parseBoolean(pAttr.getNamedItem("isDefinition").getNodeValue());
+        return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber, isReference, isDefinition);
     }
 
     private static DefUsePair createDefUsePair(NamedNodeMap pAttr) {
@@ -242,7 +243,8 @@ public class LoadController {
         int dIndex = Integer.parseInt(pAttr.getNamedItem("dIndex").getNodeValue());
         int dLineNumber = Integer.parseInt(pAttr.getNamedItem("dLineNumber").getNodeValue());
         boolean dIsReference = Boolean.parseBoolean(pAttr.getNamedItem("dIsReference").getNodeValue());
-        ProgramVariable definition = ProgramVariable.create(dOwner, dName, dType, dIndex, dLineNumber, dIsReference);
+        boolean dIsDefinition = Boolean.parseBoolean(pAttr.getNamedItem("dIsDefinition").getNodeValue());
+        ProgramVariable definition = ProgramVariable.create(dOwner, dName, dType, dIndex, dLineNumber, dIsReference, dIsDefinition);
 
         String uOwner = getValueOrNull(pAttr.getNamedItem("uOwner").getNodeValue());
         String uName = getValueOrNull(pAttr.getNamedItem("uName").getNodeValue());
@@ -250,7 +252,8 @@ public class LoadController {
         int uIndex = Integer.parseInt(pAttr.getNamedItem("uIndex").getNodeValue());
         int uLineNumber = Integer.parseInt(pAttr.getNamedItem("uLineNumber").getNodeValue());
         boolean uIsReference = Boolean.parseBoolean(pAttr.getNamedItem("uIsReference").getNodeValue());
-        ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uIndex, uLineNumber, uIsReference);
+        boolean uIsDefinition = Boolean.parseBoolean(pAttr.getNamedItem("uIsDefinition").getNodeValue());
+        ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uIndex, uLineNumber, uIsReference, uIsDefinition);
         return new DefUsePair(definition, usage);
     }
 

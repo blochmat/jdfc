@@ -53,8 +53,9 @@ public class CFGInstanceVariableMethodVisitor extends JDFCMethodVisitor {
                     ownerInstructionIndex = getInstructionIndex(GETFIELD_STANDARD);
                 }
                 ProgramVariable holder =
-                        getProgramVariableFromLocalVar(ownerNode.var, ownerInstructionIndex, currentLineNumber);
+                        getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), ownerInstructionIndex, currentLineNumber);
                 holder.setReference(true);
+                boolean isDefinition = isDefinition(pOpcode);
                 InstanceVariable instanceVariable =
                         InstanceVariable.create(pOwner,
                                 holder,
@@ -64,7 +65,8 @@ public class CFGInstanceVariableMethodVisitor extends JDFCMethodVisitor {
                                 pDescription,
                                 field.getSignature(),
                                 currentInstructionIndex,
-                                currentLineNumber);
+                                currentLineNumber,
+                                isDefinition);
                 classVisitor.classExecutionData.getInstanceVariables().add(instanceVariable);
                 break;
             }

@@ -11,6 +11,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
 import java.util.*;
 
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ALOAD;
+
 /**
  * A implementation of a {@link CFG}.
  */
@@ -96,10 +99,12 @@ public class CFGImpl implements CFG {
                                                final String pMethodDesc,
                                                final int pVarIndex,
                                                final int pInsnIndex,
-                                               final int pLineNumber) {
+                                               final int pLineNumber,
+                                               final int pOpcode) {
         String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
         ClassExecutionData classExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-        ProgramVariable programVariable = prepareNewLocalVarEntry(classExecutionData, methodNameDesc, pVarIndex, pInsnIndex, pLineNumber);
+        boolean isDefinition = isDefinition(pOpcode);
+        ProgramVariable programVariable = prepareNewLocalVarEntry(classExecutionData, methodNameDesc, pVarIndex, pInsnIndex, pLineNumber, isDefinition);
         addCoveredEntry(methodNameDesc, classExecutionData, programVariable);
     }
 
@@ -110,10 +115,12 @@ public class CFGImpl implements CFG {
                                                   final String pVarName,
                                                   final String pVarDesc,
                                                   final int pIndex,
-                                                  final int pLineNumber) {
+                                                  final int pLineNumber,
+                                                  final int pOpcode) {
         String methodNameDesc = pMethodName.concat(": " + pMethodDesc);
         ClassExecutionData classExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-        ProgramVariable programVariable = prepareNewInstanceVarEntry(classExecutionData, pOwner, pVarName, pVarDesc, pIndex, pLineNumber);
+        boolean isDefinition = isDefinition(pOpcode);
+        ProgramVariable programVariable = prepareNewInstanceVarEntry(classExecutionData, pOwner, pVarName, pVarDesc, pIndex, pLineNumber, isDefinition);
         addCoveredEntry(methodNameDesc, classExecutionData, programVariable);
     }
 
@@ -130,14 +137,15 @@ public class CFGImpl implements CFG {
                                                    final String pMethodName,
                                                    final int pVarIndex,
                                                    final int pInsnIndex,
-                                                   final int pLineNumber) {
+                                                   final int pLineNumber,
+                                                   final boolean pIsDefinition) {
         CFG cfg = pData.getMethodCFGs().get(pMethodName);
         LocalVariableTable table = cfg.getLocalVariableTable();
         LocalVariable variable = findLocalVariable(table, pVarIndex);
         if (variable != null) {
             ProgramVariable programVariable =
                     ProgramVariable.create(null, variable.getName(), variable.getDescriptor(),
-                            pInsnIndex, pLineNumber, false);
+                            pInsnIndex, pLineNumber, false, pIsDefinition);
             programVariable.setReference(isHolder(pData, programVariable));
             return programVariable;
         }
@@ -164,12 +172,14 @@ public class CFGImpl implements CFG {
                                                       final String pVarName,
                                                       final String pVarDesc,
                                                       final int pInstructionIndex,
-                                                      final int pLineNumber) {
+                                                      final int pLineNumber,
+                                                      final boolean pIsDefinition) {
         if (pData != null) {
             Set<InstanceVariable> instanceVariables = pData.getInstanceVariables();
             InstanceVariable variable = findInstanceVariable(instanceVariables, pOwner, pVarName, pVarDesc);
             if (variable != null) {
-                return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(), pInstructionIndex, pLineNumber, false);
+                return ProgramVariable.create(variable.getOwner(), variable.getName(), variable.getDescriptor(),
+                        pInstructionIndex, pLineNumber, false, pIsDefinition);
             }
         }
         return null;
@@ -199,5 +209,19 @@ public class CFGImpl implements CFG {
             }
         }
         return null;
+    }
+
+    static boolean isDefinition(final int pOpcode) {
+        switch (pOpcode) {
+            case ISTORE:
+            case LSTORE:
+            case FSTORE:
+            case DSTORE:
+            case ASTORE:
+            case PUTFIELD:
+                return true;
+            default:
+                return false;
+        }
     }
 }

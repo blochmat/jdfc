@@ -8,6 +8,7 @@ public class InstanceVariable extends Field implements Comparable<Object>{
     private final String method;
     private final int instructionIndex;
     private final int lineNumber;
+    private final boolean isDefinition;
 
     private InstanceVariable(final String pOwner,
                              final ProgramVariable pHolder,
@@ -17,12 +18,14 @@ public class InstanceVariable extends Field implements Comparable<Object>{
                              final String pDescriptor,
                              final String pSignature,
                              final int pInstructionIndex,
-                             final int pLineNumber) {
+                             final int pLineNumber,
+                             final boolean pIsDefinition) {
         super(pOwner, pAccess, pName, pDescriptor, pSignature);
         method = pMethod;
         holder = pHolder;
         instructionIndex = pInstructionIndex;
         lineNumber = pLineNumber;
+        isDefinition = pIsDefinition;
     }
 
     public static InstanceVariable create(final String pOwner,
@@ -33,8 +36,9 @@ public class InstanceVariable extends Field implements Comparable<Object>{
                                           final String pDescriptor,
                                           final String pSignature,
                                           final int pInstructionIndex,
-                                          final int pLineNumber) {
-        return new InstanceVariable(pOwner, pHolder, pMethod, pAccess, pName, pDescriptor, pSignature, pInstructionIndex, pLineNumber);
+                                          final int pLineNumber,
+                                          final boolean pIsDefinition) {
+        return new InstanceVariable(pOwner, pHolder, pMethod, pAccess, pName, pDescriptor, pSignature, pInstructionIndex, pLineNumber, pIsDefinition);
     }
 
     public ProgramVariable getHolder() {
@@ -53,19 +57,24 @@ public class InstanceVariable extends Field implements Comparable<Object>{
         return method;
     }
 
+    public boolean isDefinition() {
+        return isDefinition;
+    }
+
     public ProgramVariable convertToProgramVariable() {
         return ProgramVariable.create(
-                this.getOwner(),
-                this.getName(),
-                this.getDescriptor(),
-                this.getInstructionIndex(),
-                this.getLineNumber(),
-                false);
+                this.owner,
+                this.name,
+                this.descriptor,
+                this.instructionIndex,
+                this.lineNumber,
+                false,
+                this.isDefinition);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(owner, method, access, name, descriptor, signature, lineNumber);
+        return Objects.hash(owner, method, access, name, descriptor, signature, lineNumber, isDefinition);
     }
 
     @Override
@@ -85,7 +94,8 @@ public class InstanceVariable extends Field implements Comparable<Object>{
                 && Objects.equals(signature, that.signature)
                 && holder.equals(that.holder)
                 && instructionIndex == that.instructionIndex
-                && lineNumber == that.lineNumber;
+                && lineNumber == that.lineNumber
+                && Boolean.compare(isDefinition, that.isDefinition) == 0;
     }
 
     @Override
@@ -113,6 +123,9 @@ public class InstanceVariable extends Field implements Comparable<Object>{
                 + instructionIndex
                 + ", lineNumber= "
                 + lineNumber
+                + ", isDefinition='"
+                + isDefinition
+                + '\''
                 + ", holderInformation='"
                 + holder
                 + '\''

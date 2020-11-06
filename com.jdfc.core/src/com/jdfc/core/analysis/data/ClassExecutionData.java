@@ -174,7 +174,7 @@ public class ClassExecutionData extends ExecutionData {
             if (!isSimpleType(parameter.getDescriptor())) {
                 ProgramVariable newParamDefinition =
                         ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
-                                pNode.getIndex(), pNode.getLineNumber(), parameter.isReference());
+                                pNode.getIndex(), pNode.getLineNumber(), parameter.isReference(), parameter.isDefinition());
                 pNode.addDefinition(newParamDefinition);
             }
         }
@@ -183,7 +183,7 @@ public class ClassExecutionData extends ExecutionData {
 
         ProgramVariable newCallerDefinition =
                 ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getDescriptor(),
-                        pNode.getIndex(), pNode.getLineNumber(), caller.isReference());
+                        pNode.getIndex(), pNode.getLineNumber(), caller.isReference(), caller.isDefinition());
         pNode.addDefinition(newCallerDefinition);
     }
 
@@ -349,5 +349,16 @@ public class ClassExecutionData extends ExecutionData {
             }
         }
         return false;
+    }
+
+    public String getMethodNameFromLineNumber(final int pLineNumber) {
+        for(Map.Entry<String, Integer> firstLineEntry : methodFirstLine.entrySet()) {
+            if(firstLineEntry.getValue() <= pLineNumber) {
+                if(methodLastLine.get(firstLineEntry.getKey()) >= pLineNumber) {
+                    return firstLineEntry.getKey();
+                }
+            }
+        }
+        return null;
     }
 }

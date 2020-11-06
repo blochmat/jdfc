@@ -38,28 +38,30 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
-        insertLocalVariableEntryCreation(var);
+        insertLocalVariableEntryCreation(opcode, var);
     }
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         super.visitFieldInsn(opcode, owner, name, descriptor);
-        insertInstanceVariableEntryCreation(owner, name, descriptor);
+        insertInstanceVariableEntryCreation(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitIincInsn(int var, int increment) {
         super.visitIincInsn(var, increment);
-        insertLocalVariableEntryCreation(var);
+        insertLocalVariableEntryCreation(ISTORE, var);
     }
 
-    private void insertLocalVariableEntryCreation(final int var) {
+    private void insertLocalVariableEntryCreation(final int pOpcode,
+                                                  final int pVar) {
         mv.visitLdcInsn(classVisitor.classNode.name);
         mv.visitLdcInsn(methodNode.name);
         mv.visitLdcInsn(methodNode.desc);
-        mv.visitLdcInsn(var);
+        mv.visitLdcInsn(pVar);
         mv.visitLdcInsn(currentInstructionIndex);
         mv.visitLdcInsn(currentLineNumber);
+        mv.visitLdcInsn(pOpcode);
         mv.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 Type.getInternalName(CFGImpl.class),
@@ -67,11 +69,14 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 "(Ljava/lang/String;" +
                         "Ljava/lang/String;" +
                         "Ljava/lang/String;" +
-                        "III)V",
+                        "IIII)V",
                 false);
     }
 
-    private void insertInstanceVariableEntryCreation(final String pOwner, final String pName, final String pDescriptor) {
+    private void insertInstanceVariableEntryCreation(final int pOpcode,
+                                                     final String pOwner,
+                                                     final String pName,
+                                                     final String pDescriptor) {
         if (isInstrumentationRequired(pName)) {
             mv.visitLdcInsn(classVisitor.classNode.name);
             mv.visitLdcInsn(pOwner);
@@ -81,6 +86,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             mv.visitLdcInsn(pDescriptor);
             mv.visitLdcInsn(currentInstructionIndex);
             mv.visitLdcInsn(currentLineNumber);
+            mv.visitLdcInsn(pOpcode);
             mv.visitMethodInsn(
                     Opcodes.INVOKESTATIC,
                     Type.getInternalName(CFGImpl.class),
@@ -91,7 +97,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                             "Ljava/lang/String;" +
                             "Ljava/lang/String;" +
                             "Ljava/lang/String;" +
-                            "II)V",
+                            "III)V",
                     false);
         }
     }

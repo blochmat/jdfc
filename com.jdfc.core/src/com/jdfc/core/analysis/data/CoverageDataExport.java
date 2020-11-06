@@ -94,6 +94,7 @@ public class CoverageDataExport {
             instanceVar.setAttribute("signature", element.getSignature());
             instanceVar.setAttribute("instructionIndex", String.valueOf(element.getInstructionIndex()));
             instanceVar.setAttribute("lineNumber", String.valueOf(element.getLineNumber()));
+            instanceVar.setAttribute("isDefinition", Boolean.toString(element.isDefinition()));
         }
         return instanceVarList;
     }
@@ -139,6 +140,7 @@ public class CoverageDataExport {
             defUsePair.setAttribute("dIndex", Integer.toString(element.getDefinition().getInstructionIndex()));
             defUsePair.setAttribute("dLineNumber", Integer.toString(element.getDefinition().getLineNumber()));
             defUsePair.setAttribute("dIsReference", Boolean.toString(element.getDefinition().isReference()));
+            defUsePair.setAttribute("dIsDefinition", Boolean.toString(element.getDefinition().isDefinition()));
 
             defUsePair.setAttribute("uOwner", element.getUsage().getOwner());
             defUsePair.setAttribute("uName", element.getUsage().getName());
@@ -146,6 +148,7 @@ public class CoverageDataExport {
             defUsePair.setAttribute("uIndex", Integer.toString(element.getUsage().getInstructionIndex()));
             defUsePair.setAttribute("uLineNumber", Integer.toString(element.getUsage().getLineNumber()));
             defUsePair.setAttribute("uIsReference", Boolean.toString(element.getUsage().isReference()));
+            defUsePair.setAttribute("uIsDefinition", Boolean.toString(element.getUsage().isDefinition()));
 
         }
         return defUsePairList;
@@ -171,6 +174,8 @@ public class CoverageDataExport {
                 Integer.toString(pProgramVariable.getLineNumber()));
         programVariable.setAttribute("isReference",
                 Boolean.toString(pProgramVariable.isReference()));
+        programVariable.setAttribute("isDefinition",
+                Boolean.toString(pProgramVariable.isDefinition()));
         return programVariable;
     }
 }
