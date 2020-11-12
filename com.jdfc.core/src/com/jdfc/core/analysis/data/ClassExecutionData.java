@@ -1,7 +1,6 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.Field;
@@ -23,7 +22,7 @@ public class ClassExecutionData extends ExecutionData {
     private final TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
     private final Map<String, Set<ProgramVariable>> variablesCovered;
     private final Map<String, Set<ProgramVariable>> variablesUncovered;
-    private final Map<ProgramVariable, ProgramVariable> interProceduralMatches;
+    private final Set<InterProceduralMatch> interProceduralMatches;
     private final String relativePath;
 
     // TODO Initialize methodCFGs here
@@ -36,7 +35,7 @@ public class ClassExecutionData extends ExecutionData {
         variablesUncovered = new HashMap<>();
         relativePath = pRelativePath;
         fields = new HashSet<>();
-        interProceduralMatches = new HashMap<>();
+        interProceduralMatches = new HashSet<>();
         instanceVariables = new TreeSet<>();
     }
 
@@ -94,7 +93,7 @@ public class ClassExecutionData extends ExecutionData {
         return relativePath;
     }
 
-    public Map<ProgramVariable, ProgramVariable> getInterProceduralMatches() {
+    public Set<InterProceduralMatch> getInterProceduralMatches() {
         return interProceduralMatches;
     }
 
@@ -226,7 +225,8 @@ public class ClassExecutionData extends ExecutionData {
             ProgramVariable definitionA = findDefinitionByUse(pMethodName, usageA);
             if (definitionA != null) {
                 // match definitions of procedure A and B
-                interProceduralMatches.put(definitionA, definitionB);
+                InterProceduralMatch newMatch = InterProceduralMatch.create(definitionA, definitionB, pMethodName, pEntryMethodName);
+                interProceduralMatches.add(newMatch);
                 // find all usages of definition of procedure B
                 List<ProgramVariable> usagesB = findUsagesByDefinition(pEntryMethodName, definitionB);
                 // add new pairs
@@ -269,6 +269,11 @@ public class ClassExecutionData extends ExecutionData {
                 ProgramVariable use = pair.getUsage();
                 boolean isDefCovered = variablesCovered.get(methodName).contains(def);
                 boolean isUseCovered = variablesCovered.get(methodName).contains(use);
+
+                Set<InterProceduralMatch> interProceduralMatches = findInterProceduralMatches(def, methodName);
+                if(!interProceduralMatches.isEmpty() && !isUseCovered) {
+                    isUseCovered = checkInterProceduralUseCoverage(interProceduralMatches, use);
+                }
 
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
@@ -329,6 +334,30 @@ public class ClassExecutionData extends ExecutionData {
                         Map.Entry::getKey,
                         Map.Entry::getValue
                 ));
+    }
+
+    private Set<InterProceduralMatch> findInterProceduralMatches(final ProgramVariable pDefinition,
+                                                                 final String pMethodName) {
+        Set<InterProceduralMatch> result = new HashSet<>();
+        for(InterProceduralMatch element : interProceduralMatches) {
+            if(element.getDefinition().equals(pDefinition) && element.methodName.equals(pMethodName)) {
+                result.add(element);
+            }
+        }
+        return result;
+    }
+
+    private boolean checkInterProceduralUseCoverage(final Set<InterProceduralMatch> pInterProceduralMatches,
+                                                    final ProgramVariable pUsage) {
+        for(InterProceduralMatch element : pInterProceduralMatches) {
+            String callSiteMethodName = element.getCallSiteMethodName();
+            for(ProgramVariable variable : variablesCovered.get(callSiteMethodName)) {
+                if(variable.equals(pUsage)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean isSimpleType(final String pDescriptor) {

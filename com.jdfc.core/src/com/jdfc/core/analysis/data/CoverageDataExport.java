@@ -40,7 +40,7 @@ public class CoverageDataExport {
         Set<InstanceVariable> instanceVariables = pClassExecutionData.getInstanceVariables();
         classTag.appendChild(createInstanceVariables(doc, instanceVariables));
 
-        Map<ProgramVariable, ProgramVariable> interProceduralMatches = pClassExecutionData.getInterProceduralMatches();
+        Set<InterProceduralMatch> interProceduralMatches = pClassExecutionData.getInterProceduralMatches();
         classTag.appendChild(createInterProceduralMatchList(doc, interProceduralMatches));
 
         Map<String, Integer> methodFirstLine = pClassExecutionData.getMethodFirstLine();
@@ -99,15 +99,17 @@ public class CoverageDataExport {
         return instanceVarList;
     }
 
-    private static Element createInterProceduralMatchList(Document pDoc, Map<ProgramVariable, ProgramVariable> pParameterMatches) {
+    private static Element createInterProceduralMatchList(Document pDoc, Set<InterProceduralMatch> pParameterMatches) {
         Element interProceduralMatches = pDoc.createElement("interProceduralMatchList");
-        for(Map.Entry<ProgramVariable, ProgramVariable> element : pParameterMatches.entrySet()) {
+        for(InterProceduralMatch element : pParameterMatches) {
             Element match = pDoc.createElement("match");
+            match.setAttribute("methodName", element.getMethodName());
+            match.setAttribute("callSiteMethodName", element.getCallSiteMethodName());
             interProceduralMatches.appendChild(match);
-            Element firstVar = creatProgramVariable(pDoc, element.getKey());
-            match.appendChild(firstVar);
-            Element secondVar = creatProgramVariable(pDoc, element.getValue());
-            match.appendChild(secondVar);
+            Element definition = creatProgramVariable(pDoc, element.getDefinition());
+            match.appendChild(definition);
+            Element callSiteDefinition = creatProgramVariable(pDoc, element.getCallSiteDefinition());
+            match.appendChild(callSiteDefinition);
         }
         return interProceduralMatches;
     }

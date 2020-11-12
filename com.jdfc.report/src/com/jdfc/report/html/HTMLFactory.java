@@ -3,6 +3,7 @@ package com.jdfc.report.html;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.commons.utils.PrettyPrintMap;
+import com.jdfc.core.analysis.data.InterProceduralMatch;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
@@ -380,9 +381,9 @@ public class HTMLFactory {
     private List<ProgramVariable> getCorrelatedVars(ProgramVariable pVariable, ClassExecutionData pData) {
         List<ProgramVariable> result = new ArrayList<>();
         result.add(pVariable);
-        for (Map.Entry<ProgramVariable, ProgramVariable> entry : pData.getInterProceduralMatches().entrySet()) {
-            if (entry.getKey().equals(pVariable)) {
-                result.add(entry.getValue());
+        for (InterProceduralMatch entry : pData.getInterProceduralMatches()) {
+            if (entry.getDefinition().equals(pVariable)) {
+                result.add(entry.getCallSiteDefinition());
             }
         }
         return result;

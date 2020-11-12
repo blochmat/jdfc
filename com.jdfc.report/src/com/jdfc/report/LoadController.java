@@ -4,6 +4,7 @@ import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.JDFCInstrument;
 import com.jdfc.core.analysis.data.CoverageDataStore;
+import com.jdfc.core.analysis.data.InterProceduralMatch;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
@@ -176,17 +177,20 @@ public class LoadController {
     }
 
     private static void collectMatchData(Node pMatch, ClassExecutionData pClassExecutionData) {
+        String methodName = pMatch.getAttributes().getNamedItem("methodName").getNodeValue();
+        String callSiteMethodName = pMatch.getAttributes().getNamedItem("callSiteMethodName").getNodeValue();
         NodeList programVars = pMatch.getChildNodes();
-        ProgramVariable firstVar = null;
-        ProgramVariable secondVar;
+        ProgramVariable definition = null;
+        ProgramVariable callSiteDefinition;
         for (int i = 0; i < programVars.getLength(); i++) {
             NamedNodeMap programVarAttr = programVars.item(i).getAttributes();
             if (programVarAttr != null) {
-                if (firstVar == null) {
-                    firstVar = createProgramVariable(programVarAttr);
+                if (definition == null) {
+                    definition = createProgramVariable(programVarAttr);
                 } else {
-                    secondVar = createProgramVariable(programVarAttr);
-                    pClassExecutionData.getInterProceduralMatches().put(firstVar, secondVar);
+                    callSiteDefinition = createProgramVariable(programVarAttr);
+                    InterProceduralMatch newMatch = InterProceduralMatch.create(definition, callSiteDefinition, methodName, callSiteMethodName);
+                    pClassExecutionData.getInterProceduralMatches().add(newMatch);
                 }
             }
         }
