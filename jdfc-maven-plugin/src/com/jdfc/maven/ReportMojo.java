@@ -17,7 +17,7 @@ import java.io.*;
 import java.util.*;
 
 
-@Mojo(name = "report", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+@Mojo(name = "create-report", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, threadSafe = true)
 public class ReportMojo extends AbstractMavenReport {
 
     @Parameter(defaultValue = "${project.reporting.outputDirectory}/jdfc")

@@ -7,10 +7,10 @@ import org.objectweb.asm.tree.MethodNode;
 
 import static org.objectweb.asm.Opcodes.ASM6;
 
-class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
+class LocalVariableMethodVisitor extends JDFCMethodVisitor {
 
-    CFGLocalVariableMethodVisitor(
-            final CFGLocalVariableClassVisitor pClassVisitor,
+    LocalVariableMethodVisitor(
+            final LocalVariableClassVisitor pClassVisitor,
             final MethodVisitor pMethodVisitor,
             final MethodNode pMethodNode,
             final String pInternalMethodName) {

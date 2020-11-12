@@ -19,58 +19,30 @@
     creation
   </description>
 
-  <prerequisites>
-    <maven>3.0</maven>
-  </prerequisites>
-
-  <dependencyManagement>
-    <dependencies>
-      <!-- maven-reporting-impl and slight update of version of its transitive dependency on commons-collections -->
-      <dependency>
-        <groupId>org.apache.maven.reporting</groupId>
-        <artifactId>maven-reporting-impl</artifactId>
-        <version>2.1</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-collections</groupId>
-        <artifactId>commons-collections</artifactId>
-        <version>3.2.2</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
+    <!-- Maven -->
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-      <version>${project.prerequisites.maven}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
-      <version>${project.prerequisites.maven}</version>
     </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-      <version>3.0.22</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.shared</groupId>
-      <artifactId>file-management</artifactId>
-      <version>1.2.1</version>
-    </dependency>
-
     <dependency>
       <groupId>org.apache.maven.reporting</groupId>
       <artifactId>maven-reporting-api</artifactId>
-      <version>${project.prerequisites.maven}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.reporting</groupId>
       <artifactId>maven-reporting-impl</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- JDFC -->
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>com.jdfc.agent</artifactId>
@@ -83,13 +55,6 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>com.jdfc.report</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.maven.plugin-tools</groupId>
-      <artifactId>maven-plugin-annotations</artifactId>
-      <version>3.4</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -129,5 +94,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

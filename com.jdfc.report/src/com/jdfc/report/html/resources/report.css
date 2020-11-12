@@ -16,15 +16,6 @@
     border-bottom: 1px dotted black;
 }
 
-.tooltip {
-    display: block;
-    color: red;
-}
-
-.myDIV:hover + .variable {
-    display: block;
-}
-
 .tooltipDef {
     visibility: hidden;
     padding: 2px;
@@ -40,28 +31,8 @@
     transition: opacity 0.5s;
 }
 
-.box2 {
-    padding: 2px;
-    display: flex;
-    align-items: center;
-}
-
-.verticalAlignFlex {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.border {
-    border: 1px solid black;
-}
-
 .rounded-corners {
     border-radius: 5px;
-}
-
-.tab {
-    display: flex;
-    float: left;
 }
 
 .buttonContainer {
@@ -78,10 +49,10 @@
     padding: 14px 16px;
 }
 
-.buttonContainer button:hover {background-color: #3e8e41}
+.buttonContainer button:hover {background-color: #D3D3D3}
 
 .buttonContainer button.active {
-    background-color: #3e8e41;
+    background-color: #D3D3D3;
 }
 
 .margin {
@@ -92,62 +63,10 @@
     margin-left: 10px;
 }
 
-.tab button:hover {
-    background-color: #ddd;
-}
-
-.flexContainer {
-    display: flex;
-}
-
-.tabcontent {
-    background-color: #FFE27E;
-    display: none;
-    padding: 2px;
-    justify-content: center;
-    align-items: center;
-}
-
-.outer {
-    color: red;
-    background: #D5D5D5;
-}
-
-.inner {
-    background: #f5f5f5;
-}
-
-.width-fix {
-    width: 37px;
-}
-
-
-
 .tooltipTable {
     table-layout: auto;
     width: 100%;
 }
-
-
-.fixedTable{
-    table-layout: fixed;
-}
-
-.fixedTableCell {
-    overflow: hidden;
-}
-
-.autoTable {
-    table-layout: auto;
-    color: black;
-    border-collapse: collapse;
-    width: 100%;
-
-    /* Fade in tooltip - takes 1 second to go from 0% to 100% opac: */
-
-}
-
-
 
 .tableHead {
     border-bottom: 1px solid black;
@@ -168,10 +87,6 @@
     text-align: center;
 }
 .nowrap {
-    white-space: nowrap;
-}
-
-.headerRow {
     white-space: nowrap;
 }
 
@@ -201,13 +116,29 @@ pre {
 }
 
 .java-keyword {
-    color: #8F00FF
+    color: #8F00FF;
 }
 
 .type-keyword {
-    color: #0049FF
+    color: #0049FF;
 }
 
 .comment {
     color: gray;
+}
+
+.white-gray {
+    background: #EFEFEF;
+}
+
+.light-gray {
+    background: #E5E5E5;
+}
+
+.gray {
+    background: #D3D3D3;
+}
+
+.dark-gray {
+    background: gray;
 }

@@ -159,7 +159,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private void createCFGNodeForFieldInsnNode(final int pOpcode, String pOwner, String pName, String pDescriptor) {
         final ProgramVariable programVariable;
-
         final CFGNode node;
         switch (pOpcode) {
             case GETFIELD:

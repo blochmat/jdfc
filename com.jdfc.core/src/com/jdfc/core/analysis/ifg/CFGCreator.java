@@ -2,10 +2,9 @@ package com.jdfc.core.analysis.ifg;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.ifg.data.CFGInstanceVariableClassVisitor;
-import com.jdfc.core.analysis.ifg.data.CFGLocalVariableClassVisitor;
+import com.jdfc.core.analysis.ifg.data.InstanceVariableClassVisitor;
+import com.jdfc.core.analysis.ifg.data.LocalVariableClassVisitor;
 import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
@@ -53,16 +52,16 @@ public class CFGCreator {
                 pClassExecutionData, "We need a non-null class execution data to generate CFGs from.");
 
         // Get local variable information
-        final CFGLocalVariableClassVisitor localVariableVisitor =
-                new CFGLocalVariableClassVisitor(pClassNode, pClassExecutionData);
+        final LocalVariableClassVisitor localVariableVisitor =
+                new LocalVariableClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(localVariableVisitor, 0);
 
         final Map<String, LocalVariableTable> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
 
         // Get instance variable information
-        final CFGInstanceVariableClassVisitor instanceVariableVisitor =
-                new CFGInstanceVariableClassVisitor(pClassNode, pClassExecutionData, localVariableTables);
+        final InstanceVariableClassVisitor instanceVariableVisitor =
+                new InstanceVariableClassVisitor(pClassNode, pClassExecutionData, localVariableTables);
         pClassReader.accept(instanceVariableVisitor, 0);
 
         // Create method cfgs

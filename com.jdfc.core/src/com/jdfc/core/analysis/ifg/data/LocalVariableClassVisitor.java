@@ -16,9 +16,9 @@ import org.objectweb.asm.tree.MethodNode;
  * @see LocalVariableTable
  * @see ClassVisitor
  */
-public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
+public class LocalVariableClassVisitor extends JDFCClassVisitor {
 
-    public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
+    public LocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM6, pClassNode, pClassExecutionData);
     }
 
@@ -35,7 +35,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         final MethodNode methodNode = getMethodNode(pName);
         final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (methodNode != null && isInstrumentationRequired(pName)) {
-            return new CFGLocalVariableMethodVisitor(
+            return new LocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
         }
         return mv;

@@ -1,13 +1,10 @@
 package com.jdfc.agent;
 
-import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
-import java.util.*;
 
 public final class Agent {
 

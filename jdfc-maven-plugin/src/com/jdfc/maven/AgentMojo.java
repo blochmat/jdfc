@@ -14,7 +14,7 @@ import java.util.Properties;
 
 import static java.lang.String.format;
 
-@Mojo(name = "prepare-package", defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
+@Mojo(name = "prepare-agent", defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
 public class AgentMojo extends AbstractJdfcMojo {
 
     /**

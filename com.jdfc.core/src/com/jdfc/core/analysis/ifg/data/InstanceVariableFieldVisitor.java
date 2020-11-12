@@ -4,22 +4,22 @@ import org.objectweb.asm.FieldVisitor;
 
 import static org.objectweb.asm.Opcodes.ASM6;
 
-class CFGInstanceVariableFieldVisitor extends FieldVisitor {
+class InstanceVariableFieldVisitor extends FieldVisitor {
 
     private final int access;
     private final String name;
     private final String descriptor;
     private final String signature;
     private final Object value;
-    private final CFGInstanceVariableClassVisitor classVisitor;
+    private final InstanceVariableClassVisitor classVisitor;
 
-    public CFGInstanceVariableFieldVisitor(final CFGInstanceVariableClassVisitor pClassVisitor,
-                                           final FieldVisitor pFieldVisitor,
-                                           final int pAccess,
-                                           final String pName,
-                                           final String pDescriptor,
-                                           final String pSignature,
-                                           final Object pValue) {
+    public InstanceVariableFieldVisitor(final InstanceVariableClassVisitor pClassVisitor,
+                                        final FieldVisitor pFieldVisitor,
+                                        final int pAccess,
+                                        final String pName,
+                                        final String pDescriptor,
+                                        final String pSignature,
+                                        final Object pValue) {
         super(ASM6, pFieldVisitor);
         classVisitor = pClassVisitor;
         access = pAccess;

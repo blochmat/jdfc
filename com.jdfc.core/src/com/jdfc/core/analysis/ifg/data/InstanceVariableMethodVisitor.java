@@ -11,13 +11,13 @@ import java.util.Set;
 import static org.objectweb.asm.Opcodes.ASM6;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
 
-public class CFGInstanceVariableMethodVisitor extends JDFCMethodVisitor {
+public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
 
-    public CFGInstanceVariableMethodVisitor(final JDFCClassVisitor pClassVisitor,
-                                            final MethodVisitor pMethodVisitor,
-                                            final MethodNode pMethodNode,
-                                            final String pInternalMethodName,
-                                            LocalVariableTable pLocalVariableTable) {
+    public InstanceVariableMethodVisitor(final JDFCClassVisitor pClassVisitor,
+                                         final MethodVisitor pMethodVisitor,
+                                         final MethodNode pMethodNode,
+                                         final String pInternalMethodName,
+                                         LocalVariableTable pLocalVariableTable) {
         super(ASM6, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
     }
 

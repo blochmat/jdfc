@@ -339,11 +339,11 @@ public class ClassExecutionData extends ExecutionData {
                 || pDescriptor.equals("Ljava/lang/String;");
     }
 
-    public boolean isAnalyzedDefinition(String pName, int pLineNumber) {
+    public boolean isAnalyzedVariable(String pName, int pLineNumber) {
         for(Map<DefUsePair, Boolean> entryMap : defUsePairsCovered.values()) {
             for (DefUsePair element : entryMap.keySet()) {
-                if(element.getDefinition().getName().equals(pName)
-                        && element.getDefinition().getLineNumber() == pLineNumber) {
+                if((element.getDefinition().getName().equals(pName) && element.getDefinition().getLineNumber() == pLineNumber)
+                || element.getUsage().getName().equals(pName) && element.getUsage().getLineNumber() == pLineNumber) {
                     return true;
                 }
             }
