@@ -249,7 +249,7 @@ public class HTMLFactory {
                     if (isRedefined(pData, pLineNumber, item)) {
                         HTMLElement spanTag = HTMLElement.span(item);
                         divTagLine.getContent().add(spanTag);
-                        spanTag.getAttributes().add("class=\"overwritten\"");
+                        spanTag.getAttributes().add("class=\"orange\"");
                     } else {
                         InstanceVariable instanceVariable;
                         String referenceString = null;

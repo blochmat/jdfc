@@ -3,7 +3,7 @@ package com.jdfc.maven;
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.data.CoverageDataStore;
-import com.jdfc.report.LoadController;
+import com.jdfc.report.CoverageDataImport;
 import com.jdfc.report.ReportGenerator;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -57,7 +57,7 @@ public class ReportMojo extends AbstractMavenReport {
         final String importDir = String.format("%s/jdfc", target);
 
         // Load stored data into CoverageDataStore
-        LoadController.loadExecutionData(classesDir, importDir);
+        CoverageDataImport.loadExecutionData(classesDir, importDir);
 
         // TODO: Remove Debug
         debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);

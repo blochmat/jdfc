@@ -25,7 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class LoadController {
+public class CoverageDataImport {
 
     public static void loadExecutionData(String pClassesDir, String pJDFCDir) {
         File classes = new File(pClassesDir);
@@ -49,7 +49,6 @@ public class LoadController {
             String relativePath = relativePathWithType.split("\\.")[0];
             ExecutionDataNode<ExecutionData> classExecutionDataNode = CoverageDataStore.getInstance().findClassDataNode(relativePath);
             ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
-
             // ClassList works as worklist to keep track of loaded files
             CoverageDataStore.getInstance().getClassList().remove(relativePath);
             try {
