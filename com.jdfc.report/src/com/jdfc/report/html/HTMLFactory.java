@@ -223,6 +223,7 @@ public class HTMLFactory {
         List<String> words = extractChars(pLineString, "\\W+");
         List<String> workList = createWorkList(words, specialChars);
 
+        boolean isForLoop = workList.contains("for");
         while (!workList.isEmpty()) {
             String item = workList.get(0);
             int sameWordsCount = (int) workList.stream().filter(x -> x.equals(item)).count();
@@ -240,7 +241,7 @@ public class HTMLFactory {
             } else {
                 String methodName = pData.getMethodNameFromLineNumber(pLineNumber);
                 // TODO: Use methodName
-                ProgramVariable programVariable = findProgramVariable(pData, pLineNumber, item, sameWordsCount);
+                ProgramVariable programVariable = findProgramVariable(pData, pLineNumber, item, sameWordsCount, isForLoop);
                 if (programVariable == null) {
                     HTMLElement spanTag = HTMLElement.span(item);
                     divTagLine.getContent().add(spanTag);
@@ -268,11 +269,6 @@ public class HTMLFactory {
                         if (instanceVariable == null) {
                             List<ProgramVariable> correlatedVars = getCorrelatedVars(programVariable, pData);
                             Map<DefUsePair, Boolean> defUsePairsCovered = getDefUsePairCovered(pData, correlatedVars);
-                            if(programVariable.getName().equals("important")) {
-                                System.out.println(item + " " + pLineNumber);
-                                System.out.println(isVarCovered);
-                                System.out.println(defUsePairsCovered);
-                            }
                             String backgroundColor = getVariableBackgroundColor(isVarCovered, defUsePairsCovered);
                             try {
                                 divTagLine.getContent().add(
@@ -1070,32 +1066,22 @@ public class HTMLFactory {
     private ProgramVariable findProgramVariable(final ClassExecutionData pData,
                                                 final int pLineNumber,
                                                 final String pName,
-                                                final int pSameWordsCount) {
+                                                final int pSameWordsCount,
+                                                final boolean pIsForLoop) {
         List<ProgramVariable> possibleVariables = getPossibleVars(pData, pLineNumber, pName);
         if (!possibleVariables.isEmpty()) {
             possibleVariables.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
+            int index;
+            if (pIsForLoop) {
+                index = possibleVariables.size() - pSameWordsCount;
+            } else {
+                if (pSameWordsCount == possibleVariables.size()) {
+                    index = possibleVariables.size() - 1;
+                } else {
+                    index = possibleVariables.size() - pSameWordsCount - 1;
+                }
+            }
 
-            // TODO: Wrong for
-            // int some = 0;
-            // some = some + 1;
-            //
-            // this.field = this.field + 1;
-            //
-//            if (pSameWordsCount == possibleVariables.size() && pSameWordsCount > 1) {
-//                for (ProgramVariable programVariable : possibleVariables) {
-//                    if (isDefinition(programVariable, pData, pLineNumber)) {
-//                        return programVariable;
-//                    }
-//                }
-//            }
-//            if (pSameWordsCount == 1) {
-//                for (ProgramVariable programVariable : possibleVariables) {
-//                    if (isUsage(programVariable, pData, pLineNumber)) {
-//                        return programVariable;
-//                    }
-//                }
-//            }
-            int index = possibleVariables.size() - pSameWordsCount;
             return possibleVariables.get(index);
         }
         return null;

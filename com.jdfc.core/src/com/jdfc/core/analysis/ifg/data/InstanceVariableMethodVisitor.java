@@ -25,6 +25,7 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
      * For every PUTFIELD Insn we create a new {@code InstanceVariableOccurrence}. The {@code OwnerVariable} is a local
      * variable that grants the access to the {@code InstanceVariable} and is used to associate the object holding
      * the field with the field itself.
+     *
      * @param pOpcode
      * @param pOwner
      * @param pName
@@ -32,7 +33,7 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
      */
     @Override
     public void visitFieldInsn(int pOpcode, String pOwner, String pName, String pDescription) {
-        if(mv != null) {
+        if (mv != null) {
             mv.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         } else {
             super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
@@ -59,7 +60,7 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
                 InstanceVariable instanceVariable =
                         InstanceVariable.create(pOwner,
                                 holder,
-                                methodNode.name,
+                                internalMethodName,
                                 field.getAccess(),
                                 pName,
                                 pDescription,

@@ -1,7 +1,7 @@
 package com.jdfc.core.analysis.instr;
 
 import com.jdfc.core.analysis.JDFCMethodVisitor;
-import com.jdfc.core.analysis.ifg.CFGImpl;
+import com.jdfc.core.analysis.data.CoverageDataStore;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -27,8 +27,8 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             mv.visitLdcInsn(classVisitor.classNode.name);
             mv.visitMethodInsn(
                     Opcodes.INVOKESTATIC,
-                    Type.getInternalName(CFGImpl.class),
-                    "dumpClassExecutionDataToFile",
+                    Type.getInternalName(CoverageDataStore.class),
+                    "invokeCoverageTracker",
                     "(Ljava/lang/String;)V",
                     false);
         }
@@ -53,21 +53,21 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         insertLocalVariableEntryCreation(ISTORE, var);
     }
 
+
+
     private void insertLocalVariableEntryCreation(final int pOpcode,
                                                   final int pVar) {
         mv.visitLdcInsn(classVisitor.classNode.name);
-        mv.visitLdcInsn(methodNode.name);
-        mv.visitLdcInsn(methodNode.desc);
+        mv.visitLdcInsn(internalMethodName);
         mv.visitLdcInsn(pVar);
         mv.visitLdcInsn(currentInstructionIndex);
         mv.visitLdcInsn(currentLineNumber);
         mv.visitLdcInsn(pOpcode);
         mv.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
-                Type.getInternalName(CFGImpl.class),
-                "addLocalVarCoveredEntry",
+                Type.getInternalName(CoverageDataStore.class),
+                "invokeCoverageTracker",
                 "(Ljava/lang/String;" +
-                        "Ljava/lang/String;" +
                         "Ljava/lang/String;" +
                         "IIII)V",
                 false);
@@ -80,8 +80,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         if (isInstrumentationRequired(pName)) {
             mv.visitLdcInsn(classVisitor.classNode.name);
             mv.visitLdcInsn(pOwner);
-            mv.visitLdcInsn(methodNode.name);
-            mv.visitLdcInsn(methodNode.desc);
+            mv.visitLdcInsn(internalMethodName);
             mv.visitLdcInsn(pName);
             mv.visitLdcInsn(pDescriptor);
             mv.visitLdcInsn(currentInstructionIndex);
@@ -89,10 +88,9 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             mv.visitLdcInsn(pOpcode);
             mv.visitMethodInsn(
                     Opcodes.INVOKESTATIC,
-                    Type.getInternalName(CFGImpl.class),
-                    "addInstanceVarCoveredEntry",
+                    Type.getInternalName(CoverageDataStore.class),
+                    "invokeCoverageTracker",
                     "(Ljava/lang/String;" +
-                            "Ljava/lang/String;" +
                             "Ljava/lang/String;" +
                             "Ljava/lang/String;" +
                             "Ljava/lang/String;" +

@@ -28,7 +28,7 @@ public class CFGEdgeAnalyzationVisitor extends MethodVisitor {
     public void visitEnd() {
         try {
             CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer();
-            cfgEdgeAnalyzer.analyze(owner, methodNode);
+            cfgEdgeAnalyzer.analyze(methodNode.name, methodNode);
             edges.putAll(cfgEdgeAnalyzer.getEdges());
         } catch (AnalyzerException e) {
             e.printStackTrace();

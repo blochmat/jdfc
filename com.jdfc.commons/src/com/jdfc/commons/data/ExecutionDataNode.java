@@ -26,7 +26,11 @@ public class ExecutionDataNode<T extends ExecutionData> {
 
     public ExecutionDataNode<T> getChildDataRecursive(ArrayList<String> path) {
         if (path.size() == 1) {
-            return this.getChildren().get(path.get(0));
+            if(this.getChildren() != null && !this.children.isEmpty()) {
+                return this.getChildren().get(path.get(0));
+            } else {
+                return null;
+            }
         } else {
             ExecutionDataNode<T> child = this.getChildren().get(path.get(0));
             path.remove(0);

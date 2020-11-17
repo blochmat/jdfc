@@ -4,11 +4,9 @@ import com.jdfc.core.analysis.ifg.CFGNode;
 import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
-import org.objectweb.asm.Handle;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.*;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
@@ -163,6 +161,11 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     }
 
     @Override
+    public void visitMaxs(int maxStack, int maxLocals) {
+        super.visitMaxs(maxStack + 9, maxLocals);
+    }
+
+    @Override
     public void visitEnd() {
         super.visitEnd();
     }
@@ -209,14 +212,26 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     private int recalculateCounter(AbstractInsnNode abstractInsnNode) {
         switch (abstractInsnNode.getOpcode()) {
-            case Opcodes.PUTFIELD:
-            case Opcodes.IADD:
-            case Opcodes.ISUB:
-            case Opcodes.IMUL:
-            case Opcodes.IDIV:
+            case PUTFIELD:
+            case IADD:
+            case ISUB:
+            case IMUL:
+            case IDIV:
                 return 2;
-            case Opcodes.GETFIELD:
+            case GETFIELD:
                 return 1;
+            case INVOKEDYNAMIC:
+            case INVOKEINTERFACE:
+            case INVOKESPECIAL:
+            case INVOKESTATIC:
+            case INVOKEVIRTUAL:
+                MethodInsnNode methodInsnNode = (MethodInsnNode) abstractInsnNode;
+                int paramsCount = Type.getArgumentTypes(methodInsnNode.desc).length;
+                if(methodInsnNode.name.contains("<init>")) {
+                    return 2 + paramsCount;
+                } else {
+                    return 1 + paramsCount;
+                }
             default:
                 return 0;
         }

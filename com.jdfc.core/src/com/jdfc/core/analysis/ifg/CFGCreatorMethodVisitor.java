@@ -151,7 +151,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         addEntryNode();
         addExitNode();
 
-        CFG cfg = new CFGImpl(methodNode.name, nodes, localVariableTable, isImpure);
+        CFG cfg = new CFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
         methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
@@ -233,7 +233,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private Multimap<Integer, Integer> createEdges() {
         CFGEdgeAnalyzationVisitor cfgEdgeAnalysationVisitor =
-                new CFGEdgeAnalyzationVisitor(methodNode.name, methodNode);
+                new CFGEdgeAnalyzationVisitor(classVisitor.classNode.name, methodNode);
         methodNode.accept(cfgEdgeAnalysationVisitor);
         return cfgEdgeAnalysationVisitor.getEdges();
     }

@@ -1,11 +1,9 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
-import com.jdfc.core.analysis.ifg.data.DefUsePair;
-import com.jdfc.core.analysis.ifg.data.Field;
-import com.jdfc.core.analysis.ifg.data.InstanceVariable;
-import com.jdfc.core.analysis.ifg.data.ProgramVariable;
+import com.jdfc.core.analysis.ifg.data.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -179,11 +177,19 @@ public class ClassExecutionData extends ExecutionData {
         }
 
         ProgramVariable caller = pNode.getMethodCaller();
-
         ProgramVariable newCallerDefinition =
                 ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getDescriptor(),
                         pNode.getIndex(), pNode.getLineNumber(), caller.isReference(), caller.isDefinition());
         pNode.addDefinition(newCallerDefinition);
+
+        InstanceVariable instCaller = findInstanceVariable(caller);
+        if(instCaller != null) {
+            ProgramVariable holder = instCaller.getHolder();
+            ProgramVariable newHolderDefinition =
+                    ProgramVariable.create(holder.getOwner(), holder.getName(), holder.getDescriptor(),
+                            pNode.getIndex(), pNode.getLineNumber(), holder.isReference(), holder.isDefinition());
+            pNode.addDefinition(newHolderDefinition);
+        }
     }
 
     private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pLoopsLeft,
@@ -346,6 +352,29 @@ public class ClassExecutionData extends ExecutionData {
         }
         return result;
     }
+
+    public LocalVariable findLocalVariable(final String pMethodName,
+                                           final int pVarIndex) {
+        CFG cfg = methodCFGs.get(pMethodName);
+        LocalVariableTable localVariableTable = cfg.getLocalVariableTable();
+        Optional<LocalVariable> localVariable = localVariableTable.getEntry(pVarIndex);
+        return localVariable.orElse(null);
+    }
+
+    public InstanceVariable findInstanceVariable(final ProgramVariable pProgramVariable) {
+        for (InstanceVariable variable : this.instanceVariables) {
+            if (variable.getOwner().equals(pProgramVariable.getOwner())
+                    && variable.getName().equals(pProgramVariable.getName())
+                    && variable.getDescriptor().equals(pProgramVariable.getDescriptor())
+                    && variable.getInstructionIndex() == pProgramVariable.getInstructionIndex()
+                    && variable.getLineNumber() == pProgramVariable.getLineNumber()
+                    && Boolean.compare(variable.isDefinition(), pProgramVariable.isDefinition()) == 0) {
+                return variable;
+            }
+        }
+        return null;
+    }
+
 
     private boolean checkInterProceduralUseCoverage(final Set<InterProceduralMatch> pInterProceduralMatches,
                                                     final ProgramVariable pUsage) {

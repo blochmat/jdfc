@@ -15,7 +15,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class CoverageDataExport {
@@ -59,11 +60,16 @@ public class CoverageDataExport {
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-        DOMSource domSource = new DOMSource(doc);
         File file = new File(classXMLPath);
         file.getParentFile().mkdirs();
-        StreamResult streamResult = new StreamResult(file);
-        transformer.transform(domSource, streamResult);
+        try {
+            OutputStream out = new FileOutputStream(file);
+            StreamResult streamResult = new StreamResult(new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)));
+            transformer.transform(new DOMSource(doc), streamResult);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private static Element createFields(Document pDoc, Set<Field> pFields) {
