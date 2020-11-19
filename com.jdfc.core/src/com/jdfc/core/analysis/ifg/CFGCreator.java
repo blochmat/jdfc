@@ -93,7 +93,7 @@ public class CFGCreator {
         if (pSignature != null) {
             result.append("; ").append(pSignature);
         }
-        if (pExceptions != null) {
+        if (pExceptions != null && pExceptions.length != 0) {
             result.append("; ").append(Arrays.toString(pExceptions));
         }
         return result.toString();

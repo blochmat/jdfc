@@ -7,7 +7,9 @@ import com.jdfc.core.analysis.instr.InstrumentationClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.PrintWriter;
@@ -20,9 +22,9 @@ public class JDFCInstrument {
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
 //        if(classNode.name.contains("Real")) {
-//            final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-//            classReader.accept(tcv, 0);
-//            return cw.toByteArray();
+//        final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+//        classReader.accept(tcv, 0);
+//        return cw.toByteArray();
 //        }
 
         ClassExecutionData classExecutionData =

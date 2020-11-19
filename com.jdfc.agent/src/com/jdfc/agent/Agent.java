@@ -8,10 +8,6 @@ import java.nio.file.Path;
 
 public final class Agent {
 
-    private Agent(){
-
-    }
-
     public static void premain(final String options, final Instrumentation inst)
             throws Exception {
         File dir = new File(options);
@@ -20,6 +16,7 @@ public final class Agent {
         CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), baseDir, fileEnding);
 //        debugPrintChildren(CoverageDataStore.getInstance().getRoot(), 1);
         inst.addTransformer(new ClassTransformer());
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> CoverageDataStore.getInstance().exportCoverageData()));
     }
 
     // TODO: Remove debug

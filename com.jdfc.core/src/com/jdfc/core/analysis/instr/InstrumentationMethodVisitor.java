@@ -12,27 +12,11 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
-    List<Integer> returnOpcodes = Arrays.asList(RETURN, IRETURN, DRETURN, ARETURN, FRETURN, LRETURN);
-
     public InstrumentationMethodVisitor(InstrumentationClassVisitor pClassVisitor,
                                         MethodVisitor pMethodVisitor,
                                         MethodNode pMethodNode,
                                         String internalMethodName) {
-        super(ASM6, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
-    }
-
-    @Override
-    public void visitInsn(int opcode) {
-        if(returnOpcodes.contains(opcode) && !methodNode.name.contains("<init>")) {
-            mv.visitLdcInsn(classVisitor.classNode.name);
-            mv.visitMethodInsn(
-                    Opcodes.INVOKESTATIC,
-                    Type.getInternalName(CoverageDataStore.class),
-                    "invokeCoverageTracker",
-                    "(Ljava/lang/String;)V",
-                    false);
-        }
-        super.visitInsn(opcode);
+        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
     }
 
     @Override

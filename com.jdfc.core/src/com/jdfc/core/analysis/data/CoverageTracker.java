@@ -4,8 +4,6 @@ import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,7 +35,7 @@ public class CoverageTracker {
         if (localVariable != null) {
             ProgramVariable programVariable =
                     ProgramVariable.create(null, localVariable.getName(), localVariable.getDescriptor(),
-                            pInsnIndex, pLineNumber, false, isDefinition);
+                            pInternalMethodName, pInsnIndex, pLineNumber, false, isDefinition);
             programVariable.setReference(isHolder(currentClassExecutionData, programVariable));
             addCoveredEntry(pInternalMethodName, currentClassExecutionData, programVariable);
         }
@@ -53,21 +51,12 @@ public class CoverageTracker {
                                            final int pOpcode) {
         updateClassExecutionData(pClassName);
         boolean isDefinition = isDefinition(pOpcode);
-        ProgramVariable programVariable = ProgramVariable.create(pOwner, pVarName, pVarDesc,
+        ProgramVariable programVariable = ProgramVariable.create(pOwner, pVarName, pVarDesc, pInternalMethodName,
                 pInsnIndex, pLineNumber, false, isDefinition);
         InstanceVariable instanceVariable = currentClassExecutionData.findInstanceVariable(programVariable);
         if (instanceVariable != null) {
             addCoveredEntry(pInternalMethodName, currentClassExecutionData, programVariable);
             addCoveredEntry(pInternalMethodName, currentClassExecutionData, instanceVariable.getHolder());
-        }
-    }
-
-    public void dumpClassExecutionDataToFile(final String pClassName) {
-        updateClassExecutionData(pClassName);
-        try {
-            CoverageDataExport.dumpClassExecutionDataToFile(pClassName, currentClassExecutionData);
-        } catch (ParserConfigurationException | TransformerException e) {
-            e.printStackTrace();
         }
     }
 

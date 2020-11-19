@@ -2,7 +2,7 @@ package com.jdfc.core.analysis.ifg.data;
 
 import java.util.Objects;
 
-public class InstanceVariable extends Field implements Comparable<Object>{
+public class InstanceVariable extends Field implements Comparable<Object> {
 
     private final ProgramVariable holder;
     private final String method;
@@ -66,6 +66,7 @@ public class InstanceVariable extends Field implements Comparable<Object>{
                 this.owner,
                 this.name,
                 this.descriptor,
+                this.holder.getMethod(),
                 this.instructionIndex,
                 this.lineNumber,
                 false,
@@ -92,7 +93,7 @@ public class InstanceVariable extends Field implements Comparable<Object>{
                 && Objects.equals(name, that.name)
                 && Objects.equals(descriptor, that.descriptor)
                 && Objects.equals(signature, that.signature)
-                && holder.equals(that.holder)
+                && Objects.equals(holder, that.holder)
                 && instructionIndex == that.instructionIndex
                 && lineNumber == that.lineNumber
                 && Boolean.compare(isDefinition, that.isDefinition) == 0;
@@ -134,15 +135,15 @@ public class InstanceVariable extends Field implements Comparable<Object>{
 
     @Override
     public int compareTo(Object pOther) {
-        if(pOther == null) {
+        if (pOther == null) {
             throw new NullPointerException("Can't compare to null.");
         }
         InstanceVariable that = (InstanceVariable) pOther;
 
-        if(this.equals(that)) {
+        if (this.equals(that)) {
             return 0;
         }
-        if(this.getLineNumber() == that.getLineNumber()) {
+        if (this.getLineNumber() == that.getLineNumber()) {
             if (this.getInstructionIndex() < that.getInstructionIndex()) {
                 return -1;
             } else {

@@ -1,5 +1,6 @@
 package com.jdfc.core.analysis.ifg;
 
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.JDFCClassVisitor;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
@@ -18,7 +19,7 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
                                   final ClassExecutionData pClassExecutionData,
                                   final Map<String, CFG> pMethodCFGs,
                                   final Map<String, LocalVariableTable> pLocalVariableTables) {
-        super(Opcodes.ASM6, pClassNode, pClassExecutionData, pLocalVariableTables);
+        super(Opcodes.ASM5, pClassNode, pClassExecutionData, pLocalVariableTables);
         methodCFGs = pMethodCFGs;
     }
 
@@ -28,6 +29,7 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
                                      final String pDescriptor,
                                      final String pSignature,
                                      final String[] pExceptions) {
+
         final MethodVisitor mv;
         if (cv != null) {
             mv = cv.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
@@ -35,15 +37,18 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
             mv = null;
         }
 
-        final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-        final LocalVariableTable localVariableTable = localVariableTables.get(internalMethodName);
-        final Type[] parameterTypes = Type.getArgumentTypes(pDescriptor);
-        final MethodNode methodNode = getMethodNode(pName);
+        if(classNode.access != Opcodes.ACC_INTERFACE) {
+            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            final LocalVariableTable localVariableTable = localVariableTables.get(internalMethodName);
+            final Type[] parameterTypes = Type.getArgumentTypes(pDescriptor);
+            final MethodNode methodNode = getMethodNode(pName);
 
-        if (methodNode != null && isInstrumentationRequired(pName)) {
-            return new CFGCreatorMethodVisitor(this, mv, methodNode,
-                    internalMethodName, methodCFGs, localVariableTable, parameterTypes);
+            if (methodNode != null && isInstrumentationRequired(pName)) {
+                return new CFGCreatorMethodVisitor(this, mv, methodNode,
+                        internalMethodName, methodCFGs, localVariableTable, parameterTypes);
+            }
         }
+
         return mv;
     }
 
@@ -67,15 +72,16 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
                 for (Map.Entry<Integer, CFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()) {
                     if (cfgNodeEntry.getValue() instanceof IFGNode) {
                         IFGNode ifgNode = (IFGNode) cfgNodeEntry.getValue();
-                        if (isInstrumentationRequired(ifgNode.getMethodNameDesc())) {
-                            CFG otherCFG = pMethodCFGs.get(ifgNode.getMethodNameDesc());
-                            if(ifgNode.getRelatedCFG() == null) {
+                        if (ifgNode.getMethodNameDesc() != null && isInstrumentationRequired(ifgNode.getMethodNameDesc())) {
+                            if (ifgNode.getRelatedCFG() == null && ifgNode.getMethodOwner().equals(classExecutionData.getRelativePath())) {
+                                CFG otherCFG = pMethodCFGs.get(ifgNode.getMethodNameDesc());
                                 ifgNode.setupMethodRelation(otherCFG);
+                                if (otherCFG.isImpure() && !methodEntry.getValue().isImpure()) {
+                                    methodEntry.getValue().setImpure();
+                                    propagateChange = true;
+                                }
                             }
-                            if (otherCFG.isImpure() && !methodEntry.getValue().isImpure()) {
-                                methodEntry.getValue().setImpure();
-                                propagateChange = true;
-                            }
+
                         }
                     }
                 }

@@ -4,26 +4,30 @@ import com.jdfc.commons.data.ExecutionDataNode;
 import com.jdfc.core.analysis.ifg.CFG;
 import com.jdfc.commons.data.ExecutionData;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 
-/** A storage singleton for package, class and finally method {@link CFG}s. */
+/**
+ * A storage singleton for package, class and finally method {@link CFG}s.
+ */
 public class CoverageDataStore {
 
     private static CoverageDataStore singleton;
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> classList;
 
-    private CoverageDataStore(){
+    private CoverageDataStore() {
         ExecutionData executionData = new ExecutionData();
         this.root = new ExecutionDataNode<>(executionData);
         this.classList = new ArrayList<>();
     }
 
-    public static synchronized CoverageDataStore getInstance(){
-        if(singleton == null) {
-            singleton =  new CoverageDataStore();
+    public static synchronized CoverageDataStore getInstance() {
+        if (singleton == null) {
+            singleton = new CoverageDataStore();
         }
         return singleton;
     }
@@ -32,7 +36,7 @@ public class CoverageDataStore {
         return root;
     }
 
-    public List<String> getClassList(){
+    public List<String> getClassList() {
         return classList;
     }
 
@@ -58,12 +62,19 @@ public class CoverageDataStore {
                 pInsnIndex, pLineNumber, pOpcode);
     }
 
-    public static void invokeCoverageTracker(final String pClassName) {
-        CoverageTracker.getInstance().dumpClassExecutionDataToFile(pClassName);
+    public void exportCoverageData() {
+        for(String className : classList) {
+            ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
+            try {
+                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
+            } catch (ParserConfigurationException | TransformerException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void finishClassExecutionDataSetup(final ClassExecutionData pClassExecutionData,
-                                              final Map<String, CFG> pMethodCFGs){
+                                              final Map<String, CFG> pMethodCFGs) {
         pClassExecutionData.setMethodCFGs(pMethodCFGs);
         pClassExecutionData.initializeDefUseLists();
         pClassExecutionData.insertAdditionalDefs();
@@ -88,12 +99,12 @@ public class CoverageDataStore {
                                          Path pBaseDir,
                                          String suffix) {
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
-        if(pExecutionDataNode.isRoot()){
+        if (pExecutionDataNode.isRoot()) {
             ExecutionData rootClassData = new ExecutionData();
             pExecutionDataNode.addChild("default", rootClassData);
         }
-        for (File f : fileList){
-            if(f.isDirectory()) {
+        for (File f : fileList) {
+            if (f.isDirectory()) {
                 ExecutionData pkgData = new ExecutionData();
                 ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
@@ -105,7 +116,7 @@ public class CoverageDataStore {
                 classList.add(relativePath);
                 String nameWithoutType = f.getName().split("\\.")[0];
                 ClassExecutionData classNodeData = new ClassExecutionData(relativePath);
-                if(pExecutionDataNode.isRoot()){
+                if (pExecutionDataNode.isRoot()) {
                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                 } else {
                     pExecutionDataNode.addChild(nameWithoutType, classNodeData);

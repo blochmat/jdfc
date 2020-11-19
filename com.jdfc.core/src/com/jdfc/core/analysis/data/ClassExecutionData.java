@@ -4,6 +4,8 @@ import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
 import com.jdfc.core.analysis.ifg.data.*;
+import com.sun.org.apache.bcel.internal.generic.INVOKESTATIC;
+import org.objectweb.asm.Opcodes;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -109,12 +111,13 @@ public class ClassExecutionData extends ExecutionData {
                 CFGNode node = entry.getValue();
                 if (node instanceof IFGNode) {
                     IFGNode ifgNode = (IFGNode) node;
-                    if (ifgNode.getRelatedCFG().isImpure()) {
-                        CFGNode entryNode = ifgNode.getCallNode();
+                    if (ifgNode.getRelatedCFG() != null && ifgNode.getRelatedCFG().isImpure()) {
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
-                                        ifgNode.getParameterCount(), null, ifgNode, entryNode);
-                        insertNewDefinitions(ifgNode, usageDefinitionMatch.keySet());
+                                        ifgNode.getParameterCount(), null, ifgNode, ifgNode.getCallNode());
+                        if (usageDefinitionMatch != null && !usageDefinitionMatch.isEmpty()) {
+                            insertNewDefinitions(ifgNode, usageDefinitionMatch.keySet());
+                        }
                     }
                 }
             }
@@ -155,12 +158,14 @@ public class ClassExecutionData extends ExecutionData {
             for (Map.Entry<Integer, CFGNode> node : graph.getNodes().entrySet()) {
                 if (node.getValue() instanceof IFGNode) {
                     IFGNode ifgNode = (IFGNode) node.getValue();
-                    CFGNode entryNode = ifgNode.getCallNode();
-                    String entryMethodName = ifgNode.getMethodNameDesc();
-                    Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
-                            getUsageDefinitionMatchRecursive(
-                                    ifgNode.getParameterCount(), null, ifgNode, entryNode);
-                    matchPairs(methodName, entryMethodName, usageDefinitionMatch);
+                    if (ifgNode.getRelatedCFG() != null) {
+                        CFGNode entryNode = ifgNode.getCallNode();
+                        String entryMethodName = ifgNode.getMethodNameDesc();
+                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
+                                getUsageDefinitionMatchRecursive(
+                                        ifgNode.getParameterCount(), null, ifgNode, entryNode);
+                        matchPairs(methodName, entryMethodName, usageDefinitionMatch);
+                    }
                 }
             }
         }
@@ -171,30 +176,35 @@ public class ClassExecutionData extends ExecutionData {
             if (!isSimpleType(parameter.getDescriptor())) {
                 ProgramVariable newParamDefinition =
                         ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
-                                pNode.getIndex(), pNode.getLineNumber(), parameter.isReference(), parameter.isDefinition());
+                                parameter.getMethod(), pNode.getIndex(), pNode.getLineNumber(), parameter.isReference(),
+                                parameter.isDefinition());
                 pNode.addDefinition(newParamDefinition);
             }
         }
 
         ProgramVariable caller = pNode.getMethodCaller();
-        ProgramVariable newCallerDefinition =
-                ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getDescriptor(),
-                        pNode.getIndex(), pNode.getLineNumber(), caller.isReference(), caller.isDefinition());
-        pNode.addDefinition(newCallerDefinition);
+        if (caller != null) {
+            ProgramVariable newCallerDefinition =
+                    ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getDescriptor(),
+                            caller.getMethod(), pNode.getIndex(), pNode.getLineNumber(), caller.isReference(),
+                            caller.isDefinition());
+            pNode.addDefinition(newCallerDefinition);
 
-        InstanceVariable instCaller = findInstanceVariable(caller);
-        if(instCaller != null) {
-            ProgramVariable holder = instCaller.getHolder();
-            ProgramVariable newHolderDefinition =
-                    ProgramVariable.create(holder.getOwner(), holder.getName(), holder.getDescriptor(),
-                            pNode.getIndex(), pNode.getLineNumber(), holder.isReference(), holder.isDefinition());
-            pNode.addDefinition(newHolderDefinition);
+            InstanceVariable instCaller = findInstanceVariable(caller);
+            if (instCaller != null) {
+                ProgramVariable holder = instCaller.getHolder();
+                ProgramVariable newHolderDefinition =
+                        ProgramVariable.create(holder.getOwner(), holder.getName(), holder.getDescriptor(),
+                                holder.getMethod(), pNode.getIndex(), pNode.getLineNumber(), holder.isReference(),
+                                holder.isDefinition());
+                pNode.addDefinition(newHolderDefinition);
+            }
         }
     }
 
     private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pLoopsLeft,
                                                                                    final CFGNode pNode,
-                                                                                   final IFGNode pCallingNode,
+                                                                                   final IFGNode pIFGNode,
                                                                                    final CFGNode pEntryNode) {
         Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
         // for each parameter: process one node (predecessor of pNode)
@@ -203,20 +213,25 @@ public class ClassExecutionData extends ExecutionData {
             if (pNode != null) {
                 predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
             } else {
-                predecessor = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
+                predecessor = (CFGNode) pIFGNode.getPredecessors().toArray()[0];
             }
 
             Set<ProgramVariable> usages = predecessor.getUses();
 
             for (ProgramVariable var : usages) {
                 // find correlated definition in procedure B
-                ProgramVariable definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft];
+                ProgramVariable definitionB;
+                if (pIFGNode.getOpcode() == Opcodes.INVOKESTATIC) {
+                    definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft - 1];
+                } else {
+                    definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft];
+                }
                 matchMap.put(var, definitionB);
             }
 
             matchMap = mergeMaps(matchMap,
                     getUsageDefinitionMatchRecursive(
-                            pLoopsLeft - 1, predecessor, pCallingNode, pEntryNode));
+                            pLoopsLeft - 1, predecessor, pIFGNode, pEntryNode));
         }
         return matchMap;
     }
@@ -277,7 +292,7 @@ public class ClassExecutionData extends ExecutionData {
                 boolean isUseCovered = variablesCovered.get(methodName).contains(use);
 
                 Set<InterProceduralMatch> interProceduralMatches = findInterProceduralMatches(def, methodName);
-                if(!interProceduralMatches.isEmpty() && !isUseCovered) {
+                if (!interProceduralMatches.isEmpty() && !isUseCovered) {
                     isUseCovered = checkInterProceduralUseCoverage(interProceduralMatches, use);
                 }
 
@@ -294,21 +309,21 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
 
-            for(Map.Entry<DefUsePair, Boolean> element : defUsePairsCovered.get(methodName).entrySet()) {
-               for(Map.Entry<DefUsePair, Boolean> compare : defUsePairsCovered.get(methodName).entrySet()) {
-                   boolean isDefNameEqual = element.getKey().getDefinition().getName().equals(compare.getKey().getDefinition().getName());
-                   boolean isUseEqual = element.getKey().getUsage().equals(compare.getKey().getUsage());
-                   boolean isElementDefIndexSmaller = element.getKey().getDefinition().getInstructionIndex() < compare.getKey().getDefinition().getInstructionIndex();
-                   boolean isElementUseIndexBiggerThanCompareDefIndex = element.getKey().getUsage().getInstructionIndex() > compare.getKey().getDefinition().getInstructionIndex();
-                   boolean isCompareCovered = compare.getValue();
-                   if(isDefNameEqual && isUseEqual
-                           && isElementDefIndexSmaller
-                           && isElementUseIndexBiggerThanCompareDefIndex
-                           && isCompareCovered) {
-                       element.setValue(false);
-                       break;
-                   }
-               }
+            for (Map.Entry<DefUsePair, Boolean> element : defUsePairsCovered.get(methodName).entrySet()) {
+                for (Map.Entry<DefUsePair, Boolean> compare : defUsePairsCovered.get(methodName).entrySet()) {
+                    boolean isDefNameEqual = element.getKey().getDefinition().getName().equals(compare.getKey().getDefinition().getName());
+                    boolean isUseEqual = element.getKey().getUsage().equals(compare.getKey().getUsage());
+                    boolean isElementDefIndexSmaller = element.getKey().getDefinition().getInstructionIndex() < compare.getKey().getDefinition().getInstructionIndex();
+                    boolean isElementUseIndexBiggerThanCompareDefIndex = element.getKey().getUsage().getInstructionIndex() > compare.getKey().getDefinition().getInstructionIndex();
+                    boolean isCompareCovered = compare.getValue();
+                    if (isDefNameEqual && isUseEqual
+                            && isElementDefIndexSmaller
+                            && isElementUseIndexBiggerThanCompareDefIndex
+                            && isCompareCovered) {
+                        element.setValue(false);
+                        break;
+                    }
+                }
             }
         }
         this.calculateMethodCount();
@@ -345,8 +360,8 @@ public class ClassExecutionData extends ExecutionData {
     private Set<InterProceduralMatch> findInterProceduralMatches(final ProgramVariable pDefinition,
                                                                  final String pMethodName) {
         Set<InterProceduralMatch> result = new HashSet<>();
-        for(InterProceduralMatch element : interProceduralMatches) {
-            if(element.getDefinition().equals(pDefinition) && element.methodName.equals(pMethodName)) {
+        for (InterProceduralMatch element : interProceduralMatches) {
+            if (element.getDefinition().equals(pDefinition) && element.methodName.equals(pMethodName)) {
                 result.add(element);
             }
         }
@@ -378,10 +393,10 @@ public class ClassExecutionData extends ExecutionData {
 
     private boolean checkInterProceduralUseCoverage(final Set<InterProceduralMatch> pInterProceduralMatches,
                                                     final ProgramVariable pUsage) {
-        for(InterProceduralMatch element : pInterProceduralMatches) {
+        for (InterProceduralMatch element : pInterProceduralMatches) {
             String callSiteMethodName = element.getCallSiteMethodName();
-            for(ProgramVariable variable : variablesCovered.get(callSiteMethodName)) {
-                if(variable.equals(pUsage)) {
+            for (ProgramVariable variable : variablesCovered.get(callSiteMethodName)) {
+                if (variable.equals(pUsage)) {
                     return true;
                 }
             }
@@ -398,10 +413,10 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
-        for(Map<DefUsePair, Boolean> entryMap : defUsePairsCovered.values()) {
+        for (Map<DefUsePair, Boolean> entryMap : defUsePairsCovered.values()) {
             for (DefUsePair element : entryMap.keySet()) {
-                if((element.getDefinition().getName().equals(pName) && element.getDefinition().getLineNumber() == pLineNumber)
-                || element.getUsage().getName().equals(pName) && element.getUsage().getLineNumber() == pLineNumber) {
+                if ((element.getDefinition().getName().equals(pName) && element.getDefinition().getLineNumber() == pLineNumber)
+                        || element.getUsage().getName().equals(pName) && element.getUsage().getLineNumber() == pLineNumber) {
                     return true;
                 }
             }
@@ -410,9 +425,9 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public String getMethodNameFromLineNumber(final int pLineNumber) {
-        for(Map.Entry<String, Integer> firstLineEntry : methodFirstLine.entrySet()) {
-            if(firstLineEntry.getValue() <= pLineNumber) {
-                if(methodLastLine.get(firstLineEntry.getKey()) >= pLineNumber) {
+        for (Map.Entry<String, Integer> firstLineEntry : methodFirstLine.entrySet()) {
+            if (firstLineEntry.getValue() <= pLineNumber) {
+                if (methodLastLine.get(firstLineEntry.getKey()) >= pLineNumber) {
                     return firstLineEntry.getKey();
                 }
             }

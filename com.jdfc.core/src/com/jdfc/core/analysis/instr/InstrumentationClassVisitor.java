@@ -8,14 +8,16 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import static org.objectweb.asm.Opcodes.ASM6;
+import java.util.Arrays;
+
+import static org.objectweb.asm.Opcodes.ASM5;
 
 public class InstrumentationClassVisitor extends JDFCClassVisitor {
 
     public InstrumentationClassVisitor(final ClassVisitor pClassVisitor,
                                        final ClassNode pClassNode,
                                        final ClassExecutionData pClassExecutionData) {
-        super(ASM6, pClassVisitor, pClassNode, pClassExecutionData);
+        super(ASM5, pClassVisitor, pClassNode, pClassExecutionData);
     }
 
     @Override

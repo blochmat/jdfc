@@ -4,6 +4,7 @@ import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
 public class IFGNode extends CFGNode{
 
+    private final String methodOwner;
     private final int lineNumber;
     private final ProgramVariable methodCaller;
     private final String methodNameDesc;
@@ -11,13 +12,24 @@ public class IFGNode extends CFGNode{
     private CFGNode callNode;
     private CFG relatedCFG;
 
+    public int getOpcode() {
+        return super.getOpcode();
+    }
+
+    public String getMethodOwner() {
+        return methodOwner;
+    }
+
     IFGNode(final int pIndex,
             final int pLineNumber,
+            final int pOpcode,
+            final String pMethodOwner,
             final ProgramVariable pMethodCaller,
             final String pMethodNameDesc,
             final int pParameterCount) {
-        super(pIndex);
+        super(pIndex, pOpcode);
         lineNumber = pLineNumber;
+        methodOwner = pMethodOwner;
         methodCaller = pMethodCaller;
         methodNameDesc = pMethodNameDesc;
         parameterCount = pParameterCount;
@@ -50,5 +62,20 @@ public class IFGNode extends CFGNode{
     public void setupMethodRelation(CFG pRelatedMethod) {
         this.relatedCFG = pRelatedMethod;
         this.callNode = pRelatedMethod.getNodes().firstEntry().getValue();
+    }
+
+    public String toString() {
+        return String.format(
+                "IFG Node: %d %d (%d predecessors, %d successors), \n" +
+                        "   Method Owner: %s, \n" +
+                        "   LineNumber: %s, \n" +
+                        "   Caller: %s, \n" +
+                        "   MethodNameDesc: %s, \n" +
+                        "   ParameterCount: %s, \n" +
+                        "   Call Node: %s, \n" +
+                        "   Related CFG: %s",
+                getIndex(), getOpcode(), getPredecessors().size(), getSuccessors().size(),
+                methodOwner, lineNumber, methodCaller, methodNameDesc,
+                parameterCount, callNode, relatedCFG);
     }
 }

@@ -17,34 +17,38 @@ public class CFGNode {
     private final Set<ProgramVariable> definitions;
     private final Set<ProgramVariable> uses;
     private final int index;
+    private final int opcode;
     private final Set<CFGNode> predecessors;
     private final Set<CFGNode> successors;
     private final Set<ProgramVariable> reachOut;
     private final Set<ProgramVariable> reach;
 
-    CFGNode(final int pIndex) {
+    CFGNode(final int pIndex, final int pOpcode) {
         this(
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
                 pIndex,
+                pOpcode,
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet());
     }
 
     CFGNode(
-            final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex) {
-        this(pDefinitions, pUses, pIndex, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+            final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex, final int pOpcode) {
+        this(pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
     }
 
     CFGNode(
             final Set<ProgramVariable> pDefinitions,
             final Set<ProgramVariable> pUses,
             final int pIndex,
+            final int pOpcode,
             final Set<CFGNode> pPredecessors,
             final Set<CFGNode> pSuccessors) {
         definitions = pDefinitions;
         uses = pUses;
         index = pIndex;
+        opcode = pOpcode;
         predecessors = pPredecessors;
         successors = pSuccessors;
 
@@ -146,10 +150,14 @@ public class CFGNode {
         return Collections.unmodifiableSet(uses);
     }
 
+    public int getOpcode() {
+        return opcode;
+    }
+
     @Override
     public String toString() {
         return String.format(
-                "CFG Node: %d (%d predecessors, %d successors)",
-                index, predecessors.size(), successors.size());
+                "CFG Node: %d %d (%d predecessors, %d successors)",
+                index, opcode, predecessors.size(), successors.size());
     }
 }

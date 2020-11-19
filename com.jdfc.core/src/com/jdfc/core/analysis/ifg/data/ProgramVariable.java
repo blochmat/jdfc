@@ -10,6 +10,7 @@ public class ProgramVariable implements Comparable<Object> {
     private final String owner;
     private final String name;
     private final String descriptor;
+    private final String method;
     private final int instructionIndex;
     private final int lineNumber;
     private boolean isReference;
@@ -18,6 +19,7 @@ public class ProgramVariable implements Comparable<Object> {
     private ProgramVariable(final String pOwner,
                             final String pName,
                             final String pDescriptor,
+                            final String pMethod,
                             final int pInstructionIndex,
                             final int pLineNumber,
                             final boolean pIsReference,
@@ -25,6 +27,7 @@ public class ProgramVariable implements Comparable<Object> {
         owner = pOwner;
         name = pName;
         descriptor = pDescriptor;
+        method = pMethod;
         instructionIndex = pInstructionIndex;
         lineNumber = pLineNumber;
         isReference = pIsReference;
@@ -34,11 +37,12 @@ public class ProgramVariable implements Comparable<Object> {
     public static ProgramVariable create(final String pOwner,
                                          final String pName,
                                          final String pDescriptor,
+                                         final String pMethod,
                                          final int pInstructionIndex,
                                          final int pLineNumber,
                                          final boolean pIsReference,
                                          final boolean pIsDefinition) {
-        return new ProgramVariable(pOwner, pName, pDescriptor, pInstructionIndex, pLineNumber, pIsReference, pIsDefinition);
+        return new ProgramVariable(pOwner, pName, pDescriptor, pMethod, pInstructionIndex, pLineNumber, pIsReference, pIsDefinition);
     }
 
     public ProgramVariable clone() throws CloneNotSupportedException {
@@ -91,6 +95,10 @@ public class ProgramVariable implements Comparable<Object> {
         return isDefinition;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -107,6 +115,7 @@ public class ProgramVariable implements Comparable<Object> {
         return Objects.equals(owner, that.owner)
                 && Objects.equals(name, that.name)
                 && Objects.equals(descriptor, that.descriptor)
+                && Objects.equals(method, that.method)
                 && (instructionIndex == that.instructionIndex)
                 && (lineNumber == that.lineNumber)
                 && Boolean.compare(isReference, that.isReference) == 0
@@ -118,7 +127,7 @@ public class ProgramVariable implements Comparable<Object> {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(owner, name, descriptor, instructionIndex, lineNumber, isReference, isDefinition);
+        return Objects.hash(owner, name, descriptor, method, instructionIndex, lineNumber, isReference, isDefinition);
     }
 
     /**
@@ -126,26 +135,35 @@ public class ProgramVariable implements Comparable<Object> {
      */
     @Override
     public String toString() {
-        return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d, Owner: %s, isReference: %s, isDefinition: %s)",
-                name, descriptor, instructionIndex, lineNumber, owner, isReference, isDefinition);
+        return String.format("ProgramVariable %s: %s (Idx: %d, LNr: %d, Owner: %s, Method: %s isReference: %s, isDefinition: %s)",
+                name, descriptor, instructionIndex, lineNumber, owner, method, isReference, isDefinition);
     }
 
     public static String encode(ProgramVariable pVar) {
-        return String.format("%s,%s,%s,%s,%s,%s,%s",
-                pVar.owner, pVar.name, pVar.descriptor, pVar.instructionIndex, pVar.lineNumber, pVar.isReference, pVar.isDefinition);
+        if(pVar != null) {
+            return String.format("%s|%s|%s|%s|%s|%s|%s|%s",
+                    pVar.owner, pVar.name, pVar.descriptor, pVar.method,
+                    pVar.instructionIndex, pVar.lineNumber, pVar.isReference, pVar.isDefinition);
+        } else {
+            return "null";
+        }
     }
 
     public static ProgramVariable decode(String pEncoded) {
-        String[] props = pEncoded.split(",");
+        if(pEncoded.equals("null")) {
+            return null;
+        }
+        String[] props = pEncoded.split("\\|");
         String owner = (props[0].equals("null") ? null : props[0]);
         String name = (props[1].equals("null") ? null : props[1]);
         String descriptor = (props[2].equals("null") ? null : props[2]);
-        int instructionIndex = Integer.parseInt(props[3]);
-        int lineNumber = Integer.parseInt(props[4]);
-        boolean isReference = Boolean.parseBoolean(props[5]);
-        boolean isDefinition = Boolean.parseBoolean(props[6]);
+        String pMethod = (props[3].equals("null") ? null : props[3]);
+        int instructionIndex = Integer.parseInt(props[4]);
+        int lineNumber = Integer.parseInt(props[5]);
+        boolean isReference = Boolean.parseBoolean(props[6]);
+        boolean isDefinition = Boolean.parseBoolean(props[7]);
 
-        return ProgramVariable.create(owner, name, descriptor, instructionIndex, lineNumber, isReference, isDefinition);
+        return ProgramVariable.create(owner, name, descriptor, pMethod, instructionIndex, lineNumber, isReference, isDefinition);
     }
 
     @Override

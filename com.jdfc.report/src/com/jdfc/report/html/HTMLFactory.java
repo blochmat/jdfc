@@ -2,7 +2,6 @@ package com.jdfc.report.html;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.data.InterProceduralMatch;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
@@ -241,7 +240,8 @@ public class HTMLFactory {
             } else {
                 String methodName = pData.getMethodNameFromLineNumber(pLineNumber);
                 // TODO: Use methodName
-                ProgramVariable programVariable = findProgramVariable(pData, pLineNumber, item, sameWordsCount, isForLoop);
+                ProgramVariable programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isForLoop);
+
                 if (programVariable == null) {
                     HTMLElement spanTag = HTMLElement.span(item);
                     divTagLine.getContent().add(spanTag);
@@ -266,9 +266,10 @@ public class HTMLFactory {
                         }
 
                         boolean isVarCovered = isVarCovered(pData, programVariable);
+
                         if (instanceVariable == null) {
-                            List<ProgramVariable> correlatedVars = getCorrelatedVars(programVariable, pData);
-                            Map<DefUsePair, Boolean> defUsePairsCovered = getDefUsePairCovered(pData, correlatedVars);
+                            List<ProgramVariable> associatedVars = getAssociatedVars(programVariable, pData);
+                            Map<DefUsePair, Boolean> defUsePairsCovered = getDefUsePairCovered(pData, associatedVars);
                             String backgroundColor = getVariableBackgroundColor(isVarCovered, defUsePairsCovered);
                             try {
                                 divTagLine.getContent().add(
@@ -278,7 +279,7 @@ public class HTMLFactory {
                                 e.printStackTrace();
                             }
                         } else {
-                            List<ProgramVariable> correlatedVars = getCorrelatedVars(programVariable, pData);
+                            List<ProgramVariable> correlatedVars = getAssociatedVars(programVariable, pData);
                             Map<DefUsePair, Boolean> defUsePairsCovered =
                                     getDefUsePairCovered(pData, methodName, instanceVariable, correlatedVars);
                             Set<ProgramVariable> firstAppearances = null;
@@ -374,7 +375,7 @@ public class HTMLFactory {
         return comment;
     }
 
-    private List<ProgramVariable> getCorrelatedVars(ProgramVariable pVariable, ClassExecutionData pData) {
+    private List<ProgramVariable> getAssociatedVars(ProgramVariable pVariable, ClassExecutionData pData) {
         List<ProgramVariable> result = new ArrayList<>();
         result.add(pVariable);
         for (InterProceduralMatch entry : pData.getInterProceduralMatches()) {
@@ -1064,50 +1065,77 @@ public class HTMLFactory {
 
     // find definition by line number and name
     private ProgramVariable findProgramVariable(final ClassExecutionData pData,
+                                                final String pMethodName,
                                                 final int pLineNumber,
                                                 final String pName,
                                                 final int pSameWordsCount,
                                                 final boolean pIsForLoop) {
-        List<ProgramVariable> possibleVariables = getPossibleVars(pData, pLineNumber, pName);
-        if (!possibleVariables.isEmpty()) {
-            possibleVariables.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
-            int index;
-            if (pIsForLoop) {
-                index = possibleVariables.size() - pSameWordsCount;
-            } else {
-                if (pSameWordsCount == possibleVariables.size()) {
-                    index = possibleVariables.size() - 1;
-                } else {
-                    index = possibleVariables.size() - pSameWordsCount - 1;
-                }
+        if (pMethodName != null) {
+            List<ProgramVariable> possibleVariables = getPossibleVars(pData, pMethodName, pLineNumber, pName);
+            if (!possibleVariables.isEmpty()) {
+                possibleVariables.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
+                int index = computeIndex(possibleVariables.size(), pSameWordsCount, pIsForLoop);
+                return possibleVariables.get(index);
             }
-
-            return possibleVariables.get(index);
+        } else {
+            return getMethodParamDefinition(pData, pName);
         }
         return null;
     }
 
     private List<ProgramVariable> getPossibleVars(final ClassExecutionData pData,
+                                                  final String pMethodName,
                                                   final int pLineNumber,
                                                   final String pName) {
         List<ProgramVariable> result = new ArrayList<>();
-        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getVariablesCovered().entrySet()) {
-            for (ProgramVariable element : entry.getValue()) {
-                if (element.getLineNumber() == pLineNumber
-                        && element.getName().equals(pName)
-                        && !result.contains(element)) {
-                    result.add(element);
-                }
+        for (ProgramVariable element : pData.getVariablesCovered().get(pMethodName)) {
+            if (element.getLineNumber() == pLineNumber
+                    && element.getName().equals(pName)
+                    && !result.contains(element)) {
+                result.add(element);
             }
-            for (ProgramVariable element : pData.getVariablesUncovered().get(entry.getKey())) {
-                if (element.getLineNumber() == pLineNumber
-                        && element.getName().equals(pName)
-                        && !result.contains(element)) {
-                    result.add(element);
-                }
+        }
+        for (ProgramVariable element : pData.getVariablesUncovered().get(pMethodName)) {
+            if (element.getLineNumber() == pLineNumber
+                    && element.getName().equals(pName)
+                    && !result.contains(element)) {
+                result.add(element);
             }
         }
         return result;
+    }
+
+    private ProgramVariable getMethodParamDefinition(final ClassExecutionData pData,
+                                                     final String pName) {
+        for(Map.Entry<String, Set<ProgramVariable>> entry : pData.getVariablesCovered().entrySet()) {
+            for (ProgramVariable element : entry.getValue()) {
+                if (element.getLineNumber() == Integer.MIN_VALUE
+                        && element.getName().equals(pName)) {
+                    return element;
+                }
+            }
+            for (ProgramVariable element : entry.getValue()) {
+                if (element.getLineNumber() == Integer.MIN_VALUE
+                        && element.getName().equals(pName)) {
+                    return element;
+                }
+            }
+        }
+        return null;
+    }
+
+    private int computeIndex(final int pVariableCount,
+                             final int pSameWordsCount,
+                             final boolean pIsForLoop) {
+        if (pIsForLoop) {
+            return  pVariableCount - pSameWordsCount;
+        } else {
+            if (pSameWordsCount == pVariableCount) {
+                return pVariableCount - 1;
+            } else {
+                return  pVariableCount - pSameWordsCount - 1;
+            }
+        }
     }
 
     private List<InstanceVariable> getPossibleInstanceVarDefinitions(final Set<InstanceVariable> pInstanceVariables,

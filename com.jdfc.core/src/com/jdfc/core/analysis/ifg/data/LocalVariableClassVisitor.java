@@ -1,6 +1,6 @@
 package com.jdfc.core.analysis.ifg.data;
 
-import static org.objectweb.asm.Opcodes.ASM6;
+import static org.objectweb.asm.Opcodes.ASM5;
 
 import com.jdfc.core.analysis.JDFCClassVisitor;
 import com.jdfc.core.analysis.data.ClassExecutionData;
@@ -19,7 +19,7 @@ import org.objectweb.asm.tree.MethodNode;
 public class LocalVariableClassVisitor extends JDFCClassVisitor {
 
     public LocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
-        super(ASM6, pClassNode, pClassExecutionData);
+        super(ASM5, pClassNode, pClassExecutionData);
     }
 
     /**

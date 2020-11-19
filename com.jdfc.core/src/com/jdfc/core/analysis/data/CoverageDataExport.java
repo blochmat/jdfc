@@ -21,15 +21,14 @@ import java.util.*;
 
 public class CoverageDataExport {
 
-    public static void dumpClassExecutionDataToFile(final String pClassName,
-                                                    final ClassExecutionData pClassExecutionData) throws ParserConfigurationException, TransformerException {
+    public static void dumpClassExecutionDataToFile(final ClassExecutionData pClassExecutionData) throws ParserConfigurationException, TransformerException {
         String outPath = String.format("%s/target/jdfc", System.getProperty("user.dir"));
         File JDFCDir = new File(outPath);
         if (!JDFCDir.exists()) {
             JDFCDir.mkdirs();
         }
 
-        String classXMLPath = String.format("%s/%s.xml", outPath, pClassName);
+        String classXMLPath = String.format("%s/%s.xml", outPath, pClassExecutionData.getRelativePath());
 
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         Element classTag = doc.createElement("class");
@@ -145,6 +144,7 @@ public class CoverageDataExport {
             defUsePair.setAttribute("dOwner", element.getDefinition().getOwner());
             defUsePair.setAttribute("dName", element.getDefinition().getName());
             defUsePair.setAttribute("dType", element.getDefinition().getDescriptor());
+            defUsePair.setAttribute("dMethod", element.getDefinition().getMethod());
             defUsePair.setAttribute("dIndex", Integer.toString(element.getDefinition().getInstructionIndex()));
             defUsePair.setAttribute("dLineNumber", Integer.toString(element.getDefinition().getLineNumber()));
             defUsePair.setAttribute("dIsReference", Boolean.toString(element.getDefinition().isReference()));
@@ -153,6 +153,7 @@ public class CoverageDataExport {
             defUsePair.setAttribute("uOwner", element.getUsage().getOwner());
             defUsePair.setAttribute("uName", element.getUsage().getName());
             defUsePair.setAttribute("uType", element.getUsage().getDescriptor());
+            defUsePair.setAttribute("uMethod", element.getUsage().getMethod());
             defUsePair.setAttribute("uIndex", Integer.toString(element.getUsage().getInstructionIndex()));
             defUsePair.setAttribute("uLineNumber", Integer.toString(element.getUsage().getLineNumber()));
             defUsePair.setAttribute("uIsReference", Boolean.toString(element.getUsage().isReference()));
@@ -176,6 +177,7 @@ public class CoverageDataExport {
         programVariable.setAttribute("owner", pProgramVariable.getOwner());
         programVariable.setAttribute("name", pProgramVariable.getName());
         programVariable.setAttribute("descriptor", pProgramVariable.getDescriptor());
+        programVariable.setAttribute("method", pProgramVariable.getMethod());
         programVariable.setAttribute("instructionIndex",
                 Integer.toString(pProgramVariable.getInstructionIndex()));
         programVariable.setAttribute("lineNumber",

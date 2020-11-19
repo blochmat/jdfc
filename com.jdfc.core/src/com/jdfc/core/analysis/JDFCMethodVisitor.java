@@ -64,13 +64,20 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     }
 
     @Override
+    public void visitCode() {
+        System.out.printf("[DEBUG] visitCode %s %s\n", classVisitor.classNode.name, methodNode.name);
+        super.visitCode();
+    }
+
+    @Override
     public void visitLineNumber(int line, Label start) {
         if (firstLine == -1) {
-            if (methodNode.name.equals("<init>")) {
-                firstLine = line;
-            } else {
+            if(!methodNode.name.contains("<init>")) {
                 firstLine += line;
+            } else {
+                firstLine = line;
             }
+
         }
         currentLineNumber = line;
         super.visitLineNumber(line, start);
@@ -79,84 +86,98 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitFrame %s %s\n", currentInstructionIndex, type);
         super.visitFrame(type, numLocal, local, numStack, stack);
     }
 
     @Override
     public void visitInsn(int opcode) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitInsn(opcode);
     }
 
     @Override
     public void visitIntInsn(int opcode, int operand) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitIntInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitIntInsn(opcode, operand);
     }
 
     @Override
     public void visitVarInsn(int opcode, int var) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitVarInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitVarInsn(opcode, var);
     }
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitTypeInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitTypeInsn(opcode, type);
     }
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitFieldInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitMethodInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
 
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitInvokeDynamicInsn %s %s\n", currentInstructionIndex, INVOKEDYNAMIC);
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     }
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitJumpInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitJumpInsn(opcode, label);
     }
 
     @Override
     public void visitLdcInsn(Object value) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitLdcInsn %s %s\n", currentInstructionIndex, LDC);
         super.visitLdcInsn(value);
     }
 
     @Override
     public void visitIincInsn(int var, int increment) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitIincInsn %s %s \n", currentInstructionIndex, IINC);
         super.visitIincInsn(var, increment);
     }
 
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitTableSwitchInsn %s %s\n", currentInstructionIndex, TABLESWITCH);
         super.visitTableSwitchInsn(min, max, dflt, labels);
     }
 
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitLookupSwitchInsn %s %s\n ", currentInstructionIndex, LOOKUPSWITCH);
         super.visitLookupSwitchInsn(dflt, keys, labels);
     }
 
     @Override
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
         updateCurrentNode();
+        System.out.printf("[DEBUG] visitMultiANewArrayInsn %s %s\n", currentInstructionIndex, MULTIANEWARRAY);
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
     }
 
@@ -174,10 +195,11 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         if (currentNode == null) {
             currentNode = methodNode.instructions.getFirst();
         } else {
-            currentNode = currentNode.getNext();
+            if(currentNode.getNext() != null) {
+                currentNode = currentNode.getNext();
+            }
         }
-        currentInstructionIndex = methodNode.instructions.indexOf(currentNode);
-    }
+        currentInstructionIndex = methodNode.instructions.indexOf(currentNode); }
 
     protected VarInsnNode getOwnerNode(int pStartCounter) {
         int counter = pStartCounter;
@@ -211,22 +233,32 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     }
 
     private int recalculateCounter(AbstractInsnNode abstractInsnNode) {
+        MethodInsnNode methodInsnNode;
+        int paramsCount;
         switch (abstractInsnNode.getOpcode()) {
             case PUTFIELD:
             case IADD:
             case ISUB:
             case IMUL:
             case IDIV:
+            case DALOAD:
+            case IALOAD:
+            case FALOAD:
+            case BALOAD:
                 return 2;
             case GETFIELD:
+            case NEWARRAY:
                 return 1;
+            case INVOKESTATIC:
+                methodInsnNode = (MethodInsnNode) abstractInsnNode;
+                paramsCount = Type.getArgumentTypes(methodInsnNode.desc).length;
+                return paramsCount;
             case INVOKEDYNAMIC:
             case INVOKEINTERFACE:
             case INVOKESPECIAL:
-            case INVOKESTATIC:
             case INVOKEVIRTUAL:
-                MethodInsnNode methodInsnNode = (MethodInsnNode) abstractInsnNode;
-                int paramsCount = Type.getArgumentTypes(methodInsnNode.desc).length;
+                methodInsnNode = (MethodInsnNode) abstractInsnNode;
+                paramsCount = Type.getArgumentTypes(methodInsnNode.desc).length;
                 if(methodInsnNode.name.contains("<init>")) {
                     return 2 + paramsCount;
                 } else {
@@ -261,12 +293,14 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     protected ProgramVariable getProgramVariableFromLocalVar(final int varNumber,
                                                              final int pOpcode,
+                                                             final String internalMethodName,
                                                              final int pIndex,
                                                              final int pLineNumber) {
         final String varName = getVariableNameFromLocalVariablesTable(varNumber);
         final String varType = getVariableTypeFromLocalVariablesTable(varNumber);
         final boolean isDefinition = isDefinition(pOpcode);
-        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, false, isDefinition);
+        return ProgramVariable.create(null, varName, varType, internalMethodName,
+                pIndex, pLineNumber, false, isDefinition);
     }
 
     private String getVariableNameFromLocalVariablesTable(final int pVarNumber) {
