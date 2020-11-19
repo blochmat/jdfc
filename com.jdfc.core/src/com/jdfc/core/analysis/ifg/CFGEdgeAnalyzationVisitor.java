@@ -10,7 +10,8 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM8;
+
 
 public class CFGEdgeAnalyzationVisitor extends MethodVisitor {
 
@@ -19,7 +20,7 @@ public class CFGEdgeAnalyzationVisitor extends MethodVisitor {
     private final Multimap<Integer, Integer> edges;
 
     CFGEdgeAnalyzationVisitor(final String pOwner, final MethodNode pMethodNode) {
-        super(ASM5);
+        super(ASM8);
         owner = pOwner;
         methodNode = pMethodNode;
         edges = ArrayListMultimap.create();
@@ -29,7 +30,7 @@ public class CFGEdgeAnalyzationVisitor extends MethodVisitor {
     public void visitEnd() {
         try {
             CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer();
-            cfgEdgeAnalyzer.analyze(owner, methodNode);
+            cfgEdgeAnalyzer.analyze(methodNode.name, methodNode);
             edges.putAll(cfgEdgeAnalyzer.getEdges());
         } catch (AnalyzerException e) {
             e.printStackTrace();

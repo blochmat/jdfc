@@ -5,7 +5,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
 
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM8;
 
 class LocalVariableMethodVisitor extends JDFCMethodVisitor {
 
@@ -14,7 +14,7 @@ class LocalVariableMethodVisitor extends JDFCMethodVisitor {
             final MethodVisitor pMethodVisitor,
             final MethodNode pMethodNode,
             final String pInternalMethodName) {
-        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
+        super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
     }
 
     /**

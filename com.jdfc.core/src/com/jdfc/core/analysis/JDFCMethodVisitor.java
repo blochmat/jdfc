@@ -5,10 +5,7 @@ import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import org.objectweb.asm.*;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.tree.*;
 
 
 import java.util.NavigableMap;
@@ -199,7 +196,8 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
                 currentNode = currentNode.getNext();
             }
         }
-        currentInstructionIndex = methodNode.instructions.indexOf(currentNode); }
+        currentInstructionIndex = methodNode.instructions.indexOf(currentNode);
+    }
 
     protected VarInsnNode getOwnerNode(int pStartCounter) {
         int counter = pStartCounter;
@@ -233,6 +231,7 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     }
 
     private int recalculateCounter(AbstractInsnNode abstractInsnNode) {
+        System.out.println(abstractInsnNode.getOpcode());
         MethodInsnNode methodInsnNode;
         int paramsCount;
         switch (abstractInsnNode.getOpcode()) {
@@ -245,13 +244,18 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
             case IALOAD:
             case FALOAD:
             case BALOAD:
+                System.out.println("DE 1");
                 return 2;
             case GETFIELD:
             case NEWARRAY:
+            case ANEWARRAY:
+            case CHECKCAST:
+                System.out.println("DE 2");
                 return 1;
             case INVOKESTATIC:
                 methodInsnNode = (MethodInsnNode) abstractInsnNode;
                 paramsCount = Type.getArgumentTypes(methodInsnNode.desc).length;
+                System.out.println("DE 3");
                 return paramsCount;
             case INVOKEDYNAMIC:
             case INVOKEINTERFACE:
@@ -260,11 +264,14 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
                 methodInsnNode = (MethodInsnNode) abstractInsnNode;
                 paramsCount = Type.getArgumentTypes(methodInsnNode.desc).length;
                 if(methodInsnNode.name.contains("<init>")) {
+                    System.out.println("DE 4");
                     return 2 + paramsCount;
                 } else {
+                    System.out.println("DE 5");
                     return 1 + paramsCount;
                 }
             default:
+                System.out.println("DE 6");
                 return 0;
         }
     }

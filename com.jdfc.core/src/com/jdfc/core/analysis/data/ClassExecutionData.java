@@ -285,9 +285,15 @@ public class ClassExecutionData extends ExecutionData {
             if (entry.getValue().size() == 0) {
                 continue;
             }
+            System.out.println(relativePath);
+            System.out.println(methodName);
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
+
+                if(methodName.equals("add: (I)I")) {
+                    System.out.println(variablesCovered.get(methodName));
+                }
                 boolean isDefCovered = variablesCovered.get(methodName).contains(def);
                 boolean isUseCovered = variablesCovered.get(methodName).contains(use);
 

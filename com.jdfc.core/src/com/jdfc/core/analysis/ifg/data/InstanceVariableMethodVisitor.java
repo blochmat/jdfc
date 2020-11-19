@@ -17,7 +17,7 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
                                          final MethodNode pMethodNode,
                                          final String pInternalMethodName,
                                          LocalVariableTable pLocalVariableTable) {
-        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
+        super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
     }
 
     /**
@@ -35,11 +35,12 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
         if (mv != null) {
             mv.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         } else {
+            System.out.println("Called");
             super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         }
 
         Set<Field> fields = classVisitor.classExecutionData.getFields();
-        System.out.println("DEBUG visitFieldInsn " + pOwner + " " + methodNode.name + " " + pName + " " + currentInstructionIndex);
+        System.out.println("DEBUG visitFieldInsn " + pOwner + " " + methodNode.name + " " + pName + " " + currentInstructionIndex + " " + currentLineNumber);
         for (Field field : fields) {
             if (field.getOwner().equals(pOwner)
                     && field.getName().equals(pName)

@@ -33,7 +33,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
                                    final Map<String, CFG> pMethodCFGs,
                                    final LocalVariableTable pLocalVariableTable,
                                    final Type[] pParameterTypes) {
-        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
+        super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
         methodCFGs = pMethodCFGs;
         parameterTypes = pParameterTypes;
         edges = ArrayListMultimap.create();
@@ -44,6 +44,13 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         super.visitFrame(type, numLocal, local, numStack, stack);
         final CFGNode node = new CFGNode(currentInstructionIndex, getFrameOpcode(type));
+        if ((classVisitor.classNode.name.equals("org/apache/commons/math3/fitting/GaussianFitter$ParameterGuesser")
+                && methodNode.name.equals("basicGuess"))
+                || (classVisitor.classNode.name.equals("asd/f/GCD")
+                && methodNode.name.equals("calculateGCD"))) {
+            System.out.println(node);
+        }
+
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -69,13 +76,23 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitInsn(int opcode) {
         super.visitInsn(opcode);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
+    }
+
+    private void insertNewFrameInsn() {
+        if(currentNode.getOpcode() == F_NEW) {
+            final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
+            nodes.put(currentInstructionIndex, node);
+            updateCurrentNode();
+        }
     }
 
     @Override
     public void visitIntInsn(int opcode, int operand) {
         super.visitIntInsn(opcode, operand);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
@@ -83,12 +100,14 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
+        insertNewFrameInsn();
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
     }
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
         super.visitTypeInsn(opcode, type);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
@@ -96,12 +115,15 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         super.visitFieldInsn(opcode, owner, name, descriptor);
+        insertNewFrameInsn();
         createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+        System.out.printf("%s %s %s %s\n", classVisitor.classNode.name, methodNode.name, name, currentInstructionIndex);
+        insertNewFrameInsn();
         if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
             String callSiteMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
@@ -135,6 +157,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, INVOKEDYNAMIC);
         nodes.put(currentInstructionIndex, node);
     }
@@ -142,6 +165,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitJumpInsn(int opcode, Label label) {
         super.visitJumpInsn(opcode, label);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
@@ -149,6 +173,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitLdcInsn(Object value) {
         super.visitLdcInsn(value);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, LDC);
         nodes.put(currentInstructionIndex, node);
     }
@@ -156,12 +181,14 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitIincInsn(int var, int increment) {
         super.visitIincInsn(var, increment);
+        insertNewFrameInsn();
         createCFGNodeForIincInsnNode(var, currentInstructionIndex, currentLineNumber);
     }
 
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         super.visitTableSwitchInsn(min, max, dflt, labels);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, TABLESWITCH);
         nodes.put(currentInstructionIndex, node);
     }
@@ -169,6 +196,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         super.visitLookupSwitchInsn(dflt, keys, labels);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, LOOKUPSWITCH);
         nodes.put(currentInstructionIndex, node);
     }
@@ -176,6 +204,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
+        insertNewFrameInsn();
         final CFGNode node = new CFGNode(currentInstructionIndex, MULTIANEWARRAY);
         nodes.put(currentInstructionIndex, node);
     }
@@ -279,8 +308,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     private void setPredecessorSuccessorRelation() {
         if ((classVisitor.classNode.name.equals("org/apache/commons/math3/fitting/GaussianFitter$ParameterGuesser")
                 && methodNode.name.equals("basicGuess"))
-                || (classVisitor.classNode.name.equals("asd/f/GCD")
-                && methodNode.name.equals("calculateGCD"))) {
+                || (classVisitor.classNode.name.equals("asd/f/GCD"))) {
             int counter = 0;
             for(AbstractInsnNode node : methodNode.instructions) {
                 System.out.printf("%s %s %s\n", counter, node.getOpcode(), node.getType());
@@ -291,7 +319,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             final CFGNode first = nodes.get(edge.getKey());
             final CFGNode second = nodes.get(edge.getValue());
             if ((classVisitor.classNode.name.equals("org/apache/commons/math3/fitting/GaussianFitter$ParameterGuesser") && methodNode.name.equals("basicGuess"))
-                    || (classVisitor.classNode.name.equals("asd/f/GCD") && methodNode.name.equals("calculateGCD"))) {
+                    || (classVisitor.classNode.name.equals("asd/f/GCD"))) {
                 System.out.println(first);
             }
             first.addSuccessor(second);

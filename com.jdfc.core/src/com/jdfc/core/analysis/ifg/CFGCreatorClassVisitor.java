@@ -19,7 +19,7 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
                                   final ClassExecutionData pClassExecutionData,
                                   final Map<String, CFG> pMethodCFGs,
                                   final Map<String, LocalVariableTable> pLocalVariableTables) {
-        super(Opcodes.ASM5, pClassNode, pClassExecutionData, pLocalVariableTables);
+        super(Opcodes.ASM8, pClassNode, pClassExecutionData, pLocalVariableTables);
         methodCFGs = pMethodCFGs;
     }
 

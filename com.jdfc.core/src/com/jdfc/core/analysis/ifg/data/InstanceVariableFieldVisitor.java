@@ -2,7 +2,7 @@ package com.jdfc.core.analysis.ifg.data;
 
 import org.objectweb.asm.FieldVisitor;
 
-import static org.objectweb.asm.Opcodes.ASM5;
+import static org.objectweb.asm.Opcodes.ASM8;
 
 class InstanceVariableFieldVisitor extends FieldVisitor {
 
@@ -20,7 +20,7 @@ class InstanceVariableFieldVisitor extends FieldVisitor {
                                         final String pDescriptor,
                                         final String pSignature,
                                         final Object pValue) {
-        super(ASM5, pFieldVisitor);
+        super(ASM8, pFieldVisitor);
         classVisitor = pClassVisitor;
         access = pAccess;
         name = pName;

@@ -16,7 +16,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                                         MethodVisitor pMethodVisitor,
                                         MethodNode pMethodNode,
                                         String internalMethodName) {
-        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
+        super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
     }
 
     @Override
