@@ -70,13 +70,16 @@ public class CoverageTracker {
                             final ProgramVariable pVariable) {
         for (InstanceVariable element : pData.getInstanceVariables()) {
             ProgramVariable holder = element.getHolder();
-            if (holder.getOwner() == null && pVariable.getOwner() == null
-                    && holder.getName().equals(pVariable.getName())
-                    && holder.getDescriptor().equals(pVariable.getDescriptor())
-                    && holder.getLineNumber() == pVariable.getLineNumber()
-                    && holder.getInstructionIndex() == pVariable.getInstructionIndex()) {
-                return true;
+            if(holder != null) {
+                if (holder.getOwner() == null && pVariable.getOwner() == null
+                        && holder.getName().equals(pVariable.getName())
+                        && holder.getDescriptor().equals(pVariable.getDescriptor())
+                        && holder.getLineNumber() == pVariable.getLineNumber()
+                        && holder.getInstructionIndex() == pVariable.getInstructionIndex()) {
+                    return true;
+                }
             }
+
         }
         return false;
     }

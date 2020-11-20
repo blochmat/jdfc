@@ -9,7 +9,7 @@ public class IFGNode extends CFGNode{
     private final ProgramVariable methodCaller;
     private final String methodNameDesc;
     private final int parameterCount;
-    private CFGNode callNode;
+    private CFGNode relatedCallSiteNode;
     private CFG relatedCFG;
 
     public int getOpcode() {
@@ -39,8 +39,8 @@ public class IFGNode extends CFGNode{
         return methodNameDesc;
     }
 
-    public CFGNode getCallNode() {
-        return callNode;
+    public CFGNode getRelatedCallSiteNode() {
+        return relatedCallSiteNode;
     }
 
     public CFG getRelatedCFG() {
@@ -61,7 +61,7 @@ public class IFGNode extends CFGNode{
 
     public void setupMethodRelation(CFG pRelatedMethod) {
         this.relatedCFG = pRelatedMethod;
-        this.callNode = pRelatedMethod.getNodes().firstEntry().getValue();
+        this.relatedCallSiteNode = pRelatedMethod.getNodes().firstEntry().getValue();
     }
 
     public String toString() {
@@ -76,6 +76,6 @@ public class IFGNode extends CFGNode{
                         "   Related CFG: %s",
                 getIndex(), getOpcode(), getPredecessors().size(), getSuccessors().size(),
                 methodOwner, lineNumber, methodCaller, methodNameDesc,
-                parameterCount, callNode, relatedCFG);
+                parameterCount, relatedCallSiteNode, relatedCFG);
     }
 }

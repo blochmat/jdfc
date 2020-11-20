@@ -44,13 +44,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         super.visitFrame(type, numLocal, local, numStack, stack);
         final CFGNode node = new CFGNode(currentInstructionIndex, getFrameOpcode(type));
-        if ((classVisitor.classNode.name.equals("org/apache/commons/math3/fitting/GaussianFitter$ParameterGuesser")
-                && methodNode.name.equals("basicGuess"))
-                || (classVisitor.classNode.name.equals("asd/f/GCD")
-                && methodNode.name.equals("calculateGCD"))) {
-            System.out.println(node);
-        }
-
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -329,6 +322,15 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private void addEntryNode() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
+
+        if(classVisitor.classNode.name.equals("org/apache/commons/math3/fitting/leastsquares/LevenbergMarquardtOptimizer")) {
+            System.out.println("ERTERT");
+            System.out.println(parameterTypes.length);
+            localVariableTable.print();
+        }
+
+
+        // TODO: LocalVariableTable löschen. for each bauen
         for (int i = 0; i <= parameterTypes.length; i++) {
             final Optional<LocalVariable> parameterVariable = localVariableTable.getEntry(i);
             if (parameterVariable.isPresent()) {
@@ -345,6 +347,9 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
                 parameters.add(variable);
             }
         }
+
+        System.out.println("AAAAAAAAA");
+        System.out.println(Arrays.toString(parameters.toArray()));
 
         final CFGNode firstNode = nodes.get(0);
         if (firstNode != null) {

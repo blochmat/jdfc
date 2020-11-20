@@ -32,6 +32,12 @@ class LocalVariableMethodVisitor extends JDFCMethodVisitor {
         boolean isReferenceToField = isLocalVariableReferenceToField(pIndex, pDescriptor);
         final LocalVariable variable = new LocalVariable(pName, pDescriptor, pSignature, pIndex, isReferenceToField);
         localVariableTable.addEntry(pIndex, variable);
+
+        if(classVisitor.classNode.name.equals("org/apache/commons/math3/fitting/leastsquares/LevenbergMarquardtOptimizer")) {
+            System.out.println("ASDFASDF");
+            System.out.println(internalMethodName);
+            System.out.println(variable);
+        }
     }
 
     /**

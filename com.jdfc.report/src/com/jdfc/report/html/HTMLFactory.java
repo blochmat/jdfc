@@ -458,7 +458,7 @@ public class HTMLFactory {
     private InstanceVariable getInstanceVariableByHolder(final ClassExecutionData pData,
                                                          final ProgramVariable pVariable) {
         for (InstanceVariable instanceVariable : pData.getInstanceVariables()) {
-            if (instanceVariable.getHolder().equals(pVariable)) {
+            if (instanceVariable.getHolder() != null && instanceVariable.getHolder().equals(pVariable)) {
                 return instanceVariable;
             }
         }

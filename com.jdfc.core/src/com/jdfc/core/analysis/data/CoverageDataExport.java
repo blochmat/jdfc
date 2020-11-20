@@ -34,8 +34,8 @@ public class CoverageDataExport {
         Element classTag = doc.createElement("class");
         doc.appendChild(classTag);
 
-        Set<Field> fields = pClassExecutionData.getFields();
-        classTag.appendChild(createFields(doc, fields));
+//        Set<Field> fields = pClassExecutionData.getFields();
+//        classTag.appendChild(createFields(doc, fields));
 
         Set<InstanceVariable> instanceVariables = pClassExecutionData.getInstanceVariables();
         classTag.appendChild(createInstanceVariables(doc, instanceVariables));
@@ -71,19 +71,19 @@ public class CoverageDataExport {
 
     }
 
-    private static Element createFields(Document pDoc, Set<Field> pFields) {
-        Element fieldList = pDoc.createElement("fieldList");
-        for (Field element : pFields) {
-            Element field = pDoc.createElement("field");
-            fieldList.appendChild(field);
-            field.setAttribute("owner", element.getOwner());
-            field.setAttribute("access", String.valueOf(element.getAccess()));
-            field.setAttribute("name", element.getName());
-            field.setAttribute("descriptor", element.getDescriptor());
-            field.setAttribute("signature", element.getSignature());
-        }
-        return fieldList;
-    }
+//    private static Element createFields(Document pDoc, Set<Field> pFields) {
+//        Element fieldList = pDoc.createElement("fieldList");
+//        for (Field element : pFields) {
+//            Element field = pDoc.createElement("field");
+//            fieldList.appendChild(field);
+//            field.setAttribute("owner", element.getOwner());
+//            field.setAttribute("access", String.valueOf(element.getAccess()));
+//            field.setAttribute("name", element.getName());
+//            field.setAttribute("descriptor", element.getDescriptor());
+//            field.setAttribute("signature", element.getSignature());
+//        }
+//        return fieldList;
+//    }
 
     private static Element createInstanceVariables(Document pDoc, Set<InstanceVariable> pInstanceVariables) {
         Element instanceVarList = pDoc.createElement("instanceVariableList");
@@ -93,10 +93,8 @@ public class CoverageDataExport {
             instanceVar.setAttribute("owner", element.getOwner());
             instanceVar.setAttribute("holder", ProgramVariable.encode(element.getHolder()));
             instanceVar.setAttribute("method", element.getMethod());
-            instanceVar.setAttribute("access", String.valueOf(element.getAccess()));
             instanceVar.setAttribute("name", element.getName());
             instanceVar.setAttribute("descriptor", element.getDescriptor());
-            instanceVar.setAttribute("signature", element.getSignature());
             instanceVar.setAttribute("instructionIndex", String.valueOf(element.getInstructionIndex()));
             instanceVar.setAttribute("lineNumber", String.valueOf(element.getLineNumber()));
             instanceVar.setAttribute("isDefinition", Boolean.toString(element.isDefinition()));

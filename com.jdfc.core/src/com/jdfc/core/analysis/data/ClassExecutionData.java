@@ -1,10 +1,8 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.ifg.*;
 import com.jdfc.core.analysis.ifg.data.*;
-import com.sun.org.apache.bcel.internal.generic.INVOKESTATIC;
 import org.objectweb.asm.Opcodes;
 
 import java.util.*;
@@ -110,13 +108,14 @@ public class ClassExecutionData extends ExecutionData {
             for (Map.Entry<Integer, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
                 CFGNode node = entry.getValue();
                 if (node instanceof IFGNode) {
-                    IFGNode ifgNode = (IFGNode) node;
-                    if (ifgNode.getRelatedCFG() != null && ifgNode.getRelatedCFG().isImpure()) {
+                    IFGNode callingNode = (IFGNode) node;
+                    if (callingNode.getRelatedCFG() != null && callingNode.getRelatedCFG().isImpure()) {
+                        System.out.println(callingNode);
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
-                                        ifgNode.getParameterCount(), null, ifgNode, ifgNode.getCallNode());
+                                        callingNode.getParameterCount(), null, callingNode, callingNode.getRelatedCallSiteNode());
                         if (usageDefinitionMatch != null && !usageDefinitionMatch.isEmpty()) {
-                            insertNewDefinitions(ifgNode, usageDefinitionMatch.keySet());
+                            insertNewDefinitions(callingNode, usageDefinitionMatch.keySet());
                         }
                     }
                 }
@@ -159,8 +158,9 @@ public class ClassExecutionData extends ExecutionData {
                 if (node.getValue() instanceof IFGNode) {
                     IFGNode ifgNode = (IFGNode) node.getValue();
                     if (ifgNode.getRelatedCFG() != null) {
-                        CFGNode entryNode = ifgNode.getCallNode();
+                        CFGNode entryNode = ifgNode.getRelatedCallSiteNode();
                         String entryMethodName = ifgNode.getMethodNameDesc();
+                        System.out.println("[DEBUG] setupInterProceduralMatches");
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
                                         ifgNode.getParameterCount(), null, ifgNode, entryNode);
@@ -202,36 +202,46 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
-    private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pLoopsLeft,
+    private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pParameterCount,
                                                                                    final CFGNode pNode,
-                                                                                   final IFGNode pIFGNode,
-                                                                                   final CFGNode pEntryNode) {
+                                                                                   final IFGNode pCallingNode,
+                                                                                   final CFGNode pRelatedCallSiteNode) {
         Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
         // for each parameter: process one node (predecessor of pNode)
-        if (pLoopsLeft > 0) {
+        if (pParameterCount > 0) {
             CFGNode predecessor;
-            if (pNode != null) {
-                predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
+
+            // Example: 2 parameters
+            // LOAD x
+            // LOAD y
+            // INVOKE  x y
+            if (pNode == null) {
+                predecessor = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
             } else {
-                predecessor = (CFGNode) pIFGNode.getPredecessors().toArray()[0];
+                predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
+            }
+
+            // If a constructor is called with constant values
+            if(pCallingNode.getMethodNameDesc().contains("<init>")) {
+                System.out.println(pRelatedCallSiteNode.getDefinitions());
             }
 
             Set<ProgramVariable> usages = predecessor.getUses();
-
             for (ProgramVariable var : usages) {
                 // find correlated definition in procedure B
                 ProgramVariable definitionB;
-                if (pIFGNode.getOpcode() == Opcodes.INVOKESTATIC) {
-                    definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft - 1];
+                if (pCallingNode.getOpcode() == Opcodes.INVOKESTATIC) {
+                    // Special Case: If static method or constructor is called "this" is not defined
+                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount - 1];
                 } else {
-                    definitionB = (ProgramVariable) pEntryNode.getDefinitions().toArray()[pLoopsLeft];
+                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount];
                 }
                 matchMap.put(var, definitionB);
             }
 
             matchMap = mergeMaps(matchMap,
                     getUsageDefinitionMatchRecursive(
-                            pLoopsLeft - 1, predecessor, pIFGNode, pEntryNode));
+                            pParameterCount - 1, predecessor, pCallingNode, pRelatedCallSiteNode));
         }
         return matchMap;
     }
@@ -285,15 +295,10 @@ public class ClassExecutionData extends ExecutionData {
             if (entry.getValue().size() == 0) {
                 continue;
             }
-            System.out.println(relativePath);
-            System.out.println(methodName);
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
 
-                if(methodName.equals("add: (I)I")) {
-                    System.out.println(variablesCovered.get(methodName));
-                }
                 boolean isDefCovered = variablesCovered.get(methodName).contains(def);
                 boolean isUseCovered = variablesCovered.get(methodName).contains(use);
 

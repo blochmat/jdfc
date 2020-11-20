@@ -63,9 +63,10 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         return mv;
     }
 
-    public MethodNode getMethodNode(String pName) {
+    public MethodNode getMethodNode(final String pName,
+                                    final String pDescriptor) {
         for (MethodNode node : classNode.methods) {
-            if (node.name.equals(pName)) {
+            if (node.name.equals(pName) && node.desc.equals(pDescriptor)) {
                 return node;
             }
         }

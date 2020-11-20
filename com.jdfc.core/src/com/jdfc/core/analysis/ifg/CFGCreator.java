@@ -2,6 +2,7 @@ package com.jdfc.core.analysis.ifg;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.core.analysis.ifg.data.InstanceVariableClassVisitor;
 import com.jdfc.core.analysis.ifg.data.LocalVariableClassVisitor;
@@ -58,6 +59,15 @@ public class CFGCreator {
 
         final Map<String, LocalVariableTable> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
+
+        if(pClassNode.name.equals("org/apache/commons/math3/fitting/leastsquares/LevenbergMarquardtOptimizer")) {
+            System.out.println("EKDEKD");
+            for(Map.Entry<String, LocalVariableTable> entry : localVariableTables.entrySet()) {
+                System.out.println(entry.getKey());
+                entry.getValue().print();
+                System.out.println(" ");
+            }
+        }
 
         // Get instance variable information
         final InstanceVariableClassVisitor instanceVariableVisitor =

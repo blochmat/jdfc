@@ -32,7 +32,7 @@ public class LocalVariableClassVisitor extends JDFCClassVisitor {
                                      final String pSignature,
                                      final String[] pExceptions) {
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
-        final MethodNode methodNode = getMethodNode(pName);
+        final MethodNode methodNode = getMethodNode(pName, pDescriptor);
         final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (methodNode != null && isInstrumentationRequired(pName)) {
             return new LocalVariableMethodVisitor(

@@ -142,12 +142,12 @@ public class CoverageDataImport {
                             collectInstanceVariableData(instanceVarAttr, classExecutionData);
                             break;
                         }
-                    case "field":
-                        NamedNodeMap fieldAttr = node.getAttributes();
-                        if (fieldAttr != null) {
-                            collectFieldData(fieldAttr, classExecutionData);
-                            break;
-                        }
+//                    case "field":
+//                        NamedNodeMap fieldAttr = node.getAttributes();
+//                        if (fieldAttr != null) {
+//                            collectFieldData(fieldAttr, classExecutionData);
+//                            break;
+//                        }
                     case "programVariable":
                         NamedNodeMap programVarAttr = node.getAttributes();
                         if (programVarAttr != null) {
@@ -167,14 +167,12 @@ public class CoverageDataImport {
         String owner = getValueOrNull(pAttr.getNamedItem("owner").getNodeValue());
         ProgramVariable holder = ProgramVariable.decode(pAttr.getNamedItem("holder").getNodeValue());
         String method = getValueOrNull(pAttr.getNamedItem("method").getNodeValue());
-        int access = Integer.parseInt(pAttr.getNamedItem("access").getNodeValue());
         String name = getValueOrNull(pAttr.getNamedItem("name").getNodeValue());
         String descriptor = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
-        String signature = getValueOrNull(pAttr.getNamedItem("signature").getNodeValue());
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
         boolean isDefinition = Boolean.parseBoolean(pAttr.getNamedItem("isDefinition").getNodeValue());
-        InstanceVariable newVar = InstanceVariable.create(owner, holder, method, access, name, descriptor, signature, instructionIndex, lineNumber, isDefinition);
+        InstanceVariable newVar = InstanceVariable.create(owner, holder, method, name, descriptor, instructionIndex, lineNumber, isDefinition);
         pClassExecutionData.getInstanceVariables().add(newVar);
     }
 
@@ -198,15 +196,15 @@ public class CoverageDataImport {
         }
     }
 
-    private static void collectFieldData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
-        String owner = getValueOrNull(pAttr.getNamedItem("owner").getNodeValue());
-        int access = Integer.parseInt(pAttr.getNamedItem("access").getNodeValue());
-        String name = getValueOrNull(pAttr.getNamedItem("name").getNodeValue());
-        String descriptor = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
-        String signature = getValueOrNull(pAttr.getNamedItem("signature").getNodeValue());
-        Field newField = Field.create(owner, access, name, descriptor, signature);
-        pClassExecutionData.getFields().add(newField);
-    }
+//    private static void collectFieldData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
+//        String owner = getValueOrNull(pAttr.getNamedItem("owner").getNodeValue());
+//        int access = Integer.parseInt(pAttr.getNamedItem("access").getNodeValue());
+//        String name = getValueOrNull(pAttr.getNamedItem("name").getNodeValue());
+//        String descriptor = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
+//        String signature = getValueOrNull(pAttr.getNamedItem("signature").getNodeValue());
+//        Field newField = Field.create(owner, access, name, descriptor, signature);
+//        pClassExecutionData.getFields().add(newField);
+//    }
 
     private static void collectProgramVariableData(String pMethodName, NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
         ProgramVariable programVariable = createProgramVariable(pAttr);

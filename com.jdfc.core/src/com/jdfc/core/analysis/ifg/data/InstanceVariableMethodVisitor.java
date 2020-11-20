@@ -35,42 +35,33 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
         if (mv != null) {
             mv.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         } else {
-            System.out.println("Called");
             super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         }
 
-        Set<Field> fields = classVisitor.classExecutionData.getFields();
         System.out.println("DEBUG visitFieldInsn " + pOwner + " " + methodNode.name + " " + pName + " " + currentInstructionIndex + " " + currentLineNumber);
-        for (Field field : fields) {
-            if (field.getOwner().equals(pOwner)
-                    && field.getName().equals(pName)
-                    && field.getDescriptor().equals(pDescription)) {
-                InstanceVariable instanceVariable;
-                VarInsnNode ownerNode = null;
-                int ownerInstructionIndex;
-                ProgramVariable holder = null;
-                if (pOpcode == PUTFIELD) {
-                    ownerNode = getOwnerNode(PUTFIELD_STANDARD);
-                    ownerInstructionIndex = getInstructionIndex(PUTFIELD_STANDARD);
-                    holder = getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), internalMethodName,
-                            ownerInstructionIndex, currentLineNumber);
-                    holder.setReference(true);
-                } else if (pOpcode == GETFIELD) {
-                    ownerNode = getOwnerNode(GETFIELD_STANDARD);
-                    ownerInstructionIndex = getInstructionIndex(GETFIELD_STANDARD);
-                    holder = getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), internalMethodName,
-                            ownerInstructionIndex, currentLineNumber);
-                    holder.setReference(true);
-                }
-                boolean isDefinition = isDefinition(pOpcode);
-                instanceVariable = InstanceVariable.create(pOwner, holder, internalMethodName, field.getAccess(),
-                        pName, pDescription, field.getSignature(), currentInstructionIndex, currentLineNumber,
-                        isDefinition);
-
-                classVisitor.classExecutionData.getInstanceVariables().add(instanceVariable);
-                break;
-            }
+        InstanceVariable instanceVariable;
+        VarInsnNode ownerNode = null;
+        int ownerInstructionIndex;
+        ProgramVariable holder = null;
+        if (pOpcode == PUTFIELD) {
+            ownerNode = getOwnerNode(PUTFIELD_STANDARD);
+            ownerInstructionIndex = getInstructionIndex(PUTFIELD_STANDARD);
+            holder = getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), internalMethodName,
+                    ownerInstructionIndex, currentLineNumber);
+            holder.setReference(true);
+        } else if (pOpcode == GETFIELD) {
+            ownerNode = getOwnerNode(GETFIELD_STANDARD);
+            ownerInstructionIndex = getInstructionIndex(GETFIELD_STANDARD);
+            holder = getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), internalMethodName,
+                    ownerInstructionIndex, currentLineNumber);
+            holder.setReference(true);
         }
+        boolean isDefinition = isDefinition(pOpcode);
+        instanceVariable = InstanceVariable.create(pOwner, holder, internalMethodName,
+                pName, pDescription, currentInstructionIndex, currentLineNumber,
+                isDefinition);
 
+        classVisitor.classExecutionData.getInstanceVariables().add(instanceVariable);
     }
 }
+

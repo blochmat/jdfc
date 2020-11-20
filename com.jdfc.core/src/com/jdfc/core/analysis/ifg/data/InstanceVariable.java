@@ -2,25 +2,28 @@ package com.jdfc.core.analysis.ifg.data;
 
 import java.util.Objects;
 
-public class InstanceVariable extends Field implements Comparable<Object> {
+public class InstanceVariable implements Comparable<Object> {
 
     private final ProgramVariable holder;
     private final String method;
     private final int instructionIndex;
     private final int lineNumber;
     private final boolean isDefinition;
+    private final String owner;
+    private final String name;
+    private final String descriptor;
 
     private InstanceVariable(final String pOwner,
                              final ProgramVariable pHolder,
                              final String pMethod,
-                             final int pAccess,
                              final String pName,
                              final String pDescriptor,
-                             final String pSignature,
                              final int pInstructionIndex,
                              final int pLineNumber,
                              final boolean pIsDefinition) {
-        super(pOwner, pAccess, pName, pDescriptor, pSignature);
+        owner = pOwner;
+        name = pName;
+        descriptor = pDescriptor;
         method = pMethod;
         holder = pHolder;
         instructionIndex = pInstructionIndex;
@@ -31,14 +34,12 @@ public class InstanceVariable extends Field implements Comparable<Object> {
     public static InstanceVariable create(final String pOwner,
                                           final ProgramVariable pHolder,
                                           final String pMethod,
-                                          final int pAccess,
                                           final String pName,
                                           final String pDescriptor,
-                                          final String pSignature,
                                           final int pInstructionIndex,
                                           final int pLineNumber,
                                           final boolean pIsDefinition) {
-        return new InstanceVariable(pOwner, pHolder, pMethod, pAccess, pName, pDescriptor, pSignature, pInstructionIndex, pLineNumber, pIsDefinition);
+        return new InstanceVariable(pOwner, pHolder, pMethod, pName, pDescriptor, pInstructionIndex, pLineNumber, pIsDefinition);
     }
 
     public ProgramVariable getHolder() {
@@ -61,12 +62,29 @@ public class InstanceVariable extends Field implements Comparable<Object> {
         return isDefinition;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDescriptor() {
+        return descriptor;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+
     public ProgramVariable convertToProgramVariable() {
+        String method = null;
+        if(holder != null) {
+            method = holder.getMethod();
+        }
         return ProgramVariable.create(
                 this.owner,
                 this.name,
                 this.descriptor,
-                this.holder.getMethod(),
+                method,
                 this.instructionIndex,
                 this.lineNumber,
                 false,
@@ -75,7 +93,7 @@ public class InstanceVariable extends Field implements Comparable<Object> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(owner, method, access, name, descriptor, signature, lineNumber, isDefinition);
+        return Objects.hash(owner, method, name, descriptor, lineNumber, isDefinition);
     }
 
     @Override
@@ -89,10 +107,8 @@ public class InstanceVariable extends Field implements Comparable<Object> {
         final InstanceVariable that = (InstanceVariable) pOther;
         return Objects.equals(owner, that.owner)
                 && method.equals(that.method)
-                && access == that.access
                 && Objects.equals(name, that.name)
                 && Objects.equals(descriptor, that.descriptor)
-                && Objects.equals(signature, that.signature)
                 && Objects.equals(holder, that.holder)
                 && instructionIndex == that.instructionIndex
                 && lineNumber == that.lineNumber
@@ -108,17 +124,11 @@ public class InstanceVariable extends Field implements Comparable<Object> {
                 + ", method='"
                 + method
                 + '\''
-                + ", access='"
-                + access
-                + '\''
                 + ", name='"
                 + name
                 + '\''
                 + ", descriptor='"
                 + descriptor
-                + '\''
-                + ", signature='"
-                + signature
                 + '\''
                 + ", instructionIndex= "
                 + instructionIndex
