@@ -61,7 +61,12 @@ public class IFGNode extends CFGNode{
 
     public void setupMethodRelation(CFG pRelatedMethod) {
         this.relatedCFG = pRelatedMethod;
-        this.relatedCallSiteNode = pRelatedMethod.getNodes().firstEntry().getValue();
+        if(pRelatedMethod.getNodes().isEmpty()) {
+            this.relatedCallSiteNode = null;
+        } else {
+            this.relatedCallSiteNode = pRelatedMethod.getNodes().firstEntry().getValue();
+        }
+
     }
 
     public String toString() {

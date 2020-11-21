@@ -21,10 +21,10 @@ public class JDFCInstrument {
         final ClassWriter cw = new ClassWriter(classReader, 0);
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
-//        if(classNode.name.contains("Real")) {
-//        final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
-//        classReader.accept(tcv, 0);
-//        return cw.toByteArray();
+//        if (classNode.name.equals("org/apache/commons/math3/analysis/differentiation/SparseGradient")) {
+//            final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
+//            classReader.accept(tcv, 0);
+//            return cw.toByteArray();
 //        }
 
         ClassExecutionData classExecutionData =

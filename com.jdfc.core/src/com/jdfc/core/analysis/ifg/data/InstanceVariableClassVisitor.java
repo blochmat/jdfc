@@ -14,7 +14,7 @@ import static org.objectweb.asm.Opcodes.ASM8;
 
 public class InstanceVariableClassVisitor extends JDFCClassVisitor {
 
-    public InstanceVariableClassVisitor(ClassNode pClassNode, ClassExecutionData pClassExecutionData, Map<String, LocalVariableTable> pLocalVariableTables) {
+    public InstanceVariableClassVisitor(ClassNode pClassNode, ClassExecutionData pClassExecutionData, Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(ASM8, pClassNode, pClassExecutionData, pLocalVariableTables);
     }
 
@@ -49,7 +49,7 @@ public class InstanceVariableClassVisitor extends JDFCClassVisitor {
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         final MethodNode methodNode = getMethodNode(pName, pDescriptor);
         final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-        final LocalVariableTable localVariableTable = localVariableTables.get(internalMethodName);
+        final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
         if (methodNode != null && isInstrumentationRequired(pName)) {
             return new InstanceVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName, localVariableTable);

@@ -1,7 +1,8 @@
 package com.jdfc.core.analysis.ifg;
 
-import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
+import com.jdfc.core.analysis.ifg.data.LocalVariable;
 
+import java.util.Map;
 import java.util.NavigableMap;
 
 /**
@@ -34,7 +35,7 @@ public interface CFG {
      *
      * @return The {@link LocalVariableTable}
      */
-    LocalVariableTable getLocalVariableTable();
+    Map<Integer, LocalVariable> getLocalVariableTable();
 
     /**
      * Returns if a method is impure.

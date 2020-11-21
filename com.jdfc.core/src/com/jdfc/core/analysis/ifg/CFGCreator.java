@@ -2,11 +2,10 @@ package com.jdfc.core.analysis.ifg;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.core.analysis.ifg.data.InstanceVariableClassVisitor;
+import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariableClassVisitor;
-import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -57,16 +56,15 @@ public class CFGCreator {
                 new LocalVariableClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(localVariableVisitor, 0);
 
-        final Map<String, LocalVariableTable> localVariableTables =
+        final Map<String, Map<Integer, LocalVariable>> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
 
         if(pClassNode.name.equals("org/apache/commons/math3/fitting/leastsquares/LevenbergMarquardtOptimizer")) {
-            System.out.println("EKDEKD");
-            for(Map.Entry<String, LocalVariableTable> entry : localVariableTables.entrySet()) {
-                System.out.println(entry.getKey());
-                entry.getValue().print();
-                System.out.println(" ");
-            }
+//            System.out.println("EKDEKD");
+//            for(Map.Entry<String, Map<Integer, LocalVariable>> entry : localVariableTables.entrySet()) {
+//                System.out.println(entry.getKey());
+//                System.out.println(" ");
+//            }
         }
 
         // Get instance variable information

@@ -2,8 +2,7 @@ package com.jdfc.core.analysis;
 
 import com.google.common.collect.Maps;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.ifg.CFGCreator;
-import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
+import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
@@ -15,7 +14,7 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
 
     public final ClassNode classNode;
     public final ClassExecutionData classExecutionData;
-    public final Map<String, LocalVariableTable> localVariableTables;
+    public final Map<String, Map<Integer, LocalVariable>> localVariableTables;
     public final String jacocoMethodName = "$jacoco";
 
     public JDFCClassVisitor(final int pApi,
@@ -40,7 +39,7 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
     public JDFCClassVisitor(final int pApi,
                             final ClassNode pClassNode,
                             final ClassExecutionData pClassExecutionData,
-                            final Map<String, LocalVariableTable> pLocalVariableTables) {
+                            final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(pApi);
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
@@ -83,7 +82,7 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
      *
      * @return A map of method name to {@link LocalVariableTable}
      */
-    public Map<String, LocalVariableTable> getLocalVariableTables() {
+    public Map<String, Map<Integer, LocalVariable>> getLocalVariableTables() {
         return localVariableTables;
     }
 }

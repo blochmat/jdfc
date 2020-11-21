@@ -6,6 +6,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+import java.util.Map;
 import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -16,7 +17,7 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
                                          final MethodVisitor pMethodVisitor,
                                          final MethodNode pMethodNode,
                                          final String pInternalMethodName,
-                                         LocalVariableTable pLocalVariableTable) {
+                                         Map<Integer, LocalVariable> pLocalVariableTable) {
         super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
     }
 
@@ -45,13 +46,13 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
         ProgramVariable holder = null;
         if (pOpcode == PUTFIELD) {
             ownerNode = getOwnerNode(PUTFIELD_STANDARD);
-            ownerInstructionIndex = getInstructionIndex(PUTFIELD_STANDARD);
+            ownerInstructionIndex = methodNode.instructions.indexOf(ownerNode);
             holder = getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), internalMethodName,
                     ownerInstructionIndex, currentLineNumber);
             holder.setReference(true);
         } else if (pOpcode == GETFIELD) {
             ownerNode = getOwnerNode(GETFIELD_STANDARD);
-            ownerInstructionIndex = getInstructionIndex(GETFIELD_STANDARD);
+            ownerInstructionIndex = methodNode.instructions.indexOf(ownerNode);
             holder = getProgramVariableFromLocalVar(ownerNode.var, ownerNode.getOpcode(), internalMethodName,
                     ownerInstructionIndex, currentLineNumber);
             holder.setReference(true);

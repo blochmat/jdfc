@@ -12,13 +12,13 @@ public class CFGImpl implements CFG {
 
     private final String methodName;
     private final NavigableMap<Integer, CFGNode> nodes;
-    private final LocalVariableTable localVariableTable;
+    private final Map<Integer, LocalVariable> localVariableTable;
     private boolean isImpure;
 
     CFGImpl(
             final String pMethodName,
             final NavigableMap<Integer, CFGNode> pNodes,
-            final LocalVariableTable pLocalVariableTable,
+            final Map<Integer, LocalVariable> pLocalVariableTable,
             final boolean pIsImpure) {
         Preconditions.checkNotNull(pMethodName);
         Preconditions.checkNotNull(pNodes);
@@ -40,7 +40,7 @@ public class CFGImpl implements CFG {
      * {@inheritDoc}
      */
     @Override
-    public LocalVariableTable getLocalVariableTable() {
+    public Map<Integer, LocalVariable> getLocalVariableTable() {
         return localVariableTable;
     }
 

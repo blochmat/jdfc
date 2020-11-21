@@ -1,10 +1,9 @@
 package com.jdfc.core.analysis.ifg;
 
-import com.jdfc.commons.utils.PrettyPrintMap;
 import com.jdfc.core.analysis.JDFCClassVisitor;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.ifg.data.LocalVariableTable;
+import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -18,7 +17,7 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
     public CFGCreatorClassVisitor(final ClassNode pClassNode,
                                   final ClassExecutionData pClassExecutionData,
                                   final Map<String, CFG> pMethodCFGs,
-                                  final Map<String, LocalVariableTable> pLocalVariableTables) {
+                                  final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(Opcodes.ASM8, pClassNode, pClassExecutionData, pLocalVariableTables);
         methodCFGs = pMethodCFGs;
     }
@@ -39,7 +38,7 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
 
         if(classNode.access != Opcodes.ACC_INTERFACE) {
             final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-            final LocalVariableTable localVariableTable = localVariableTables.get(internalMethodName);
+            final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
             final Type[] parameterTypes = Type.getArgumentTypes(pDescriptor);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
 

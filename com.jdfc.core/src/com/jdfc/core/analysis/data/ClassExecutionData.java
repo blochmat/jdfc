@@ -110,7 +110,6 @@ public class ClassExecutionData extends ExecutionData {
                 if (node instanceof IFGNode) {
                     IFGNode callingNode = (IFGNode) node;
                     if (callingNode.getRelatedCFG() != null && callingNode.getRelatedCFG().isImpure()) {
-                        System.out.println(callingNode);
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
                                         callingNode.getParameterCount(), null, callingNode, callingNode.getRelatedCallSiteNode());
@@ -160,7 +159,7 @@ public class ClassExecutionData extends ExecutionData {
                     if (ifgNode.getRelatedCFG() != null) {
                         CFGNode entryNode = ifgNode.getRelatedCallSiteNode();
                         String entryMethodName = ifgNode.getMethodNameDesc();
-                        System.out.println("[DEBUG] setupInterProceduralMatches");
+//                        System.out.println("[DEBUG] setupInterProceduralMatches");
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
                                         ifgNode.getParameterCount(), null, ifgNode, entryNode);
@@ -221,15 +220,21 @@ public class ClassExecutionData extends ExecutionData {
                 predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
             }
 
-            // If a constructor is called with constant values
-            if(pCallingNode.getMethodNameDesc().contains("<init>")) {
-                System.out.println(pRelatedCallSiteNode.getDefinitions());
+            if(pRelatedCallSiteNode == null) {
+                return matchMap;
             }
 
             Set<ProgramVariable> usages = predecessor.getUses();
             for (ProgramVariable var : usages) {
                 // find correlated definition in procedure B
                 ProgramVariable definitionB;
+                // If a constructor is called with constant values
+                if(pCallingNode.getMethodNameDesc().contains("<init>") && pRelatedCallSiteNode.getDefinitions().size() == 1) {
+                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[0];
+                    matchMap.put(var, definitionB);
+                    return matchMap;
+                }
+
                 if (pCallingNode.getOpcode() == Opcodes.INVOKESTATIC) {
                     // Special Case: If static method or constructor is called "this" is not defined
                     definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount - 1];
@@ -382,9 +387,9 @@ public class ClassExecutionData extends ExecutionData {
     public LocalVariable findLocalVariable(final String pMethodName,
                                            final int pVarIndex) {
         CFG cfg = methodCFGs.get(pMethodName);
-        LocalVariableTable localVariableTable = cfg.getLocalVariableTable();
-        Optional<LocalVariable> localVariable = localVariableTable.getEntry(pVarIndex);
-        return localVariable.orElse(null);
+        Map<Integer, LocalVariable> localVariableTable = cfg.getLocalVariableTable();
+        LocalVariable localVariable = localVariableTable.get(pVarIndex);
+        return localVariable;
     }
 
     public InstanceVariable findInstanceVariable(final ProgramVariable pProgramVariable) {
