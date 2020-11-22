@@ -18,7 +18,7 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
                                          final MethodNode pMethodNode,
                                          final String pInternalMethodName,
                                          Map<Integer, LocalVariable> pLocalVariableTable) {
-        super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
+        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
     }
 
     /**
@@ -39,7 +39,7 @@ public class InstanceVariableMethodVisitor extends JDFCMethodVisitor {
             super.visitFieldInsn(pOpcode, pOwner, pName, pDescription);
         }
 
-        System.out.println("DEBUG visitFieldInsn " + pOwner + " " + methodNode.name + " " + pName + " " + currentInstructionIndex + " " + currentLineNumber);
+//        System.out.println("DEBUG visitFieldInsn " + pOwner + " " + methodNode.name + " " + pName + " " + currentInstructionIndex + " " + currentLineNumber);
         InstanceVariable instanceVariable;
         VarInsnNode ownerNode = null;
         int ownerInstructionIndex;

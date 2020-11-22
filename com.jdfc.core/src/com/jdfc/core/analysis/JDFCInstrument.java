@@ -17,10 +17,11 @@ import java.io.PrintWriter;
 public class JDFCInstrument {
 
     public byte[] instrument(final ClassReader classReader) {
+
         final ClassNode classNode = new ClassNode();
         final ClassWriter cw = new ClassWriter(classReader, 0);
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-
+//        System.out.println("Instrumenting " + classNode.name);
 //        if (classNode.name.equals("org/apache/commons/math3/analysis/differentiation/SparseGradient")) {
 //            final TraceClassVisitor tcv = new TraceClassVisitor(cw, new PrintWriter(System.out));
 //            classReader.accept(tcv, 0);
@@ -35,6 +36,7 @@ public class JDFCInstrument {
             final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
             classReader.accept(cv, 0);
         }
+//        System.out.println("DONE.");
         return cw.toByteArray();
     }
 }

@@ -30,7 +30,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
                                    final Map<String, CFG> pMethodCFGs,
                                    final Map<Integer, LocalVariable> pLocalVariableTable,
                                    final Type[] pParameterTypes) {
-        super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
+        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
         methodCFGs = pMethodCFGs;
         parameterTypes = pParameterTypes;
         edges = ArrayListMultimap.create();
@@ -114,7 +114,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
-        System.out.printf("DEBUG visitMethodInsn %s %s %s %s %s\n", classVisitor.classNode.name, methodNode.name, name, currentInstructionIndex, currentLineNumber);
+//        System.out.printf("DEBUG visitMethodInsn %s %s %s %s %s\n", classVisitor.classNode.name, methodNode.name, name, currentInstructionIndex, currentLineNumber);
         if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
             String callSiteMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();

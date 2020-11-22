@@ -32,7 +32,6 @@ public class CoverageDataImport {
         Path classesPath = classes.toPath();
         String classSuffix = ".class";
 
-
         File jdfc = new File(pJDFCDir);
         Path jdfcPath = jdfc.toPath();
         String xmlSuffix = ".xml";

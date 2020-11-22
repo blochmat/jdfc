@@ -15,7 +15,6 @@ import java.util.*;
  */
 public class CoverageDataStore {
 
-    private static CoverageDataStore singleton;
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> classList;
 
@@ -23,13 +22,15 @@ public class CoverageDataStore {
         ExecutionData executionData = new ExecutionData();
         this.root = new ExecutionDataNode<>(executionData);
         this.classList = new ArrayList<>();
+        CoverageDataExport.init();
     }
 
-    public static synchronized CoverageDataStore getInstance() {
-        if (singleton == null) {
-            singleton = new CoverageDataStore();
-        }
-        return singleton;
+    private static class Container {
+        static CoverageDataStore instance = new CoverageDataStore();
+    }
+
+    public static CoverageDataStore getInstance() {
+        return Container.instance;
     }
 
     public ExecutionDataNode<ExecutionData> getRoot() {
@@ -63,6 +64,7 @@ public class CoverageDataStore {
     }
 
     public void exportCoverageData() {
+        System.out.println("DUMP");
         for(String className : classList) {
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {

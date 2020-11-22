@@ -10,12 +10,12 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Map;
 
-import static org.objectweb.asm.Opcodes.ASM8;
+import static org.objectweb.asm.Opcodes.ASM5;
 
 public class InstanceVariableClassVisitor extends JDFCClassVisitor {
 
     public InstanceVariableClassVisitor(ClassNode pClassNode, ClassExecutionData pClassExecutionData, Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
-        super(ASM8, pClassNode, pClassExecutionData, pLocalVariableTables);
+        super(ASM5, pClassNode, pClassExecutionData, pLocalVariableTables);
     }
 
     @Override

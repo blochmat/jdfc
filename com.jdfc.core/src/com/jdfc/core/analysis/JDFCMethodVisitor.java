@@ -41,7 +41,7 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         classVisitor = pClassVisitor;
         methodNode = pMethodNode;
         internalMethodName = pInternalMethodName;
-        localVariableTable = new LinkedHashMap<>();
+        localVariableTable = new HashMap<>();
         classDescriptor = String.format("L%s;", classVisitor.classExecutionData.getRelativePath());
     }
 
@@ -241,7 +241,7 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     }
 
     private VarInsnNode computeOwnerNode() {
-        System.out.println("ComputeOwnerNode");
+//        System.out.println("ComputeOwnerNode");
         boolean treeSaturated = false;
         int counter = 0;
         AbstractInsnNode startInsn = methodNode.instructions.get(currentInstructionIndex);
@@ -257,9 +257,9 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
                 int index = methodNode.instructions.indexOf(currentInsn);
                 InstructionNode newNode = new InstructionNode(new Instruction(counter, currentInsn, getCapacity(currentInsn)));
                 if (InstructionNode.insertLeftRecursive(root, newNode)) {
-                    System.out.println("Opcode: " + opcode);
-                    System.out.println("Index: " + index);
-                    System.out.println("Counter: " + counter);
+//                    System.out.println("Opcode: " + opcode);
+//                    System.out.println("Index: " + index);
+//                    System.out.println("Counter: " + counter);
                     treeSaturated = InstructionNode.checkSaturationRecursive(root);
                 } else {
                     throw new NullPointerException("Insertion failed.");

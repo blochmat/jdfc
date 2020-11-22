@@ -4,6 +4,7 @@ import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ public class CoverageTracker {
 
     private static CoverageTracker singleton;
     private ClassExecutionData currentClassExecutionData = null;
+    private final Map<String, ClassExecutionData> bla = new HashMap<>();
 
     public static synchronized CoverageTracker getInstance() {
         if (singleton == null) {
@@ -36,7 +38,7 @@ public class CoverageTracker {
             ProgramVariable programVariable =
                     ProgramVariable.create(null, localVariable.getName(), localVariable.getDescriptor(),
                             pInternalMethodName, pInsnIndex, pLineNumber, false, isDefinition);
-            programVariable.setReference(isHolder(currentClassExecutionData, programVariable));
+//            programVariable.setReference(isHolder(currentClassExecutionData, programVariable));
             addCoveredEntry(pInternalMethodName, currentClassExecutionData, programVariable);
         }
     }
@@ -56,13 +58,18 @@ public class CoverageTracker {
         InstanceVariable instanceVariable = currentClassExecutionData.findInstanceVariable(programVariable);
         if (instanceVariable != null) {
             addCoveredEntry(pInternalMethodName, currentClassExecutionData, programVariable);
-            addCoveredEntry(pInternalMethodName, currentClassExecutionData, instanceVariable.getHolder());
+//            addCoveredEntry(pInternalMethodName, currentClassExecutionData, instanceVariable.getHolder());
         }
     }
 
     private void updateClassExecutionData(final String pClassName) {
         if (currentClassExecutionData == null || !currentClassExecutionData.getRelativePath().equals(pClassName)) {
-            currentClassExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
+            if(bla.containsKey(pClassName)) {
+                currentClassExecutionData = bla.get(pClassName);
+            } else {
+                currentClassExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
+                bla.put(currentClassExecutionData.getRelativePath(), currentClassExecutionData);
+            }
         }
     }
 
@@ -84,7 +91,9 @@ public class CoverageTracker {
         return false;
     }
 
-    private static void addCoveredEntry(String methodNameDesc, ClassExecutionData classExecutionData, ProgramVariable programVariable) {
+    private static void addCoveredEntry(final String methodNameDesc,
+                                        final ClassExecutionData classExecutionData,
+                                        final ProgramVariable programVariable) {
         if (programVariable != null) {
             Map<String, Set<ProgramVariable>> coveredList = classExecutionData.getVariablesCovered();
             coveredList.get(methodNameDesc).add(programVariable);

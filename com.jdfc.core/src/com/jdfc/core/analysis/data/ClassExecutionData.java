@@ -381,6 +381,7 @@ public class ClassExecutionData extends ExecutionData {
                 result.add(element);
             }
         }
+
         return result;
     }
 
@@ -388,8 +389,7 @@ public class ClassExecutionData extends ExecutionData {
                                            final int pVarIndex) {
         CFG cfg = methodCFGs.get(pMethodName);
         Map<Integer, LocalVariable> localVariableTable = cfg.getLocalVariableTable();
-        LocalVariable localVariable = localVariableTable.get(pVarIndex);
-        return localVariable;
+        return localVariableTable.get(pVarIndex);
     }
 
     public InstanceVariable findInstanceVariable(final ProgramVariable pProgramVariable) {

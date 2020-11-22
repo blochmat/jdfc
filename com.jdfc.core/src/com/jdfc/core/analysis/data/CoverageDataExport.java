@@ -21,6 +21,10 @@ import java.util.*;
 
 public class CoverageDataExport {
 
+    public static void init() {
+        System.out.println("CoverageDataExport initialized.");
+    }
+
     public static void dumpClassExecutionDataToFile(final ClassExecutionData pClassExecutionData) throws ParserConfigurationException, TransformerException {
         String outPath = String.format("%s/target/jdfc", System.getProperty("user.dir"));
         File JDFCDir = new File(outPath);

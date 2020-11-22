@@ -10,6 +10,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -73,7 +74,7 @@ public class CFGCreator {
         pClassReader.accept(instanceVariableVisitor, 0);
 
         // Create method cfgs
-        final Map<String, CFG> methodCFGs = Maps.newLinkedHashMap();
+        final Map<String, CFG> methodCFGs = new HashMap<>();
         final CFGCreatorClassVisitor cfgCreatorClassVisitor =
                 new CFGCreatorClassVisitor(pClassNode, pClassExecutionData, methodCFGs, localVariableTables);
         pClassReader.accept(cfgCreatorClassVisitor, 0);

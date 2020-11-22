@@ -8,6 +8,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class JDFCClassVisitor extends ClassVisitor {
@@ -23,7 +24,7 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         super(pApi);
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
-        localVariableTables = Maps.newLinkedHashMap();
+        localVariableTables = new HashMap<>();
     }
 
     public JDFCClassVisitor(final int pApi,
@@ -33,7 +34,7 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         super(pApi, pClassVisitor);
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
-        localVariableTables = Maps.newLinkedHashMap();
+        localVariableTables = new HashMap<>();
     }
 
     public JDFCClassVisitor(final int pApi,

@@ -59,7 +59,7 @@ public class LocalVariable {
     /** {@inheritDoc} */
     @Override
     public int hashCode() {
-        return Objects.hash(name, descriptor, signature, index);
+        return Objects.hash(name, index);
     }
 
     /** {@inheritDoc} */

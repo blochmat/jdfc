@@ -5,9 +5,6 @@ import com.jdfc.core.analysis.data.CoverageDataStore;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.Arrays;
-import java.util.List;
-
 import static org.objectweb.asm.Opcodes.*;
 
 public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
@@ -16,7 +13,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                                         MethodVisitor pMethodVisitor,
                                         MethodNode pMethodNode,
                                         String internalMethodName) {
-        super(ASM8, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
+        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
     }
 
     @Override

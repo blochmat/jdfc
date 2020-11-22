@@ -123,11 +123,12 @@ public class ProgramVariable implements Comparable<Object> {
     }
 
     /**
+     *
      * {@inheritDoc}
      */
     @Override
     public int hashCode() {
-        return Objects.hash(owner, name, descriptor, method, instructionIndex, lineNumber, isReference, isDefinition);
+        return Objects.hash(name, instructionIndex);
     }
 
     /**
