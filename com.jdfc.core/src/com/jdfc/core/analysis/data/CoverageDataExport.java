@@ -1,7 +1,6 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
-import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import org.w3c.dom.Document;
@@ -38,9 +37,6 @@ public class CoverageDataExport {
         Element classTag = doc.createElement("class");
         doc.appendChild(classTag);
 
-//        Set<Field> fields = pClassExecutionData.getFields();
-//        classTag.appendChild(createFields(doc, fields));
-
         Set<InstanceVariable> instanceVariables = pClassExecutionData.getInstanceVariables();
         classTag.appendChild(createInstanceVariables(doc, instanceVariables));
 
@@ -75,28 +71,12 @@ public class CoverageDataExport {
 
     }
 
-//    private static Element createFields(Document pDoc, Set<Field> pFields) {
-//        Element fieldList = pDoc.createElement("fieldList");
-//        for (Field element : pFields) {
-//            Element field = pDoc.createElement("field");
-//            fieldList.appendChild(field);
-//            field.setAttribute("owner", element.getOwner());
-//            field.setAttribute("access", String.valueOf(element.getAccess()));
-//            field.setAttribute("name", element.getName());
-//            field.setAttribute("descriptor", element.getDescriptor());
-//            field.setAttribute("signature", element.getSignature());
-//        }
-//        return fieldList;
-//    }
-
     private static Element createInstanceVariables(Document pDoc, Set<InstanceVariable> pInstanceVariables) {
         Element instanceVarList = pDoc.createElement("instanceVariableList");
         for(InstanceVariable element : pInstanceVariables) {
             Element instanceVar = pDoc.createElement("instanceVariable");
             instanceVarList.appendChild(instanceVar);
             instanceVar.setAttribute("owner", element.getOwner());
-            instanceVar.setAttribute("holder", ProgramVariable.encode(element.getHolder()));
-            instanceVar.setAttribute("method", element.getMethod());
             instanceVar.setAttribute("name", element.getName());
             instanceVar.setAttribute("descriptor", element.getDescriptor());
             instanceVar.setAttribute("instructionIndex", String.valueOf(element.getInstructionIndex()));
@@ -146,19 +126,15 @@ public class CoverageDataExport {
             defUsePair.setAttribute("dOwner", element.getDefinition().getOwner());
             defUsePair.setAttribute("dName", element.getDefinition().getName());
             defUsePair.setAttribute("dType", element.getDefinition().getDescriptor());
-            defUsePair.setAttribute("dMethod", element.getDefinition().getMethod());
             defUsePair.setAttribute("dIndex", Integer.toString(element.getDefinition().getInstructionIndex()));
             defUsePair.setAttribute("dLineNumber", Integer.toString(element.getDefinition().getLineNumber()));
-            defUsePair.setAttribute("dIsReference", Boolean.toString(element.getDefinition().isReference()));
             defUsePair.setAttribute("dIsDefinition", Boolean.toString(element.getDefinition().isDefinition()));
 
             defUsePair.setAttribute("uOwner", element.getUsage().getOwner());
             defUsePair.setAttribute("uName", element.getUsage().getName());
             defUsePair.setAttribute("uType", element.getUsage().getDescriptor());
-            defUsePair.setAttribute("uMethod", element.getUsage().getMethod());
             defUsePair.setAttribute("uIndex", Integer.toString(element.getUsage().getInstructionIndex()));
             defUsePair.setAttribute("uLineNumber", Integer.toString(element.getUsage().getLineNumber()));
-            defUsePair.setAttribute("uIsReference", Boolean.toString(element.getUsage().isReference()));
             defUsePair.setAttribute("uIsDefinition", Boolean.toString(element.getUsage().isDefinition()));
 
         }
@@ -179,13 +155,10 @@ public class CoverageDataExport {
         programVariable.setAttribute("owner", pProgramVariable.getOwner());
         programVariable.setAttribute("name", pProgramVariable.getName());
         programVariable.setAttribute("descriptor", pProgramVariable.getDescriptor());
-        programVariable.setAttribute("method", pProgramVariable.getMethod());
         programVariable.setAttribute("instructionIndex",
                 Integer.toString(pProgramVariable.getInstructionIndex()));
         programVariable.setAttribute("lineNumber",
                 Integer.toString(pProgramVariable.getLineNumber()));
-        programVariable.setAttribute("isReference",
-                Boolean.toString(pProgramVariable.isReference()));
         programVariable.setAttribute("isDefinition",
                 Boolean.toString(pProgramVariable.isDefinition()));
         return programVariable;

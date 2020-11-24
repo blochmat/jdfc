@@ -4,8 +4,6 @@ import java.util.Objects;
 
 public class InstanceVariable implements Comparable<Object> {
 
-    private final ProgramVariable holder;
-    private final String method;
     private final int instructionIndex;
     private final int lineNumber;
     private final boolean isDefinition;
@@ -14,8 +12,6 @@ public class InstanceVariable implements Comparable<Object> {
     private final String descriptor;
 
     private InstanceVariable(final String pOwner,
-                             final ProgramVariable pHolder,
-                             final String pMethod,
                              final String pName,
                              final String pDescriptor,
                              final int pInstructionIndex,
@@ -24,26 +20,18 @@ public class InstanceVariable implements Comparable<Object> {
         owner = pOwner;
         name = pName;
         descriptor = pDescriptor;
-        method = pMethod;
-        holder = pHolder;
         instructionIndex = pInstructionIndex;
         lineNumber = pLineNumber;
         isDefinition = pIsDefinition;
     }
 
     public static InstanceVariable create(final String pOwner,
-                                          final ProgramVariable pHolder,
-                                          final String pMethod,
                                           final String pName,
                                           final String pDescriptor,
                                           final int pInstructionIndex,
                                           final int pLineNumber,
                                           final boolean pIsDefinition) {
-        return new InstanceVariable(pOwner, pHolder, pMethod, pName, pDescriptor, pInstructionIndex, pLineNumber, pIsDefinition);
-    }
-
-    public ProgramVariable getHolder() {
-        return holder;
+        return new InstanceVariable(pOwner, pName, pDescriptor, pInstructionIndex, pLineNumber, pIsDefinition);
     }
 
     public int getLineNumber() {
@@ -52,10 +40,6 @@ public class InstanceVariable implements Comparable<Object> {
 
     public int getInstructionIndex() {
         return instructionIndex;
-    }
-
-    public String getMethod() {
-        return method;
     }
 
     public boolean isDefinition() {
@@ -74,26 +58,19 @@ public class InstanceVariable implements Comparable<Object> {
         return owner;
     }
 
-
     public ProgramVariable convertToProgramVariable() {
-        String method = null;
-        if(holder != null) {
-            method = holder.getMethod();
-        }
         return ProgramVariable.create(
                 this.owner,
                 this.name,
                 this.descriptor,
-                method,
                 this.instructionIndex,
                 this.lineNumber,
-                false,
                 this.isDefinition);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(owner, method, name, descriptor, lineNumber, isDefinition);
+        return Objects.hash(owner, name, descriptor, lineNumber, isDefinition);
     }
 
     @Override
@@ -106,10 +83,8 @@ public class InstanceVariable implements Comparable<Object> {
         }
         final InstanceVariable that = (InstanceVariable) pOther;
         return Objects.equals(owner, that.owner)
-                && method.equals(that.method)
                 && Objects.equals(name, that.name)
                 && Objects.equals(descriptor, that.descriptor)
-                && Objects.equals(holder, that.holder)
                 && instructionIndex == that.instructionIndex
                 && lineNumber == that.lineNumber
                 && Boolean.compare(isDefinition, that.isDefinition) == 0;
@@ -120,9 +95,6 @@ public class InstanceVariable implements Comparable<Object> {
         return "InstanceVariable{"
                 + "owner='"
                 + owner
-                + '\''
-                + ", method='"
-                + method
                 + '\''
                 + ", name='"
                 + name
@@ -136,9 +108,6 @@ public class InstanceVariable implements Comparable<Object> {
                 + lineNumber
                 + ", isDefinition='"
                 + isDefinition
-                + '\''
-                + ", holderInformation='"
-                + holder
                 + '\''
                 + '}';
     }

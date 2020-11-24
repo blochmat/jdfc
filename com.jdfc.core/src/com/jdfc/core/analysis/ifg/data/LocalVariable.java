@@ -9,19 +9,13 @@ public class LocalVariable {
     private final String descriptor;
     private final String signature;
     private final int index;
-    private final boolean isReferenceToField;
 
     LocalVariable(
-            final String pName, final String pDescriptor, final String pSignature, final int pIndex, final boolean pIsReferenceToField) {
+            final String pName, final String pDescriptor, final String pSignature, final int pIndex) {
         name = pName;
         descriptor = pDescriptor;
         signature = pSignature;
         index = pIndex;
-        isReferenceToField = pIsReferenceToField;
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public String getDescriptor() {
@@ -30,14 +24,6 @@ public class LocalVariable {
 
     public String getName() {
         return name;
-    }
-
-    public String getSignature() {
-        return signature;
-    }
-
-    public boolean isReferenceToField() {
-        return isReferenceToField;
     }
 
     /** {@inheritDoc} */

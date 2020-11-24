@@ -29,8 +29,7 @@ class LocalVariableMethodVisitor extends JDFCMethodVisitor {
             final Label pEnd,
             final int pIndex) {
         super.visitLocalVariable(pName, pDescriptor, pSignature, pStart, pEnd, pIndex);
-        boolean isReferenceToField = isLocalVariableReferenceToField(pIndex, pDescriptor);
-        final LocalVariable variable = new LocalVariable(pName, pDescriptor, pSignature, pIndex, isReferenceToField);
+        final LocalVariable variable = new LocalVariable(pName, pDescriptor, pSignature, pIndex);
         localVariableTable.put(pIndex, variable);
     }
 

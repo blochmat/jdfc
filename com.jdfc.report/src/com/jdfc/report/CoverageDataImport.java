@@ -6,7 +6,6 @@ import com.jdfc.core.analysis.JDFCInstrument;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.InterProceduralMatch;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
-import com.jdfc.core.analysis.ifg.data.Field;
 import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
@@ -164,14 +163,12 @@ public class CoverageDataImport {
 
     private static void collectInstanceVariableData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
         String owner = getValueOrNull(pAttr.getNamedItem("owner").getNodeValue());
-        ProgramVariable holder = ProgramVariable.decode(pAttr.getNamedItem("holder").getNodeValue());
-        String method = getValueOrNull(pAttr.getNamedItem("method").getNodeValue());
         String name = getValueOrNull(pAttr.getNamedItem("name").getNodeValue());
         String descriptor = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
         boolean isDefinition = Boolean.parseBoolean(pAttr.getNamedItem("isDefinition").getNodeValue());
-        InstanceVariable newVar = InstanceVariable.create(owner, holder, method, name, descriptor, instructionIndex, lineNumber, isDefinition);
+        InstanceVariable newVar = InstanceVariable.create(owner, name, descriptor, instructionIndex, lineNumber, isDefinition);
         pClassExecutionData.getInstanceVariables().add(newVar);
     }
 
@@ -232,34 +229,28 @@ public class CoverageDataImport {
         String owner = getValueOrNull(pAttr.getNamedItem("owner").getNodeValue());
         String name = getValueOrNull(pAttr.getNamedItem("name").getNodeValue());
         String type = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
-        String method = getValueOrNull(pAttr.getNamedItem("method").getNodeValue());
         int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
         int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
-        boolean isReference = Boolean.parseBoolean(pAttr.getNamedItem("isReference").getNodeValue());
         boolean isDefinition = Boolean.parseBoolean(pAttr.getNamedItem("isDefinition").getNodeValue());
-        return ProgramVariable.create(owner, name, type, method, instructionIndex, lineNumber, isReference, isDefinition);
+        return ProgramVariable.create(owner, name, type, instructionIndex, lineNumber, isDefinition);
     }
 
     private static DefUsePair createDefUsePair(NamedNodeMap pAttr) {
         String dOwner = getValueOrNull(pAttr.getNamedItem("dOwner").getNodeValue());
         String dName = getValueOrNull(pAttr.getNamedItem("dName").getNodeValue());
         String dType = getValueOrNull(pAttr.getNamedItem("dType").getNodeValue());
-        String dMethod = getValueOrNull(pAttr.getNamedItem("dMethod").getNodeValue());
         int dIndex = Integer.parseInt(pAttr.getNamedItem("dIndex").getNodeValue());
         int dLineNumber = Integer.parseInt(pAttr.getNamedItem("dLineNumber").getNodeValue());
-        boolean dIsReference = Boolean.parseBoolean(pAttr.getNamedItem("dIsReference").getNodeValue());
         boolean dIsDefinition = Boolean.parseBoolean(pAttr.getNamedItem("dIsDefinition").getNodeValue());
-        ProgramVariable definition = ProgramVariable.create(dOwner, dName, dType, dMethod, dIndex, dLineNumber, dIsReference, dIsDefinition);
+        ProgramVariable definition = ProgramVariable.create(dOwner, dName, dType, dIndex, dLineNumber, dIsDefinition);
 
         String uOwner = getValueOrNull(pAttr.getNamedItem("uOwner").getNodeValue());
         String uName = getValueOrNull(pAttr.getNamedItem("uName").getNodeValue());
         String uType = getValueOrNull(pAttr.getNamedItem("uType").getNodeValue());
-        String uMethod = getValueOrNull(pAttr.getNamedItem("uMethod").getNodeValue());
         int uIndex = Integer.parseInt(pAttr.getNamedItem("uIndex").getNodeValue());
         int uLineNumber = Integer.parseInt(pAttr.getNamedItem("uLineNumber").getNodeValue());
-        boolean uIsReference = Boolean.parseBoolean(pAttr.getNamedItem("uIsReference").getNodeValue());
         boolean uIsDefinition = Boolean.parseBoolean(pAttr.getNamedItem("uIsDefinition").getNodeValue());
-        ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uMethod, uIndex, uLineNumber, uIsReference, uIsDefinition);
+        ProgramVariable usage = ProgramVariable.create(uOwner, uName, uType, uIndex, uLineNumber, uIsDefinition);
         return new DefUsePair(definition, usage);
     }
 

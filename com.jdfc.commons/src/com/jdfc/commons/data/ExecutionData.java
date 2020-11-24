@@ -1,5 +1,8 @@
 package com.jdfc.commons.data;
 
+/**
+ *  Coverage data container for packages. Base model for {@code ClassExecutionData}
+ */
 public class ExecutionData {
 
     private int total = 0;

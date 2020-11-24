@@ -22,7 +22,6 @@ public class CoverageDataStore {
         ExecutionData executionData = new ExecutionData();
         this.root = new ExecutionDataNode<>(executionData);
         this.classList = new ArrayList<>();
-        CoverageDataExport.init();
     }
 
     private static class Container {
@@ -64,7 +63,6 @@ public class CoverageDataStore {
     }
 
     public void exportCoverageData() {
-        System.out.println("DUMP");
         for(String className : classList) {
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
@@ -101,12 +99,13 @@ public class CoverageDataStore {
                                          Path pBaseDir,
                                          String suffix) {
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
-        if (pExecutionDataNode.isRoot()) {
+        boolean isClassDir = Arrays.stream(fileList).anyMatch(x -> x.getName().contains(suffix));
+        if (pExecutionDataNode.isRoot() && isClassDir) {
             ExecutionData rootClassData = new ExecutionData();
             pExecutionDataNode.addChild("default", rootClassData);
         }
         for (File f : fileList) {
-            if (f.isDirectory()) {
+            if (f.isDirectory() && !f.getName().equals("META-INF")) {
                 ExecutionData pkgData = new ExecutionData();
                 ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);

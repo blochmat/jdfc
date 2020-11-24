@@ -13,7 +13,6 @@ import org.objectweb.asm.tree.MethodNode;
  * A class visitor that extracts the information of the local variable table for each method of a
  * class.
  *
- * @see LocalVariableTable
  * @see ClassVisitor
  */
 public class LocalVariableClassVisitor extends JDFCClassVisitor {

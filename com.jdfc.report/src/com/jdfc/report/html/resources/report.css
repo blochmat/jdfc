@@ -127,6 +127,10 @@ pre {
     color: gray;
 }
 
+.string {
+    color: #627B53;
+}
+
 .white-gray {
     background: #EFEFEF;
 }

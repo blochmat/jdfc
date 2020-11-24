@@ -36,9 +36,7 @@ public class CoverageTracker {
 
         if (localVariable != null) {
             ProgramVariable programVariable =
-                    ProgramVariable.create(null, localVariable.getName(), localVariable.getDescriptor(),
-                            pInternalMethodName, pInsnIndex, pLineNumber, false, isDefinition);
-//            programVariable.setReference(isHolder(currentClassExecutionData, programVariable));
+                    ProgramVariable.create(null, localVariable.getName(), localVariable.getDescriptor(), pInsnIndex, pLineNumber, isDefinition);
             addCoveredEntry(pInternalMethodName, currentClassExecutionData, programVariable);
         }
     }
@@ -53,8 +51,8 @@ public class CoverageTracker {
                                            final int pOpcode) {
         updateClassExecutionData(pClassName);
         boolean isDefinition = isDefinition(pOpcode);
-        ProgramVariable programVariable = ProgramVariable.create(pOwner, pVarName, pVarDesc, pInternalMethodName,
-                pInsnIndex, pLineNumber, false, isDefinition);
+        ProgramVariable programVariable = ProgramVariable.create(pOwner, pVarName, pVarDesc,
+                pInsnIndex, pLineNumber, isDefinition);
         InstanceVariable instanceVariable = currentClassExecutionData.findInstanceVariable(programVariable);
         if (instanceVariable != null) {
             addCoveredEntry(pInternalMethodName, currentClassExecutionData, programVariable);
@@ -71,24 +69,6 @@ public class CoverageTracker {
                 bla.put(currentClassExecutionData.getRelativePath(), currentClassExecutionData);
             }
         }
-    }
-
-    static boolean isHolder(final ClassExecutionData pData,
-                            final ProgramVariable pVariable) {
-        for (InstanceVariable element : pData.getInstanceVariables()) {
-            ProgramVariable holder = element.getHolder();
-            if(holder != null) {
-                if (holder.getOwner() == null && pVariable.getOwner() == null
-                        && holder.getName().equals(pVariable.getName())
-                        && holder.getDescriptor().equals(pVariable.getDescriptor())
-                        && holder.getLineNumber() == pVariable.getLineNumber()
-                        && holder.getInstructionIndex() == pVariable.getInstructionIndex()) {
-                    return true;
-                }
-            }
-
-        }
-        return false;
     }
 
     private static void addCoveredEntry(final String methodNameDesc,

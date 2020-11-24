@@ -9,6 +9,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Coverage data container of a single class. It contains information about all methods including CFG's, Def-Use pairs,
+ * inter-procedural matches, covered and uncovered variables.
+ */
+
 public class ClassExecutionData extends ExecutionData {
 
     private Map<String, CFG> methodCFGs;
@@ -44,15 +49,6 @@ public class ClassExecutionData extends ExecutionData {
      */
     public void setMethodCFGs(final Map<String, CFG> pMethodCFGs) {
         methodCFGs = pMethodCFGs;
-    }
-
-    /**
-     * Returns the mapping of method names and {@link CFG}s.
-     *
-     * @return The mapping of method names and {@link CFG}s
-     */
-    public Map<String, CFG> getMethodCFGs() {
-        return methodCFGs;
     }
 
     public Map<String, Integer> getMethodFirstLine() {
@@ -159,7 +155,6 @@ public class ClassExecutionData extends ExecutionData {
                     if (ifgNode.getRelatedCFG() != null) {
                         CFGNode entryNode = ifgNode.getRelatedCallSiteNode();
                         String entryMethodName = ifgNode.getMethodNameDesc();
-//                        System.out.println("[DEBUG] setupInterProceduralMatches");
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
                                         ifgNode.getParameterCount(), null, ifgNode, entryNode);
@@ -175,28 +170,9 @@ public class ClassExecutionData extends ExecutionData {
             if (!isSimpleType(parameter.getDescriptor())) {
                 ProgramVariable newParamDefinition =
                         ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
-                                parameter.getMethod(), pNode.getIndex(), pNode.getLineNumber(), parameter.isReference(),
+                                pNode.getIndex(), pNode.getLineNumber(),
                                 parameter.isDefinition());
                 pNode.addDefinition(newParamDefinition);
-            }
-        }
-
-        ProgramVariable caller = pNode.getMethodCaller();
-        if (caller != null) {
-            ProgramVariable newCallerDefinition =
-                    ProgramVariable.create(caller.getOwner(), caller.getName(), caller.getDescriptor(),
-                            caller.getMethod(), pNode.getIndex(), pNode.getLineNumber(), caller.isReference(),
-                            caller.isDefinition());
-            pNode.addDefinition(newCallerDefinition);
-
-            InstanceVariable instCaller = findInstanceVariable(caller);
-            if (instCaller != null) {
-                ProgramVariable holder = instCaller.getHolder();
-                ProgramVariable newHolderDefinition =
-                        ProgramVariable.create(holder.getOwner(), holder.getName(), holder.getDescriptor(),
-                                holder.getMethod(), pNode.getIndex(), pNode.getLineNumber(), holder.isReference(),
-                                holder.isDefinition());
-                pNode.addDefinition(newHolderDefinition);
             }
         }
     }
@@ -411,9 +387,12 @@ public class ClassExecutionData extends ExecutionData {
                                                     final ProgramVariable pUsage) {
         for (InterProceduralMatch element : pInterProceduralMatches) {
             String callSiteMethodName = element.getCallSiteMethodName();
-            for (ProgramVariable variable : variablesCovered.get(callSiteMethodName)) {
-                if (variable.equals(pUsage)) {
-                    return true;
+            // TODO: B0001 - Only null because cfg creation for class fails
+            if(variablesCovered.get(callSiteMethodName) != null) {
+                for (ProgramVariable variable : variablesCovered.get(callSiteMethodName)) {
+                    if (variable.equals(pUsage)) {
+                        return true;
+                    }
                 }
             }
         }

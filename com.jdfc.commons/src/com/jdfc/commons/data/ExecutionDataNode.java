@@ -2,22 +2,21 @@ package com.jdfc.commons.data;
 
 import java.util.*;
 
+/**
+ * Representing one element in the project structure of the project under test.
+ * Either a package or class is represented. Every {@code ExecutionDataNode} stores a {@code ExecutionData}
+ * instance depending on the element represented.
+ *
+ * @param <T> Coverage data container
+ */
 public class ExecutionDataNode<T extends ExecutionData> {
 
-    // Map of children with name, in case of leaf children.size == 0
-    private Map<String, ExecutionDataNode<T>> children = new HashMap<>();
-
+    private final Map<String, ExecutionDataNode<T>> children = new HashMap<>();
     private ExecutionDataNode<T> parent = null;
-
-    private T data = null;
+    private T data;
 
     public ExecutionDataNode(T data) {
         this.data = data;
-    }
-
-    public ExecutionDataNode(T data, ExecutionDataNode<T> parent) {
-        this.data = data;
-        this.parent = parent;
     }
 
     public Map<String, ExecutionDataNode<T>> getChildren() {
