@@ -16,21 +16,17 @@ import static org.objectweb.asm.Opcodes.*;
 class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private final Map<String, CFG> methodCFGs;
-    private final Type[] parameterTypes;
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, CFGNode> nodes;
-    private boolean isImpure = false;
 
     public CFGCreatorMethodVisitor(final CFGCreatorClassVisitor pClassVisitor,
                                    final MethodVisitor pMethodVisitor,
                                    final MethodNode pMethodNode,
                                    final String pInternalMethodName,
                                    final Map<String, CFG> pMethodCFGs,
-                                   final Map<Integer, LocalVariable> pLocalVariableTable,
-                                   final Type[] pParameterTypes) {
+                                   final Map<Integer, LocalVariable> pLocalVariableTable) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
         methodCFGs = pMethodCFGs;
-        parameterTypes = pParameterTypes;
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
     }
@@ -105,7 +101,9 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         super.visitFieldInsn(opcode, owner, name, descriptor);
         visitFrameNew();
-        createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor);
+        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+        nodes.put(currentInstructionIndex, node);
+//        createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor);
     }
 
     @Override
@@ -197,34 +195,11 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
         addEntryNode();
 
+        boolean isImpure = false;
         CFG cfg = new CFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
         methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
-    }
-
-    private void createCFGNodeForFieldInsnNode(final int pOpcode, String pOwner, String pName, String pDescriptor) {
-        final ProgramVariable programVariable;
-        final CFGNode node;
-        switch (pOpcode) {
-            case GETFIELD:
-                programVariable = ProgramVariable.create(pOwner, pName, pDescriptor,
-                        currentInstructionIndex, currentLineNumber, false);
-                node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), currentInstructionIndex, pOpcode);
-                break;
-            case PUTFIELD:
-                if (pOwner.equals(classVisitor.classNode.name)) {
-                    isImpure = true;
-                }
-                programVariable = ProgramVariable.create(pOwner, pName, pDescriptor,
-                        currentInstructionIndex, currentLineNumber, true);
-                node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), currentInstructionIndex, pOpcode);
-                break;
-            default:
-                node = new CFGNode(currentInstructionIndex, pOpcode);
-                break;
-        }
-        nodes.put(currentInstructionIndex, node);
     }
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {
@@ -263,7 +238,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private Multimap<Integer, Integer> createEdges() {
         CFGEdgeAnalyzationVisitor cfgEdgeAnalysationVisitor =
-                new CFGEdgeAnalyzationVisitor(classVisitor.classNode.name, methodNode);
+                new CFGEdgeAnalyzationVisitor(methodNode);
         methodNode.accept(cfgEdgeAnalysationVisitor);
         return cfgEdgeAnalysationVisitor.getEdges();
     }

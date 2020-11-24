@@ -26,15 +26,14 @@ public class AgentMojo extends AbstractJdfcMojo {
     static final String AGENT_ARTIFACT_NAME = "com.jdfc:com.jdfc.agent";
 
     @Override
-    protected void executeMojo() throws MojoExecutionException, MojoFailureException {
-        // TODO: Refactor argLine processing
+    protected void executeMojo() {
         String argLine = "argLine";
         Properties projectProperties = getProject().getProperties();
         String oldValue = projectProperties.getProperty(argLine);
         // create command line arguments for agent
         final String targetDir = getProject().getBuild().getOutputDirectory();
         final String agent = format("-javaagent:%s", getAgentJarFile());
-        String newValue = "";
+        String newValue;
         if (oldValue == null) {
             newValue = String.format("%s=%s", agent, targetDir);
         } else {

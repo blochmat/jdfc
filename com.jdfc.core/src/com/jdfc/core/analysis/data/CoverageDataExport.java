@@ -1,7 +1,6 @@
 package com.jdfc.core.analysis.data;
 
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
-import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -24,6 +23,12 @@ public class CoverageDataExport {
         System.out.println("CoverageDataExport initialized.");
     }
 
+    /**
+     * Creating xml file representing coverage data of a single class
+     * @param pClassExecutionData Class data
+     * @throws ParserConfigurationException Occurs in case of failing to build the document
+     * @throws TransformerException Occurs in case of failing to transform the built file into xml
+     */
     public static void dumpClassExecutionDataToFile(final ClassExecutionData pClassExecutionData) throws ParserConfigurationException, TransformerException {
         String outPath = String.format("%s/target/jdfc", System.getProperty("user.dir"));
         File JDFCDir = new File(outPath);
@@ -36,9 +41,6 @@ public class CoverageDataExport {
         Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
         Element classTag = doc.createElement("class");
         doc.appendChild(classTag);
-
-        Set<InstanceVariable> instanceVariables = pClassExecutionData.getInstanceVariables();
-        classTag.appendChild(createInstanceVariables(doc, instanceVariables));
 
         Set<InterProceduralMatch> interProceduralMatches = pClassExecutionData.getInterProceduralMatches();
         classTag.appendChild(createInterProceduralMatchList(doc, interProceduralMatches));
@@ -69,21 +71,6 @@ public class CoverageDataExport {
             e.printStackTrace();
         }
 
-    }
-
-    private static Element createInstanceVariables(Document pDoc, Set<InstanceVariable> pInstanceVariables) {
-        Element instanceVarList = pDoc.createElement("instanceVariableList");
-        for(InstanceVariable element : pInstanceVariables) {
-            Element instanceVar = pDoc.createElement("instanceVariable");
-            instanceVarList.appendChild(instanceVar);
-            instanceVar.setAttribute("owner", element.getOwner());
-            instanceVar.setAttribute("name", element.getName());
-            instanceVar.setAttribute("descriptor", element.getDescriptor());
-            instanceVar.setAttribute("instructionIndex", String.valueOf(element.getInstructionIndex()));
-            instanceVar.setAttribute("lineNumber", String.valueOf(element.getLineNumber()));
-            instanceVar.setAttribute("isDefinition", Boolean.toString(element.isDefinition()));
-        }
-        return instanceVarList;
     }
 
     private static Element createInterProceduralMatchList(Document pDoc, Set<InterProceduralMatch> pParameterMatches) {

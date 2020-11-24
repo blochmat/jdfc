@@ -6,7 +6,6 @@ import com.jdfc.core.analysis.JDFCInstrument;
 import com.jdfc.core.analysis.data.CoverageDataStore;
 import com.jdfc.core.analysis.data.InterProceduralMatch;
 import com.jdfc.core.analysis.ifg.data.DefUsePair;
-import com.jdfc.core.analysis.ifg.data.InstanceVariable;
 import com.jdfc.core.analysis.ifg.data.ProgramVariable;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import org.objectweb.asm.ClassReader;
@@ -53,12 +52,12 @@ public class CoverageDataImport {
                 examineFileRecursive(rootTag, classExecutionData);
 
                 // If at least one variable is covered => tests exist for class
-                if(!classExecutionData.getVariablesCovered().isEmpty()) {
+                if (!classExecutionData.getVariablesCovered().isEmpty()) {
                     CoverageDataStore.getInstance().getClassList().remove(relativePath);
                 }
                 classExecutionData.computeCoverageForClass();
                 classExecutionDataNode.setData(classExecutionData);
-                classExecutionDataNode.aggregateDataToRoot();
+                classExecutionDataNode.aggregateDataToRootRecursive();
             } catch (SAXException | IOException | ParserConfigurationException e) {
                 e.printStackTrace();
             }
@@ -79,7 +78,7 @@ public class CoverageDataImport {
                         CoverageDataStore.getInstance().findClassDataNode(relPath);
                 ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
                 classExecutionData.computeCoverageForClass();
-                classExecutionDataNode.aggregateDataToRoot();
+                classExecutionDataNode.aggregateDataToRootRecursive();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -109,8 +108,8 @@ public class CoverageDataImport {
             NamedNodeMap attr = node.getAttributes();
             if (attr != null) {
                 switch (node.getNodeName()) {
-                    case "fieldList":
-                    case "instanceVariableList":
+//                    case "fieldList":
+//                    case "instanceVariableList":
                     case "interProceduralMatchList":
                     case "defUsePairList":
                     case "variablesCoveredList":
@@ -134,18 +133,6 @@ public class CoverageDataImport {
                             collectDefUsePairData(methodName, defUsePairAttr, classExecutionData);
                             break;
                         }
-                    case "instanceVariable":
-                        NamedNodeMap instanceVarAttr = node.getAttributes();
-                        if (instanceVarAttr != null) {
-                            collectInstanceVariableData(instanceVarAttr, classExecutionData);
-                            break;
-                        }
-//                    case "field":
-//                        NamedNodeMap fieldAttr = node.getAttributes();
-//                        if (fieldAttr != null) {
-//                            collectFieldData(fieldAttr, classExecutionData);
-//                            break;
-//                        }
                     case "programVariable":
                         NamedNodeMap programVarAttr = node.getAttributes();
                         if (programVarAttr != null) {
@@ -159,17 +146,6 @@ public class CoverageDataImport {
                 }
             }
         }
-    }
-
-    private static void collectInstanceVariableData(NamedNodeMap pAttr, ClassExecutionData pClassExecutionData) {
-        String owner = getValueOrNull(pAttr.getNamedItem("owner").getNodeValue());
-        String name = getValueOrNull(pAttr.getNamedItem("name").getNodeValue());
-        String descriptor = getValueOrNull(pAttr.getNamedItem("descriptor").getNodeValue());
-        int instructionIndex = Integer.parseInt(pAttr.getNamedItem("instructionIndex").getNodeValue());
-        int lineNumber = Integer.parseInt(pAttr.getNamedItem("lineNumber").getNodeValue());
-        boolean isDefinition = Boolean.parseBoolean(pAttr.getNamedItem("isDefinition").getNodeValue());
-        InstanceVariable newVar = InstanceVariable.create(owner, name, descriptor, instructionIndex, lineNumber, isDefinition);
-        pClassExecutionData.getInstanceVariables().add(newVar);
     }
 
     private static void collectMatchData(Node pMatch, ClassExecutionData pClassExecutionData) {

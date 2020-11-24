@@ -93,7 +93,6 @@ public class ProgramVariable implements Comparable<Object> {
                 && Objects.equals(descriptor, that.descriptor)
                 && (instructionIndex == that.instructionIndex)
                 && (lineNumber == that.lineNumber)
-//                && Boolean.compare(isReference, that.isReference) == 0
                 && Boolean.compare(isDefinition, that.isDefinition) == 0;
     }
 

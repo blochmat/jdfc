@@ -30,7 +30,6 @@ public class HTMLElement {
     }
 
     static HTMLElement html() {
-        // TODO: Refactor
         String htmlTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
                 "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\"%s>%s</html>";
@@ -122,11 +121,6 @@ public class HTMLElement {
     static HTMLElement td(final int pNumber) {
         String tdTag = "<td%s>%s</td>";
         return new HTMLElement(tdTag, String.valueOf(pNumber));
-    }
-
-    static HTMLElement span() {
-        String spanTag = "<span%s>%s</span>";
-        return new HTMLElement(spanTag);
     }
 
     static HTMLElement span(final String pText) {

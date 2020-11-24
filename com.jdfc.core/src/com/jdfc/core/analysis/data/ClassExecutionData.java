@@ -19,8 +19,6 @@ public class ClassExecutionData extends ExecutionData {
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
-    private final Set<Field> fields;
-    private final TreeSet<InstanceVariable> instanceVariables;
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
     private final TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
     private final Map<String, Set<ProgramVariable>> variablesCovered;
@@ -28,7 +26,6 @@ public class ClassExecutionData extends ExecutionData {
     private final Set<InterProceduralMatch> interProceduralMatches;
     private final String relativePath;
 
-    // TODO Initialize methodCFGs here
     public ClassExecutionData(String pRelativePath) {
         methodLastLine = new HashMap<>();
         methodFirstLine = new HashMap<>();
@@ -37,9 +34,7 @@ public class ClassExecutionData extends ExecutionData {
         variablesCovered = new HashMap<>();
         variablesUncovered = new HashMap<>();
         relativePath = pRelativePath;
-        fields = new HashSet<>();
         interProceduralMatches = new HashSet<>();
-        instanceVariables = new TreeSet<>();
     }
 
     /**
@@ -75,14 +70,6 @@ public class ClassExecutionData extends ExecutionData {
         return variablesUncovered;
     }
 
-    public Set<Field> getFields() {
-        return fields;
-    }
-
-    public Set<InstanceVariable> getInstanceVariables() {
-        return instanceVariables;
-    }
-
     public String getRelativePath() {
         return relativePath;
     }
@@ -91,6 +78,9 @@ public class ClassExecutionData extends ExecutionData {
         return interProceduralMatches;
     }
 
+    /**
+     * Initalize all required lists for every method
+     */
     public void initializeDefUseLists() {
         for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
             defUsePairs.put(entry.getKey(), new ArrayList<>());
@@ -99,6 +89,10 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
+    /**
+     * Inserts new defintions in case of an impure method invoke. New definitions are added for parameters passed
+     * with a complex (object) type
+     */
     public void insertAdditionalDefs() {
         for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
             for (Map.Entry<Integer, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
@@ -118,6 +112,9 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
+    /**
+     * Calulates reaching defintions for all method cfgs
+     */
     public void calculateReachingDefs() {
         for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
             methodCFGsEntry.getValue().calculateReachingDefinitions();
@@ -145,6 +142,9 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
+    /**
+     * Established inter-procedural connection between parameters
+     */
     public void setupInterProceduralMatches() {
         for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
             String methodName = methodCFGs.getKey();
@@ -165,6 +165,12 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
+    /**
+     * Insert new definitons at a {@code IFGNode} in case of an impure method invoke
+     *
+     * @param pNode Node invoking a method
+     * @param pMethodParameters parameters involved in method call
+     */
     public void insertNewDefinitions(IFGNode pNode, Collection<ProgramVariable> pMethodParameters) {
         for (ProgramVariable parameter : pMethodParameters) {
             if (!isSimpleType(parameter.getDescriptor())) {
@@ -177,6 +183,14 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
+    /**
+     * Computes the variable connections to establish inter-procedural matching of parameters
+     * @param pParameterCount Count of parameters involved
+     * @param pNode Invoking node n for the first iteration, then predecessor of n
+     * @param pCallingNode Invoking node n
+     * @param pRelatedCallSiteNode entry node of invoked procedure
+     * @return Map matching definitions in both procedures to one another
+     */
     private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pParameterCount,
                                                                                    final CFGNode pNode,
                                                                                    final IFGNode pCallingNode,
@@ -227,6 +241,13 @@ public class ClassExecutionData extends ExecutionData {
         return matchMap;
     }
 
+    /**
+     * Create matching between program variables of procedures
+     *
+     * @param pMethodName Method name of invoking procedure
+     * @param pEntryMethodName Method name of invoked procedure
+     * @param pUsageDefinitionMatch Map of matching definitions
+     */
     private void matchPairs(final String pMethodName,
                             final String pEntryMethodName,
                             final Map<ProgramVariable, ProgramVariable> pUsageDefinitionMatch) {
@@ -250,6 +271,13 @@ public class ClassExecutionData extends ExecutionData {
 
     }
 
+    /**
+     * Finds definition from given use
+     *
+     * @param pMethodName Method name of method containing definition and use
+     * @param pUsage given use
+     * @return definition of given use
+     */
     private ProgramVariable findDefinitionByUse(String pMethodName, ProgramVariable pUsage) {
         for (DefUsePair pair : defUsePairs.get(pMethodName)) {
             if (pair.getUsage().equals(pUsage)) {
@@ -259,6 +287,12 @@ public class ClassExecutionData extends ExecutionData {
         return null;
     }
 
+    /**
+     * Find all usages from given defintion
+     * @param pMethodName Method name of method containing definition and uses
+     * @param pDefinition given definition
+     * @return List of all usages associated with given definition
+     */
     private List<ProgramVariable> findUsagesByDefinition(String pMethodName, ProgramVariable pDefinition) {
         List<ProgramVariable> result = new ArrayList<>();
         for (DefUsePair pair : defUsePairs.get(pMethodName)) {
@@ -367,21 +401,6 @@ public class ClassExecutionData extends ExecutionData {
         Map<Integer, LocalVariable> localVariableTable = cfg.getLocalVariableTable();
         return localVariableTable.get(pVarIndex);
     }
-
-    public InstanceVariable findInstanceVariable(final ProgramVariable pProgramVariable) {
-        for (InstanceVariable variable : this.instanceVariables) {
-            if (variable.getOwner().equals(pProgramVariable.getOwner())
-                    && variable.getName().equals(pProgramVariable.getName())
-                    && variable.getDescriptor().equals(pProgramVariable.getDescriptor())
-                    && variable.getInstructionIndex() == pProgramVariable.getInstructionIndex()
-                    && variable.getLineNumber() == pProgramVariable.getLineNumber()
-                    && Boolean.compare(variable.isDefinition(), pProgramVariable.isDefinition()) == 0) {
-                return variable;
-            }
-        }
-        return null;
-    }
-
 
     private boolean checkInterProceduralUseCoverage(final Set<InterProceduralMatch> pInterProceduralMatches,
                                                     final ProgramVariable pUsage) {

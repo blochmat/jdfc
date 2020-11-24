@@ -31,9 +31,9 @@ public interface CFG {
     NavigableMap<Integer, CFGNode> getNodes();
 
     /**
-     * Returns the {@link LocalVariableTable} of this method.
+     * Returns a local variable table representation of this method.
      *
-     * @return The {@link LocalVariableTable}
+     * @return Map containing all local variables of a method
      */
     Map<Integer, LocalVariable> getLocalVariableTable();
 

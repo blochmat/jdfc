@@ -3,7 +3,6 @@ package com.jdfc.core.analysis.ifg;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
@@ -15,13 +14,11 @@ import static org.objectweb.asm.Opcodes.ASM5;
 
 public class CFGEdgeAnalyzationVisitor extends MethodVisitor {
 
-    private final String owner;
     private final MethodNode methodNode;
     private final Multimap<Integer, Integer> edges;
 
-    CFGEdgeAnalyzationVisitor(final String pOwner, final MethodNode pMethodNode) {
+    CFGEdgeAnalyzationVisitor(final MethodNode pMethodNode) {
         super(ASM5);
-        owner = pOwner;
         methodNode = pMethodNode;
         edges = ArrayListMultimap.create();
     }

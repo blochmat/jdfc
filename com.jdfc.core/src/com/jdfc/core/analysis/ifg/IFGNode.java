@@ -55,10 +55,6 @@ public class IFGNode extends CFGNode{
         return lineNumber;
     }
 
-    public ProgramVariable getMethodCaller() {
-        return methodCaller;
-    }
-
     public void setupMethodRelation(CFG pRelatedMethod) {
         this.relatedCFG = pRelatedMethod;
         if(pRelatedMethod.getNodes().isEmpty()) {

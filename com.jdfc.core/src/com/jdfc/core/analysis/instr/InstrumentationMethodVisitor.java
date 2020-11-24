@@ -23,12 +23,6 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     }
 
     @Override
-    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        super.visitFieldInsn(opcode, owner, name, descriptor);
-        insertInstanceVariableEntryCreation(opcode, owner, name, descriptor);
-    }
-
-    @Override
     public void visitIincInsn(int var, int increment) {
         super.visitIincInsn(var, increment);
         insertLocalVariableEntryCreation(ISTORE, var);
@@ -52,32 +46,5 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         "Ljava/lang/String;" +
                         "IIII)V",
                 false);
-    }
-
-    private void insertInstanceVariableEntryCreation(final int pOpcode,
-                                                     final String pOwner,
-                                                     final String pName,
-                                                     final String pDescriptor) {
-        if (isInstrumentationRequired(pName)) {
-            mv.visitLdcInsn(classVisitor.classNode.name);
-            mv.visitLdcInsn(pOwner);
-            mv.visitLdcInsn(internalMethodName);
-            mv.visitLdcInsn(pName);
-            mv.visitLdcInsn(pDescriptor);
-            mv.visitLdcInsn(currentInstructionIndex);
-            mv.visitLdcInsn(currentLineNumber);
-            mv.visitLdcInsn(pOpcode);
-            mv.visitMethodInsn(
-                    Opcodes.INVOKESTATIC,
-                    Type.getInternalName(CoverageDataStore.class),
-                    "invokeCoverageTracker",
-                    "(Ljava/lang/String;" +
-                            "Ljava/lang/String;" +
-                            "Ljava/lang/String;" +
-                            "Ljava/lang/String;" +
-                            "Ljava/lang/String;" +
-                            "III)V",
-                    false);
-        }
     }
 }

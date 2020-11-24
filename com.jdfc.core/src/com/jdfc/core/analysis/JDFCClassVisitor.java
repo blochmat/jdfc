@@ -1,6 +1,5 @@
 package com.jdfc.core.analysis;
 
-import com.google.common.collect.Maps;
 import com.jdfc.core.analysis.data.ClassExecutionData;
 import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import org.objectweb.asm.ClassVisitor;
@@ -79,9 +78,9 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
 
     /**
      * Returns the information of the local variable tables for each method in a map of method name
-     * and {@link LocalVariableTable}.
+     * and a respresentation of the local variable table.
      *
-     * @return A map of method name to {@link LocalVariableTable}
+     * @return A map of method name to a map representing a local variable table
      */
     public Map<String, Map<Integer, LocalVariable>> getLocalVariableTables() {
         return localVariableTables;

@@ -9,7 +9,6 @@ import org.objectweb.asm.tree.*;
 import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
 
 public abstract class JDFCMethodVisitor extends MethodVisitor {
 
@@ -55,7 +54,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitCode() {
-        //System.out.printf("[DEBUG] visitCode %s %s\n", classVisitor.classNode.name, methodNode.name);
         super.visitCode();
     }
 
@@ -76,7 +74,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         updateCurrentNode();
-        //System.out.printf("[DEBUG] visitFrame %s %s\n", currentInstructionIndex, type);
         super.visitFrame(type, numLocal, local, numStack, stack);
     }
 
@@ -84,7 +81,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitInsn(int opcode) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitInsn(opcode);
     }
 
@@ -92,7 +88,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitIntInsn(int opcode, int operand) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitIntInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitIntInsn(opcode, operand);
     }
 
@@ -100,7 +95,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitVarInsn(int opcode, int var) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitVarInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitVarInsn(opcode, var);
     }
 
@@ -108,14 +102,12 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitTypeInsn(int opcode, String type) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitTypeInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitTypeInsn(opcode, type);
     }
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         updateCurrentNode();
-        //System.out.printf("[DEBUG] visitFieldInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
@@ -123,7 +115,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitMethodInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
 
@@ -131,7 +122,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitInvokeDynamicInsn %s %s\n", currentInstructionIndex, INVOKEDYNAMIC);
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     }
 
@@ -139,7 +129,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitJumpInsn(int opcode, Label label) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitJumpInsn %s %s\n", currentInstructionIndex, opcode);
         super.visitJumpInsn(opcode, label);
     }
 
@@ -147,7 +136,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitLdcInsn(Object value) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitLdcInsn %s %s\n", currentInstructionIndex, LDC);
         super.visitLdcInsn(value);
     }
 
@@ -155,7 +143,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitIincInsn(int var, int increment) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitIincInsn %s %s \n", currentInstructionIndex, IINC);
         super.visitIincInsn(var, increment);
     }
 
@@ -163,7 +150,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitTableSwitchInsn %s %s\n", currentInstructionIndex, TABLESWITCH);
         super.visitTableSwitchInsn(min, max, dflt, labels);
     }
 
@@ -171,7 +157,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitLookupSwitchInsn %s %s\n ", currentInstructionIndex, LOOKUPSWITCH);
         super.visitLookupSwitchInsn(dflt, keys, labels);
     }
 
@@ -179,7 +164,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
         updateCurrentNode();
         visitFrameNew();
-        //System.out.printf("[DEBUG] visitMultiANewArrayInsn %s %s\n", currentInstructionIndex, MULTIANEWARRAY);
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
     }
 
@@ -249,7 +233,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
             case FSTORE:
             case DSTORE:
             case ASTORE:
-            case PUTFIELD:
                 return true;
             default:
                 return false;

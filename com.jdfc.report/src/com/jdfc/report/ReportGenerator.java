@@ -76,8 +76,6 @@ public class ReportGenerator {
         pFactory.createIndex(packageExecutionDataNodeMap, pReportDir);
     }
 
-    // TODO: Does not need to be recursive.
-    //  Get names of children of jdfc-report -> replace . with / -> search for ExecutionData via findExecutionData
     private Map<String, ExecutionDataNode<ExecutionData>> getClassContainingPackagesRecursive(
             final ExecutionDataNode<ExecutionData> pNode,
             final String pPackageName) {

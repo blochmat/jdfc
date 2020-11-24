@@ -23,6 +23,28 @@ public class ExecutionDataNode<T extends ExecutionData> {
         return children;
     }
 
+    public void setParent(ExecutionDataNode<T> parent) {
+        this.parent = parent;
+    }
+
+    public ExecutionDataNode<T> getParent() {
+        return parent;
+    }
+
+    public T getData() {
+        return this.data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+
+
+    /**
+     * Iterating the data tree structure until the passed path has length = 1.
+     * @param path path leading to the required data node
+     * @return node found by the path passed or null
+     */
     public ExecutionDataNode<T> getChildDataRecursive(ArrayList<String> path) {
         if (path.size() == 1) {
             if(this.getChildren() != null && !this.children.isEmpty()) {
@@ -37,14 +59,12 @@ public class ExecutionDataNode<T extends ExecutionData> {
         }
     }
 
-    public void setParent(ExecutionDataNode<T> parent) {
-        this.parent = parent;
-    }
-
-    public ExecutionDataNode<T> getParent() {
-        return parent;
-    }
-
+    /**
+     * Adds new child to a node
+     *
+     * @param key key identifying child
+     * @param data data stored by the key
+     */
     public void addChild(String key, T data) {
         ExecutionDataNode<T> child = new ExecutionDataNode<T>(data);
         child.setParent(this);
@@ -56,39 +76,26 @@ public class ExecutionDataNode<T extends ExecutionData> {
         this.children.put(key, child);
     }
 
-    public T getData() {
-        return this.data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-
+    /**
+     *
+     * @return true if parent == null
+     */
     public boolean isRoot() {
         return (this.parent == null);
     }
 
+    /**
+     *
+     * @return true if children.size() == 0
+     */
     public boolean isLeaf() {
         return this.children.size() == 0;
     }
 
-    public void removeParent() {
-        this.parent = null;
-    }
-
-    public boolean hasChild(String path) {
-        if (path == null) {
-            return false;
-        }
-        String[] pathArray = path.split("/");
-        if (pathArray.length > 1) {
-            return hasChild(String.join("/", pathArray)) && children.containsKey(pathArray[0]);
-        } else {
-            return children.containsKey(pathArray[0]);
-        }
-    }
-
-    public void aggregateDataToRoot() {
+    /**
+     * Calculation of coverage values from all children to root node
+     */
+    public void aggregateDataToRootRecursive() {
         if (!this.isRoot()) {
             int newTotal = 0;
             int newCovered = 0;
@@ -103,7 +110,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
             parentData.setTotal(newTotal);
             parentData.setCovered(newCovered);
             parentData.setMethodCount(newMethodCount);
-            this.parent.aggregateDataToRoot();
+            this.parent.aggregateDataToRootRecursive();
         }
     }
 }

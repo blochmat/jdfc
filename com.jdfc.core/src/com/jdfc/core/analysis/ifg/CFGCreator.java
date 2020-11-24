@@ -1,9 +1,7 @@
 package com.jdfc.core.analysis.ifg;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.jdfc.core.analysis.data.ClassExecutionData;
-import com.jdfc.core.analysis.ifg.data.InstanceVariableClassVisitor;
 import com.jdfc.core.analysis.ifg.data.LocalVariable;
 import com.jdfc.core.analysis.ifg.data.LocalVariableClassVisitor;
 import org.objectweb.asm.ClassReader;
@@ -41,7 +39,7 @@ public class CFGCreator {
      *
      * @param pClassReader The class reader instance on the class
      * @param pClassNode   An empty class node to start the analysis with
-     * @return A map of method name and {@link CFG}
+     *
      */
     public static void createCFGsForClass(final ClassReader pClassReader,
                                                       final ClassNode pClassNode,
@@ -59,19 +57,6 @@ public class CFGCreator {
 
         final Map<String, Map<Integer, LocalVariable>> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
-
-        if(pClassNode.name.equals("org/apache/commons/math3/fitting/leastsquares/LevenbergMarquardtOptimizer")) {
-//            System.out.println("EKDEKD");
-//            for(Map.Entry<String, Map<Integer, LocalVariable>> entry : localVariableTables.entrySet()) {
-//                System.out.println(entry.getKey());
-//                System.out.println(" ");
-//            }
-        }
-
-        // Get instance variable information
-        final InstanceVariableClassVisitor instanceVariableVisitor =
-                new InstanceVariableClassVisitor(pClassNode, pClassExecutionData, localVariableTables);
-        pClassReader.accept(instanceVariableVisitor, 0);
 
         // Create method cfgs
         final Map<String, CFG> methodCFGs = new HashMap<>();

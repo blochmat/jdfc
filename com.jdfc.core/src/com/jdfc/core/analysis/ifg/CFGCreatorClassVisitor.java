@@ -39,12 +39,11 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
         if(classNode.access != Opcodes.ACC_INTERFACE) {
             final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
-            final Type[] parameterTypes = Type.getArgumentTypes(pDescriptor);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
 
             if (methodNode != null && isInstrumentationRequired(pName)) {
                 return new CFGCreatorMethodVisitor(this, mv, methodNode,
-                        internalMethodName, methodCFGs, localVariableTable, parameterTypes);
+                        internalMethodName, methodCFGs, localVariableTable);
             }
         }
 

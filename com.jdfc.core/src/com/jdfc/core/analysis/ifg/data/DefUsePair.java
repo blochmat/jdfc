@@ -4,8 +4,8 @@ import java.util.Objects;
 
 public class DefUsePair {
 
-    private ProgramVariable definition;
-    private ProgramVariable usage;
+    private final ProgramVariable definition;
+    private final ProgramVariable usage;
 
     public DefUsePair(ProgramVariable definition, ProgramVariable usage) {
         this.definition = definition;
@@ -18,10 +18,6 @@ public class DefUsePair {
 
     public ProgramVariable getUsage() {
         return usage;
-    }
-
-    public void setDefinition(ProgramVariable definition) {
-        this.definition = definition;
     }
 
     @Override

@@ -11,7 +11,8 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * A storage singleton for package, class and finally method {@link CFG}s.
+ * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
+ * instance represent the project structure of the project under test
  */
 public class CoverageDataStore {
 
@@ -48,18 +49,6 @@ public class CoverageDataStore {
                                              final int pOpcode) {
         CoverageTracker.getInstance().addLocalVarCoveredEntry(pClassName, pInternalMethodName, pVarIndex, pInsnIndex,
                 pLineNumber, pOpcode);
-    }
-
-    public static void invokeCoverageTracker(final String pClassName,
-                                             final String pOwner,
-                                             final String pInternalMethodName,
-                                             final String pVarName,
-                                             final String pVarDesc,
-                                             final int pInsnIndex,
-                                             final int pLineNumber,
-                                             final int pOpcode) {
-        CoverageTracker.getInstance().addInstanceVarCoveredEntry(pClassName, pOwner, pInternalMethodName, pVarName, pVarDesc,
-                pInsnIndex, pLineNumber, pOpcode);
     }
 
     public void exportCoverageData() {
