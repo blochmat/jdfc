@@ -314,8 +314,15 @@ public class ClassExecutionData extends ExecutionData {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
 
-                boolean isDefCovered = variablesCovered.get(methodName).contains(def);
-                boolean isUseCovered = variablesCovered.get(methodName).contains(use);
+                boolean isDefCovered;
+                boolean isUseCovered;
+                if(variablesCovered.get(methodName) != null) {
+                    isDefCovered = variablesCovered.get(methodName).contains(def);
+                    isUseCovered = variablesCovered.get(methodName).contains(use);
+                } else {
+                    isDefCovered = false;
+                    isUseCovered = false;
+                }
 
                 Set<InterProceduralMatch> interProceduralMatches = findInterProceduralMatches(def, methodName);
                 if (!interProceduralMatches.isEmpty() && !isUseCovered) {

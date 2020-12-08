@@ -12,6 +12,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * The {@code HTMLFactory} creates all files contained in the jdfc-report directory.
@@ -242,6 +243,7 @@ public class HTMLFactory {
         List<String> specialChars = extractChars(pLineString, "\\w+\\b");
         List<String> words = extractChars(pLineString, "\\W+");
         List<String> workList = createWorkList(words, specialChars);
+
         while (!workList.isEmpty()) {
             String item = workList.get(0);
             if (item.contains("*") || item.contains("/**")) {
@@ -250,8 +252,7 @@ public class HTMLFactory {
             }
             int sameWordsCount = (int) workList.stream().filter(x -> x.equals(item)).count();
             workList.remove(0);
-
-
+            
             Pattern specCharPattern = Pattern.compile("\\W+");
             Matcher specCharMatcher = specCharPattern.matcher(item);
 
@@ -405,12 +406,15 @@ public class HTMLFactory {
                 workListSpec.remove(0);
 
             } else {
+                if(!workListWords.isEmpty()) {
+                    result.add(workListWords.get(0));
+                    workListWords.remove(0);
+                }
+
                 if (!workListSpec.isEmpty()) {
                     result.add(workListSpec.get(0));
                     workListSpec.remove(0);
                 }
-                result.add(workListWords.get(0));
-                workListWords.remove(0);
             }
         }
 
@@ -926,20 +930,26 @@ public class HTMLFactory {
                                                   final int pLineNumber,
                                                   final String pName) {
         List<ProgramVariable> result = new ArrayList<>();
-        for (ProgramVariable element : pData.getVariablesCovered().get(pMethodName)) {
-            if (element.getLineNumber() == pLineNumber
-                    && element.getName().equals(pName)
-                    && !result.contains(element)) {
-                result.add(element);
+        if(pData.getVariablesCovered().get(pMethodName) != null) {
+            for (ProgramVariable element : pData.getVariablesCovered().get(pMethodName)) {
+                if (element.getLineNumber() == pLineNumber
+                        && element.getName().equals(pName)
+                        && !result.contains(element)) {
+                    result.add(element);
+                }
             }
         }
-        for (ProgramVariable element : pData.getVariablesUncovered().get(pMethodName)) {
-            if (element.getLineNumber() == pLineNumber
-                    && element.getName().equals(pName)
-                    && !result.contains(element)) {
-                result.add(element);
+
+        if(pData.getVariablesUncovered().get(pMethodName) != null) {
+            for (ProgramVariable element : pData.getVariablesUncovered().get(pMethodName)) {
+                if (element.getLineNumber() == pLineNumber
+                        && element.getName().equals(pName)
+                        && !result.contains(element)) {
+                    result.add(element);
+                }
             }
         }
+
         return result;
     }
 
