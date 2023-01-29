@@ -30,7 +30,9 @@ public class HTMLElement {
     }
 
     static HTMLElement html() {
-        String htmlTag = "<!DOCTYPE html><html%s>%s</html>";
+        String htmlTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" +
+                "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\"%s>%s</html>";
         return new HTMLElement(htmlTag);
     }
 
@@ -121,11 +123,6 @@ public class HTMLElement {
         return new HTMLElement(tdTag, String.valueOf(pNumber));
     }
 
-    static HTMLElement span() {
-        String spanTag = "<span%s>%s</span>";
-        return new HTMLElement(spanTag);
-    }
-
     static HTMLElement span(final String pText) {
         String spanTag = "<span%s>%s</span>";
         return new HTMLElement(spanTag, pText);
@@ -139,6 +136,11 @@ public class HTMLElement {
     static HTMLElement pre(final String pText) {
         String preTag = "<pre%s>%s</pre>";
         return new HTMLElement(preTag, pText);
+    }
+
+    static HTMLElement button(final String pText) {
+        String buttonTag = "<button%s>%s</button>";
+        return new HTMLElement(buttonTag, pText);
     }
 
     static HTMLElement noTag(final String pText) {

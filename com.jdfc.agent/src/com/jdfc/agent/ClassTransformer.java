@@ -1,28 +1,27 @@
 package com.jdfc.agent;
 
-import com.jdfc.core.analysis.CoverageDataStore;
-import com.jdfc.core.analysis.instr.ClassInstrument;
+import com.jdfc.core.analysis.data.CoverageDataStore;
+import com.jdfc.core.analysis.JDFCInstrument;
 import org.objectweb.asm.ClassReader;
 
 import java.lang.instrument.ClassFileTransformer;
-import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
 
 public class ClassTransformer implements ClassFileTransformer {
 
-    private final ClassInstrument classInstrument;
+    private final JDFCInstrument JDFCInstrument;
 
     public ClassTransformer() {
-        this.classInstrument = new ClassInstrument();
+        this.JDFCInstrument = new JDFCInstrument();
     }
 
     @Override
-    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
         if (!CoverageDataStore.getInstance().getClassList().contains(className)) {
             return classfileBuffer;
         }
         final ClassReader cr = new ClassReader(classfileBuffer);
-        return classInstrument.instrument(cr);
+        return JDFCInstrument.instrument(cr);
     }
 }

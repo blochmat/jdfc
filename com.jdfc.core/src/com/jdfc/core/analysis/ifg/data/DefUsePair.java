@@ -1,11 +1,11 @@
-package com.jdfc.core.analysis.cfg;
+package com.jdfc.core.analysis.ifg.data;
 
 import java.util.Objects;
 
 public class DefUsePair {
 
-    private ProgramVariable definition;
-    private ProgramVariable usage;
+    private final ProgramVariable definition;
+    private final ProgramVariable usage;
 
     public DefUsePair(ProgramVariable definition, ProgramVariable usage) {
         this.definition = definition;
@@ -35,6 +35,6 @@ public class DefUsePair {
 
     @Override
     public String toString() {
-        return String.format("(%s, %s)\n", definition.toString(), usage.toString());
+        return String.format("(%s, %s)", definition.toString(), usage.toString());
     }
 }

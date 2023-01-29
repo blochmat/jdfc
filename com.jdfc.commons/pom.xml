@@ -14,13 +14,6 @@
 
     <name>JDFC :: Commons</name>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.jdom</groupId>
-            <artifactId>jdom2</artifactId>
-        </dependency>
-    </dependencies>
-
     <build>
         <sourceDirectory>src</sourceDirectory>
     </build>

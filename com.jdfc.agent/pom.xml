@@ -77,29 +77,6 @@
           </execution>
         </executions>
       </plugin>
-
-<!--      <plugin>-->
-<!--        <groupId>org.codehaus.mojo</groupId>-->
-<!--        <artifactId>build-helper-maven-plugin</artifactId>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <id>attach-artifacts</id>-->
-<!--            <phase>pre-integration-test</phase>-->
-<!--            <goals>-->
-<!--              <goal>attach-artifact</goal>-->
-<!--            </goals>-->
-<!--            <configuration>-->
-<!--              <artifacts>-->
-<!--                <artifact>-->
-<!--                  <file>${project.build.directory}/classes/jdfcagent.jar</file>-->
-<!--                  <type>jar</type>-->
-<!--                  <classifier>runtime</classifier>-->
-<!--                </artifact>-->
-<!--              </artifacts>-->
-<!--            </configuration>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
     </plugins>
   </build>
 </project>

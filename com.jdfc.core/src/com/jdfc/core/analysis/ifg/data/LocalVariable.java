@@ -1,4 +1,4 @@
-package com.jdfc.core.analysis.cfg;
+package com.jdfc.core.analysis.ifg.data;
 
 import java.util.Objects;
 
@@ -18,20 +18,12 @@ public class LocalVariable {
         index = pIndex;
     }
 
-    public int getIndex() {
-        return index;
-    }
-
     public String getDescriptor() {
         return descriptor;
     }
 
     public String getName() {
         return name;
-    }
-
-    public String getSignature() {
-        return signature;
     }
 
     /** {@inheritDoc} */
@@ -53,7 +45,7 @@ public class LocalVariable {
     /** {@inheritDoc} */
     @Override
     public int hashCode() {
-        return Objects.hash(name, descriptor, signature, index);
+        return Objects.hash(name, index);
     }
 
     /** {@inheritDoc} */

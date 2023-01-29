@@ -1,3 +1,11 @@
+window.onload = init
+
+function init() {
+    const elements = document.getElementsByClassName("defaultOpen");
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].click();
+    }
+}
 function sortTables() {
     var tables, body, rows, switching, i, x, y, shouldSwitch;
     tables = document.getElementsByTagName("table");
@@ -38,33 +46,32 @@ function sortTables() {
 function compare(a, b) {
     return a - b;
 }
-    // switching = true;
-    // /* Make a loop that will continue until
-    // no switching has been done: */
-    // while (switching) {
-    //     // Start by saying: no switching is done:
-    //     switching = false;
-    //     rows = table.rows;
-    //     /* Loop through all table rows (except the
-    //     first, which contains table headers): */
-    //     for (i = 1; i < (rows.length - 1); i++) {
-    //         // Start by saying there should be no switching:
-    //         shouldSwitch = false;
-    //         /* Get the two elements you want to compare,
-    //         one from current row and one from the next: */
-    //         x = rows[i].getElementsByTagName("TD")[0];
-    //         y = rows[i + 1].getElementsByTagName("TD")[0];
-    //         // Check if the two rows should switch place:
-    //         if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-    //             // If so, mark as a switch and break the loop:
-    //             shouldSwitch = true;
-    //             break;
-    //         }
-    //     }
-    //     if (shouldSwitch) {
-    //         /* If a switch has been marked, make the switch
-    //         and mark that a switch has been done: */
-    //         rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-    //         switching = true;
-    //     }
-    // }
+
+function openTab(element) {
+    let i, otherTabButtonId, otherTabButton, tabElements, otherTabElements;
+
+    if(element.id.includes("DefTabButton")) {
+        otherTabButtonId = element.id.replace("DefTabButton", "UseTabButton");
+        otherTabButton = document.getElementById(otherTabButtonId);
+    } else {
+        otherTabButtonId = element.id.replace("UseTabButton", "DefTabButton");
+        otherTabButton = document.getElementById(otherTabButtonId);
+    }
+
+    element.className += " active";
+    let tabElementClass = element.id.replace("Button", "")
+    tabElements = document.getElementsByClassName(tabElementClass);
+    console.log(tabElements);
+    for (i = 0; i < tabElements.length; i++) {
+        tabElements[i].style.display = "flex";
+    }
+
+    if(otherTabButton != null) {
+        otherTabButton.className =  otherTabButton.className.replace(" active", "");
+        let otherTabElementClass = otherTabButtonId.replace("Button", "")
+        otherTabElements = document.getElementsByClassName(otherTabElementClass);
+        for (i = 0; i < otherTabElements.length; i++) {
+            otherTabElements[i].style.display = "none";
+        }
+    }
+}
