@@ -128,19 +128,14 @@ public class CoverageDataImport {
                         break;
                     case "defUsePair":
                         NamedNodeMap defUsePairAttr = node.getAttributes();
-                        if (defUsePairAttr != null) {
-                            methodName = node.getParentNode().getParentNode().getAttributes().getNamedItem("name").getNodeValue();
-                            collectDefUsePairData(methodName, defUsePairAttr, classExecutionData);
-                            break;
-                        }
+                        methodName = node.getParentNode().getParentNode().getAttributes().getNamedItem("name").getNodeValue();
+                        collectDefUsePairData(methodName, defUsePairAttr, classExecutionData);
+                        break;
                     case "programVariable":
                         NamedNodeMap programVarAttr = node.getAttributes();
-                        if (programVarAttr != null) {
-                            methodName = node.getParentNode().getParentNode().getAttributes().getNamedItem("name").getNodeValue();
-                            collectProgramVariableData(methodName, programVarAttr, classExecutionData);
-                            break;
-
-                        }
+                        methodName = node.getParentNode().getParentNode().getAttributes().getNamedItem("name").getNodeValue();
+                        collectProgramVariableData(methodName, programVarAttr, classExecutionData);
+                        break;
                     default:
                         throw new IllegalArgumentException("Invalid Tag in XML! " + node.getNodeName());
                 }

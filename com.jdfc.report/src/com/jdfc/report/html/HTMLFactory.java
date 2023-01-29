@@ -922,10 +922,14 @@ public class HTMLFactory {
             List<ProgramVariable> possibleVariables = getPossibleVars(pData, pMethodName, pLineNumber, pName);
             if (!possibleVariables.isEmpty()) {
                 if (pIsDefinition) {
-                    possibleVariables = possibleVariables.stream()
-                            .filter(x -> x.isDefinition() && x.getName().equals(pName)).collect(Collectors.toList());
-                    possibleVariables.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
-                    return possibleVariables.get(0);
+                    List<ProgramVariable> defs = possibleVariables.stream()
+                            .filter(x -> x.isDefinition() && x.getName().equals(pName))
+                            .sorted(Comparator.comparing(ProgramVariable::getInstructionIndex))
+                            .collect(Collectors.toList());
+                    if (defs.isEmpty()) {
+                        return null;
+                    }
+                    return defs.get(0);
                 }
                 possibleVariables.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
                 return possibleVariables.get(0);

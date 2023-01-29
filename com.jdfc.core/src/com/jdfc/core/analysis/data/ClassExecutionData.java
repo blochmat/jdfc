@@ -344,10 +344,13 @@ public class ClassExecutionData extends ExecutionData {
 
             for (Map.Entry<DefUsePair, Boolean> element : defUsePairsCovered.get(methodName).entrySet()) {
                 for (Map.Entry<DefUsePair, Boolean> compare : defUsePairsCovered.get(methodName).entrySet()) {
-                    boolean isDefNameEqual = element.getKey().getDefinition().getName().equals(compare.getKey().getDefinition().getName());
+                    boolean isDefNameEqual = element.getKey().getDefinition().getName()
+                            .equals(compare.getKey().getDefinition().getName());
                     boolean isUseEqual = element.getKey().getUsage().equals(compare.getKey().getUsage());
-                    boolean isElementDefIndexSmaller = element.getKey().getDefinition().getInstructionIndex() < compare.getKey().getDefinition().getInstructionIndex();
-                    boolean isElementUseIndexBiggerThanCompareDefIndex = element.getKey().getUsage().getInstructionIndex() > compare.getKey().getDefinition().getInstructionIndex();
+                    boolean isElementDefIndexSmaller = element.getKey().getDefinition().getInstructionIndex()
+                            < compare.getKey().getDefinition().getInstructionIndex();
+                    boolean isElementUseIndexBiggerThanCompareDefIndex = element.getKey().getUsage().getInstructionIndex()
+                            > compare.getKey().getDefinition().getInstructionIndex();
                     boolean isCompareCovered = compare.getValue();
                     if (isDefNameEqual && isUseEqual
                             && isElementDefIndexSmaller
