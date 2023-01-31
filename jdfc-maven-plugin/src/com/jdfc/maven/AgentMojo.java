@@ -29,8 +29,8 @@ public class AgentMojo extends AbstractJdfcMojo {
     protected void executeMojo()  {
         final String argLine = "argLine";
         final Artifact pluginArtifact = pluginArtifactMap.get("com.jdfc:jdfc-maven-plugin");
-        final File pluginJarFile = pluginArtifact.getFile();
         try {
+            final File pluginJarFile = copyJarFile(pluginArtifact.getFile());
             final File agentJarFile = extractAgentJarToTargetDir(pluginJarFile, AGENT_FILE_NAME, getProject().getBasedir());
             if (agentJarFile != null) {
                 final Properties projectProperties = getProject().getProperties();
@@ -45,10 +45,26 @@ public class AgentMojo extends AbstractJdfcMojo {
                     newValue = String.format("%s %s=%s", oldValue, agent, classesDir);
                 }
                 projectProperties.setProperty(argLine, newValue);
+                pluginJarFile.delete();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+    }
+
+    public File copyJarFile(File jarFile) throws IOException {
+        File copyJarFile = new File(getProject().getBasedir(), jarFile.getName());
+        FileOutputStream fileOutputStream = new FileOutputStream(copyJarFile);
+        FileInputStream fileInputStream = new FileInputStream(jarFile);
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = fileInputStream.read(buffer)) > 0) {
+            fileOutputStream.write(buffer, 0, length);
+        }
+        fileInputStream.close();
+        fileOutputStream.close();
+        return copyJarFile;
     }
 
     public File extractAgentJarToTargetDir(File jarFile, String fileName, File destDirectory) throws Exception {
