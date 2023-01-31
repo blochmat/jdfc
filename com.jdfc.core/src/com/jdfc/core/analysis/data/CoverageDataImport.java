@@ -1,4 +1,4 @@
-package com.jdfc.report;
+package com.jdfc.core.analysis.data;
 
 import com.jdfc.commons.data.ExecutionData;
 import com.jdfc.commons.data.ExecutionDataNode;
@@ -17,6 +17,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -79,8 +80,11 @@ public class CoverageDataImport {
                 ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
                 classExecutionData.computeCoverageForClass();
                 classExecutionDataNode.aggregateDataToRootRecursive();
+                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (ParserConfigurationException | TransformerException e) {
+                throw new RuntimeException(e);
             }
         }
     }

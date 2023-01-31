@@ -1,6 +1,6 @@
 package com.jdfc.maven;
 
-import com.jdfc.report.CoverageDataImport;
+import com.jdfc.core.analysis.data.CoverageDataImport;
 import com.jdfc.report.ReportGenerator;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
