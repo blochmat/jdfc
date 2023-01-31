@@ -80,9 +80,9 @@ public class CoverageDataExport {
             match.setAttribute("methodName", element.getMethodName());
             match.setAttribute("callSiteMethodName", element.getCallSiteMethodName());
             interProceduralMatches.appendChild(match);
-            Element definition = creatProgramVariable(pDoc, element.getDefinition());
+            Element definition = createProgramVariable(pDoc, element.getDefinition());
             match.appendChild(definition);
-            Element callSiteDefinition = creatProgramVariable(pDoc, element.getCallSiteDefinition());
+            Element callSiteDefinition = createProgramVariable(pDoc, element.getCallSiteDefinition());
             match.appendChild(callSiteDefinition);
         }
         return interProceduralMatches;
@@ -131,13 +131,13 @@ public class CoverageDataExport {
     private static Element createVariablesCovered(Document pDoc, Set<ProgramVariable> pProgramVarsCovered) {
         Element variablesCoveredList = pDoc.createElement("variablesCoveredList");
         for (ProgramVariable element : pProgramVarsCovered) {
-            Element programVariableTag = creatProgramVariable(pDoc, element);
+            Element programVariableTag = createProgramVariable(pDoc, element);
             variablesCoveredList.appendChild(programVariableTag);
         }
         return variablesCoveredList;
     }
 
-    private static Element creatProgramVariable(Document pDoc, ProgramVariable pProgramVariable) {
+    private static Element createProgramVariable(Document pDoc, ProgramVariable pProgramVariable) {
         Element programVariable = pDoc.createElement("programVariable");
         programVariable.setAttribute("owner", pProgramVariable.getOwner());
         programVariable.setAttribute("name", pProgramVariable.getName());

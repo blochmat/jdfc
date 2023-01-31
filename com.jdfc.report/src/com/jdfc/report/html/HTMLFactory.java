@@ -287,8 +287,10 @@ public class HTMLFactory {
                         divTagLine.getContent().add(
                                 createVariableInformation(pData, pClassFile, pClassName, methodName,
                                         defUsePairsCovered, programVariable, backgroundColor));
-                        pData.getVariablesCovered().get(methodName).remove(programVariable);
-                        pData.getVariablesUncovered().get(methodName).remove(programVariable);
+                        if(pData.getVariablesCovered().get(methodName) != null) {
+                            pData.getVariablesCovered().get(methodName).remove(programVariable);
+                            pData.getVariablesUncovered().get(methodName).remove(programVariable);
+                        }
                     }
                 }
             }
@@ -1004,7 +1006,8 @@ public class HTMLFactory {
     }
 
     private boolean isVarCovered(ClassExecutionData pData, String pMethodName, ProgramVariable pVariable) {
-        return pData.getVariablesCovered().get(pMethodName).contains(pVariable);
+        return pData.getVariablesCovered().get(pMethodName)!= null
+                && pData.getVariablesCovered().get(pMethodName).contains(pVariable);
     }
 
     private boolean isDefinition(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
