@@ -44,16 +44,16 @@
     </dependency>
     <!-- JDFC -->
 <!--    <dependency>-->
-<!--      <groupId>${project.groupId}</groupId>-->
+<!--      <groupId>com.jdfc</groupId>-->
 <!--      <artifactId>com.jdfc.agent</artifactId>-->
 <!--      <classifier>runtime</classifier>-->
 <!--    </dependency>-->
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>com.jdfc</groupId>
       <artifactId>com.jdfc.core</artifactId>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
+      <groupId>com.jdfc</groupId>
       <artifactId>com.jdfc.report</artifactId>
     </dependency>
   </dependencies>
@@ -66,81 +66,123 @@
         <directory>META-INF</directory>
         <targetPath>META-INF</targetPath>
       </resource>
-      <resource>
-        <directory>${project.basedir}/../com.jdfc.agent</directory>
-        <includes>
-          <include>target/com.jdfc.agent-1.0-SNAPSHOT-runtime.jar</include>
-        </includes>
-      </resource>
+<!--      <resource>-->
+<!--        <directory>${project.basedir}/../com.jdfc.agent/target</directory>-->
+<!--        <includes>-->
+<!--          <include>com.jdfc.agent-1.0-SNAPSHOT-runtime.jar</include>-->
+<!--        </includes>-->
+<!--      </resource>-->
     </resources>
 
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-descriptor</id>
-            <phase>process-classes</phase>
-          </execution>
-          <execution>
-            <id>help-goal</id>
-            <goals>
-              <goal>helpmojo</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>package</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-              </descriptorRefs>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+<!--    <plugins>-->
 <!--      <plugin>-->
 <!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-dependency-plugin</artifactId>-->
+<!--        <artifactId>maven-shade-plugin</artifactId>-->
 <!--        <executions>-->
 <!--          <execution>-->
-<!--            <id>copy-dependencies</id>-->
-<!--            <phase>prepare-package</phase>-->
+<!--            <phase>package</phase>-->
 <!--            <goals>-->
-<!--              <goal>copy-dependencies</goal>-->
+<!--              <goal>shade</goal>-->
 <!--            </goals>-->
 <!--            <configuration>-->
-<!--              <outputDirectory>-->
-<!--                ${project.build.directory}/libs-->
-<!--              </outputDirectory>-->
+<!--              <shadedClassifierName>shaded</shadedClassifierName>-->
+<!--              <shadedArtifactAttached>true</shadedArtifactAttached>-->
+<!--              <transformers>-->
+<!--                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+
+<!--                </transformer>-->
+<!--              </transformers>-->
 <!--            </configuration>-->
 <!--          </execution>-->
 <!--        </executions>-->
 <!--      </plugin>-->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>9</source>
-          <target>9</target>
-        </configuration>
-      </plugin>
-    </plugins>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-plugin-plugin</artifactId>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <id>default-descriptor</id>-->
+<!--            <phase>process-classes</phase>-->
+<!--          </execution>-->
+<!--          <execution>-->
+<!--            <id>help-goal</id>-->
+<!--            <goals>-->
+<!--              <goal>helpmojo</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--          <execution>-->
+<!--            <id>report</id>-->
+<!--            <phase>package</phase>-->
+<!--            <goals>-->
+<!--              <goal>report</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-compiler-plugin</artifactId>-->
+<!--        <configuration>-->
+<!--          <source>9</source>-->
+<!--          <target>9</target>-->
+<!--        </configuration>-->
+<!--      </plugin>-->
+
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-shade-plugin</artifactId>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <phase>package</phase>-->
+<!--            <goals>-->
+<!--              <goal>shade</goal>-->
+<!--            </goals>-->
+<!--            <configuration>-->
+<!--              <shadedClassifierName>shaded</shadedClassifierName>-->
+<!--              <shadedArtifactAttached>true</shadedArtifactAttached>-->
+<!--              <minimizeJar>true</minimizeJar>-->
+<!--              <relocations>-->
+<!--                <relocation>-->
+<!--                  <pattern>jdfc-maven-plugin</pattern>-->
+<!--                  <shadedPattern>${jdfc.runtime.package.name}</shadedPattern>-->
+<!--                </relocation>-->
+<!--                <relocation>-->
+<!--                  <pattern>com.jdfc.agent</pattern>-->
+<!--                  <shadedPattern>${jdfc.runtime.package.name}.agent</shadedPattern>-->
+<!--                </relocation>-->
+<!--                <relocation>-->
+<!--                  <pattern>com.jdfc.core</pattern>-->
+<!--                  <shadedPattern>${jdfc.runtime.package.name}.core</shadedPattern>-->
+<!--                </relocation>-->
+<!--                <relocation>-->
+<!--                  <pattern>com.jdfc.report</pattern>-->
+<!--                  <shadedPattern>${jdfc.runtime.package.name}.report</shadedPattern>-->
+<!--                </relocation>-->
+<!--              </relocations>-->
+<!--              <filters>-->
+<!--                <filter>-->
+<!--                  <artifact>org.ow2.asm:*</artifact>-->
+<!--                  <excludes>-->
+<!--                    <exclude>module-info.class</exclude>-->
+<!--                  </excludes>-->
+<!--                </filter>-->
+<!--              </filters>-->
+<!--              <transformers>-->
+<!--                <transformer-->
+<!--                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+<!--                  <manifestEntries>-->
+<!--                    <Premain-Class>${jdfc.runtime.package.name}.Agent</Premain-Class>-->
+<!--                    <Automatic-Module-Name>${project.artifactId}</Automatic-Module-Name>-->
+<!--                    <Implementation-Title>${project.description}</Implementation-Title>-->
+<!--                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>-->
+<!--                    <Implementation-Version>${project.version}</Implementation-Version>-->
+<!--                  </manifestEntries>-->
+<!--                </transformer>-->
+<!--              </transformers>-->
+<!--            </configuration>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
+<!--    </plugins>-->
   </build>
 </project>

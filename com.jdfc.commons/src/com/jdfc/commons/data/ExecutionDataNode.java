@@ -55,7 +55,11 @@ public class ExecutionDataNode<T extends ExecutionData> {
         } else {
             ExecutionDataNode<T> child = this.getChildren().get(path.get(0));
             path.remove(0);
-            return child.getChildDataRecursive(path);
+            if (child != null) {
+                return child.getChildDataRecursive(path);
+            } else {
+                return null;
+            }
         }
     }
 

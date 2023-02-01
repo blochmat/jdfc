@@ -23,15 +23,22 @@ public class AgentMojo extends AbstractJdfcMojo {
     @Parameter(property = "plugin.artifactMap", required = true, readonly = true)
     private Map<String, Artifact> pluginArtifactMap;
 
-    static final String AGENT_FILE_NAME = "target/com.jdfc.agent-1.0-SNAPSHOT-runtime.jar";
+    @Parameter(defaultValue = "${project.build.directory}")
+    private String targetDirString;
+
+    static final String AGENT_FILE_NAME = "com.jdfc.agent-1.0-SNAPSHOT-runtime.jar";
 
     @Override
     protected void executeMojo()  {
         final String argLine = "argLine";
         final Artifact pluginArtifact = pluginArtifactMap.get("com.jdfc:jdfc-maven-plugin");
         try {
+            final File targetDir = new File(targetDirString);
+            if (!targetDir.exists()) {
+                targetDir.mkdirs();
+            }
             final File pluginJarFile = copyJarFile(pluginArtifact.getFile());
-            final File agentJarFile = extractAgentJarToTargetDir(pluginJarFile, AGENT_FILE_NAME, getProject().getBasedir());
+            final File agentJarFile = extractAgentJarToTargetDir(pluginJarFile, AGENT_FILE_NAME, targetDir);
             if (agentJarFile != null) {
                 final Properties projectProperties = getProject().getProperties();
                 final String oldValue = projectProperties.getProperty(argLine);
@@ -73,13 +80,6 @@ public class AgentMojo extends AbstractJdfcMojo {
         File file = null;
         while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
             if (jarEntry.getName().equals(fileName)) {
-                String[] fileNames = jarEntry.getName().split("/");
-                for(int i = 0; i < fileNames.length - 1; i++) {
-                    File dir = new File(fileNames[i]);
-                    if (!dir.exists()) {
-                        dir.mkdirs();
-                    }
-                }
                 file = new File(destDirectory, fileName);
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 byte[] buffer = new byte[1024];
