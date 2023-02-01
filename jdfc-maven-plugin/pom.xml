@@ -4,14 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.jdfc</groupId>
-    <artifactId>com.jdfc.build</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <relativePath>../com.jdfc.build</relativePath>
-  </parent>
-
+  <groupId>com.jdfc</groupId>
   <artifactId>jdfc-maven-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>JDFC :: Maven Plugin</name>
@@ -19,170 +14,190 @@
     creation
   </description>
 
+  <developers>
+    <developer>
+      <id>blochmat</id>
+      <name>Matthias Bloch</name>
+      <email>bloch12@ads.uni-passau.de</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Project Lead Developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <maven.build.timestamp.format>yyyyMMddhhmm</maven.build.timestamp.format>
+
+    <bytecode.version>1.6</bytecode.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+
+    <!-- Dependencies versions -->
+    <asm.version>8.0.1</asm.version>
+    <args4j.version>2.0.28</args4j.version>
+    <junit.version>4.13</junit.version>
+    <googlecodeprettify.version>20100721</googlecodeprettify.version>
+
+  </properties>
   <dependencies>
-    <!-- Maven -->
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-plugin-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.reporting</groupId>
-      <artifactId>maven-reporting-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.reporting</groupId>
-      <artifactId>maven-reporting-impl</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugin-tools</groupId>
-      <artifactId>maven-plugin-annotations</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <!-- JDFC -->
-<!--    <dependency>-->
-<!--      <groupId>com.jdfc</groupId>-->
-<!--      <artifactId>com.jdfc.agent</artifactId>-->
-<!--      <classifier>runtime</classifier>-->
-<!--    </dependency>-->
     <dependency>
       <groupId>com.jdfc</groupId>
       <artifactId>com.jdfc.core</artifactId>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
+    <!-- Maven -->
+    <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-plugin-api -->
     <dependency>
-      <groupId>com.jdfc</groupId>
-      <artifactId>com.jdfc.report</artifactId>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-core -->
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.reporting/maven-reporting-api -->
+    <dependency>
+      <groupId>org.apache.maven.reporting</groupId>
+      <artifactId>maven-reporting-api</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.reporting/maven-reporting-impl -->
+    <dependency>
+      <groupId>org.apache.maven.reporting</groupId>
+      <artifactId>maven-reporting-impl</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugin-tools/maven-plugin-annotations -->
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/commons-lang/commons-lang -->
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
     </dependency>
   </dependencies>
-
+  <scm>
+    <connection>scm:git:git://github.com/blochmat/jdfc.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:blochmat/jdfc.git</developerConnection>
+    <url>https://github.com/blochmat/jdfc</url>
+  </scm>
 
   <build>
-    <sourceDirectory>src</sourceDirectory>
     <resources>
       <resource>
         <directory>META-INF</directory>
         <targetPath>META-INF</targetPath>
       </resource>
-<!--      <resource>-->
-<!--        <directory>${project.basedir}/../com.jdfc.agent/target</directory>-->
-<!--        <includes>-->
-<!--          <include>com.jdfc.agent-1.0-SNAPSHOT-runtime.jar</include>-->
-<!--        </includes>-->
-<!--      </resource>-->
+      <resource>
+        <directory>${project.basedir}/../com.jdfc.agent/target</directory>
+        <includes>
+          <include>com.jdfc.agent-1.0-SNAPSHOT-runtime.jar</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
+      </resource>
     </resources>
 
-<!--    <plugins>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-shade-plugin</artifactId>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <phase>package</phase>-->
-<!--            <goals>-->
-<!--              <goal>shade</goal>-->
-<!--            </goals>-->
-<!--            <configuration>-->
-<!--              <shadedClassifierName>shaded</shadedClassifierName>-->
-<!--              <shadedArtifactAttached>true</shadedArtifactAttached>-->
-<!--              <transformers>-->
-<!--                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
-
-<!--                </transformer>-->
-<!--              </transformers>-->
-<!--            </configuration>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-plugin-plugin</artifactId>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <id>default-descriptor</id>-->
-<!--            <phase>process-classes</phase>-->
-<!--          </execution>-->
-<!--          <execution>-->
-<!--            <id>help-goal</id>-->
-<!--            <goals>-->
-<!--              <goal>helpmojo</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--          <execution>-->
-<!--            <id>report</id>-->
-<!--            <phase>package</phase>-->
-<!--            <goals>-->
-<!--              <goal>report</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-compiler-plugin</artifactId>-->
-<!--        <configuration>-->
-<!--          <source>9</source>-->
-<!--          <target>9</target>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
-
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-shade-plugin</artifactId>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <phase>package</phase>-->
-<!--            <goals>-->
-<!--              <goal>shade</goal>-->
-<!--            </goals>-->
-<!--            <configuration>-->
-<!--              <shadedClassifierName>shaded</shadedClassifierName>-->
-<!--              <shadedArtifactAttached>true</shadedArtifactAttached>-->
-<!--              <minimizeJar>true</minimizeJar>-->
-<!--              <relocations>-->
-<!--                <relocation>-->
-<!--                  <pattern>jdfc-maven-plugin</pattern>-->
-<!--                  <shadedPattern>${jdfc.runtime.package.name}</shadedPattern>-->
-<!--                </relocation>-->
-<!--                <relocation>-->
-<!--                  <pattern>com.jdfc.agent</pattern>-->
-<!--                  <shadedPattern>${jdfc.runtime.package.name}.agent</shadedPattern>-->
-<!--                </relocation>-->
-<!--                <relocation>-->
-<!--                  <pattern>com.jdfc.core</pattern>-->
-<!--                  <shadedPattern>${jdfc.runtime.package.name}.core</shadedPattern>-->
-<!--                </relocation>-->
-<!--                <relocation>-->
-<!--                  <pattern>com.jdfc.report</pattern>-->
-<!--                  <shadedPattern>${jdfc.runtime.package.name}.report</shadedPattern>-->
-<!--                </relocation>-->
-<!--              </relocations>-->
-<!--              <filters>-->
-<!--                <filter>-->
-<!--                  <artifact>org.ow2.asm:*</artifact>-->
-<!--                  <excludes>-->
-<!--                    <exclude>module-info.class</exclude>-->
-<!--                  </excludes>-->
-<!--                </filter>-->
-<!--              </filters>-->
-<!--              <transformers>-->
-<!--                <transformer-->
-<!--                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
-<!--                  <manifestEntries>-->
-<!--                    <Premain-Class>${jdfc.runtime.package.name}.Agent</Premain-Class>-->
-<!--                    <Automatic-Module-Name>${project.artifactId}</Automatic-Module-Name>-->
-<!--                    <Implementation-Title>${project.description}</Implementation-Title>-->
-<!--                    <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>-->
-<!--                    <Implementation-Version>${project.version}</Implementation-Version>-->
-<!--                  </manifestEntries>-->
-<!--                </transformer>-->
-<!--              </transformers>-->
-<!--            </configuration>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
-<!--    </plugins>-->
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.6.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <doCheck>false</doCheck>
+          <doUpdate>false</doUpdate>
+          <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+          <revisionOnScmFailure>0000000</revisionOnScmFailure>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.genthaler</groupId>
+        <artifactId>beanshell-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>parse-version</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <quiet>true</quiet>
+              <script><![CDATA[
+                                buildNumber = project.getProperties().get("buildNumber");
+                                pkgName = buildNumber.substring(buildNumber.length() - 7, buildNumber.length());
+                                project.getProperties().setProperty("jdfc.runtime.package.name", "com.jdfc.agent_" + pkgName);
+                              ]]>
+              </script>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <testSourceDirectory>${project.build.sourceDirectory}</testSourceDirectory>
+          <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>

@@ -10,9 +10,7 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>../com.jdfc.commons</module>
     <module>../com.jdfc.core</module>
-    <module>../com.jdfc.report</module>
     <module>../com.jdfc.agent</module>
     <module>../jdfc-maven-plugin</module>
   </modules>
@@ -46,7 +44,6 @@
     <args4j.version>2.0.28</args4j.version>
     <junit.version>4.13</junit.version>
     <googlecodeprettify.version>20100721</googlecodeprettify.version>
-
 
     <maven.version>3.0</maven.version>
   </properties>
