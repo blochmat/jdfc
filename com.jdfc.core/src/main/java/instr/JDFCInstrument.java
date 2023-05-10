@@ -15,14 +15,11 @@ public class JDFCInstrument {
         final ClassNode classNode = new ClassNode();
         final ClassWriter cw = new ClassWriter(classReader, 0);
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        System.err.println("[DEBUG] instrument " + classNode.name);
         ClassExecutionData classExecutionData =
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
-        System.err.println("[DEBUG] instrument " + classNode.name);
         if (classExecutionData != null) {
             CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
-            System.err.println("[DEBUG] cfg " + classNode.name);
             final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
             classReader.accept(cv, 0);
         }

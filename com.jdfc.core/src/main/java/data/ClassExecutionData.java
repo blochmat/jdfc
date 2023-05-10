@@ -316,7 +316,6 @@ public class ClassExecutionData extends ExecutionData {
             for (DefUsePair pair : entry.getValue()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
-
                 boolean isDefCovered;
                 boolean isUseCovered;
                 if(variablesCovered.get(methodName) != null) {
@@ -345,25 +344,36 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
 
-            for (Map.Entry<DefUsePair, Boolean> element : defUsePairsCovered.get(methodName).entrySet()) {
-                for (Map.Entry<DefUsePair, Boolean> compare : defUsePairsCovered.get(methodName).entrySet()) {
-                    boolean isDefNameEqual = element.getKey().getDefinition().getName()
-                            .equals(compare.getKey().getDefinition().getName());
-                    boolean isUseEqual = element.getKey().getUsage().equals(compare.getKey().getUsage());
-                    boolean isElementDefIndexSmaller = element.getKey().getDefinition().getInstructionIndex()
-                            < compare.getKey().getDefinition().getInstructionIndex();
-                    boolean isElementUseIndexBiggerThanCompareDefIndex = element.getKey().getUsage().getInstructionIndex()
-                            > compare.getKey().getDefinition().getInstructionIndex();
-                    boolean isCompareCovered = compare.getValue();
-                    if (isDefNameEqual && isUseEqual
-                            && isElementDefIndexSmaller
-                            && isElementUseIndexBiggerThanCompareDefIndex
-                            && isCompareCovered) {
-                        element.setValue(false);
-                        break;
-                    }
-                }
-            }
+            // What does this?
+            // If two DU-Pairs definition has the same name and the use is equal
+            // and the first pairs def index is smaller
+            // and the second pairs def lies between the first def and use
+            // then set DU-Pair as uncovered
+
+            // This should probably filter out redefinitions, but this does not make sense, because redefintions
+            // should not be a part of def use pairs anyways
+//            for (Map.Entry<DefUsePair, Boolean> element : defUsePairsCovered.get(methodName).entrySet()) {
+//                for (Map.Entry<DefUsePair, Boolean> compare : defUsePairsCovered.get(methodName).entrySet()) {
+//                    boolean isDefNameEqual = element.getKey().getDefinition().getName()
+//                            .equals(compare.getKey().getDefinition().getName());
+//                    boolean isUseEqual = element.getKey().getUsage().equals(compare.getKey().getUsage());
+//                    boolean isElementDefIndexSmaller = element.getKey().getDefinition().getInstructionIndex()
+//                            < compare.getKey().getDefinition().getInstructionIndex();
+//                    boolean isElementUseIndexBiggerThanCompareDefIndex = element.getKey().getUsage().getInstructionIndex()
+//                            > compare.getKey().getDefinition().getInstructionIndex();
+//                    boolean isCompareCovered = compare.getValue();
+//                    if (isDefNameEqual && isUseEqual
+//                            && isElementDefIndexSmaller
+//                            && isElementUseIndexBiggerThanCompareDefIndex
+//                            && isCompareCovered) {
+//                        if (element.getKey().getDefinition().getName().contains("result") && element.getKey().getDefinition().getLineNumber() == 8) {
+//                            System.out.println("hello");
+//                        }
+//                        element.setValue(false);
+//                        break;
+//                    }
+//                }
+//            }
         }
         this.calculateMethodCount();
         this.calculateTotal();

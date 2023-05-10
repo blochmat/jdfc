@@ -34,7 +34,6 @@ public class CoverageDataExport {
      */
     public static void dumpClassExecutionDataToFile(final ClassExecutionData pClassExecutionData) throws ParserConfigurationException, TransformerException {
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
-        System.err.println("[DEBUG]: dumpPath = " + outPath);
         File JDFCDir = new File(outPath);
         if (!JDFCDir.exists()) {
             JDFCDir.mkdirs();

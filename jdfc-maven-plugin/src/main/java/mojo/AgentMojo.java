@@ -61,7 +61,6 @@ public class AgentMojo extends AbstractJdfcMojo {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        System.err.println("[DEBUG] newArgLine = "+ getProject().getProperties().getProperty(argLine));
     }
 
     public File copyJarFile(File jarFile) throws IOException {

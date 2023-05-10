@@ -29,7 +29,6 @@ public class CoverageTracker {
                                         final int pLineNumber,
                                         final int pOpcode) {
         String info = String.format("%s %s %s", pClassName, pInternalMethodName, pLineNumber);
-        System.err.println("[DEBUG] addLocalVarCoveredEntry "+ info);
         updateClassExecutionData(pClassName);
         boolean isDefinition = isDefinition(pOpcode);
         LocalVariable localVariable = currentClassExecutionData.findLocalVariable(pInternalMethodName, pVarIndex);

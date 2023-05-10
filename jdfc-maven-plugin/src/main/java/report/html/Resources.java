@@ -10,7 +10,6 @@ public class Resources {
 
     public Resources(final File pOut) {
         String resourcesPath = String.format("%s/resources", pOut.getAbsolutePath());
-        System.err.println("[DEBUG] resourcePath = " + resourcesPath);
         folder = new File(resourcesPath);
     }
 
@@ -21,7 +20,6 @@ public class Resources {
 
     public String getPathToResourcesFrom(final File pFile) {
         Path relative = pFile.toPath().relativize(folder.toPath());
-        System.err.println("[DEBUG] getPathToResourcesFrom " + relative);
         return relative.toString().replaceFirst("\\.", "");
     }
 

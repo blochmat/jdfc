@@ -28,7 +28,6 @@ public class ReportGenerator {
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         if (reportDir.exists() || reportDir.mkdir()) {
             try {
-                System.err.println("[DEBUG] reportDir = " + reportDir);
                 Resources resources = new Resources(reportDir);
                 HTMLFactory factory = new HTMLFactory(resources, reportDir);
                 createPackageRelatedHTMLFilesRecursive(factory, root, reportDir.toString());

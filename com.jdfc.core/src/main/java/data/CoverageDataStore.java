@@ -45,15 +45,12 @@ public class CoverageDataStore {
                                              final int pInsnIndex,
                                              final int pLineNumber,
                                              final int pOpcode) {
-        System.err.println("[DEBUG] invokeCoverageTracker");
         CoverageTracker.getInstance().addLocalVarCoveredEntry(pClassName, pInternalMethodName, pVarIndex, pInsnIndex,
                 pLineNumber, pOpcode);
     }
 
     public void exportCoverageData() {
-        System.err.println("[DEBUG] exportCoverageData");
         for(String className : classList) {
-            System.err.println("[DEBUG] " + className);
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
@@ -74,7 +71,6 @@ public class CoverageDataStore {
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
-        System.err.println("[DEBUG] findClassDataNode " + pClassName);
         ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.replace(File.separator, "/").split("/")));
 
         // root path
@@ -89,16 +85,13 @@ public class CoverageDataStore {
                                          ExecutionDataNode<ExecutionData> pExecutionDataNode,
                                          Path pBaseDir,
                                          String suffix) {
-        System.err.println("[DEBUG] addNodesFromDirRecursive");
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
-        System.err.println("[DEBUG] addNodesFromDirRecursive 2");
         boolean isClassDir = Arrays.stream(fileList).anyMatch(x -> x.getName().contains(suffix));
         if (pExecutionDataNode.isRoot() && isClassDir) {
             ExecutionData rootClassData = new ExecutionData();
             pExecutionDataNode.addChild("default", rootClassData);
         }
         for (File f : fileList) {
-            System.err.println("[DEBUG] "+ f.getName());
             if (f.isDirectory() && !f.getName().equals("META-INF")) {
                 ExecutionData pkgData = new ExecutionData();
                 ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);

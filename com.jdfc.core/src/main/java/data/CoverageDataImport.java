@@ -39,9 +39,7 @@ public class CoverageDataImport {
 
         for (File xml : xmlFiles) {
             String relativePathWithType = jdfcPath.relativize(xml.toPath()).toString();
-            System.err.println("[DEBUG] loadExecutionData " + relativePathWithType);
             String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
-            System.err.println("[DEBUG] loadExecutionData " + relativePath);
             ExecutionDataNode<ExecutionData> classExecutionDataNode = CoverageDataStore.getInstance().findClassDataNode(relativePath);
             ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
             try {
@@ -78,7 +76,6 @@ public class CoverageDataImport {
                 classExecutionData.computeCoverageForClass();
                 classExecutionDataNode.aggregateDataToRootRecursive();
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
-                System.err.println("[DEBUG] Dumped: " + classExecutionData.getRelativePath());
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ParserConfigurationException | TransformerException e) {
