@@ -10,7 +10,9 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>com.jdfc.build</module>
+    <module>com.jdfc.agent</module>
+    <module>com.jdfc.core</module>
+    <module>jdfc-maven-plugin</module>
   </modules>
 
 </project>
