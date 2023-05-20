@@ -23,6 +23,7 @@ hs_err_pid*
 /FindBugs.diff.html
 /JUnit.html
 
+*.iml
 .idea/workspace.xml
 .idea/uiDesigned.xml
 .idea/dictionaries
