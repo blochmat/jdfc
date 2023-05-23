@@ -3,7 +3,7 @@ package icfg;
 import icfg.data.ProgramVariable;
 import icfg.nodes.ICFGNode;
 
-public class IFGNode extends ICFGNode {
+public class ToBeDeleted extends ICFGNode {
 
     private final String methodOwner;
     private final int lineNumber;
@@ -11,7 +11,7 @@ public class IFGNode extends ICFGNode {
     private final String methodNameDesc;
     private final int parameterCount;
     private ICFGNode relatedCallSiteNode;
-    private CFG relatedCFG;
+    private ICFG relatedICFG;
 
     public int getOpcode() {
         return super.getOpcode();
@@ -21,13 +21,13 @@ public class IFGNode extends ICFGNode {
         return methodOwner;
     }
 
-    IFGNode(final int pIndex,
-            final int pLineNumber,
-            final int pOpcode,
-            final String pMethodOwner,
-            final ProgramVariable pMethodCaller,
-            final String pMethodNameDesc,
-            final int pParameterCount) {
+    public ToBeDeleted(final int pIndex,
+                       final int pLineNumber,
+                       final int pOpcode,
+                       final String pMethodOwner,
+                       final ProgramVariable pMethodCaller,
+                       final String pMethodNameDesc,
+                       final int pParameterCount) {
         super(pIndex, pOpcode);
         lineNumber = pLineNumber;
         methodOwner = pMethodOwner;
@@ -44,8 +44,8 @@ public class IFGNode extends ICFGNode {
         return relatedCallSiteNode;
     }
 
-    public CFG getRelatedCFG() {
-        return relatedCFG;
+    public ICFG getRelatedCFG() {
+        return relatedICFG;
     }
 
     public int getParameterCount() {
@@ -56,8 +56,8 @@ public class IFGNode extends ICFGNode {
         return lineNumber;
     }
 
-    public void setupMethodRelation(CFG pRelatedMethod) {
-        this.relatedCFG = pRelatedMethod;
+    public void setupMethodRelation(ICFG pRelatedMethod) {
+        this.relatedICFG = pRelatedMethod;
         if(pRelatedMethod.getNodes().isEmpty()) {
             this.relatedCallSiteNode = null;
         } else {
@@ -78,6 +78,6 @@ public class IFGNode extends ICFGNode {
                         "   Related CFG: %s",
                 getIndex(), getOpcode(), getPredecessors().size(), getSuccessors().size(),
                 methodOwner, lineNumber, methodCaller, methodNameDesc,
-                parameterCount, relatedCallSiteNode, relatedCFG);
+                parameterCount, relatedCallSiteNode, relatedICFG);
     }
 }

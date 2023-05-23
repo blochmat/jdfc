@@ -11,16 +11,16 @@ import java.util.NavigableMap;
 import java.util.Set;
 
 /**
- * A implementation of a {@link CFG}.
+ * A implementation of a {@link ICFG}.
  */
-public class CFGImpl implements CFG {
+public class ICFGImpl implements ICFG {
 
     private final String methodName;
     private final NavigableMap<Integer, ICFGNode> nodes;
     private final Map<Integer, LocalVariable> localVariableTable;
     private boolean isImpure;
 
-    CFGImpl(
+    public ICFGImpl(
             final String pMethodName,
             final NavigableMap<Integer, ICFGNode> pNodes,
             final Map<Integer, LocalVariable> pLocalVariableTable,

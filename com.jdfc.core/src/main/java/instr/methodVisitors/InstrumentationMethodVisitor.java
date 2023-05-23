@@ -1,6 +1,7 @@
-package instr;
+package instr.methodVisitors;
 
 import data.CoverageDataStore;
+import instr.classVisitors.InstrumentationClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

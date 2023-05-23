@@ -1,7 +1,8 @@
-package instr;
+package instr.classVisitors;
 
 import data.ClassExecutionData;
-import icfg.CFGCreator;
+import icfg.ICFGCreator;
+import instr.methodVisitors.InstrumentationMethodVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
@@ -26,7 +27,7 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         if (isInstrumentationRequired(pName)) {
             MethodNode methodNode = getMethodNode(pName, pDescriptor);
-            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            final String internalMethodName = ICFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName);
         }
 

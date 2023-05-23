@@ -12,7 +12,7 @@ import java.util.NavigableMap;
  * <p>The CFG itself consists of a number of {@link ICFGNode}s and offers the possibility to
  * calculate the reaching definitions of variables.
  */
-public interface CFG {
+public interface ICFG {
 
     /**
      * Calculates the reaching definitions for each variable using the classic reaching-definitions

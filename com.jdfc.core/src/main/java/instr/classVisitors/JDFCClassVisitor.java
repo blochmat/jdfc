@@ -1,4 +1,4 @@
-package instr;
+package instr.classVisitors;
 
 import data.ClassExecutionData;
 import icfg.data.LocalVariable;

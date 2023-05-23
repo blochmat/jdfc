@@ -1,8 +1,8 @@
 package data;
 
-import icfg.CFG;
+import icfg.ICFG;
+import icfg.ToBeDeleted;
 import icfg.nodes.ICFGNode;
-import icfg.IFGNode;
 import icfg.data.DefUsePair;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 public class ClassExecutionData extends ExecutionData {
 
-    private Map<String, CFG> methodCFGs;
+    private Map<String, ICFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
@@ -41,11 +41,11 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     /**
-     * Sets the method {@link CFG}s.
+     * Sets the method {@link ICFG}s.
      *
-     * @param pMethodCFGs The mapping of method names and {@link CFG}s
+     * @param pMethodCFGs The mapping of method names and {@link ICFG}s
      */
-    public void setMethodCFGs(final Map<String, CFG> pMethodCFGs) {
+    public void setMethodCFGs(final Map<String, ICFG> pMethodCFGs) {
         methodCFGs = pMethodCFGs;
     }
 
@@ -85,7 +85,7 @@ public class ClassExecutionData extends ExecutionData {
      * Initalize all required lists for every method
      */
     public void initializeDefUseLists() {
-        for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
+        for (Map.Entry<String, ICFG> entry : methodCFGs.entrySet()) {
             defUsePairs.put(entry.getKey(), new ArrayList<>());
             defUsePairsCovered.put(entry.getKey(), new HashMap<>());
             variablesCovered.put(entry.getKey(), new HashSet<>());
@@ -97,11 +97,11 @@ public class ClassExecutionData extends ExecutionData {
      * with a complex (object) type
      */
     public void insertAdditionalDefs() {
-        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+        for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
             for (Map.Entry<Integer, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
                 ICFGNode node = entry.getValue();
-                if (node instanceof IFGNode) {
-                    IFGNode callingNode = (IFGNode) node;
+                if (node instanceof ToBeDeleted) {
+                    ToBeDeleted callingNode = (ToBeDeleted) node;
                     if (callingNode.getRelatedCFG() != null && callingNode.getRelatedCFG().isImpure()) {
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
@@ -119,7 +119,7 @@ public class ClassExecutionData extends ExecutionData {
      * Calulates reaching defintions for all method cfgs
      */
     public void calculateReachingDefs() {
-        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+        for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
             methodCFGsEntry.getValue().calculateReachingDefinitions();
         }
     }
@@ -128,7 +128,7 @@ public class ClassExecutionData extends ExecutionData {
      * Calculates all possible Def-Use-Pairs.
      */
     public void calculateIntraProceduralDefUsePairs() {
-        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+        for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
             for (Map.Entry<Integer, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
                 ICFGNode node = entry.getValue();
                 for (ProgramVariable def : node.getReach()) {
@@ -149,18 +149,18 @@ public class ClassExecutionData extends ExecutionData {
      * Established inter-procedural connection between parameters
      */
     public void setupInterProceduralMatches() {
-        for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
+        for (Map.Entry<String, ICFG> methodCFGs : methodCFGs.entrySet()) {
             String methodName = methodCFGs.getKey();
-            CFG graph = methodCFGs.getValue();
+            ICFG graph = methodCFGs.getValue();
             for (Map.Entry<Integer, ICFGNode> node : graph.getNodes().entrySet()) {
-                if (node.getValue() instanceof IFGNode) {
-                    IFGNode ifgNode = (IFGNode) node.getValue();
-                    if (ifgNode.getRelatedCFG() != null) {
-                        ICFGNode entryNode = ifgNode.getRelatedCallSiteNode();
-                        String entryMethodName = ifgNode.getMethodNameDesc();
+                if (node.getValue() instanceof ToBeDeleted) {
+                    ToBeDeleted toBeDeleted = (ToBeDeleted) node.getValue();
+                    if (toBeDeleted.getRelatedCFG() != null) {
+                        ICFGNode entryNode = toBeDeleted.getRelatedCallSiteNode();
+                        String entryMethodName = toBeDeleted.getMethodNameDesc();
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
-                                        ifgNode.getParameterCount(), null, ifgNode, entryNode);
+                                        toBeDeleted.getParameterCount(), null, toBeDeleted, entryNode);
                         matchPairs(methodName, entryMethodName, usageDefinitionMatch);
                     }
                 }
@@ -174,7 +174,7 @@ public class ClassExecutionData extends ExecutionData {
      * @param pNode Node invoking a method
      * @param pMethodParameters parameters involved in method call
      */
-    public void insertNewDefinitions(IFGNode pNode, Collection<ProgramVariable> pMethodParameters) {
+    public void insertNewDefinitions(ToBeDeleted pNode, Collection<ProgramVariable> pMethodParameters) {
         for (ProgramVariable parameter : pMethodParameters) {
             if (!isSimpleType(parameter.getDescriptor())) {
                 ProgramVariable newParamDefinition =
@@ -196,7 +196,7 @@ public class ClassExecutionData extends ExecutionData {
      */
     private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pParameterCount,
                                                                                    final ICFGNode pNode,
-                                                                                   final IFGNode pCallingNode,
+                                                                                   final ToBeDeleted pCallingNode,
                                                                                    final ICFGNode pRelatedCallSiteNode) {
         Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
         // for each parameter: process one node (predecessor of pNode)
@@ -420,8 +420,8 @@ public class ClassExecutionData extends ExecutionData {
 
     public LocalVariable findLocalVariable(final String pMethodName,
                                            final int pVarIndex) {
-        CFG cfg = methodCFGs.get(pMethodName);
-        Map<Integer, LocalVariable> localVariableTable = cfg.getLocalVariableTable();
+        ICFG ICFG = methodCFGs.get(pMethodName);
+        Map<Integer, LocalVariable> localVariableTable = ICFG.getLocalVariableTable();
         return localVariableTable.get(pVarIndex);
     }
 

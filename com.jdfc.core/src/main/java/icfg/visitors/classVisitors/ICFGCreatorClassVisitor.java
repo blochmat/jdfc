@@ -1,10 +1,14 @@
-package icfg;
+package icfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
 import data.CoverageDataStore;
+import icfg.ICFG;
+import icfg.ICFGCreator;
+import icfg.ToBeDeleted;
 import icfg.data.LocalVariable;
 import icfg.nodes.ICFGNode;
-import instr.JDFCClassVisitor;
+import icfg.visitors.methodVisitors.ICFGCreatorMethodVisitor;
+import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -12,14 +16,14 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.Map;
 
-class CFGCreatorClassVisitor extends JDFCClassVisitor {
+public class ICFGCreatorClassVisitor extends JDFCClassVisitor {
 
-    private final Map<String, CFG> methodCFGs;
+    private final Map<String, ICFG> methodCFGs;
 
-    public CFGCreatorClassVisitor(final ClassNode pClassNode,
-                                  final ClassExecutionData pClassExecutionData,
-                                  final Map<String, CFG> pMethodCFGs,
-                                  final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
+    public ICFGCreatorClassVisitor(final ClassNode pClassNode,
+                                   final ClassExecutionData pClassExecutionData,
+                                   final Map<String, ICFG> pMethodCFGs,
+                                   final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(Opcodes.ASM5, pClassNode, pClassExecutionData, pLocalVariableTables);
         methodCFGs = pMethodCFGs;
     }
@@ -39,11 +43,11 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
         }
 
         if(classNode.access != Opcodes.ACC_INTERFACE) {
-            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            final String internalMethodName = ICFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
             if (methodNode != null && isInstrumentationRequired(pName)) {
-                return new CFGCreatorMethodVisitor(this, mv, methodNode,
+                return new ICFGCreatorMethodVisitor(this, mv, methodNode,
                         internalMethodName, methodCFGs, localVariableTable);
             }
         }
@@ -63,19 +67,19 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
         CoverageDataStore.getInstance().finishClassExecutionDataSetup(classExecutionData, methodCFGs);
     }
 
-    private void propagateInterProceduralInformation(Map<String, CFG> pMethodCFGs) {
+    private void propagateInterProceduralInformation(Map<String, ICFG> pMethodCFGs) {
         boolean propagateChange = true;
         while (propagateChange) {
             propagateChange = false;
-            for (Map.Entry<String, CFG> methodEntry : pMethodCFGs.entrySet()) {
+            for (Map.Entry<String, ICFG> methodEntry : pMethodCFGs.entrySet()) {
                 for (Map.Entry<Integer, ICFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()) {
-                    if (cfgNodeEntry.getValue() instanceof IFGNode) {
-                        IFGNode ifgNode = (IFGNode) cfgNodeEntry.getValue();
-                        if (ifgNode.getMethodNameDesc() != null && isInstrumentationRequired(ifgNode.getMethodNameDesc())) {
-                            if (ifgNode.getRelatedCFG() == null && ifgNode.getMethodOwner().equals(classExecutionData.getRelativePath())) {
-                                CFG otherCFG = pMethodCFGs.get(ifgNode.getMethodNameDesc());
-                                ifgNode.setupMethodRelation(otherCFG);
-                                if (otherCFG.isImpure() && !methodEntry.getValue().isImpure()) {
+                    if (cfgNodeEntry.getValue() instanceof ToBeDeleted) {
+                        ToBeDeleted toBeDeleted = (ToBeDeleted) cfgNodeEntry.getValue();
+                        if (toBeDeleted.getMethodNameDesc() != null && isInstrumentationRequired(toBeDeleted.getMethodNameDesc())) {
+                            if (toBeDeleted.getRelatedCFG() == null && toBeDeleted.getMethodOwner().equals(classExecutionData.getRelativePath())) {
+                                ICFG otherICFG = pMethodCFGs.get(toBeDeleted.getMethodNameDesc());
+                                toBeDeleted.setupMethodRelation(otherICFG);
+                                if (otherICFG.isImpure() && !methodEntry.getValue().isImpure()) {
                                     methodEntry.getValue().setImpure();
                                     propagateChange = true;
                                 }

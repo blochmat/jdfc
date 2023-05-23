@@ -10,7 +10,7 @@ public class LocalVariable {
     private final String signature;
     private final int index;
 
-    LocalVariable(
+    public LocalVariable(
             final String pName, final String pDescriptor, final String pSignature, final int pIndex) {
         name = pName;
         descriptor = pDescriptor;

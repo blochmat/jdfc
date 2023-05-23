@@ -1,4 +1,4 @@
-package icfg;
+package icfg.visitors.methodVisitors;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -14,12 +14,12 @@ import java.util.Map;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 
-public class CFGEdgeAnalyzationVisitor extends MethodVisitor {
+public class ICFGEdgeAnalysisVisitor extends MethodVisitor {
 
     private final MethodNode methodNode;
     private final Multimap<Integer, Integer> edges;
 
-    CFGEdgeAnalyzationVisitor(final MethodNode pMethodNode) {
+    ICFGEdgeAnalysisVisitor(final MethodNode pMethodNode) {
         super(ASM5);
         methodNode = pMethodNode;
         edges = ArrayListMultimap.create();

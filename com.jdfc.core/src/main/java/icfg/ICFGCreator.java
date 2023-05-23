@@ -3,7 +3,8 @@ package icfg;
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
 import icfg.data.LocalVariable;
-import icfg.data.LocalVariableClassVisitor;
+import icfg.visitors.classVisitors.ICFGCreatorClassVisitor;
+import icfg.visitors.classVisitors.LocalVariableClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -12,16 +13,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Creates {@link CFG}s for each method of a class file.
+ * Creates {@link ICFG}s for each method of a class file.
  */
-public class CFGCreator {
+public class ICFGCreator {
 
-    private CFGCreator() {
+    private ICFGCreator() {
     }
 
     /**
-     * Creates the {@link CFG}s for each method of a class and returns a map of method name to {@link
-     * CFG}.
+     * Creates the {@link ICFG}s for each method of a class and returns a map of method name to {@link
+     * ICFG}.
      *
      * <p>The key of the map is in the format
      *
@@ -33,7 +34,7 @@ public class CFGCreator {
      * "foo" that takes an int and a String and returns a double array will have the key <code> foo:
      * (ILjava/lang/String;)[D</code>.
      *
-     * <p>This method is the only method to start the generation of {@link CFG}s. The full creation
+     * <p>This method is the only method to start the generation of {@link ICFG}s. The full creation
      * process of the graphs is then done internally and only the final graphs will be given back to
      * the user.
      *
@@ -59,15 +60,15 @@ public class CFGCreator {
                 localVariableVisitor.getLocalVariableTables();
 
         // Create method cfgs
-        final Map<String, CFG> methodCFGs = new HashMap<>();
-        final CFGCreatorClassVisitor cfgCreatorClassVisitor =
-                new CFGCreatorClassVisitor(pClassNode, pClassExecutionData, methodCFGs, localVariableTables);
-        pClassReader.accept(cfgCreatorClassVisitor, 0);
+        final Map<String, ICFG> methodCFGs = new HashMap<>();
+        final ICFGCreatorClassVisitor ICFGCreatorClassVisitor =
+                new ICFGCreatorClassVisitor(pClassNode, pClassExecutionData, methodCFGs, localVariableTables);
+        pClassReader.accept(ICFGCreatorClassVisitor, 0);
     }
 
     /**
      * Computes the internal method name representation that is used, for example, in the map emitted
-     * by {@link CFGCreator#createCFGsForClass(ClassReader, ClassNode, ClassExecutionData)}.
+     * by {@link ICFGCreator#createCFGsForClass(ClassReader, ClassNode, ClassExecutionData)}.
      *
      * @param pMethodName The name of the method
      * @param pDescriptor The method's descriptor

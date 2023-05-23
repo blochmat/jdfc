@@ -1,13 +1,18 @@
-package icfg;
+package icfg.visitors.methodVisitors;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import icfg.ICFG;
+import icfg.ICFGCreator;
+import icfg.ICFGImpl;
+import icfg.ToBeDeleted;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
 import icfg.nodes.ICFGNode;
-import instr.JDFCMethodVisitor;
+import icfg.visitors.classVisitors.ICFGCreatorClassVisitor;
+import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -21,18 +26,18 @@ import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
 
-class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
+public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
-    private final Map<String, CFG> methodCFGs;
+    private final Map<String, ICFG> methodCFGs;
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, ICFGNode> nodes;
 
-    public CFGCreatorMethodVisitor(final CFGCreatorClassVisitor pClassVisitor,
-                                   final MethodVisitor pMethodVisitor,
-                                   final MethodNode pMethodNode,
-                                   final String pInternalMethodName,
-                                   final Map<String, CFG> pMethodCFGs,
-                                   final Map<Integer, LocalVariable> pLocalVariableTable) {
+    public ICFGCreatorMethodVisitor(final ICFGCreatorClassVisitor pClassVisitor,
+                                    final MethodVisitor pMethodVisitor,
+                                    final MethodNode pMethodNode,
+                                    final String pInternalMethodName,
+                                    final Map<String, ICFG> pMethodCFGs,
+                                    final Map<Integer, LocalVariable> pLocalVariableTable) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
         methodCFGs = pMethodCFGs;
         edges = ArrayListMultimap.create();
@@ -121,7 +126,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
             String callSiteMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
-            final IFGNode node = new IFGNode(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
+            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
             nodes.put(currentInstructionIndex, node);
 
         } else {
@@ -133,7 +138,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     private String computeInternalMethodName(String name, String descriptor) {
         for (MethodNode node : classVisitor.classNode.methods) {
             if (node.name.equals(name) && node.desc.equals(descriptor)) {
-                return CFGCreator.computeInternalMethodName(node.name, node.desc, node.signature, node.exceptions.toArray(new String[0]));
+                return ICFGCreator.computeInternalMethodName(node.name, node.desc, node.signature, node.exceptions.toArray(new String[0]));
             }
         }
         return null;
@@ -208,8 +213,8 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             ICFGNode node = nodeEntry.getValue();
             System.out.printf("%d: %s%n", instrIdx, node.toString());
         }
-        CFG cfg = new CFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
-        methodCFGs.put(internalMethodName, cfg);
+        ICFG ICFG = new ICFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
+        methodCFGs.put(internalMethodName, ICFG);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
     }
@@ -249,8 +254,8 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     }
 
     private Multimap<Integer, Integer> createEdges() {
-        CFGEdgeAnalyzationVisitor cfgEdgeAnalysationVisitor =
-                new CFGEdgeAnalyzationVisitor(methodNode);
+        ICFGEdgeAnalysisVisitor cfgEdgeAnalysationVisitor =
+                new ICFGEdgeAnalysisVisitor(methodNode);
         methodNode.accept(cfgEdgeAnalysationVisitor);
         return cfgEdgeAnalysationVisitor.getEdges();
     }

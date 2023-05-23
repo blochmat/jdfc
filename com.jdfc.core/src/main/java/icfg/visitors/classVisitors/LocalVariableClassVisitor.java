@@ -1,8 +1,9 @@
-package icfg.data;
+package icfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
-import icfg.CFGCreator;
-import instr.JDFCClassVisitor;
+import icfg.ICFGCreator;
+import icfg.visitors.methodVisitors.LocalVariableMethodVisitor;
+import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
@@ -33,7 +34,7 @@ public class LocalVariableClassVisitor extends JDFCClassVisitor {
                                      final String[] pExceptions) {
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         final MethodNode methodNode = getMethodNode(pName, pDescriptor);
-        final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+        final String internalMethodName = ICFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (methodNode != null && isInstrumentationRequired(pName)) {
             return new LocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);

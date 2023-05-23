@@ -2,7 +2,7 @@ package icfg.nodes;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import icfg.CFG;
+import icfg.ICFG;
 import icfg.data.ProgramVariable;
 import utils.JDFCUtils;
 
@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A node in the {@link CFG}.
+ * A node in the {@link ICFG}.
  */
 public class ICFGNode {
     private final Set<ProgramVariable> definitions;
