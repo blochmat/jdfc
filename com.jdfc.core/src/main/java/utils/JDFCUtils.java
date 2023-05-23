@@ -1,5 +1,7 @@
 package utils;
 
+import java.util.Map;
+
 public class JDFCUtils {
 
     public static String getOpcode(int value) {
@@ -163,5 +165,43 @@ public class JDFCUtils {
             case 199: return "IFNONNULL";
             default: return "UNKNOWN_OPCODE";
         }
+    }
+
+    public static String getAccess(int value) {
+        switch (value){
+            case 0: return "protected";
+            case 1: return "public";
+            case 2: return "private";
+            default: return "Unknown Access";
+        }
+    }
+    private static String getIndent(int level) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < level; i++) {
+            sb.append("  ");
+        }
+        return sb.toString();
+    }
+
+    public static void prettyPrintMap(Map<?, ?> map) {
+        prettyPrintMap(map, 0);
+    }
+
+    private static void prettyPrintMap(Map<?, ?> map, int indentLevel) {
+        String indent = getIndent(indentLevel);
+
+        System.out.println(indent + "{");
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value instanceof Map) {
+                System.out.println(indent + "  " + key + " =>");
+                prettyPrintMap((Map<?, ?>) value, indentLevel + 1);
+            } else {
+                System.out.println(indent + "  " + key + " => " + value);
+            }
+        }
+        System.out.println(indent + "}");
     }
 }

@@ -7,6 +7,7 @@ import icfg.visitors.classVisitors.ICFGCreatorClassVisitor;
 import icfg.visitors.classVisitors.LocalVariableClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
+import utils.JDFCUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,19 +46,19 @@ public class ICFGCreator {
     public static void createCFGsForClass(final ClassReader pClassReader,
                                                       final ClassNode pClassNode,
                                                       final ClassExecutionData pClassExecutionData) {
-        Preconditions.checkNotNull(
-                pClassReader, "We need a non-null class reader to generate CFGs from.");
+        Preconditions.checkNotNull(pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
-        Preconditions.checkNotNull(
-                pClassExecutionData, "We need a non-null class execution data to generate CFGs from.");
+        Preconditions.checkNotNull(pClassExecutionData,
+                "We need a non-null class execution data to generate CFGs from.");
 
         // Get local variable information
-        final LocalVariableClassVisitor localVariableVisitor =
-                new LocalVariableClassVisitor(pClassNode, pClassExecutionData);
+        final LocalVariableClassVisitor localVariableVisitor = new LocalVariableClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(localVariableVisitor, 0);
 
         final Map<String, Map<Integer, LocalVariable>> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
+
+        JDFCUtils.prettyPrintMap(localVariableTables);
 
         // Create method cfgs
         final Map<String, ICFG> methodCFGs = new HashMap<>();

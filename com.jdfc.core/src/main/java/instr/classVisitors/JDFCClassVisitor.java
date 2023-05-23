@@ -3,6 +3,7 @@ package instr.classVisitors;
 import data.ClassExecutionData;
 import icfg.data.LocalVariable;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -44,6 +45,19 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
         localVariableTables = pLocalVariableTables;
+    }
+
+    @Override
+    public FieldVisitor visitField(
+            final int access,
+            final String name,
+            final String descriptor,
+            final String signature,
+            final Object value) {
+        if (cv != null) {
+            return cv.visitField(access, name, descriptor, signature, value);
+        }
+        return null;
     }
 
     @Override
