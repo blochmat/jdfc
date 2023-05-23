@@ -1,4 +1,4 @@
-package ifg.data;
+package icfg.data;
 
 import instr.JDFCMethodVisitor;
 import org.objectweb.asm.Label;

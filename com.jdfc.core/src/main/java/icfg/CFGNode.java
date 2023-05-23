@@ -1,8 +1,9 @@
-package ifg;
+package icfg;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import ifg.data.ProgramVariable;
+import icfg.data.ProgramVariable;
+import utils.JDFCUtils;
 
 import java.util.Collections;
 import java.util.Set;
@@ -12,7 +13,6 @@ import java.util.stream.Collectors;
  * A node in the {@link CFG}.
  */
 public class CFGNode {
-
     private final Set<ProgramVariable> definitions;
     private final Set<ProgramVariable> uses;
     private final int index;
@@ -156,7 +156,7 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFG Node: %d %d (%d predecessors, %d successors)",
-                index, opcode, predecessors.size(), successors.size());
+                "CFG Node: %d %s (%d predecessors, %d successors)",
+                index, JDFCUtils.getOpcode(opcode), predecessors.size(), successors.size());
     }
 }

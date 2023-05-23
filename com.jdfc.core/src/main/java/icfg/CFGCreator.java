@@ -1,9 +1,9 @@
-package ifg;
+package icfg;
 
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
-import ifg.data.LocalVariable;
-import ifg.data.LocalVariableClassVisitor;
+import icfg.data.LocalVariable;
+import icfg.data.LocalVariableClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 

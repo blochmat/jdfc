@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.Locale;
 
 
-@Mojo(name = "create-report", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, threadSafe = true)
+@Mojo(name = "create-report", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
 public class ReportMojo extends AbstractMavenReport {
 
     @Override

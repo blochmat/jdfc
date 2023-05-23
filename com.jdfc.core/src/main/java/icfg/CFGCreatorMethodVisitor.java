@@ -1,11 +1,11 @@
-package ifg;
+package icfg;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import ifg.data.LocalVariable;
-import ifg.data.ProgramVariable;
+import icfg.data.LocalVariable;
+import icfg.data.ProgramVariable;
 import instr.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -117,7 +117,6 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
-//        System.out.printf("DEBUG visitMethodInsn %s %s %s %s %s\n", classVisitor.classNode.name, methodNode.name, name, currentInstructionIndex, currentLineNumber);
         if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
             String callSiteMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
@@ -203,6 +202,11 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         addEntryNode();
 
         boolean isImpure = false;
+        for (Map.Entry<Integer, CFGNode> nodeEntry : nodes.entrySet()) {
+            int instrIdx = nodeEntry.getKey();
+            CFGNode node = nodeEntry.getValue();
+            System.out.printf("%d: %s%n", instrIdx, node.toString());
+        }
         CFG cfg = new CFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
         methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);

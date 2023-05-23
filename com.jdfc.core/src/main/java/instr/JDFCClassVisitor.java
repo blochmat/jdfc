@@ -1,7 +1,7 @@
 package instr;
 
 import data.ClassExecutionData;
-import ifg.data.LocalVariable;
+import icfg.data.LocalVariable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;

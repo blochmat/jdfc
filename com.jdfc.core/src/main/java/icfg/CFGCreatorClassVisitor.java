@@ -1,8 +1,8 @@
-package ifg;
+package icfg;
 
 import data.ClassExecutionData;
 import data.CoverageDataStore;
-import ifg.data.LocalVariable;
+import icfg.data.LocalVariable;
 import instr.JDFCClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -41,7 +41,6 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
             final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
-
             if (methodNode != null && isInstrumentationRequired(pName)) {
                 return new CFGCreatorMethodVisitor(this, mv, methodNode,
                         internalMethodName, methodCFGs, localVariableTable);

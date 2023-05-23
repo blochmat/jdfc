@@ -1,7 +1,7 @@
 package instr;
 
-import ifg.data.LocalVariable;
-import ifg.data.ProgramVariable;
+import icfg.data.LocalVariable;
+import icfg.data.ProgramVariable;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;

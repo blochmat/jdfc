@@ -1,6 +1,6 @@
-package ifg;
+package icfg;
 
-import ifg.data.LocalVariable;
+import icfg.data.LocalVariable;
 
 import java.util.Map;
 import java.util.NavigableMap;

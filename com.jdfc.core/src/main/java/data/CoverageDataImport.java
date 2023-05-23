@@ -1,7 +1,7 @@
 package data;
 
-import ifg.data.DefUsePair;
-import ifg.data.ProgramVariable;
+import icfg.data.DefUsePair;
+import icfg.data.ProgramVariable;
 import instr.JDFCInstrument;
 import org.objectweb.asm.ClassReader;
 import org.w3c.dom.Document;

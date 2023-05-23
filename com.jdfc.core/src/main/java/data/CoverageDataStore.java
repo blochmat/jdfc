@@ -1,6 +1,6 @@
 package data;
 
-import ifg.CFG;
+import icfg.CFG;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;

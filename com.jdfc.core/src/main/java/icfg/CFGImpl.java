@@ -1,8 +1,8 @@
-package ifg;
+package icfg;
 
 import com.google.common.base.Preconditions;
-import ifg.data.LocalVariable;
-import ifg.data.ProgramVariable;
+import icfg.data.LocalVariable;
+import icfg.data.ProgramVariable;
 
 import java.util.LinkedList;
 import java.util.Map;

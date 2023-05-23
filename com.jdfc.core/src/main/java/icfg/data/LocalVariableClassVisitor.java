@@ -1,7 +1,7 @@
-package ifg.data;
+package icfg.data;
 
 import data.ClassExecutionData;
-import ifg.CFGCreator;
+import icfg.CFGCreator;
 import instr.JDFCClassVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;

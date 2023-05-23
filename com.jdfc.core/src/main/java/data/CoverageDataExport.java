@@ -1,7 +1,7 @@
 package data;
 
-import ifg.data.DefUsePair;
-import ifg.data.ProgramVariable;
+import icfg.data.DefUsePair;
+import icfg.data.ProgramVariable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

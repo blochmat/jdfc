@@ -32,6 +32,11 @@ public class AgentMojo extends AbstractJdfcMojo {
 
     static final String AGENT_FILE_NAME = "com.jdfc.agent-1.0-SNAPSHOT-runtime.jar";
 
+    /**
+     * When executing the mojo we add the agent argument to the command line.
+     * If ths seems unnecessarily complicated to you then you might be right.
+     *
+     */
     @Override
     protected void executeMojo()  {
         final String argLine = "argLine";

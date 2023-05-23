@@ -1,11 +1,11 @@
 package data;
 
-import ifg.CFG;
-import ifg.CFGNode;
-import ifg.IFGNode;
-import ifg.data.DefUsePair;
-import ifg.data.LocalVariable;
-import ifg.data.ProgramVariable;
+import icfg.CFG;
+import icfg.CFGNode;
+import icfg.IFGNode;
+import icfg.data.DefUsePair;
+import icfg.data.LocalVariable;
+import icfg.data.ProgramVariable;
 import org.objectweb.asm.Opcodes;
 
 import java.util.*;

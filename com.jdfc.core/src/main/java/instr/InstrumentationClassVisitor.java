@@ -1,7 +1,7 @@
 package instr;
 
 import data.ClassExecutionData;
-import ifg.CFGCreator;
+import icfg.CFGCreator;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;

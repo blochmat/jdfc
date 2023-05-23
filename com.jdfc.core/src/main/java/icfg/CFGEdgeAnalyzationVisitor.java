@@ -1,4 +1,4 @@
-package ifg;
+package icfg;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -8,6 +8,8 @@ import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
+
+import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -29,6 +31,11 @@ public class CFGEdgeAnalyzationVisitor extends MethodVisitor {
             CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer();
             cfgEdgeAnalyzer.analyze(methodNode.name, methodNode);
             edges.putAll(cfgEdgeAnalyzer.getEdges());
+
+            System.out.printf("Method: %s%n", methodNode.name);
+            for (Map.Entry<Integer, Integer> edge : edges.entries()){
+                System.out.printf("Edge: (%d,%d)%n", edge.getKey(), edge.getValue());
+            }
         } catch (AnalyzerException e) {
             e.printStackTrace();
         }

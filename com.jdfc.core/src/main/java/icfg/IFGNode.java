@@ -1,6 +1,6 @@
-package ifg;
+package icfg;
 
-import ifg.data.ProgramVariable;
+import icfg.data.ProgramVariable;
 
 public class IFGNode extends CFGNode{
 

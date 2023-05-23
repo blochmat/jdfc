@@ -1,6 +1,6 @@
 package data;
 
-import ifg.data.ProgramVariable;
+import icfg.data.ProgramVariable;
 
 public class InterProceduralMatch {
 
