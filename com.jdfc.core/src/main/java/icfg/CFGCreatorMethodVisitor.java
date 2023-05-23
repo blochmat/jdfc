@@ -24,7 +24,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private final Map<String, CFG> methodCFGs;
     private final Multimap<Integer, Integer> edges;
-    private final NavigableMap<Integer, CFGNode> nodes;
+    private final NavigableMap<Integer, ICFGNode> nodes;
 
     public CFGCreatorMethodVisitor(final CFGCreatorClassVisitor pClassVisitor,
                                    final MethodVisitor pMethodVisitor,
@@ -41,7 +41,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         super.visitFrame(type, numLocal, local, numStack, stack);
-        final CFGNode node = new CFGNode(currentInstructionIndex, getFrameOpcode(type));
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, getFrameOpcode(type));
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -68,14 +68,14 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitInsn(int opcode) {
         super.visitInsn(opcode);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
 
     @Override
     public void visitFrameNew() {
         if (currentNode.getOpcode() == F_NEW) {
-            final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
+            final ICFGNode node = new ICFGNode(currentInstructionIndex, F_NEW);
             nodes.put(currentInstructionIndex, node);
             updateCurrentNode();
         }
@@ -85,7 +85,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitIntInsn(int opcode, int operand) {
         super.visitIntInsn(opcode, operand);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -100,7 +100,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitTypeInsn(int opcode, String type) {
         super.visitTypeInsn(opcode, type);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -108,7 +108,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         super.visitFieldInsn(opcode, owner, name, descriptor);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
 //        createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor);
     }
@@ -124,7 +124,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             nodes.put(currentInstructionIndex, node);
 
         } else {
-            final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+            final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
             nodes.put(currentInstructionIndex, node);
         }
     }
@@ -142,7 +142,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, INVOKEDYNAMIC);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, INVOKEDYNAMIC);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -150,7 +150,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitJumpInsn(int opcode, Label label) {
         super.visitJumpInsn(opcode, label);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -158,7 +158,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitLdcInsn(Object value) {
         super.visitLdcInsn(value);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, LDC);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, LDC);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -173,7 +173,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         super.visitTableSwitchInsn(min, max, dflt, labels);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, TABLESWITCH);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, TABLESWITCH);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -181,7 +181,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         super.visitLookupSwitchInsn(dflt, keys, labels);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, LOOKUPSWITCH);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, LOOKUPSWITCH);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -189,7 +189,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, MULTIANEWARRAY);
+        final ICFGNode node = new ICFGNode(currentInstructionIndex, MULTIANEWARRAY);
         nodes.put(currentInstructionIndex, node);
     }
 
@@ -202,9 +202,9 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
         addEntryNode();
 
         boolean isImpure = false;
-        for (Map.Entry<Integer, CFGNode> nodeEntry : nodes.entrySet()) {
+        for (Map.Entry<Integer, ICFGNode> nodeEntry : nodes.entrySet()) {
             int instrIdx = nodeEntry.getKey();
-            CFGNode node = nodeEntry.getValue();
+            ICFGNode node = nodeEntry.getValue();
             System.out.printf("%d: %s%n", instrIdx, node.toString());
         }
         CFG cfg = new CFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
@@ -214,7 +214,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {
-        final CFGNode node;
+        final ICFGNode node;
         final ProgramVariable programVariable;
         switch (opcode) {
             case ISTORE:
@@ -223,7 +223,7 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             case DSTORE:
             case ASTORE:
                 programVariable = getProgramVariableFromLocalVar(varNumber, opcode, pIndex, lineNumber);
-                node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex, opcode);
+                node = new ICFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex, opcode);
                 break;
             case ILOAD:
             case LLOAD:
@@ -231,10 +231,10 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             case DLOAD:
             case ALOAD:
                 programVariable = getProgramVariableFromLocalVar(varNumber, opcode, pIndex, lineNumber);
-                node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex, opcode);
+                node = new ICFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex, opcode);
                 break;
             default:
-                node = new CFGNode(pIndex, opcode);
+                node = new ICFGNode(pIndex, opcode);
                 break;
         }
         nodes.put(pIndex, node);
@@ -242,8 +242,8 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private void createCFGNodeForIincInsnNode(final int varNumber, final int pIndex, final int pLineNumber) {
         final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, ISTORE, pIndex, pLineNumber);
-        final CFGNode node =
-                new CFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex, IINC);
+        final ICFGNode node =
+                new ICFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex, IINC);
         nodes.put(pIndex, node);
     }
 
@@ -256,8 +256,8 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
 
     private void setPredecessorSuccessorRelation() {
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
-            final CFGNode first = nodes.get(edge.getKey());
-            final CFGNode second = nodes.get(edge.getValue());
+            final ICFGNode first = nodes.get(edge.getKey());
+            final ICFGNode second = nodes.get(edge.getValue());
             first.addSuccessor(second);
             second.addPredecessor(first);
         }
@@ -277,10 +277,10 @@ class CFGCreatorMethodVisitor extends JDFCMethodVisitor {
             parameters.add(variable);
         }
 
-        final CFGNode firstNode = nodes.get(0);
+        final ICFGNode firstNode = nodes.get(0);
         if (firstNode != null) {
-            final CFGNode entryNode =
-                    new CFGNode(
+            final ICFGNode entryNode =
+                    new ICFGNode(
                             parameters,
                             Sets.newLinkedHashSet(),
                             Integer.MIN_VALUE,

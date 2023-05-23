@@ -8,7 +8,7 @@ import java.util.NavigableMap;
 /**
  * The Control-Flow Graph (CFG) for one method of the original program.
  *
- * <p>The CFG itself consists of a number of {@link CFGNode}s and offers the possibility to
+ * <p>The CFG itself consists of a number of {@link ICFGNode}s and offers the possibility to
  * calculate the reaching definitions of variables.
  */
 public interface CFG {
@@ -24,11 +24,11 @@ public interface CFG {
     String toString();
 
     /**
-     * Returns a map between node ID and {@link CFGNode}.
+     * Returns a map between node ID and {@link ICFGNode}.
      *
-     * @return A map between node ID and {@link CFGNode}
+     * @return A map between node ID and {@link ICFGNode}
      */
-    NavigableMap<Integer, CFGNode> getNodes();
+    NavigableMap<Integer, ICFGNode> getNodes();
 
     /**
      * Returns a local variable table representation of this method.

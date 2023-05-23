@@ -2,14 +2,14 @@ package icfg;
 
 import icfg.data.ProgramVariable;
 
-public class IFGNode extends CFGNode{
+public class IFGNode extends ICFGNode {
 
     private final String methodOwner;
     private final int lineNumber;
     private final ProgramVariable methodCaller;
     private final String methodNameDesc;
     private final int parameterCount;
-    private CFGNode relatedCallSiteNode;
+    private ICFGNode relatedCallSiteNode;
     private CFG relatedCFG;
 
     public int getOpcode() {
@@ -39,7 +39,7 @@ public class IFGNode extends CFGNode{
         return methodNameDesc;
     }
 
-    public CFGNode getRelatedCallSiteNode() {
+    public ICFGNode getRelatedCallSiteNode() {
         return relatedCallSiteNode;
     }
 

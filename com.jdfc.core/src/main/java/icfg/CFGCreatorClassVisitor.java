@@ -67,7 +67,7 @@ class CFGCreatorClassVisitor extends JDFCClassVisitor {
         while (propagateChange) {
             propagateChange = false;
             for (Map.Entry<String, CFG> methodEntry : pMethodCFGs.entrySet()) {
-                for (Map.Entry<Integer, CFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()) {
+                for (Map.Entry<Integer, ICFGNode> cfgNodeEntry : methodEntry.getValue().getNodes().entrySet()) {
                     if (cfgNodeEntry.getValue() instanceof IFGNode) {
                         IFGNode ifgNode = (IFGNode) cfgNodeEntry.getValue();
                         if (ifgNode.getMethodNameDesc() != null && isInstrumentationRequired(ifgNode.getMethodNameDesc())) {

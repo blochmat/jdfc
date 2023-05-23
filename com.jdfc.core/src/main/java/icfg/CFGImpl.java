@@ -15,13 +15,13 @@ import java.util.Set;
 public class CFGImpl implements CFG {
 
     private final String methodName;
-    private final NavigableMap<Integer, CFGNode> nodes;
+    private final NavigableMap<Integer, ICFGNode> nodes;
     private final Map<Integer, LocalVariable> localVariableTable;
     private boolean isImpure;
 
     CFGImpl(
             final String pMethodName,
-            final NavigableMap<Integer, CFGNode> pNodes,
+            final NavigableMap<Integer, ICFGNode> pNodes,
             final Map<Integer, LocalVariable> pLocalVariableTable,
             final boolean pIsImpure) {
         Preconditions.checkNotNull(pMethodName);
@@ -36,7 +36,7 @@ public class CFGImpl implements CFG {
      * {@inheritDoc}
      */
     @Override
-    public NavigableMap<Integer, CFGNode> getNodes() {
+    public NavigableMap<Integer, ICFGNode> getNodes() {
         return nodes;
     }
 
@@ -63,14 +63,14 @@ public class CFGImpl implements CFG {
      */
     @Override
     public void calculateReachingDefinitions() {
-        LinkedList<CFGNode> workList = new LinkedList<>();
-        for (Map.Entry<Integer, CFGNode> node : nodes.entrySet()) {
+        LinkedList<ICFGNode> workList = new LinkedList<>();
+        for (Map.Entry<Integer, ICFGNode> node : nodes.entrySet()) {
             node.getValue().resetReachOut();
             workList.add(node.getValue());
         }
 
         while (!workList.isEmpty()) {
-            CFGNode node = workList.poll();
+            ICFGNode node = workList.poll();
             Set<ProgramVariable> oldValue = node.getReachOut();
             node.update();
             if (!node.getReachOut().equals(oldValue)) {

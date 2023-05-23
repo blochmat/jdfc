@@ -1,7 +1,7 @@
 package data;
 
 import icfg.CFG;
-import icfg.CFGNode;
+import icfg.ICFGNode;
 import icfg.IFGNode;
 import icfg.data.DefUsePair;
 import icfg.data.LocalVariable;
@@ -98,8 +98,8 @@ public class ClassExecutionData extends ExecutionData {
      */
     public void insertAdditionalDefs() {
         for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            for (Map.Entry<Integer, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
-                CFGNode node = entry.getValue();
+            for (Map.Entry<Integer, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+                ICFGNode node = entry.getValue();
                 if (node instanceof IFGNode) {
                     IFGNode callingNode = (IFGNode) node;
                     if (callingNode.getRelatedCFG() != null && callingNode.getRelatedCFG().isImpure()) {
@@ -129,8 +129,8 @@ public class ClassExecutionData extends ExecutionData {
      */
     public void calculateIntraProceduralDefUsePairs() {
         for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            for (Map.Entry<Integer, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
-                CFGNode node = entry.getValue();
+            for (Map.Entry<Integer, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+                ICFGNode node = entry.getValue();
                 for (ProgramVariable def : node.getReach()) {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
@@ -152,11 +152,11 @@ public class ClassExecutionData extends ExecutionData {
         for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
             String methodName = methodCFGs.getKey();
             CFG graph = methodCFGs.getValue();
-            for (Map.Entry<Integer, CFGNode> node : graph.getNodes().entrySet()) {
+            for (Map.Entry<Integer, ICFGNode> node : graph.getNodes().entrySet()) {
                 if (node.getValue() instanceof IFGNode) {
                     IFGNode ifgNode = (IFGNode) node.getValue();
                     if (ifgNode.getRelatedCFG() != null) {
-                        CFGNode entryNode = ifgNode.getRelatedCallSiteNode();
+                        ICFGNode entryNode = ifgNode.getRelatedCallSiteNode();
                         String entryMethodName = ifgNode.getMethodNameDesc();
                         Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
                                 getUsageDefinitionMatchRecursive(
@@ -195,22 +195,22 @@ public class ClassExecutionData extends ExecutionData {
      * @return Map matching definitions in both procedures to one another
      */
     private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pParameterCount,
-                                                                                   final CFGNode pNode,
+                                                                                   final ICFGNode pNode,
                                                                                    final IFGNode pCallingNode,
-                                                                                   final CFGNode pRelatedCallSiteNode) {
+                                                                                   final ICFGNode pRelatedCallSiteNode) {
         Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
         // for each parameter: process one node (predecessor of pNode)
         if (pParameterCount > 0) {
-            CFGNode predecessor;
+            ICFGNode predecessor;
 
             // Example: 2 parameters
             // LOAD x
             // LOAD y
             // INVOKE  x y
             if (pNode == null) {
-                predecessor = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
+                predecessor = (ICFGNode) pCallingNode.getPredecessors().toArray()[0];
             } else {
-                predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
+                predecessor = (ICFGNode) pNode.getPredecessors().toArray()[0];
             }
 
             if(pRelatedCallSiteNode == null) {
