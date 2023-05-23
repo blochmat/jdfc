@@ -12,17 +12,17 @@ import java.util.stream.Collectors;
 /**
  * A node in the {@link CFG}.
  */
-public class CFGNode {
+public class ICFGNode {
     private final Set<ProgramVariable> definitions;
     private final Set<ProgramVariable> uses;
     private final int index;
     private final int opcode;
-    private final Set<CFGNode> predecessors;
-    private final Set<CFGNode> successors;
+    private final Set<ICFGNode> predecessors;
+    private final Set<ICFGNode> successors;
     private final Set<ProgramVariable> reachOut;
     private final Set<ProgramVariable> reach;
 
-    CFGNode(final int pIndex, final int pOpcode) {
+    ICFGNode(final int pIndex, final int pOpcode) {
         this(
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
@@ -32,18 +32,18 @@ public class CFGNode {
                 Sets.newLinkedHashSet());
     }
 
-    CFGNode(
+    ICFGNode(
             final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex, final int pOpcode) {
         this(pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
     }
 
-    CFGNode(
+    ICFGNode(
             final Set<ProgramVariable> pDefinitions,
             final Set<ProgramVariable> pUses,
             final int pIndex,
             final int pOpcode,
-            final Set<CFGNode> pPredecessors,
-            final Set<CFGNode> pSuccessors) {
+            final Set<ICFGNode> pPredecessors,
+            final Set<ICFGNode> pSuccessors) {
         definitions = pDefinitions;
         uses = pUses;
         index = pIndex;
@@ -60,7 +60,7 @@ public class CFGNode {
     }
 
     void update() {
-        for (CFGNode node : predecessors) {
+        for (ICFGNode node : predecessors) {
             reach.addAll(node.getReachOut());
         }
         reachOut.clear();
@@ -79,11 +79,11 @@ public class CFGNode {
                                         && programVariable.getInstructionIndex() != variable.getInstructionIndex());
     }
 
-    void addSuccessor(final CFGNode pNode) {
+    void addSuccessor(final ICFGNode pNode) {
         successors.add(pNode);
     }
 
-    void addPredecessor(final CFGNode pNode) {
+    void addPredecessor(final ICFGNode pNode) {
         predecessors.add(pNode);
     }
 
@@ -97,11 +97,11 @@ public class CFGNode {
     }
 
     /**
-     * Returns the set of {@link CFGNode}s that are successors of this node.
+     * Returns the set of {@link ICFGNode}s that are successors of this node.
      *
-     * @return The set of {@link CFGNode}s that are successors
+     * @return The set of {@link ICFGNode}s that are successors
      */
-    public Set<CFGNode> getSuccessors() {
+    public Set<ICFGNode> getSuccessors() {
         return Collections.unmodifiableSet(successors);
     }
 
@@ -119,11 +119,11 @@ public class CFGNode {
     }
 
     /**
-     * Returns the set of {@link CFGNode}s that are predecessors of this node.
+     * Returns the set of {@link ICFGNode}s that are predecessors of this node.
      *
-     * @return The set of {@link CFGNode}s that are predecessors
+     * @return The set of {@link ICFGNode}s that are predecessors
      */
-    public Set<CFGNode> getPredecessors() {
+    public Set<ICFGNode> getPredecessors() {
         return Collections.unmodifiableSet(predecessors);
     }
 
@@ -132,7 +132,7 @@ public class CFGNode {
     }
 
     /**
-     * Returns the set of {@link ProgramVariable}s that get defined at this {@link CFGNode}.
+     * Returns the set of {@link ProgramVariable}s that get defined at this {@link ICFGNode}.
      *
      * @return The set of {@link ProgramVariable}s that get defined
      */
@@ -141,7 +141,7 @@ public class CFGNode {
     }
 
     /**
-     * Returns the set of {@link ProgramVariable}s that get used at this {@link CFGNode}.
+     * Returns the set of {@link ProgramVariable}s that get used at this {@link ICFGNode}.
      *
      * @return The set of {@link ProgramVariable}s that get used
      */
