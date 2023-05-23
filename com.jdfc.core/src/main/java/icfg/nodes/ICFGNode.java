@@ -1,7 +1,8 @@
-package icfg;
+package icfg.nodes;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import icfg.CFG;
 import icfg.data.ProgramVariable;
 import utils.JDFCUtils;
 
@@ -22,7 +23,7 @@ public class ICFGNode {
     private final Set<ProgramVariable> reachOut;
     private final Set<ProgramVariable> reach;
 
-    ICFGNode(final int pIndex, final int pOpcode) {
+    public ICFGNode(final int pIndex, final int pOpcode) {
         this(
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
@@ -32,12 +33,12 @@ public class ICFGNode {
                 Sets.newLinkedHashSet());
     }
 
-    ICFGNode(
+    public ICFGNode(
             final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex, final int pOpcode) {
         this(pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
     }
 
-    ICFGNode(
+    public ICFGNode(
             final Set<ProgramVariable> pDefinitions,
             final Set<ProgramVariable> pUses,
             final int pIndex,
@@ -55,11 +56,11 @@ public class ICFGNode {
         reach = Sets.newLinkedHashSet();
     }
 
-    void resetReachOut() {
+    public void resetReachOut() {
         reachOut.clear();
     }
 
-    void update() {
+    public void update() {
         for (ICFGNode node : predecessors) {
             reach.addAll(node.getReachOut());
         }
@@ -70,7 +71,7 @@ public class ICFGNode {
                 reachOut.stream().filter(this::isRedefinedVariable).collect(Collectors.toList()));
     }
 
-    boolean isRedefinedVariable(ProgramVariable variable) {
+    public boolean isRedefinedVariable(ProgramVariable variable) {
         return definitions
                 .stream()
                 .anyMatch(
@@ -79,11 +80,11 @@ public class ICFGNode {
                                         && programVariable.getInstructionIndex() != variable.getInstructionIndex());
     }
 
-    void addSuccessor(final ICFGNode pNode) {
+    public void addSuccessor(final ICFGNode pNode) {
         successors.add(pNode);
     }
 
-    void addPredecessor(final ICFGNode pNode) {
+    public void addPredecessor(final ICFGNode pNode) {
         predecessors.add(pNode);
     }
 

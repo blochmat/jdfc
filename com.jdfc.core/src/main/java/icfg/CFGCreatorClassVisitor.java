@@ -3,6 +3,7 @@ package icfg;
 import data.ClassExecutionData;
 import data.CoverageDataStore;
 import icfg.data.LocalVariable;
+import icfg.nodes.ICFGNode;
 import instr.JDFCClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

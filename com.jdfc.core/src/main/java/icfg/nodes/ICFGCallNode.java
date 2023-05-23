@@ -1,4 +1,4 @@
-package icfg;
+package icfg.nodes;
 
 public class ICFGCallNode {
 }

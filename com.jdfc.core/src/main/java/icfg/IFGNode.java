@@ -1,6 +1,7 @@
 package icfg;
 
 import icfg.data.ProgramVariable;
+import icfg.nodes.ICFGNode;
 
 public class IFGNode extends ICFGNode {
 

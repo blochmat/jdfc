@@ -6,6 +6,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
+import icfg.nodes.ICFGNode;
 import instr.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;

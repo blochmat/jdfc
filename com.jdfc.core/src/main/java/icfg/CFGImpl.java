@@ -3,6 +3,7 @@ package icfg;
 import com.google.common.base.Preconditions;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
+import icfg.nodes.ICFGNode;
 
 import java.util.LinkedList;
 import java.util.Map;

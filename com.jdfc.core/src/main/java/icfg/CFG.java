@@ -1,6 +1,7 @@
 package icfg;
 
 import icfg.data.LocalVariable;
+import icfg.nodes.ICFGNode;
 
 import java.util.Map;
 import java.util.NavigableMap;

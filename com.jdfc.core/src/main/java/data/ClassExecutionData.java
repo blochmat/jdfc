@@ -1,7 +1,7 @@
 package data;
 
 import icfg.CFG;
-import icfg.ICFGNode;
+import icfg.nodes.ICFGNode;
 import icfg.IFGNode;
 import icfg.data.DefUsePair;
 import icfg.data.LocalVariable;
