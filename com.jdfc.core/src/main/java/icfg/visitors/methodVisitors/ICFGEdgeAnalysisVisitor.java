@@ -87,11 +87,13 @@ public class ICFGEdgeAnalysisVisitor extends MethodVisitor {
             // Connect procedure returns to exit nodes
             int insnOpcode = methodNode.instructions.get(insnIndex).getOpcode();
             int succOpcode = methodNode.instructions.get(successorIndex).getOpcode();
-            if (172 <= insnOpcode && insnOpcode <= 177) {
+            if (172 <= insnOpcode && insnOpcode <= 177
+                    && (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) Integer.MAX_VALUE))) {
                 edges.put((double) insnIndex, (double) Integer.MAX_VALUE);
             }
 
-            if (172 <= succOpcode && succOpcode <= 177) {
+            if (172 <= succOpcode && succOpcode <= 177
+                    && (!edges.containsKey((double) successorIndex) || !edges.containsValue((double) Integer.MAX_VALUE))) {
                 edges.put((double) successorIndex, (double) Integer.MAX_VALUE);
             }
 

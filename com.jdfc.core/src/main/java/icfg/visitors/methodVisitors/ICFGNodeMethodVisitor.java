@@ -140,7 +140,7 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
             String callSiteMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
 //            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
-            final ICFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, opcode);
+            final ICFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, Integer.MIN_VALUE);
             nodes.put((double) currentInstructionIndex + 0.75, returnNode);
             crNodes.add((double) currentInstructionIndex);
         } else {
@@ -227,8 +227,9 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitEnd();
 
         // Add entry and exit node
-        addEntryNode();
-        ICFGNode exitNode = new ICFGExitNode(Integer.MAX_VALUE, Integer.MIN_VALUE );
+        ICFGEntryNode entryNode = new ICFGEntryNode(Integer.MIN_VALUE, Integer.MIN_VALUE);
+        ICFGNode exitNode = new ICFGExitNode(Integer.MAX_VALUE, Integer.MIN_VALUE);
+        nodes.put((double) Integer.MIN_VALUE, entryNode);
         nodes.put((double) Integer.MAX_VALUE, exitNode);
 
         // problem: edge analyzer works on origin method node
