@@ -21,10 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
+import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -33,6 +30,7 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final Map<String, ICFG> methodCFGs;
     private final Multimap<Double, Double> edges;
     private final NavigableMap<Double, ICFGNode> nodes;
+    private final Set<Double> crNodes;
 
     public ICFGNodeMethodVisitor(final ICFGNodeClassVisitor pClassVisitor,
                                  final MethodVisitor pMethodVisitor,
@@ -45,6 +43,7 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
         methodCFGs = pMethodCFGs;
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
+        crNodes = Sets.newHashSet();
     }
 
     @Override
@@ -143,7 +142,7 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
 //            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
             final ICFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, opcode);
             nodes.put((double) currentInstructionIndex + 0.75, returnNode);
-
+            crNodes.add((double) currentInstructionIndex);
         } else {
             final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
             nodes.put((double) currentInstructionIndex, node);
@@ -226,21 +225,21 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitEnd() {
         logger.debug("visitEnd");
         super.visitEnd();
-        edges.putAll(createEdges());
-        setPredecessorSuccessorRelation();
 
+        // Add entry and exit node
         addEntryNode();
         ICFGNode exitNode = new ICFGExitNode(Integer.MAX_VALUE, Integer.MIN_VALUE );
         nodes.put((double) Integer.MAX_VALUE, exitNode);
 
+        // problem: edge analyzer works on origin method node
+        edges.putAll(createEdges());
+        logger.debug(JDFCUtils.prettyPrintMap(nodes));
+        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
+        setPredecessorSuccessorRelation();
+
         logger.debug(JDFCUtils.prettyPrintMap(nodes));
 
         boolean isImpure = false;
-        for (Map.Entry<Double, ICFGNode> nodeEntry : nodes.entrySet()) {
-            double instrIdx = nodeEntry.getKey();
-            ICFGNode node = nodeEntry.getValue();
-            logger.debug(String.format("%f: %s%n", instrIdx, node.toString()));
-        }
         ICFG ICFG = new ICFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
         methodCFGs.put(internalMethodName, ICFG);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
@@ -286,7 +285,7 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
     private Multimap<Double, Double> createEdges() {
         logger.debug("createEdges");
         ICFGEdgeAnalysisVisitor cfgEdgeAnalysationVisitor =
-                new ICFGEdgeAnalysisVisitor(methodNode);
+                new ICFGEdgeAnalysisVisitor(methodNode, crNodes);
         methodNode.accept(cfgEdgeAnalysationVisitor);
         return cfgEdgeAnalysationVisitor.getEdges();
     }
@@ -316,7 +315,7 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
             parameters.add(variable);
         }
 
-        final ICFGNode firstNode = nodes.get(0);
+        final ICFGNode firstNode = nodes.get((double) 0);
         if (firstNode != null) {
             final ICFGNode entryNode =
                     new ICFGEntryNode(

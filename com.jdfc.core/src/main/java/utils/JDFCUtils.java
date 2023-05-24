@@ -1,5 +1,7 @@
 package utils;
 
+import com.google.common.collect.Multimap;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -216,6 +218,21 @@ public class JDFCUtils {
 
         sb.append(indent).append("}\n");
 
+        return sb.toString();
+    }
+
+    public static <K, V> String prettyPrintMultimap(Multimap<K, V> multimap) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+        for (K key : multimap.keySet()) {
+            sb.append("  ").append(key.toString()).append(" => ");
+            sb.append("[ ");
+            for (V value : multimap.get(key)) {
+                sb.append(value.toString()).append(", ");
+            }
+            sb.append("]\n");
+        }
+        sb.append("}\n");
         return sb.toString();
     }
 }
