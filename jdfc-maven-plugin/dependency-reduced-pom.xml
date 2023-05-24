@@ -6,7 +6,7 @@
   <packaging>maven-plugin</packaging>
   <name>JDFC :: Maven Plugin</name>
   <version>1.0-SNAPSHOT</version>
-  <description>The JDFC Maven plugin provides a Java Data Flow Coverage Agent to your tests and provides basic report
+  <description>The JDFC Maven plugin provides a Java Data Flow Coverage JDFCAgent to your tests and provides basic report
     creation</description>
   <developers>
     <developer>

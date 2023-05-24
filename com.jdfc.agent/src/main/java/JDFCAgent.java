@@ -5,7 +5,7 @@ import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
 
-public final class Agent {
+public final class JDFCAgent {
 
     /**
      * Workaround: This field is used to avoid NoClassDefFoundException in shutdown hook
@@ -13,13 +13,13 @@ public final class Agent {
     private static final Class<?> export = CoverageDataExport.class;
 
     public static void premain(final String options, final Instrumentation inst) {
-        System.out.println("PREMAIN");
+        System.err.println("PREMAIN");
         File dir = new File(options);
         Path baseDir = dir.toPath();
         String fileEnding = ".class";
         CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), baseDir, fileEnding);
-        ClassTransformer a = new ClassTransformer();
-        inst.addTransformer(a);
+        JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer();
+        inst.addTransformer(jdfcClassTransformer);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> CoverageDataStore.getInstance().exportCoverageData()));
     }
 }

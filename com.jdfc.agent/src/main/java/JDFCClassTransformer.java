@@ -6,11 +6,11 @@ import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 
 
-public class ClassTransformer implements ClassFileTransformer {
+public class JDFCClassTransformer implements ClassFileTransformer {
 
     private final JDFCInstrument JDFCInstrument;
 
-    public ClassTransformer() {
+    public JDFCClassTransformer() {
         this.JDFCInstrument = new JDFCInstrument();
     }
 
@@ -19,7 +19,7 @@ public class ClassTransformer implements ClassFileTransformer {
         if (!CoverageDataStore.getInstance().getClassList().contains(className)) {
             return classfileBuffer;
         }
-
+        System.err.println("TRANSFORM");
         final ClassReader cr = new ClassReader(classfileBuffer);
         return JDFCInstrument.instrument(cr);
     }
