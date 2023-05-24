@@ -13,6 +13,7 @@ public final class Agent {
     private static final Class<?> export = CoverageDataExport.class;
 
     public static void premain(final String options, final Instrumentation inst) {
+        System.out.println("PREMAIN");
         File dir = new File(options);
         Path baseDir = dir.toPath();
         String fileEnding = ".class";

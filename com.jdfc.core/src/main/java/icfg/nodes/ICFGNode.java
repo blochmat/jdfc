@@ -157,7 +157,7 @@ public class ICFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFG Node: %d %s (%d predecessors, %d successors)",
+                "ICFGNode: %d %s (%d predecessors, %d successors)",
                 index, JDFCUtils.getOpcode(opcode), predecessors.size(), successors.size());
     }
 }

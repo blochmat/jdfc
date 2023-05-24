@@ -20,7 +20,7 @@ public class JDFCInstrument {
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
         if (classExecutionData != null) {
-            ICFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
+            ICFGCreator.createICFGsForClass(classReader, classNode, classExecutionData);
             final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
             classReader.accept(cv, 0);
         }

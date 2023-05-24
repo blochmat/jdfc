@@ -2,7 +2,8 @@ package icfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
 import icfg.ICFGCreator;
-import icfg.visitors.methodVisitors.LocalVariableMethodVisitor;
+import icfg.data.ProgramVariable;
+import icfg.visitors.methodVisitors.ICFGVariableMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -19,9 +20,9 @@ import static org.objectweb.asm.Opcodes.ASM5;
  *
  * @see ClassVisitor
  */
-public class LocalVariableClassVisitor extends JDFCClassVisitor {
+public class ICFGVariableClassVisitor extends JDFCClassVisitor {
 
-    public LocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
+    public ICFGVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassNode, pClassExecutionData);
     }
 
@@ -40,6 +41,9 @@ public class LocalVariableClassVisitor extends JDFCClassVisitor {
             final String signature,
             final Object value) {
         final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
+        this.getFields().add(
+                ProgramVariable.create(this.getClassNode().name,
+                        name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false));
         System.out.printf("Field: %s %s %s = %s%n", JDFCUtils.getAccess(access), descriptor, name, value);
         return fv;
     }
@@ -57,7 +61,7 @@ public class LocalVariableClassVisitor extends JDFCClassVisitor {
         final MethodNode methodNode = getMethodNode(pName, pDescriptor);
         final String internalMethodName = ICFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (methodNode != null && isInstrumentationRequired(pName)) {
-            return new LocalVariableMethodVisitor(
+            return new ICFGVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
         }
         return mv;

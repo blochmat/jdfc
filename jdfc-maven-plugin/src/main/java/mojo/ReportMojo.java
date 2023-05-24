@@ -42,7 +42,6 @@ public class ReportMojo extends AbstractMavenReport {
         final String source = getProject().getBuild().getSourceDirectory();
         ReportGenerator reportGenerator = new ReportGenerator(exportDir, source);
         reportGenerator.createReport();
-
     }
 
     @Override

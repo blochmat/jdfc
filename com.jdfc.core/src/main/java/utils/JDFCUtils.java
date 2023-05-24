@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.Map;
+import java.util.Set;
 
 public class JDFCUtils {
 
@@ -181,6 +182,12 @@ public class JDFCUtils {
             sb.append("  ");
         }
         return sb.toString();
+    }
+
+    public static <T> void prettyPrintSet(Set<T> set) {
+        for (T element : set) {
+            System.out.println(element.toString());
+        }
     }
 
     public static void prettyPrintMap(Map<?, ?> map) {

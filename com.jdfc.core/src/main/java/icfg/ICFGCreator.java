@@ -3,8 +3,9 @@ package icfg;
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
 import icfg.data.LocalVariable;
-import icfg.visitors.classVisitors.ICFGCreatorClassVisitor;
-import icfg.visitors.classVisitors.LocalVariableClassVisitor;
+import icfg.data.ProgramVariable;
+import icfg.visitors.classVisitors.ICFGNodeClassVisitor;
+import icfg.visitors.classVisitors.ICFGVariableClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import utils.JDFCUtils;
@@ -12,6 +13,7 @@ import utils.JDFCUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Creates {@link ICFG}s for each method of a class file.
@@ -43,33 +45,35 @@ public class ICFGCreator {
      * @param pClassNode   An empty class node to start the analysis with
      *
      */
-    public static void createCFGsForClass(final ClassReader pClassReader,
-                                                      final ClassNode pClassNode,
-                                                      final ClassExecutionData pClassExecutionData) {
+    public static void createICFGsForClass(final ClassReader pClassReader,
+                                           final ClassNode pClassNode,
+                                           final ClassExecutionData pClassExecutionData) {
         Preconditions.checkNotNull(pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
         Preconditions.checkNotNull(pClassExecutionData,
                 "We need a non-null class execution data to generate CFGs from.");
 
         // Get local variable information
-        final LocalVariableClassVisitor localVariableVisitor = new LocalVariableClassVisitor(pClassNode, pClassExecutionData);
+        final ICFGVariableClassVisitor localVariableVisitor = new ICFGVariableClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(localVariableVisitor, 0);
 
+        final Set<ProgramVariable> fields = localVariableVisitor.getFields();
         final Map<String, Map<Integer, LocalVariable>> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
 
+        JDFCUtils.prettyPrintSet(fields);
         JDFCUtils.prettyPrintMap(localVariableTables);
 
-        // Create method cfgs
-        final Map<String, ICFG> methodCFGs = new HashMap<>();
-        final ICFGCreatorClassVisitor ICFGCreatorClassVisitor =
-                new ICFGCreatorClassVisitor(pClassNode, pClassExecutionData, methodCFGs, localVariableTables);
-        pClassReader.accept(ICFGCreatorClassVisitor, 0);
+        // Create method ICFGs
+        final Map<String, ICFG> methodICFGs = new HashMap<>();
+        final ICFGNodeClassVisitor ICFGNodeClassVisitor =
+                new ICFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, fields, localVariableTables);
+        pClassReader.accept(ICFGNodeClassVisitor, 0);
     }
 
     /**
      * Computes the internal method name representation that is used, for example, in the map emitted
-     * by {@link ICFGCreator#createCFGsForClass(ClassReader, ClassNode, ClassExecutionData)}.
+     * by {@link ICFGCreator#createICFGsForClass(ClassReader, ClassNode, ClassExecutionData)}.
      *
      * @param pMethodName The name of the method
      * @param pDescriptor The method's descriptor

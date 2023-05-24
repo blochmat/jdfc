@@ -16,13 +16,13 @@ import java.util.Set;
 public class ICFGImpl implements ICFG {
 
     private final String methodName;
-    private final NavigableMap<Integer, ICFGNode> nodes;
+    private final NavigableMap<Double, ICFGNode> nodes;
     private final Map<Integer, LocalVariable> localVariableTable;
     private boolean isImpure;
 
     public ICFGImpl(
             final String pMethodName,
-            final NavigableMap<Integer, ICFGNode> pNodes,
+            final NavigableMap<Double, ICFGNode> pNodes,
             final Map<Integer, LocalVariable> pLocalVariableTable,
             final boolean pIsImpure) {
         Preconditions.checkNotNull(pMethodName);
@@ -37,7 +37,7 @@ public class ICFGImpl implements ICFG {
      * {@inheritDoc}
      */
     @Override
-    public NavigableMap<Integer, ICFGNode> getNodes() {
+    public NavigableMap<Double, ICFGNode> getNodes() {
         return nodes;
     }
 
@@ -65,7 +65,7 @@ public class ICFGImpl implements ICFG {
     @Override
     public void calculateReachingDefinitions() {
         LinkedList<ICFGNode> workList = new LinkedList<>();
-        for (Map.Entry<Integer, ICFGNode> node : nodes.entrySet()) {
+        for (Map.Entry<Double, ICFGNode> node : nodes.entrySet()) {
             node.getValue().resetReachOut();
             workList.add(node.getValue());
         }

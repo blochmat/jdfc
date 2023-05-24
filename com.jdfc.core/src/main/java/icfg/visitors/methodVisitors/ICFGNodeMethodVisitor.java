@@ -7,11 +7,10 @@ import com.google.common.collect.Sets;
 import icfg.ICFG;
 import icfg.ICFGCreator;
 import icfg.ICFGImpl;
-import icfg.ToBeDeleted;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
-import icfg.nodes.ICFGNode;
-import icfg.visitors.classVisitors.ICFGCreatorClassVisitor;
+import icfg.nodes.*;
+import icfg.visitors.classVisitors.ICFGNodeClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -26,18 +25,18 @@ import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
+public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private final Map<String, ICFG> methodCFGs;
-    private final Multimap<Integer, Integer> edges;
-    private final NavigableMap<Integer, ICFGNode> nodes;
+    private final Multimap<Double, Double> edges;
+    private final NavigableMap<Double, ICFGNode> nodes;
 
-    public ICFGCreatorMethodVisitor(final ICFGCreatorClassVisitor pClassVisitor,
-                                    final MethodVisitor pMethodVisitor,
-                                    final MethodNode pMethodNode,
-                                    final String pInternalMethodName,
-                                    final Map<String, ICFG> pMethodCFGs,
-                                    final Map<Integer, LocalVariable> pLocalVariableTable) {
+    public ICFGNodeMethodVisitor(final ICFGNodeClassVisitor pClassVisitor,
+                                 final MethodVisitor pMethodVisitor,
+                                 final MethodNode pMethodNode,
+                                 final String pInternalMethodName,
+                                 final Map<String, ICFG> pMethodCFGs,
+                                 final Map<Integer, LocalVariable> pLocalVariableTable) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
         methodCFGs = pMethodCFGs;
         edges = ArrayListMultimap.create();
@@ -48,7 +47,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         super.visitFrame(type, numLocal, local, numStack, stack);
         final ICFGNode node = new ICFGNode(currentInstructionIndex, getFrameOpcode(type));
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     private int getFrameOpcode(int type) {
@@ -75,14 +74,14 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitInsn(opcode);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
     public void visitFrameNew() {
         if (currentNode.getOpcode() == F_NEW) {
             final ICFGNode node = new ICFGNode(currentInstructionIndex, F_NEW);
-            nodes.put(currentInstructionIndex, node);
+            nodes.put((double) currentInstructionIndex, node);
             updateCurrentNode();
         }
     }
@@ -92,7 +91,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitIntInsn(opcode, operand);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -107,7 +106,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitTypeInsn(opcode, type);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -115,7 +114,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitFieldInsn(opcode, owner, name, descriptor);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
 //        createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor);
     }
 
@@ -124,14 +123,17 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
         if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
+            final ICFGNode callNode = new ICFGCallNode(currentInstructionIndex, opcode);
+            nodes.put((double) currentInstructionIndex + 0.25, callNode);
             String callSiteMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
-            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
-            nodes.put(currentInstructionIndex, node);
+//            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
+            final ICFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, opcode);
+            nodes.put((double) currentInstructionIndex + 0.75, returnNode);
 
         } else {
             final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
-            nodes.put(currentInstructionIndex, node);
+            nodes.put((double) currentInstructionIndex, node);
         }
     }
 
@@ -149,7 +151,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, INVOKEDYNAMIC);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -157,7 +159,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitJumpInsn(opcode, label);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -165,7 +167,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitLdcInsn(value);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, LDC);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -180,7 +182,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitTableSwitchInsn(min, max, dflt, labels);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, TABLESWITCH);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -188,7 +190,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitLookupSwitchInsn(dflt, keys, labels);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, LOOKUPSWITCH);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -196,7 +198,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
         visitFrameNew();
         final ICFGNode node = new ICFGNode(currentInstructionIndex, MULTIANEWARRAY);
-        nodes.put(currentInstructionIndex, node);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -206,12 +208,14 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         setPredecessorSuccessorRelation();
 
         addEntryNode();
+        ICFGNode exitNode = new ICFGExitNode(Integer.MAX_VALUE, Integer.MIN_VALUE );
+        nodes.put((double) Integer.MAX_VALUE, exitNode);
 
         boolean isImpure = false;
-        for (Map.Entry<Integer, ICFGNode> nodeEntry : nodes.entrySet()) {
-            int instrIdx = nodeEntry.getKey();
+        for (Map.Entry<Double, ICFGNode> nodeEntry : nodes.entrySet()) {
+            double instrIdx = nodeEntry.getKey();
             ICFGNode node = nodeEntry.getValue();
-            System.out.printf("%d: %s%n", instrIdx, node.toString());
+            System.out.printf("%f: %s%n", instrIdx, node.toString());
         }
         ICFG ICFG = new ICFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
         methodCFGs.put(internalMethodName, ICFG);
@@ -243,17 +247,17 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
                 node = new ICFGNode(pIndex, opcode);
                 break;
         }
-        nodes.put(pIndex, node);
+        nodes.put((double) pIndex, node);
     }
 
     private void createCFGNodeForIincInsnNode(final int varNumber, final int pIndex, final int pLineNumber) {
         final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, ISTORE, pIndex, pLineNumber);
         final ICFGNode node =
                 new ICFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex, IINC);
-        nodes.put(pIndex, node);
+        nodes.put((double) pIndex, node);
     }
 
-    private Multimap<Integer, Integer> createEdges() {
+    private Multimap<Double, Double> createEdges() {
         ICFGEdgeAnalysisVisitor cfgEdgeAnalysationVisitor =
                 new ICFGEdgeAnalysisVisitor(methodNode);
         methodNode.accept(cfgEdgeAnalysationVisitor);
@@ -261,7 +265,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void setPredecessorSuccessorRelation() {
-        for (Map.Entry<Integer, Integer> edge : edges.entries()) {
+        for (Map.Entry<Double, Double> edge : edges.entries()) {
             final ICFGNode first = nodes.get(edge.getKey());
             final ICFGNode second = nodes.get(edge.getValue());
             first.addSuccessor(second);
@@ -286,7 +290,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
         final ICFGNode firstNode = nodes.get(0);
         if (firstNode != null) {
             final ICFGNode entryNode =
-                    new ICFGNode(
+                    new ICFGEntryNode(
                             parameters,
                             Sets.newLinkedHashSet(),
                             Integer.MIN_VALUE,
@@ -294,7 +298,7 @@ public class ICFGCreatorMethodVisitor extends JDFCMethodVisitor {
                             Sets.newLinkedHashSet(),
                             Sets.newHashSet(firstNode));
             firstNode.addPredecessor(entryNode);
-            nodes.put(Integer.MIN_VALUE, entryNode);
+            nodes.put((double) Integer.MIN_VALUE, entryNode);
         }
 
     }

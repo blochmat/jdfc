@@ -17,7 +17,7 @@ import static org.objectweb.asm.Opcodes.ASM5;
 public class ICFGEdgeAnalysisVisitor extends MethodVisitor {
 
     private final MethodNode methodNode;
-    private final Multimap<Integer, Integer> edges;
+    private final Multimap<Double, Double> edges;
 
     ICFGEdgeAnalysisVisitor(final MethodNode pMethodNode) {
         super(ASM5);
@@ -33,43 +33,43 @@ public class ICFGEdgeAnalysisVisitor extends MethodVisitor {
             edges.putAll(cfgEdgeAnalyzer.getEdges());
 
             System.out.printf("Method: %s%n", methodNode.name);
-            for (Map.Entry<Integer, Integer> edge : edges.entries()){
-                System.out.printf("Edge: (%d,%d)%n", edge.getKey(), edge.getValue());
+            for (Map.Entry<Double, Double> edge : edges.entries()){
+                System.out.printf("Edge: (%f,%f)%n", edge.getKey(), edge.getValue());
             }
         } catch (AnalyzerException e) {
             e.printStackTrace();
         }
     }
 
-    Multimap<Integer, Integer> getEdges() {
+    Multimap<Double, Double> getEdges() {
         return edges;
     }
 
     private static class CFGEdgeAnalyzer extends Analyzer<SourceValue> {
 
-        private final Multimap<Integer, Integer> edges;
+        private final Multimap<Double, Double> edges;
 
         CFGEdgeAnalyzer() {
             super(new SourceInterpreter());
             edges = ArrayListMultimap.create();
         }
 
-        Multimap<Integer, Integer> getEdges() {
+        Multimap<Double, Double> getEdges() {
             return edges;
         }
 
         @Override
         protected void newControlFlowEdge(int insnIndex, int successorIndex) {
-            if (!edges.containsKey(insnIndex) || !edges.containsValue(successorIndex)) {
-                edges.put(insnIndex, successorIndex);
+            if (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) successorIndex)) {
+                edges.put((double) insnIndex, (double) successorIndex);
             }
             super.newControlFlowEdge(insnIndex, successorIndex);
         }
 
         @Override
         protected boolean newControlFlowExceptionEdge(int insnIndex, int successorIndex) {
-            if (!edges.containsKey(insnIndex) || !edges.containsValue(successorIndex)) {
-                edges.put(insnIndex, successorIndex);
+            if (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) successorIndex)) {
+                edges.put((double) insnIndex, (double) successorIndex);
             }
             return super.newControlFlowExceptionEdge(insnIndex, successorIndex);
         }

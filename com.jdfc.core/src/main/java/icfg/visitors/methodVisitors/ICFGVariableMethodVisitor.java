@@ -1,7 +1,7 @@
 package icfg.visitors.methodVisitors;
 
 import icfg.data.LocalVariable;
-import icfg.visitors.classVisitors.LocalVariableClassVisitor;
+import icfg.visitors.classVisitors.ICFGVariableClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -9,10 +9,10 @@ import org.objectweb.asm.tree.MethodNode;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
-public class LocalVariableMethodVisitor extends JDFCMethodVisitor {
+public class ICFGVariableMethodVisitor extends JDFCMethodVisitor {
 
-    public LocalVariableMethodVisitor(
-            final LocalVariableClassVisitor pClassVisitor,
+    public ICFGVariableMethodVisitor(
+            final ICFGVariableClassVisitor pClassVisitor,
             final MethodVisitor pMethodVisitor,
             final MethodNode pMethodNode,
             final String pInternalMethodName) {

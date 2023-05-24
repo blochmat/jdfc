@@ -29,6 +29,8 @@ public class ClassExecutionData extends ExecutionData {
     private final Set<InterProceduralMatch> interProceduralMatches;
     private final String relativePath;
 
+    private final Set<ProgramVariable> fields;
+
     public ClassExecutionData(String pRelativePath) {
         methodLastLine = new HashMap<>();
         methodFirstLine = new HashMap<>();
@@ -38,6 +40,7 @@ public class ClassExecutionData extends ExecutionData {
         variablesUncovered = new HashMap<>();
         relativePath = pRelativePath;
         interProceduralMatches = new HashSet<>();
+        fields = new HashSet<>();
     }
 
     /**
@@ -81,6 +84,10 @@ public class ClassExecutionData extends ExecutionData {
         return interProceduralMatches;
     }
 
+    public Set<ProgramVariable> getFields(){
+        return fields;
+    }
+
     /**
      * Initalize all required lists for every method
      */
@@ -98,7 +105,7 @@ public class ClassExecutionData extends ExecutionData {
      */
     public void insertAdditionalDefs() {
         for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            for (Map.Entry<Integer, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+            for (Map.Entry<Double, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
                 ICFGNode node = entry.getValue();
                 if (node instanceof ToBeDeleted) {
                     ToBeDeleted callingNode = (ToBeDeleted) node;
@@ -129,7 +136,7 @@ public class ClassExecutionData extends ExecutionData {
      */
     public void calculateIntraProceduralDefUsePairs() {
         for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            for (Map.Entry<Integer, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+            for (Map.Entry<Double, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
                 ICFGNode node = entry.getValue();
                 for (ProgramVariable def : node.getReach()) {
                     for (ProgramVariable use : node.getUses()) {
@@ -152,7 +159,7 @@ public class ClassExecutionData extends ExecutionData {
         for (Map.Entry<String, ICFG> methodCFGs : methodCFGs.entrySet()) {
             String methodName = methodCFGs.getKey();
             ICFG graph = methodCFGs.getValue();
-            for (Map.Entry<Integer, ICFGNode> node : graph.getNodes().entrySet()) {
+            for (Map.Entry<Double, ICFGNode> node : graph.getNodes().entrySet()) {
                 if (node.getValue() instanceof ToBeDeleted) {
                     ToBeDeleted toBeDeleted = (ToBeDeleted) node.getValue();
                     if (toBeDeleted.getRelatedCFG() != null) {

@@ -20,13 +20,11 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public final MethodNode methodNode;
     public final Map<Integer, LocalVariable> localVariableTable;
     public String internalMethodName;
-
     public AbstractInsnNode currentNode = null;
     public int currentInstructionIndex = -1;
     public int currentLineNumber = -1;
     public int firstLine = -1;
     public String classDescriptor;
-
     public final String jacocoPrefix = "$jacoco";
 
     public JDFCMethodVisitor(final int pApi,

@@ -29,7 +29,7 @@ public interface ICFG {
      *
      * @return A map between node ID and {@link ICFGNode}
      */
-    NavigableMap<Integer, ICFGNode> getNodes();
+    NavigableMap<Double, ICFGNode> getNodes();
 
     /**
      * Returns a local variable table representation of this method.
