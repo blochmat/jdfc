@@ -12,12 +12,15 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Set;
 
 public class ICFGNodeClassVisitor extends JDFCClassVisitor {
 
+    private final Logger logger = LoggerFactory.getLogger(ICFGNodeClassVisitor.class);
     private final Map<String, ICFG> methodCFGs;
 
     public ICFGNodeClassVisitor(final ClassNode pClassNode,
@@ -26,6 +29,7 @@ public class ICFGNodeClassVisitor extends JDFCClassVisitor {
                                 final Set<ProgramVariable> fields,
                                 final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(Opcodes.ASM5, pClassNode, pClassExecutionData, fields, pLocalVariableTables);
+        logger.debug(String.format("Visiting %s", pClassNode.name));
         methodCFGs = pMethodCFGs;
     }
 

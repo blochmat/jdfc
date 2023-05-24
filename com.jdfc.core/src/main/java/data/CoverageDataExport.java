@@ -2,6 +2,8 @@ package data;
 
 import icfg.data.DefUsePair;
 import icfg.data.ProgramVariable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -22,8 +24,10 @@ import java.util.TreeMap;
 
 public class CoverageDataExport {
 
+    private static final Logger logger = LoggerFactory.getLogger(CoverageDataExport.class);
+
     public static void init() {
-        System.out.println("CoverageDataExport initialized.");
+        logger.debug("CoverageDataExport initialized.");
     }
 
     /**

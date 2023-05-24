@@ -9,8 +9,6 @@ import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
-import java.util.Map;
-
 import static org.objectweb.asm.Opcodes.ASM5;
 
 
@@ -31,11 +29,6 @@ public class ICFGEdgeAnalysisVisitor extends MethodVisitor {
             CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer();
             cfgEdgeAnalyzer.analyze(methodNode.name, methodNode);
             edges.putAll(cfgEdgeAnalyzer.getEdges());
-
-            System.out.printf("Method: %s%n", methodNode.name);
-            for (Map.Entry<Double, Double> edge : edges.entries()){
-                System.out.printf("Edge: (%f,%f)%n", edge.getKey(), edge.getValue());
-            }
         } catch (AnalyzerException e) {
             e.printStackTrace();
         }

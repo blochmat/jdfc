@@ -8,6 +8,8 @@ import icfg.visitors.classVisitors.ICFGNodeClassVisitor;
 import icfg.visitors.classVisitors.ICFGVariableClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
 import java.util.Arrays;
@@ -19,6 +21,8 @@ import java.util.Set;
  * Creates {@link ICFG}s for each method of a class file.
  */
 public class ICFGCreator {
+
+    private static final Logger logger = LoggerFactory.getLogger(ICFGCreator.class);
 
     private ICFGCreator() {
     }
@@ -48,6 +52,7 @@ public class ICFGCreator {
     public static void createICFGsForClass(final ClassReader pClassReader,
                                            final ClassNode pClassNode,
                                            final ClassExecutionData pClassExecutionData) {
+        logger.debug("createICFGsForClass");
         Preconditions.checkNotNull(pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
         Preconditions.checkNotNull(pClassExecutionData,
@@ -61,14 +66,15 @@ public class ICFGCreator {
         final Map<String, Map<Integer, LocalVariable>> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
 
-        JDFCUtils.prettyPrintSet(fields);
-        JDFCUtils.prettyPrintMap(localVariableTables);
+        logger.debug(JDFCUtils.prettyPrintSet(fields));
+        logger.debug(JDFCUtils.prettyPrintMap(localVariableTables));
 
         // Create method ICFGs
         final Map<String, ICFG> methodICFGs = new HashMap<>();
         final ICFGNodeClassVisitor ICFGNodeClassVisitor =
                 new ICFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, fields, localVariableTables);
         pClassReader.accept(ICFGNodeClassVisitor, 0);
+        logger.debug(JDFCUtils.prettyPrintMap(methodICFGs));
     }
 
     /**
@@ -86,6 +92,7 @@ public class ICFGCreator {
             final String pDescriptor,
             final String pSignature,
             final String[] pExceptions) {
+        logger.debug("computeInternalMethodName");
         final StringBuilder result = new StringBuilder();
         result.append(pMethodName);
         result.append(": ");

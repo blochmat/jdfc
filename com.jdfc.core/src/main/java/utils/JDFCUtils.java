@@ -184,31 +184,38 @@ public class JDFCUtils {
         return sb.toString();
     }
 
-    public static <T> void prettyPrintSet(Set<T> set) {
+    public static <T> String prettyPrintSet(Set<T> set) {
+        StringBuilder stringBuilder = new StringBuilder();
         for (T element : set) {
-            System.out.println(element.toString());
+            stringBuilder.append(element.toString()).append("\n");
         }
+        return stringBuilder.toString();
     }
 
-    public static void prettyPrintMap(Map<?, ?> map) {
-        prettyPrintMap(map, 0);
+    public static String prettyPrintMap(Map<?, ?> map) {
+        return prettyPrintMap(map, 0);
     }
 
-    private static void prettyPrintMap(Map<?, ?> map, int indentLevel) {
+    private static String prettyPrintMap(Map<?, ?> map, int indentLevel) {
+        StringBuilder sb = new StringBuilder();
+
         String indent = getIndent(indentLevel);
+        sb.append(indent).append("{\n");
 
-        System.out.println(indent + "{");
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             Object key = entry.getKey();
             Object value = entry.getValue();
 
             if (value instanceof Map) {
-                System.out.println(indent + "  " + key + " =>");
-                prettyPrintMap((Map<?, ?>) value, indentLevel + 1);
+                sb.append(indent).append("  ").append(key).append(" =>\n");
+                sb.append(prettyPrintMap((Map<?, ?>) value, indentLevel + 1));
             } else {
-                System.out.println(indent + "  " + key + " => " + value);
+                sb.append(indent).append("  ").append(key).append(" => ").append(value).append("\n");
             }
         }
-        System.out.println(indent + "}");
+
+        sb.append(indent).append("}\n");
+
+        return sb.toString();
     }
 }

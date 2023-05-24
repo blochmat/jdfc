@@ -10,6 +10,8 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
 import static org.objectweb.asm.Opcodes.ASM5;
@@ -21,6 +23,8 @@ import static org.objectweb.asm.Opcodes.ASM5;
  * @see ClassVisitor
  */
 public class ICFGVariableClassVisitor extends JDFCClassVisitor {
+
+    private final Logger logger = LoggerFactory.getLogger(ICFGVariableClassVisitor.class);
 
     public ICFGVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassNode, pClassExecutionData);
@@ -44,7 +48,7 @@ public class ICFGVariableClassVisitor extends JDFCClassVisitor {
         this.getFields().add(
                 ProgramVariable.create(this.getClassNode().name,
                         name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false));
-        System.out.printf("Field: %s %s %s = %s%n", JDFCUtils.getAccess(access), descriptor, name, value);
+        logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getAccess(access), descriptor, name, value));
         return fv;
     }
 

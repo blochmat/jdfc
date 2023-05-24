@@ -207,7 +207,6 @@ public class HTMLFactory {
     private HTMLElement createSourceCode(final File pClassFile,
                                          final ClassExecutionData pData,
                                          final String pClassName) throws FileNotFoundException {
-        System.out.println(pClassFile);
         Scanner scanner = new Scanner(pClassFile);
         HTMLElement table = HTMLElement.table();
         table.getAttributes().add("id=\"classDetailView\"");
@@ -303,7 +302,6 @@ public class HTMLFactory {
     }
 
     private void processString(HTMLElement pDivTagLine, List<String> pWorkList, String pItem) {
-//        System.out.println("found");
         List<String> stringContent = new ArrayList<>();
         List<String> arr = Arrays.asList(pItem.split(""));
         int singleQuoteIndex = arr.indexOf("'");
