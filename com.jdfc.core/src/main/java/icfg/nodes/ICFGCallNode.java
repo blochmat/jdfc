@@ -6,22 +6,27 @@ import utils.JDFCUtils;
 import java.util.Set;
 
 public class ICFGCallNode extends ICFGNode {
-    public ICFGCallNode(int pIndex, int pOpcode) {
+    private final String methodName;
+
+    public ICFGCallNode(int pIndex, int pOpcode, String methodName) {
         super(pIndex, pOpcode);
+        this.methodName = methodName;
     }
 
-    public ICFGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode) {
+    public ICFGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode, String methodName) {
         super(pDefinitions, pUses, pIndex, pOpcode);
+        this.methodName = methodName;
     }
 
-    public ICFGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode, Set<ICFGNode> pPredecessors, Set<ICFGNode> pSuccessors) {
+    public ICFGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode, Set<ICFGNode> pPredecessors, Set<ICFGNode> pSuccessors, String methodName) {
         super(pDefinitions, pUses, pIndex, pOpcode, pPredecessors, pSuccessors);
+        this.methodName = methodName;
     }
 
     @Override
     public String toString() {
         return String.format(
-                "ICFGCallNode: %d %s (%d predecessors, %d successors)",
-                this.getIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPredecessors().size(), this.getSuccessors().size());
+                "ICFGCallNode: %d %s %s (%d predecessors, %d successors)",
+                this.getIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.methodName, this.getPredecessors().size(), this.getSuccessors().size());
     }
 }

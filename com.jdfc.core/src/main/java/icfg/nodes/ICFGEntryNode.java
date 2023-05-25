@@ -6,6 +6,7 @@ import utils.JDFCUtils;
 import java.util.Set;
 
 public class ICFGEntryNode extends ICFGNode{
+
     public ICFGEntryNode(int pIndex, int pOpcode) {
         super(pIndex, pOpcode);
     }

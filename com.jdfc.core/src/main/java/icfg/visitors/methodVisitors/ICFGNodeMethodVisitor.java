@@ -21,7 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -135,10 +138,10 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
         if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
-            final ICFGNode callNode = new ICFGCallNode(currentInstructionIndex, opcode);
-            nodes.put((double) currentInstructionIndex + 0.1, callNode);
-            String callSiteMethodName = computeInternalMethodName(name, descriptor);
+            String calledMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
+            final ICFGNode callNode = new ICFGCallNode(currentInstructionIndex, opcode, calledMethodName);
+            nodes.put((double) currentInstructionIndex + 0.1, callNode);
 //            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
             final ICFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, Integer.MIN_VALUE);
             nodes.put((double) currentInstructionIndex + 0.9, returnNode);
@@ -302,33 +305,33 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void addEntryNode() {
-        logger.debug("addEntryNode");
-        final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
-
-        for (LocalVariable localVariable : localVariableTable.values()) {
-            final ProgramVariable variable =
-                    ProgramVariable.create(null,
-                            localVariable.getName(),
-                            localVariable.getDescriptor(),
-                            Integer.MIN_VALUE,
-                            firstLine,
-                            true);
-            parameters.add(variable);
-        }
-
-        final ICFGNode firstNode = nodes.get((double) 0);
-        if (firstNode != null) {
-            final ICFGNode entryNode =
-                    new ICFGEntryNode(
-                            parameters,
-                            Sets.newLinkedHashSet(),
-                            Integer.MIN_VALUE,
-                            Integer.MIN_VALUE,
-                            Sets.newLinkedHashSet(),
-                            Sets.newHashSet(firstNode));
-            firstNode.addPredecessor(entryNode);
-            nodes.put((double) Integer.MIN_VALUE, entryNode);
-        }
+//        logger.debug("addEntryNode");
+//        final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
+//
+//        for (LocalVariable localVariable : localVariableTable.values()) {
+//            final ProgramVariable variable =
+//                    ProgramVariable.create(null,
+//                            localVariable.getName(),
+//                            localVariable.getDescriptor(),
+//                            Integer.MIN_VALUE,
+//                            firstLine,
+//                            true);
+//            parameters.add(variable);
+//        }
+//
+//        final ICFGNode firstNode = nodes.get((double) 0);
+//        if (firstNode != null) {
+//            final ICFGNode entryNode =
+//                    new ICFGEntryNode(
+//                            parameters,
+//                            Sets.newLinkedHashSet(),
+//                            Integer.MIN_VALUE,
+//                            Integer.MIN_VALUE,
+//                            Sets.newLinkedHashSet(),
+//                            Sets.newHashSet(firstNode));
+//            firstNode.addPredecessor(entryNode);
+//            nodes.put((double) Integer.MIN_VALUE, entryNode);
+//        }
 
     }
 }
