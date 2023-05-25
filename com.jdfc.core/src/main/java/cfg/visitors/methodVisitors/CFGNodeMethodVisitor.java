@@ -1,31 +1,25 @@
 package cfg.visitors.methodVisitors;
 
+import cfg.CFG;
+import cfg.CFGCreator;
+import cfg.CFGImpl;
+import cfg.data.LocalVariable;
+import cfg.nodes.CFGNode;
 import cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import cfg.CFG;
-import cfg.CFGCreator;
-import cfg.CFGImpl;
-import cfg.data.LocalVariable;
 import data.ProgramVariable;
-import cfg.nodes.CFGNode;
-import icfg.nodes.ICFGCallNode;
-import icfg.nodes.ICFGEntryNode;
-import icfg.nodes.ICFGExitNode;
-import icfg.nodes.ICFGReturnNode;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
@@ -141,19 +135,19 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         logger.debug("visitMethodInsn");
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
-        if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
-            String calledMethodName = computeInternalMethodName(name, descriptor);
-            int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
-            final CFGNode callNode = new ICFGCallNode(currentInstructionIndex, opcode, calledMethodName);
-            nodes.put((double) currentInstructionIndex + 0.1, callNode);
-//            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
-            final CFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, Integer.MIN_VALUE);
-            nodes.put((double) currentInstructionIndex + 0.9, returnNode);
-            crNodes.add((double) currentInstructionIndex);
-        } else {
+//        if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
+//            String calledMethodName = computeInternalMethodName(name, descriptor);
+//            int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
+//            final CFGNode callNode = new ICFGCallNode(currentInstructionIndex, opcode, calledMethodName);
+//            nodes.put((double) currentInstructionIndex + 0.1, callNode);
+////            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
+//            final CFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, Integer.MIN_VALUE);
+//            nodes.put((double) currentInstructionIndex + 0.9, returnNode);
+//            crNodes.add((double) currentInstructionIndex);
+//        } else {
             final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
             nodes.put((double) currentInstructionIndex, node);
-        }
+//        }
     }
 
     private String computeInternalMethodName(String name, String descriptor) {
@@ -233,13 +227,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         logger.debug("visitEnd");
         super.visitEnd();
 
-        // Add entry and exit node
-        ICFGEntryNode entryNode = new ICFGEntryNode(Integer.MIN_VALUE, Integer.MIN_VALUE);
-        CFGNode exitNode = new ICFGExitNode(Integer.MAX_VALUE, Integer.MIN_VALUE);
-        nodes.put((double) Integer.MIN_VALUE, entryNode);
-        nodes.put((double) Integer.MAX_VALUE, exitNode);
-
-        // problem: edge analyzer works on origin method node
         edges.putAll(createEdges());
         logger.debug(JDFCUtils.prettyPrintMap(nodes));
         logger.debug(JDFCUtils.prettyPrintMultimap(edges));
@@ -293,7 +280,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private Multimap<Double, Double> createEdges() {
         logger.debug("createEdges");
         CFGEdgeAnalysisVisitor cfgEdgeAnalysationVisitor =
-                new CFGEdgeAnalysisVisitor(methodNode, crNodes);
+                new CFGEdgeAnalysisVisitor(methodNode);
         methodNode.accept(cfgEdgeAnalysationVisitor);
         return cfgEdgeAnalysationVisitor.getEdges();
     }

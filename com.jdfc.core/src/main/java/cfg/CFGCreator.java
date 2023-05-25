@@ -75,6 +75,7 @@ public class CFGCreator {
                 new CFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, fields, localVariableTables);
         pClassReader.accept(CFGNodeClassVisitor, 0);
         logger.debug(JDFCUtils.prettyPrintMap(methodICFGs));
+        logger.debug("CFG CREATION DONE");
 
 //        // TODO: Connect ICFGS
 //        for(Map.Entry<String, CFG> icfgEntry : methodICFGs.entrySet()) {
