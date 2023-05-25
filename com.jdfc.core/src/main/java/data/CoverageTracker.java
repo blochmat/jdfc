@@ -1,7 +1,6 @@
 package data;
 
-import icfg.data.LocalVariable;
-import icfg.data.ProgramVariable;
+import cfg.data.LocalVariable;
 
 import java.util.HashMap;
 import java.util.Map;

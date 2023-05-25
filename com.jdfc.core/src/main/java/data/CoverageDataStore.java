@@ -1,6 +1,6 @@
 package data;
 
-import icfg.ICFG;
+import cfg.CFG;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -61,13 +61,13 @@ public class CoverageDataStore {
     }
 
     public void finishClassExecutionDataSetup(final ClassExecutionData pClassExecutionData,
-                                              final Map<String, ICFG> pMethodCFGs) {
+                                              final Map<String, CFG> pMethodCFGs) {
         pClassExecutionData.setMethodCFGs(pMethodCFGs);
         pClassExecutionData.initializeDefUseLists();
-        pClassExecutionData.insertAdditionalDefs();
+//        pClassExecutionData.insertAdditionalDefs();
         pClassExecutionData.calculateReachingDefs();
         pClassExecutionData.calculateIntraProceduralDefUsePairs();
-        pClassExecutionData.setupInterProceduralMatches();
+//        pClassExecutionData.setupInterProceduralMatches();
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {

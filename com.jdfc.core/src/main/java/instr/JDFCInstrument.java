@@ -2,7 +2,7 @@ package instr;
 
 import data.ClassExecutionData;
 import data.CoverageDataStore;
-import icfg.ICFGCreator;
+import cfg.CFGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -20,7 +20,7 @@ public class JDFCInstrument {
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
         if (classExecutionData != null) {
-            ICFGCreator.createICFGsForClass(classReader, classNode, classExecutionData);
+            CFGCreator.createICFGsForClass(classReader, classNode, classExecutionData);
             final ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
             classReader.accept(cv, 0);
         }

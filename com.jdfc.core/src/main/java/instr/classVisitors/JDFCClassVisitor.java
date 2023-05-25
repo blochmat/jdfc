@@ -1,8 +1,8 @@
 package instr.classVisitors;
 
 import data.ClassExecutionData;
-import icfg.data.LocalVariable;
-import icfg.data.ProgramVariable;
+import cfg.data.LocalVariable;
+import data.ProgramVariable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;

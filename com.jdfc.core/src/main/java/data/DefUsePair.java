@@ -1,4 +1,4 @@
-package icfg.data;
+package data;
 
 import java.util.Objects;
 

@@ -1,7 +1,5 @@
 package data;
 
-import icfg.data.ProgramVariable;
-
 public class InterProceduralMatch {
 
     final ProgramVariable definition;

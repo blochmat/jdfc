@@ -1,12 +1,8 @@
 package data;
 
-import icfg.ICFG;
-import icfg.ToBeDeleted;
-import icfg.nodes.ICFGNode;
-import icfg.data.DefUsePair;
-import icfg.data.LocalVariable;
-import icfg.data.ProgramVariable;
-import org.objectweb.asm.Opcodes;
+import cfg.CFG;
+import cfg.data.LocalVariable;
+import cfg.nodes.CFGNode;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,7 +15,7 @@ import java.util.stream.Stream;
 
 public class ClassExecutionData extends ExecutionData {
 
-    private Map<String, ICFG> methodCFGs;
+    private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
@@ -43,11 +39,11 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     /**
-     * Sets the method {@link ICFG}s.
+     * Sets the method {@link CFG}s.
      *
-     * @param pMethodCFGs The mapping of method names and {@link ICFG}s
+     * @param pMethodCFGs The mapping of method names and {@link CFG}s
      */
-    public void setMethodCFGs(final Map<String, ICFG> pMethodCFGs) {
+    public void setMethodCFGs(final Map<String, CFG> pMethodCFGs) {
         methodCFGs = pMethodCFGs;
     }
 
@@ -91,7 +87,7 @@ public class ClassExecutionData extends ExecutionData {
      * Initalize all required lists for every method
      */
     public void initializeDefUseLists() {
-        for (Map.Entry<String, ICFG> entry : methodCFGs.entrySet()) {
+        for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
             defUsePairs.put(entry.getKey(), new ArrayList<>());
             defUsePairsCovered.put(entry.getKey(), new HashMap<>());
             variablesCovered.put(entry.getKey(), new HashSet<>());
@@ -102,30 +98,30 @@ public class ClassExecutionData extends ExecutionData {
      * Inserts new defintions in case of an impure method invoke. New definitions are added for parameters passed
      * with a complex (object) type
      */
-    public void insertAdditionalDefs() {
-        for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            for (Map.Entry<Double, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
-                ICFGNode node = entry.getValue();
-                if (node instanceof ToBeDeleted) {
-                    ToBeDeleted callingNode = (ToBeDeleted) node;
-                    if (callingNode.getRelatedCFG() != null && callingNode.getRelatedCFG().isImpure()) {
-                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
-                                getUsageDefinitionMatchRecursive(
-                                        callingNode.getParameterCount(), null, callingNode, callingNode.getRelatedCallSiteNode());
-                        if (usageDefinitionMatch != null && !usageDefinitionMatch.isEmpty()) {
-                            insertNewDefinitions(callingNode, usageDefinitionMatch.keySet());
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    public void insertAdditionalDefs() {
+//        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+//            for (Map.Entry<Double, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+//                CFGNode node = entry.getValue();
+//                if (node instanceof ToBeDeleted) {
+//                    ToBeDeleted callingNode = (ToBeDeleted) node;
+//                    if (callingNode.getRelatedCFG() != null && callingNode.getRelatedCFG().isImpure()) {
+//                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
+//                                getUsageDefinitionMatchRecursive(
+//                                        callingNode.getParameterCount(), null, callingNode, callingNode.getRelatedCallSiteNode());
+//                        if (usageDefinitionMatch != null && !usageDefinitionMatch.isEmpty()) {
+//                            insertNewDefinitions(callingNode, usageDefinitionMatch.keySet());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Calulates reaching defintions for all method cfgs
      */
     public void calculateReachingDefs() {
-        for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
+        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
             methodCFGsEntry.getValue().calculateReachingDefinitions();
         }
     }
@@ -134,9 +130,9 @@ public class ClassExecutionData extends ExecutionData {
      * Calculates all possible Def-Use-Pairs.
      */
     public void calculateIntraProceduralDefUsePairs() {
-        for (Map.Entry<String, ICFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            for (Map.Entry<Double, ICFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
-                ICFGNode node = entry.getValue();
+        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
+            for (Map.Entry<Double, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
+                CFGNode node = entry.getValue();
                 for (ProgramVariable def : node.getReach()) {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
@@ -154,25 +150,25 @@ public class ClassExecutionData extends ExecutionData {
     /**
      * Established inter-procedural connection between parameters
      */
-    public void setupInterProceduralMatches() {
-        for (Map.Entry<String, ICFG> methodCFGs : methodCFGs.entrySet()) {
-            String methodName = methodCFGs.getKey();
-            ICFG graph = methodCFGs.getValue();
-            for (Map.Entry<Double, ICFGNode> node : graph.getNodes().entrySet()) {
-                if (node.getValue() instanceof ToBeDeleted) {
-                    ToBeDeleted toBeDeleted = (ToBeDeleted) node.getValue();
-                    if (toBeDeleted.getRelatedCFG() != null) {
-                        ICFGNode entryNode = toBeDeleted.getRelatedCallSiteNode();
-                        String entryMethodName = toBeDeleted.getMethodNameDesc();
-                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
-                                getUsageDefinitionMatchRecursive(
-                                        toBeDeleted.getParameterCount(), null, toBeDeleted, entryNode);
-                        matchPairs(methodName, entryMethodName, usageDefinitionMatch);
-                    }
-                }
-            }
-        }
-    }
+//    public void setupInterProceduralMatches() {
+//        for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
+//            String methodName = methodCFGs.getKey();
+//            CFG graph = methodCFGs.getValue();
+//            for (Map.Entry<Double, CFGNode> node : graph.getNodes().entrySet()) {
+//                if (node.getValue() instanceof ToBeDeleted) {
+//                    ToBeDeleted toBeDeleted = (ToBeDeleted) node.getValue();
+//                    if (toBeDeleted.getRelatedCFG() != null) {
+//                        CFGNode entryNode = toBeDeleted.getRelatedCallSiteNode();
+//                        String entryMethodName = toBeDeleted.getMethodNameDesc();
+//                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
+//                                getUsageDefinitionMatchRecursive(
+//                                        toBeDeleted.getParameterCount(), null, toBeDeleted, entryNode);
+//                        matchPairs(methodName, entryMethodName, usageDefinitionMatch);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Insert new definitons at a {@code IFGNode} in case of an impure method invoke
@@ -180,17 +176,17 @@ public class ClassExecutionData extends ExecutionData {
      * @param pNode Node invoking a method
      * @param pMethodParameters parameters involved in method call
      */
-    public void insertNewDefinitions(ToBeDeleted pNode, Collection<ProgramVariable> pMethodParameters) {
-        for (ProgramVariable parameter : pMethodParameters) {
-            if (!isSimpleType(parameter.getDescriptor())) {
-                ProgramVariable newParamDefinition =
-                        ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
-                                pNode.getIndex(), pNode.getLineNumber(),
-                                parameter.isDefinition());
-                pNode.addDefinition(newParamDefinition);
-            }
-        }
-    }
+//    public void insertNewDefinitions(ToBeDeleted pNode, Collection<ProgramVariable> pMethodParameters) {
+//        for (ProgramVariable parameter : pMethodParameters) {
+//            if (!isSimpleType(parameter.getDescriptor())) {
+//                ProgramVariable newParamDefinition =
+//                        ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
+//                                pNode.getIndex(), pNode.getLineNumber(),
+//                                parameter.isDefinition());
+//                pNode.addDefinition(newParamDefinition);
+//            }
+//        }
+//    }
 
     /**
      * Computes the variable connections to establish inter-procedural matching of parameters
@@ -200,55 +196,55 @@ public class ClassExecutionData extends ExecutionData {
      * @param pRelatedCallSiteNode entry node of invoked procedure
      * @return Map matching definitions in both procedures to one another
      */
-    private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pParameterCount,
-                                                                                   final ICFGNode pNode,
-                                                                                   final ToBeDeleted pCallingNode,
-                                                                                   final ICFGNode pRelatedCallSiteNode) {
-        Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
-        // for each parameter: process one node (predecessor of pNode)
-        if (pParameterCount > 0) {
-            ICFGNode predecessor;
-
-            // Example: 2 parameters
-            // LOAD x
-            // LOAD y
-            // INVOKE  x y
-            if (pNode == null) {
-                predecessor = (ICFGNode) pCallingNode.getPredecessors().toArray()[0];
-            } else {
-                predecessor = (ICFGNode) pNode.getPredecessors().toArray()[0];
-            }
-
-            if(pRelatedCallSiteNode == null) {
-                return matchMap;
-            }
-
-            Set<ProgramVariable> usages = predecessor.getUses();
-            for (ProgramVariable var : usages) {
-                // find correlated definition in procedure B
-                ProgramVariable definitionB;
-                // If a constructor is called with constant values
-                if(pCallingNode.getMethodNameDesc().contains("<init>") && pRelatedCallSiteNode.getDefinitions().size() == 1) {
-                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[0];
-                    matchMap.put(var, definitionB);
-                    return matchMap;
-                }
-
-                if (pCallingNode.getOpcode() == Opcodes.INVOKESTATIC) {
-                    // Special Case: If static method or constructor is called "this" is not defined
-                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount - 1];
-                } else {
-                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount];
-                }
-                matchMap.put(var, definitionB);
-            }
-
-            matchMap = mergeMaps(matchMap,
-                    getUsageDefinitionMatchRecursive(
-                            pParameterCount - 1, predecessor, pCallingNode, pRelatedCallSiteNode));
-        }
-        return matchMap;
-    }
+//    private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pParameterCount,
+//                                                                                   final CFGNode pNode,
+//                                                                                   final ToBeDeleted pCallingNode,
+//                                                                                   final CFGNode pRelatedCallSiteNode) {
+//        Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
+//        // for each parameter: process one node (predecessor of pNode)
+//        if (pParameterCount > 0) {
+//            CFGNode predecessor;
+//
+//            // Example: 2 parameters
+//            // LOAD x
+//            // LOAD y
+//            // INVOKE  x y
+//            if (pNode == null) {
+//                predecessor = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
+//            } else {
+//                predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
+//            }
+//
+//            if(pRelatedCallSiteNode == null) {
+//                return matchMap;
+//            }
+//
+//            Set<ProgramVariable> usages = predecessor.getUses();
+//            for (ProgramVariable var : usages) {
+//                // find correlated definition in procedure B
+//                ProgramVariable definitionB;
+//                // If a constructor is called with constant values
+//                if(pCallingNode.getMethodNameDesc().contains("<init>") && pRelatedCallSiteNode.getDefinitions().size() == 1) {
+//                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[0];
+//                    matchMap.put(var, definitionB);
+//                    return matchMap;
+//                }
+//
+//                if (pCallingNode.getOpcode() == Opcodes.INVOKESTATIC) {
+//                    // Special Case: If static method or constructor is called "this" is not defined
+//                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount - 1];
+//                } else {
+//                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount];
+//                }
+//                matchMap.put(var, definitionB);
+//            }
+//
+//            matchMap = mergeMaps(matchMap,
+//                    getUsageDefinitionMatchRecursive(
+//                            pParameterCount - 1, predecessor, pCallingNode, pRelatedCallSiteNode));
+//        }
+//        return matchMap;
+//    }
 
     /**
      * Create matching between program variables of procedures
@@ -426,8 +422,8 @@ public class ClassExecutionData extends ExecutionData {
 
     public LocalVariable findLocalVariable(final String pMethodName,
                                            final int pVarIndex) {
-        ICFG ICFG = methodCFGs.get(pMethodName);
-        Map<Integer, LocalVariable> localVariableTable = ICFG.getLocalVariableTable();
+        CFG CFG = methodCFGs.get(pMethodName);
+        Map<Integer, LocalVariable> localVariableTable = CFG.getLocalVariableTable();
         return localVariableTable.get(pVarIndex);
     }
 

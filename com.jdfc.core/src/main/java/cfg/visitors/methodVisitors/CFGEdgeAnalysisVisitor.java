@@ -1,4 +1,4 @@
-package icfg.visitors.methodVisitors;
+package cfg.visitors.methodVisitors;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -16,13 +16,13 @@ import java.util.Set;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 
-public class ICFGEdgeAnalysisVisitor extends MethodVisitor {
-    private final Logger logger = LoggerFactory.getLogger(ICFGEdgeAnalysisVisitor.class);
+public class CFGEdgeAnalysisVisitor extends MethodVisitor {
+    private final Logger logger = LoggerFactory.getLogger(CFGEdgeAnalysisVisitor.class);
     private final MethodNode methodNode;
     private final Set<Double> crNodes;
     private final Multimap<Double, Double> edges;
 
-    ICFGEdgeAnalysisVisitor(final MethodNode pMethodNode, final Set<Double> crNodes) {
+    CFGEdgeAnalysisVisitor(final MethodNode pMethodNode, final Set<Double> crNodes) {
         super(ASM5);
         logger.debug(String.format("Visit %s", pMethodNode.name));
         methodNode = pMethodNode;

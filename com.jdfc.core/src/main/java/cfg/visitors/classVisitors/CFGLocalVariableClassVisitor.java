@@ -1,9 +1,9 @@
-package icfg.visitors.classVisitors;
+package cfg.visitors.classVisitors;
 
+import cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import data.ClassExecutionData;
-import icfg.ICFGCreator;
-import icfg.data.ProgramVariable;
-import icfg.visitors.methodVisitors.ICFGVariableMethodVisitor;
+import cfg.CFGCreator;
+import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -22,11 +22,11 @@ import static org.objectweb.asm.Opcodes.ASM5;
  *
  * @see ClassVisitor
  */
-public class ICFGVariableClassVisitor extends JDFCClassVisitor {
+public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
-    private final Logger logger = LoggerFactory.getLogger(ICFGVariableClassVisitor.class);
+    private final Logger logger = LoggerFactory.getLogger(CFGLocalVariableClassVisitor.class);
 
-    public ICFGVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
+    public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassNode, pClassExecutionData);
     }
 
@@ -63,9 +63,9 @@ public class ICFGVariableClassVisitor extends JDFCClassVisitor {
                                      final String[] pExceptions) {
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         final MethodNode methodNode = getMethodNode(pName, pDescriptor);
-        final String internalMethodName = ICFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+        final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (methodNode != null && isInstrumentationRequired(pName)) {
-            return new ICFGVariableMethodVisitor(
+            return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
         }
         return mv;

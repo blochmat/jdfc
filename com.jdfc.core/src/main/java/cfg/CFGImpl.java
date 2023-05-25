@@ -1,10 +1,10 @@
-package icfg;
+package cfg;
 
+import cfg.nodes.CFGNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
-import icfg.data.LocalVariable;
-import icfg.data.ProgramVariable;
-import icfg.nodes.ICFGNode;
+import cfg.data.LocalVariable;
+import data.ProgramVariable;
 import utils.JDFCUtils;
 
 import java.util.LinkedList;
@@ -13,19 +13,19 @@ import java.util.NavigableMap;
 import java.util.Set;
 
 /**
- * A implementation of a {@link ICFG}.
+ * A implementation of a {@link CFG}.
  */
-public class ICFGImpl implements ICFG {
+public class CFGImpl implements CFG {
 
     private final String methodName;
-    private final NavigableMap<Double, ICFGNode> nodes;
+    private final NavigableMap<Double, CFGNode> nodes;
     private final Multimap<Double, Double> edges;
     private final Map<Integer, LocalVariable> localVariableTable;
     private boolean isImpure;
 
-    public ICFGImpl(
+    public CFGImpl(
             final String pMethodName,
-            final NavigableMap<Double, ICFGNode> pNodes,
+            final NavigableMap<Double, CFGNode> pNodes,
             final Multimap<Double, Double> edges,
             final Map<Integer, LocalVariable> pLocalVariableTable,
             final boolean pIsImpure) {
@@ -42,7 +42,7 @@ public class ICFGImpl implements ICFG {
      * {@inheritDoc}
      */
     @Override
-    public NavigableMap<Double, ICFGNode> getNodes() {
+    public NavigableMap<Double, CFGNode> getNodes() {
         return nodes;
     }
 
@@ -72,14 +72,14 @@ public class ICFGImpl implements ICFG {
      */
     @Override
     public void calculateReachingDefinitions() {
-        LinkedList<ICFGNode> workList = new LinkedList<>();
-        for (Map.Entry<Double, ICFGNode> node : nodes.entrySet()) {
+        LinkedList<CFGNode> workList = new LinkedList<>();
+        for (Map.Entry<Double, CFGNode> node : nodes.entrySet()) {
             node.getValue().resetReachOut();
             workList.add(node.getValue());
         }
 
         while (!workList.isEmpty()) {
-            ICFGNode node = workList.poll();
+            CFGNode node = workList.poll();
             Set<ProgramVariable> oldValue = node.getReachOut();
             node.update();
             if (!node.getReachOut().equals(oldValue)) {

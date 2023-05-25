@@ -1,7 +1,7 @@
 package instr.methodVisitors;
 
-import icfg.data.LocalVariable;
-import icfg.data.ProgramVariable;
+import cfg.data.LocalVariable;
+import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;

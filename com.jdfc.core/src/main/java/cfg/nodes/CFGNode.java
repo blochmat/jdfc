@@ -1,9 +1,9 @@
-package icfg.nodes;
+package cfg.nodes;
 
+import cfg.CFG;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import icfg.ICFG;
-import icfg.data.ProgramVariable;
+import data.ProgramVariable;
 import utils.JDFCUtils;
 
 import java.util.Collections;
@@ -11,19 +11,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A node in the {@link ICFG}.
+ * A node in the {@link CFG}.
  */
-public class ICFGNode {
+public class CFGNode {
     private final Set<ProgramVariable> definitions;
     private final Set<ProgramVariable> uses;
     private final int index;
     private final int opcode;
-    private final Set<ICFGNode> predecessors;
-    private final Set<ICFGNode> successors;
+    private final Set<CFGNode> predecessors;
+    private final Set<CFGNode> successors;
     private final Set<ProgramVariable> reachOut;
     private final Set<ProgramVariable> reach;
 
-    public ICFGNode(final int pIndex, final int pOpcode) {
+    public CFGNode(final int pIndex, final int pOpcode) {
         this(
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
@@ -33,18 +33,18 @@ public class ICFGNode {
                 Sets.newLinkedHashSet());
     }
 
-    public ICFGNode(
+    public CFGNode(
             final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex, final int pOpcode) {
         this(pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
     }
 
-    public ICFGNode(
+    public CFGNode(
             final Set<ProgramVariable> pDefinitions,
             final Set<ProgramVariable> pUses,
             final int pIndex,
             final int pOpcode,
-            final Set<ICFGNode> pPredecessors,
-            final Set<ICFGNode> pSuccessors) {
+            final Set<CFGNode> pPredecessors,
+            final Set<CFGNode> pSuccessors) {
         definitions = pDefinitions;
         uses = pUses;
         index = pIndex;
@@ -61,7 +61,7 @@ public class ICFGNode {
     }
 
     public void update() {
-        for (ICFGNode node : predecessors) {
+        for (CFGNode node : predecessors) {
             reach.addAll(node.getReachOut());
         }
         reachOut.clear();
@@ -80,11 +80,11 @@ public class ICFGNode {
                                         && programVariable.getInstructionIndex() != variable.getInstructionIndex());
     }
 
-    public void addSuccessor(final ICFGNode pNode) {
+    public void addSuccessor(final CFGNode pNode) {
         successors.add(pNode);
     }
 
-    public void addPredecessor(final ICFGNode pNode) {
+    public void addPredecessor(final CFGNode pNode) {
         predecessors.add(pNode);
     }
 
@@ -98,11 +98,11 @@ public class ICFGNode {
     }
 
     /**
-     * Returns the set of {@link ICFGNode}s that are successors of this node.
+     * Returns the set of {@link CFGNode}s that are successors of this node.
      *
-     * @return The set of {@link ICFGNode}s that are successors
+     * @return The set of {@link CFGNode}s that are successors
      */
-    public Set<ICFGNode> getSuccessors() {
+    public Set<CFGNode> getSuccessors() {
         return Collections.unmodifiableSet(successors);
     }
 
@@ -120,11 +120,11 @@ public class ICFGNode {
     }
 
     /**
-     * Returns the set of {@link ICFGNode}s that are predecessors of this node.
+     * Returns the set of {@link CFGNode}s that are predecessors of this node.
      *
-     * @return The set of {@link ICFGNode}s that are predecessors
+     * @return The set of {@link CFGNode}s that are predecessors
      */
-    public Set<ICFGNode> getPredecessors() {
+    public Set<CFGNode> getPredecessors() {
         return Collections.unmodifiableSet(predecessors);
     }
 
@@ -133,7 +133,7 @@ public class ICFGNode {
     }
 
     /**
-     * Returns the set of {@link ProgramVariable}s that get defined at this {@link ICFGNode}.
+     * Returns the set of {@link ProgramVariable}s that get defined at this {@link CFGNode}.
      *
      * @return The set of {@link ProgramVariable}s that get defined
      */
@@ -142,7 +142,7 @@ public class ICFGNode {
     }
 
     /**
-     * Returns the set of {@link ProgramVariable}s that get used at this {@link ICFGNode}.
+     * Returns the set of {@link ProgramVariable}s that get used at this {@link CFGNode}.
      *
      * @return The set of {@link ProgramVariable}s that get used
      */

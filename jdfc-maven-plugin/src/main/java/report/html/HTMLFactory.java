@@ -4,8 +4,8 @@ import data.ClassExecutionData;
 import data.ExecutionData;
 import data.ExecutionDataNode;
 import data.InterProceduralMatch;
-import icfg.data.DefUsePair;
-import icfg.data.ProgramVariable;
+import data.DefUsePair;
+import data.ProgramVariable;
 
 import java.io.*;
 import java.util.*;

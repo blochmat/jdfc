@@ -1,12 +1,12 @@
-package icfg.visitors.classVisitors;
+package cfg.visitors.classVisitors;
 
+import cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
 import data.ClassExecutionData;
 import data.CoverageDataStore;
-import icfg.ICFG;
-import icfg.ICFGCreator;
-import icfg.data.LocalVariable;
-import icfg.data.ProgramVariable;
-import icfg.visitors.methodVisitors.ICFGNodeMethodVisitor;
+import cfg.CFG;
+import cfg.CFGCreator;
+import cfg.data.LocalVariable;
+import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -18,16 +18,16 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Set;
 
-public class ICFGNodeClassVisitor extends JDFCClassVisitor {
+public class CFGNodeClassVisitor extends JDFCClassVisitor {
 
-    private final Logger logger = LoggerFactory.getLogger(ICFGNodeClassVisitor.class);
-    private final Map<String, ICFG> methodCFGs;
+    private final Logger logger = LoggerFactory.getLogger(CFGNodeClassVisitor.class);
+    private final Map<String, CFG> methodCFGs;
 
-    public ICFGNodeClassVisitor(final ClassNode pClassNode,
-                                final ClassExecutionData pClassExecutionData,
-                                final Map<String, ICFG> pMethodCFGs,
-                                final Set<ProgramVariable> fields,
-                                final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
+    public CFGNodeClassVisitor(final ClassNode pClassNode,
+                               final ClassExecutionData pClassExecutionData,
+                               final Map<String, CFG> pMethodCFGs,
+                               final Set<ProgramVariable> fields,
+                               final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(Opcodes.ASM5, pClassNode, pClassExecutionData, fields, pLocalVariableTables);
         logger.debug(String.format("Visiting %s", pClassNode.name));
         methodCFGs = pMethodCFGs;
@@ -48,12 +48,12 @@ public class ICFGNodeClassVisitor extends JDFCClassVisitor {
         }
 
         if(classNode.access != Opcodes.ACC_INTERFACE) {
-            final String internalMethodName = ICFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
             // TODO: Do something with fields here
             if (methodNode != null && isInstrumentationRequired(pName)) {
-                return new ICFGNodeMethodVisitor(this, mv, methodNode,
+                return new CFGNodeMethodVisitor(this, mv, methodNode,
                         internalMethodName, methodCFGs, localVariableTable);
             }
         }

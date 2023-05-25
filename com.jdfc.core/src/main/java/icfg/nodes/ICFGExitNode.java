@@ -1,11 +1,12 @@
 package icfg.nodes;
 
-import icfg.data.ProgramVariable;
+import data.ProgramVariable;
+import cfg.nodes.CFGNode;
 import utils.JDFCUtils;
 
 import java.util.Set;
 
-public class ICFGExitNode extends ICFGNode{
+public class ICFGExitNode extends CFGNode {
     public ICFGExitNode(int pIndex, int pOpcode) {
         super(pIndex, pOpcode);
     }
@@ -14,7 +15,7 @@ public class ICFGExitNode extends ICFGNode{
         super(pDefinitions, pUses, pIndex, pOpcode);
     }
 
-    public ICFGExitNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode, Set<ICFGNode> pPredecessors, Set<ICFGNode> pSuccessors) {
+    public ICFGExitNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode, Set<CFGNode> pPredecessors, Set<CFGNode> pSuccessors) {
         super(pDefinitions, pUses, pIndex, pOpcode, pPredecessors, pSuccessors);
     }
 

@@ -1,11 +1,12 @@
 package icfg.nodes;
 
-import icfg.data.ProgramVariable;
+import data.ProgramVariable;
+import cfg.nodes.CFGNode;
 import utils.JDFCUtils;
 
 import java.util.Set;
 
-public class ICFGCallNode extends ICFGNode {
+public class ICFGCallNode extends CFGNode {
     private final String methodName;
 
     public ICFGCallNode(int pIndex, int pOpcode, String methodName) {
@@ -18,7 +19,7 @@ public class ICFGCallNode extends ICFGNode {
         this.methodName = methodName;
     }
 
-    public ICFGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode, Set<ICFGNode> pPredecessors, Set<ICFGNode> pSuccessors, String methodName) {
+    public ICFGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, int pIndex, int pOpcode, Set<CFGNode> pPredecessors, Set<CFGNode> pSuccessors, String methodName) {
         super(pDefinitions, pUses, pIndex, pOpcode, pPredecessors, pSuccessors);
         this.methodName = methodName;
     }
