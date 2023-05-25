@@ -11,6 +11,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
+import icfg.nodes.ICFGEntryNode;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -228,6 +229,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitEnd();
 
         edges.putAll(createEdges());
+        addEntryNode();
         logger.debug(JDFCUtils.prettyPrintMap(nodes));
         logger.debug(JDFCUtils.prettyPrintMultimap(edges));
         setPredecessorSuccessorRelation();
@@ -296,33 +298,30 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void addEntryNode() {
-//        logger.debug("addEntryNode");
-//        final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
-//
-//        for (LocalVariable localVariable : localVariableTable.values()) {
-//            final ProgramVariable variable =
-//                    ProgramVariable.create(null,
-//                            localVariable.getName(),
-//                            localVariable.getDescriptor(),
-//                            Integer.MIN_VALUE,
-//                            firstLine,
-//                            true);
-//            parameters.add(variable);
-//        }
-//
-//        final ICFGNode firstNode = nodes.get((double) 0);
-//        if (firstNode != null) {
-//            final ICFGNode entryNode =
-//                    new ICFGEntryNode(
-//                            parameters,
-//                            Sets.newLinkedHashSet(),
-//                            Integer.MIN_VALUE,
-//                            Integer.MIN_VALUE,
-//                            Sets.newLinkedHashSet(),
-//                            Sets.newHashSet(firstNode));
-//            firstNode.addPredecessor(entryNode);
-//            nodes.put((double) Integer.MIN_VALUE, entryNode);
-//        }
+        logger.debug("addEntryNode");
+        Set<ProgramVariable> parameters = createParamVars();
+        final CFGNode firstNode = nodes.get(0.0);
+        if (firstNode != null) {
+            final CFGNode entryNode = new ICFGEntryNode( parameters, Sets.newLinkedHashSet(), Integer.MIN_VALUE,
+                    Integer.MIN_VALUE, Sets.newLinkedHashSet(), Sets.newHashSet(firstNode));
+            firstNode.addPredecessor(entryNode);
+            nodes.put((double) Integer.MIN_VALUE, entryNode);
+            edges.put((double) Integer.MIN_VALUE, 0.0);
+        }
+    }
 
+    private Set<ProgramVariable> createParamVars() {
+        final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
+        for (LocalVariable localVariable : localVariableTable.values()) {
+            final ProgramVariable variable =
+                    ProgramVariable.create(null,
+                            localVariable.getName(),
+                            localVariable.getDescriptor(),
+                            Integer.MIN_VALUE,
+                            firstLine,
+                            true);
+            parameters.add(variable);
+        }
+       return parameters;
     }
 }

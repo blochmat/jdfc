@@ -1,6 +1,8 @@
 package data;
 
 import cfg.CFG;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -13,7 +15,7 @@ import java.util.*;
  * instance represent the project structure of the project under test
  */
 public class CoverageDataStore {
-
+    private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> classList;
 

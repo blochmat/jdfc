@@ -3,6 +3,9 @@ package data;
 import cfg.CFG;
 import cfg.data.LocalVariable;
 import cfg.nodes.CFGNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,6 +18,7 @@ import java.util.stream.Stream;
 
 public class ClassExecutionData extends ExecutionData {
 
+    private final Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
@@ -145,6 +149,8 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
         }
+        logger.debug("Definition-Use pairs:");
+        logger.debug(JDFCUtils.prettyPrintMap(defUsePairs));
     }
 
     /**
