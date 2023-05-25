@@ -1,5 +1,6 @@
 package icfg;
 
+import com.google.common.collect.Multimap;
 import icfg.data.LocalVariable;
 import icfg.nodes.ICFGNode;
 
@@ -30,6 +31,8 @@ public interface ICFG {
      * @return A map between node ID and {@link ICFGNode}
      */
     NavigableMap<Double, ICFGNode> getNodes();
+
+    Multimap<Double, Double> getEdges();
 
     /**
      * Returns a local variable table representation of this method.

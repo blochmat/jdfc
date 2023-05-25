@@ -1,6 +1,7 @@
 package icfg;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Multimap;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
 import icfg.nodes.ICFGNode;
@@ -18,18 +19,21 @@ public class ICFGImpl implements ICFG {
 
     private final String methodName;
     private final NavigableMap<Double, ICFGNode> nodes;
+    private final Multimap<Double, Double> edges;
     private final Map<Integer, LocalVariable> localVariableTable;
     private boolean isImpure;
 
     public ICFGImpl(
             final String pMethodName,
             final NavigableMap<Double, ICFGNode> pNodes,
+            final Multimap<Double, Double> edges,
             final Map<Integer, LocalVariable> pLocalVariableTable,
             final boolean pIsImpure) {
         Preconditions.checkNotNull(pMethodName);
         Preconditions.checkNotNull(pNodes);
         methodName = pMethodName;
         nodes = pNodes;
+        this.edges = edges;
         localVariableTable = pLocalVariableTable;
         isImpure = pIsImpure;
     }
@@ -41,6 +45,9 @@ public class ICFGImpl implements ICFG {
     public NavigableMap<Double, ICFGNode> getNodes() {
         return nodes;
     }
+
+    @Override
+    public Multimap<Double, Double> getEdges() { return edges; }
 
     /**
      * {@inheritDoc}

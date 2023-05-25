@@ -2,8 +2,7 @@ package utils;
 
 import com.google.common.collect.Multimap;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class JDFCUtils {
 
@@ -234,5 +233,17 @@ public class JDFCUtils {
         }
         sb.append("}\n");
         return sb.toString();
+    }
+
+    public static LinkedList<Double> splitInterval(double x, double y, int n) {
+        LinkedList<Double> splitPoints = new LinkedList<>();
+        double intervalSize = (y - x) / (n + 1);
+
+        for (int i = 1; i <= n; i++) {
+            double point = x + (i * intervalSize);
+            splitPoints.add(point);
+        }
+
+        return splitPoints;
     }
 }

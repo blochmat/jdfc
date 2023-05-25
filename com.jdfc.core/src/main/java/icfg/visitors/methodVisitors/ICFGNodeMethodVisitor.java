@@ -244,7 +244,7 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
         logger.debug(JDFCUtils.prettyPrintMap(nodes));
 
         boolean isImpure = false;
-        ICFG ICFG = new ICFGImpl(internalMethodName, nodes, localVariableTable, isImpure);
+        ICFG ICFG = new ICFGImpl(internalMethodName, nodes, edges, localVariableTable, isImpure);
         methodCFGs.put(internalMethodName, ICFG);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);

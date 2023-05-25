@@ -23,6 +23,10 @@ public class ICFGCallNode extends ICFGNode {
         this.methodName = methodName;
     }
 
+    public String getMethodName() {
+        return methodName;
+    }
+
     @Override
     public String toString() {
         return String.format(

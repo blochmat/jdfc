@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
+import icfg.nodes.ICFGCallNode;
+import icfg.nodes.ICFGNode;
 import icfg.visitors.classVisitors.ICFGNodeClassVisitor;
 import icfg.visitors.classVisitors.ICFGVariableClassVisitor;
 import org.objectweb.asm.ClassReader;
@@ -77,6 +79,62 @@ public class ICFGCreator {
         logger.debug(JDFCUtils.prettyPrintMap(methodICFGs));
 
         // TODO: Connect ICFGS
+        for(Map.Entry<String, ICFG> icfgEntry : methodICFGs.entrySet()) {
+            logger.debug(String.format("Connecting %s with called procedures", icfgEntry.getKey()));
+            // for every method
+            Map<Double, ICFGNode> nodes = icfgEntry.getValue().getNodes();
+            for(Map.Entry<Double, ICFGNode> nodeEntry : nodes.entrySet()) {
+                // check every nodeEntry
+                if (nodeEntry.getValue() instanceof ICFGCallNode) {
+                    logger.debug(String.format("Call nodeEntry found with index %f", nodeEntry.getKey()));
+                    // Context-insensitive
+                    ICFGCallNode cNode = (ICFGCallNode) nodeEntry.getValue();
+                    // find target method
+                    double cNodeIndex = nodeEntry.getKey();
+                    double rNodeIndex = Math.floor(cNodeIndex) + 0.9;
+                    String targetName = cNode.getMethodName();
+                    ICFG targetICFG = methodICFGs.get(targetName);
+                    Map<Double, ICFGNode> targetNodes = targetICFG.getNodes();
+
+                    // TODO: We need all graphs in one structure in order to build an ICFG
+
+                    // Context-sensitive
+//                    // copy all nodes of target procedure into current procedure with updated indices
+//                    int n = targetNodes.size();
+//                    LinkedList<Double> indexList = JDFCUtils.splitInterval(cNodeIndex, rNodeIndex, n);
+//
+//                    logger.debug("IndexList");
+//                    logger.debug(indexList.toString());
+//
+//                    // create updated subgraph
+//                    NavigableMap<Double, ICFGNode> tempNodes = new TreeMap<>();
+//                    // index mapping
+//                    Map<Double, Double> indexMap = new HashMap<>();
+//                    for(Map.Entry<Double, ICFGNode> targetEntry : targetNodes.entrySet()) {
+//                        double index = indexList.pop();
+//                        indexMap.put(targetEntry.getKey(), index);
+//                        tempNodes.put(index, targetEntry.getValue());
+//                    }
+//
+//                    logger.debug("IndexMap");
+//                    logger.debug(JDFCUtils.prettyPrintMap(indexMap));
+//
+//                    // update edges
+//                    Multimap<Double, Double> edges = targetICFG.getEdges();
+//                    Multimap<Double, Double> tempEdges = ArrayListMultimap.create();
+//                    for(Map.Entry<Double, Double> edgeEntry : edges.entries()) {
+//                        Double k = indexMap.get(edgeEntry.getKey());
+//                        for(Double x : edges.get(edgeEntry.getKey())) {
+//                            tempEdges.put(k, indexMap.get(x));
+//                        }
+//                    }
+//
+//                    logger.debug("tempEdges");
+//                    logger.debug(JDFCUtils.prettyPrintMultimap(tempEdges));
+                }
+            }
+
+        }
     }
 
     /**
