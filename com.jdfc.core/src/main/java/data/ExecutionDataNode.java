@@ -1,6 +1,8 @@
 package data;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Representing one element in the project structure of the project under test.

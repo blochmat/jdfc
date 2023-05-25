@@ -28,6 +28,91 @@ public class CoverageDataExport {
         logger.debug("CoverageDataExport initialized.");
     }
 
+    public static void dumpCoverageDataToFile() throws ParserConfigurationException, TransformerException {
+        String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
+        File JDFCDir = new File(outPath);
+        if (!JDFCDir.exists()) {
+            JDFCDir.mkdirs();
+        }
+
+        String classXMLPath = String.format("%s%s%s.xml", outPath, File.separator, "jdfc");
+
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Element coverage = doc.createElement("coverage");
+        coverage.setAttribute("pair-rate", "double");
+        coverage.setAttribute("pairs-covered", "int");
+        coverage.setAttribute("pairs-valid", "int");
+        coverage.setAttribute("version", "SNAPSHOT-1.0.0");
+        coverage.setAttribute("timestamp", "todo");
+        doc.appendChild(coverage);
+
+        Element sources = doc.createElement("sources");
+        coverage.appendChild(sources);
+
+        Element source = doc.createElement("source");
+        source.setTextContent("src/main/java");
+        sources.appendChild(source);
+
+        Element packages = doc.createElement("packages");
+        coverage.appendChild(packages);
+
+        Element pkg = doc.createElement("package");
+        pkg.setAttribute("name", "path.from.src");
+        pkg.setAttribute("pair-rate", "double");
+        packages.appendChild(pkg);
+
+        Element classes = doc.createElement("classes");
+        pkg.appendChild(classes);
+
+        Element clazz = doc.createElement("class");
+        clazz.setAttribute("name", "fully.qualified.name");
+        clazz.setAttribute("filename", "fully/qualified/name.java");
+        classes.appendChild(clazz);
+
+        Element methods = doc.createElement("methods");
+        clazz.appendChild(methods);
+
+        Element method = doc.createElement("method");
+        method.setAttribute("name", "todo");
+        method.setAttribute("signature", "e.g. ()V");
+        method.setAttribute("pair-rate", "double");
+        methods.appendChild(method);
+
+        Element pairs = doc.createElement("pairs");
+        method.appendChild(pairs);
+
+        Element pair = doc.createElement("pair");
+        pair.setAttribute("type", "e.g. I");
+        pair.setAttribute("hits", "int");
+        pairs.appendChild(pair);
+
+        Element def = doc.createElement("def");
+        def.setAttribute("name", "todo");
+        def.setAttribute("line", "int");
+        def.setAttribute("idx", "int");
+        pair.appendChild(def);
+
+        Element use = doc.createElement("use");
+        use.setAttribute("name", "todo");
+        use.setAttribute("line", "int");
+        use.setAttribute("idx", "int");
+        pair.appendChild(use);
+
+        // The end.
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        File file = new File(classXMLPath);
+        file.getParentFile().mkdirs();
+        try {
+            OutputStream out = new FileOutputStream(file);
+            StreamResult streamResult = new StreamResult(new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)));
+            transformer.transform(new DOMSource(doc), streamResult);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Creating xml file representing coverage data of a single class
      * @param pClassExecutionData Class data

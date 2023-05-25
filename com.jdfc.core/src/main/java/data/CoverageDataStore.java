@@ -52,6 +52,13 @@ public class CoverageDataStore {
     }
 
     public void exportCoverageData() {
+        // TODO: Insert export method call here
+        try {
+            CoverageDataExport.dumpCoverageDataToFile();
+        } catch (ParserConfigurationException | TransformerException e) {
+            throw new RuntimeException(e);
+        }
+
         for(String className : classList) {
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
