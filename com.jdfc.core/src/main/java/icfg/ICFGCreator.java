@@ -69,12 +69,14 @@ public class ICFGCreator {
         logger.debug(JDFCUtils.prettyPrintSet(fields));
         logger.debug(JDFCUtils.prettyPrintMap(localVariableTables));
 
-        // Create method ICFGs
+        // Create method CFGs with entry, exit, call, return nodes
         final Map<String, ICFG> methodICFGs = new HashMap<>();
         final ICFGNodeClassVisitor ICFGNodeClassVisitor =
                 new ICFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, fields, localVariableTables);
         pClassReader.accept(ICFGNodeClassVisitor, 0);
         logger.debug(JDFCUtils.prettyPrintMap(methodICFGs));
+
+        // TODO: Connect ICFGS
     }
 
     /**

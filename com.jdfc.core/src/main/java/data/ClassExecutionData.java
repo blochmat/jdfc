@@ -28,7 +28,6 @@ public class ClassExecutionData extends ExecutionData {
     private final Map<String, Set<ProgramVariable>> variablesUncovered;
     private final Set<InterProceduralMatch> interProceduralMatches;
     private final String relativePath;
-
     private final Set<ProgramVariable> fields;
 
     public ClassExecutionData(String pRelativePath) {

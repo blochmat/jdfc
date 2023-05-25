@@ -136,12 +136,12 @@ public class ICFGNodeMethodVisitor extends JDFCMethodVisitor {
         visitFrameNew();
         if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
             final ICFGNode callNode = new ICFGCallNode(currentInstructionIndex, opcode);
-            nodes.put((double) currentInstructionIndex + 0.25, callNode);
+            nodes.put((double) currentInstructionIndex + 0.1, callNode);
             String callSiteMethodName = computeInternalMethodName(name, descriptor);
             int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
 //            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
             final ICFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, Integer.MIN_VALUE);
-            nodes.put((double) currentInstructionIndex + 0.75, returnNode);
+            nodes.put((double) currentInstructionIndex + 0.9, returnNode);
             crNodes.add((double) currentInstructionIndex);
         } else {
             final ICFGNode node = new ICFGNode(currentInstructionIndex, opcode);

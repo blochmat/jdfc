@@ -74,11 +74,11 @@ public class ICFGEdgeAnalysisVisitor extends MethodVisitor {
 
             if (crNodes.contains((double) insnIndex)) {
                 // This node is a call node
-                edges.put((double) insnIndex + 0.25, (double) insnIndex + 0.75);
-                edges.put((double) insnIndex + 0.75, (double) successorIndex);
+                edges.put((double) insnIndex + 0.1, (double) insnIndex + 0.9);
+                edges.put((double) insnIndex + 0.9, (double) successorIndex);
             } else if (crNodes.contains((double) successorIndex)) {
                 // The next node is a call node
-                edges.put((double) insnIndex, (double) successorIndex + 0.25);
+                edges.put((double) insnIndex, (double) successorIndex + 0.1);
             } else if (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) successorIndex)) {
                 // Normal nodes
                 edges.put((double) insnIndex, (double) successorIndex);

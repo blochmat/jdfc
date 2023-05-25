@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import icfg.data.LocalVariable;
 import icfg.data.ProgramVariable;
 import icfg.nodes.ICFGNode;
+import utils.JDFCUtils;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -85,6 +86,6 @@ public class ICFGImpl implements ICFG {
      */
     @Override
     public String toString() {
-        return String.format("CFGImpl for method %s (containing %d nodes)", methodName, nodes.size());
+        return String.format("ICFGImpl for method %s (containing %d nodes)%n %s", methodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
     }
 }
