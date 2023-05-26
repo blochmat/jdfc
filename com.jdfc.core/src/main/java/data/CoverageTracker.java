@@ -32,7 +32,8 @@ public class CoverageTracker {
         boolean isDefinition = isDefinition(pOpcode);
         LocalVariable localVariable = currentClassExecutionData.findLocalVariable(pInternalMethodName, pVarIndex);
 
-        // remove relative path from list of untested classes
+        // add to testedClassList, remove from untestedClassList
+        CoverageDataStore.getInstance().getTestedClassList().add(currentClassExecutionData.getRelativePath());
         CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
 
         if (localVariable != null) {

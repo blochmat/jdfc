@@ -18,20 +18,18 @@ public class CoverageDataStore {
     private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
 
     private final ExecutionDataNode<ExecutionData> root;
+    private final List<String> testedClassList;
     private final List<String> untestedClassList;
-
     private String projectDirStr;
-
     private String buildDirStr;
-
     private String classesBuildDirStr;
-
     private List<String> srcDirStrList;
 
     private CoverageDataStore() {
         // TODO: Maybe add src/main/java here somehow
         ExecutionData executionData = new ExecutionData("");
         this.root = new ExecutionDataNode<>(executionData);
+        this.testedClassList = new ArrayList<>();
         this.untestedClassList = new ArrayList<>();
     }
 
@@ -45,6 +43,10 @@ public class CoverageDataStore {
 
     public ExecutionDataNode<ExecutionData> getRoot() {
         return root;
+    }
+
+    public List<String> getTestedClassList() {
+        return testedClassList;
     }
 
     public List<String> getUntestedClassList() {
@@ -93,6 +95,15 @@ public class CoverageDataStore {
             CoverageDataExport.dumpCoverageDataToFile();
         } catch (ParserConfigurationException | TransformerException e) {
             throw new RuntimeException(e);
+        }
+
+        for(String className : testedClassList) {
+            ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
+            try {
+                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
+            } catch (ParserConfigurationException | TransformerException e) {
+                e.printStackTrace();
+            }
         }
 
         for(String className : untestedClassList) {
