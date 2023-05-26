@@ -487,6 +487,6 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public String toString() {
-        return String.format("Fqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
+        return String.format("ParentFqn: %s%nFqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
     }
 }

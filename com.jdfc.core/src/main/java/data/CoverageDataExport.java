@@ -47,7 +47,7 @@ public class CoverageDataExport {
         test.getParentFile().mkdirs();
         Set<ExecutionData> exDataSet = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
         try (FileOutputStream outputStream = new FileOutputStream(test)) {
-            byte[] strToBytes = exDataSet.toString().getBytes();
+            byte[] strToBytes = JDFCUtils.prettyPrintSet(exDataSet).getBytes();
             outputStream.write(strToBytes);
 
         } catch (IOException e) {

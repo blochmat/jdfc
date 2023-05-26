@@ -1,5 +1,7 @@
 package data;
 
+import java.util.Objects;
+
 /**
  *  Coverage data container for packages. Base model for {@code ClassExecutionData}
  */
@@ -16,6 +18,11 @@ public class ExecutionData {
     public ExecutionData(String fqn, String name) {
         this.fqn = fqn;
         this.name = name;
+        String temp = fqn.replaceAll(name, "");
+        if (!Objects.equals(temp,"")) {
+            int i = temp.length() - 1;
+            this.parentFqn = temp.substring(0, i);
+        }
     }
 
     public int getTotal() {
@@ -54,7 +61,15 @@ public class ExecutionData {
         return fqn;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getParentFqn() {
+        return parentFqn;
+    }
+
     public String toString() {
-        return String.format("Fqn: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", fqn, methodCount, total, covered, rate);
+        return String.format("ParentFqn: %s%nFqn: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", parentFqn, fqn, methodCount, total, covered, rate);
     }
 }
