@@ -12,7 +12,7 @@ public class CoverageTracker {
 
     private static CoverageTracker singleton;
     private ClassExecutionData currentClassExecutionData = null;
-    private final Map<String, ClassExecutionData> bla = new HashMap<>();
+    private final Map<String, ClassExecutionData> classExecutionDataMap = new HashMap<>();
 
     public static synchronized CoverageTracker getInstance() {
         if (singleton == null) {
@@ -32,6 +32,9 @@ public class CoverageTracker {
         boolean isDefinition = isDefinition(pOpcode);
         LocalVariable localVariable = currentClassExecutionData.findLocalVariable(pInternalMethodName, pVarIndex);
 
+        // remove relative path from list of untested classes
+        CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
+
         if (localVariable != null) {
             ProgramVariable programVariable =
                     ProgramVariable.create(null, localVariable.getName(), localVariable.getDescriptor(), pInsnIndex, pLineNumber, isDefinition);
@@ -41,11 +44,11 @@ public class CoverageTracker {
 
     private void updateClassExecutionData(final String pClassName) {
         if (currentClassExecutionData == null || !currentClassExecutionData.getRelativePath().equals(pClassName)) {
-            if(bla.containsKey(pClassName)) {
-                currentClassExecutionData = bla.get(pClassName);
+            if(classExecutionDataMap.containsKey(pClassName)) {
+                currentClassExecutionData = classExecutionDataMap.get(pClassName);
             } else {
                 currentClassExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-                bla.put(currentClassExecutionData.getRelativePath(), currentClassExecutionData);
+                classExecutionDataMap.put(currentClassExecutionData.getRelativePath(), currentClassExecutionData);
             }
         }
     }

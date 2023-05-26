@@ -18,7 +18,7 @@ public class CoverageDataStore {
     private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
 
     private final ExecutionDataNode<ExecutionData> root;
-    private final List<String> classList;
+    private final List<String> untestedClassList;
 
     private String projectDirStr;
 
@@ -32,7 +32,7 @@ public class CoverageDataStore {
         // TODO: Maybe add src/main/java here somehow
         ExecutionData executionData = new ExecutionData("");
         this.root = new ExecutionDataNode<>(executionData);
-        this.classList = new ArrayList<>();
+        this.untestedClassList = new ArrayList<>();
     }
 
     private static class Container {
@@ -47,8 +47,8 @@ public class CoverageDataStore {
         return root;
     }
 
-    public List<String> getClassList() {
-        return classList;
+    public List<String> getUntestedClassList() {
+        return untestedClassList;
     }
 
     public String getProjectDirStr() {
@@ -89,13 +89,13 @@ public class CoverageDataStore {
 
     public void exportCoverageData() {
         // TODO: Insert export method call here
-//        try {
-//            CoverageDataExport.dumpCoverageDataToFile();
-//        } catch (ParserConfigurationException | TransformerException e) {
-//            throw new RuntimeException(e);
-//        }
+        try {
+            CoverageDataExport.dumpCoverageDataToFile();
+        } catch (ParserConfigurationException | TransformerException e) {
+            throw new RuntimeException(e);
+        }
 
-        for(String className : classList) {
+        for(String className : untestedClassList) {
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
@@ -146,7 +146,7 @@ public class CoverageDataStore {
                 String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
                 String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
-                classList.add(relativePath);
+                untestedClassList.add(relativePath);
                 String nameWithoutType = f.getName().split("\\.")[0];
                 ClassExecutionData classNodeData = new ClassExecutionData(fqn, relativePath);
                 if (pExecutionDataNode.isRoot()) {

@@ -1,6 +1,7 @@
 package data;
 
 import instr.JDFCInstrument;
+import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -17,6 +18,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 
 public class CoverageDataExport {
@@ -40,30 +42,33 @@ public class CoverageDataExport {
         File test = new File(testPath);
         test.getParentFile().mkdirs();
 
-        List<String> classList = CoverageDataStore.getInstance().getClassList();
+        // Remove tested classes from classList
+
+
+        List<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
-//        // If untested classes exist => compute def use pairs
-//        for (String relPath : classList) {
-//            // pClassesDir = target/classes
-//            String classFilePath = String.format("%s/%s%s", pClassesDir, relPath, ".class");
-//            File classFile = new File(classFilePath);
-//            try {
-//                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
-//                ClassReader cr = new ClassReader(classFileBuffer);
-//                JDFCInstrument.instrument(cr);
-//                ExecutionDataNode<ExecutionData> classExecutionDataNode =
-//                        CoverageDataStore.getInstance().findClassDataNode(relPath);
-//                ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
-//                classExecutionData.computeCoverageForClass();
-//                classExecutionDataNode.aggregateDataToRootRecursive();
-//                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } catch (ParserConfigurationException | TransformerException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
+        // If untested classes exist => compute def use pairs
+        for (String relPath : classList) {
+            // pClassesDir = target/classes
+            String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesBuildDirStr(), relPath, ".class");
+            File classFile = new File(classFilePath);
+            try {
+                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+                ClassReader cr = new ClassReader(classFileBuffer);
+                JDFCInstrument.instrument(cr);
+                ExecutionDataNode<ExecutionData> classExecutionDataNode =
+                        CoverageDataStore.getInstance().findClassDataNode(relPath);
+                ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
+                classExecutionData.computeCoverageForClass();
+                classExecutionDataNode.aggregateDataToRootRecursive();
+                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParserConfigurationException | TransformerException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         CoverageDataStore.getInstance().getRoot().computeCoverage();
 

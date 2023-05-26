@@ -52,7 +52,7 @@ public class CoverageDataImport {
 
                 // If at least one variable is covered => tests exist for class
                 if (!classExecutionData.getVariablesCovered().isEmpty()) {
-                    CoverageDataStore.getInstance().getClassList().remove(relativePath);
+                    CoverageDataStore.getInstance().getUntestedClassList().remove(relativePath);
                 }
                 classExecutionData.computeCoverageForClass();
                 classExecutionDataNode.setData(classExecutionData);
@@ -62,7 +62,7 @@ public class CoverageDataImport {
             }
         }
 
-        List<String> classList = CoverageDataStore.getInstance().getClassList();
+        List<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
         // If untested classes exist => compute def use pairs

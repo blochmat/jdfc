@@ -19,7 +19,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-        if (!CoverageDataStore.getInstance().getClassList().contains(className)) {
+        if (!CoverageDataStore.getInstance().getUntestedClassList().contains(className)) {
             return classfileBuffer;
         }
         logger.debug("transform");
