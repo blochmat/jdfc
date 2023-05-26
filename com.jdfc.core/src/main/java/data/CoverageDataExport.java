@@ -135,43 +135,48 @@ public class CoverageDataExport {
             Element classes = doc.createElement("classes");
             pkg.appendChild(classes);
 
-//            for(ClassExecutionData cData : cDataSet) {
-//                if (Objects.equals(pkgData.getFqn(), cData.getParentFqn())) {
-//                    Element clazz = doc.createElement("class");
-//                    clazz.setAttribute("name", cData.getFqn());
-//                    clazz.setAttribute("filename", "relativePath required.");
-//                    classes.appendChild(clazz);
-//
-//                    Element methods = doc.createElement("methods");
-//                    clazz.appendChild(methods);
-//
-//                    Element method = doc.createElement("method");
-//                    method.setAttribute("name", "todo");
-//                    method.setAttribute("signature", "e.g. ()V");
-//                    method.setAttribute("pair-rate", "double");
-//                    methods.appendChild(method);
-//
-//                    Element pairs = doc.createElement("pairs");
-//                    method.appendChild(pairs);
-//
-//                    Element pair = doc.createElement("pair");
-//                    pair.setAttribute("type", "e.g. I");
-//                    pair.setAttribute("hits", "int");
-//                    pairs.appendChild(pair);
-//
-//                    Element def = doc.createElement("def");
-//                    def.setAttribute("name", "todo");
-//                    def.setAttribute("line", "int");
-//                    def.setAttribute("idx", "int");
-//                    pair.appendChild(def);
-//
-//                    Element use = doc.createElement("use");
-//                    use.setAttribute("name", "todo");
-//                    use.setAttribute("line", "int");
-//                    use.setAttribute("idx", "int");
-//                    pair.appendChild(use);
-//                }
-//            }
+            for(ClassExecutionData cData : cDataSet) {
+                if (Objects.equals(pkgData.getFqn(), cData.getParentFqn())) {
+                    Element clazz = doc.createElement("class");
+                    clazz.setAttribute("name", cData.getFqn());
+                    clazz.setAttribute("filename", cData.getRelativePath());
+                    classes.appendChild(clazz);
+
+                    Element methods = doc.createElement("methods");
+                    clazz.appendChild(methods);
+
+                    for(Map.Entry<String, Map<DefUsePair, Boolean>> mEntry : cData.getDefUsePairsCovered().entrySet()) {
+                        // TODO: Create method object holding name, signature and coverage
+                        String methodName = mEntry.getKey();
+                        Element method = doc.createElement("method");
+                        method.setAttribute("name", methodName);
+                        method.setAttribute("signature", "e.g. ()V");
+                        method.setAttribute("pair-rate", "double");
+                        methods.appendChild(method);
+
+                        Element pairs = doc.createElement("pairs");
+                        method.appendChild(pairs);
+
+                        Element pair = doc.createElement("pair");
+                        pair.setAttribute("type", "e.g. I");
+                        pair.setAttribute("hits", "int");
+                        pairs.appendChild(pair);
+
+                        Element def = doc.createElement("def");
+                        def.setAttribute("name", "todo");
+                        def.setAttribute("line", "int");
+                        def.setAttribute("idx", "int");
+                        pair.appendChild(def);
+
+                        Element use = doc.createElement("use");
+                        use.setAttribute("name", "todo");
+                        use.setAttribute("line", "int");
+                        use.setAttribute("idx", "int");
+                        pair.appendChild(use);
+                    }
+
+                }
+            }
         }
 
         // The end.
