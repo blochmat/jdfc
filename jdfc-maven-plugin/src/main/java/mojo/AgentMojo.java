@@ -40,14 +40,9 @@ public class AgentMojo extends AbstractJdfcMojo {
         final String targetDirStr = getProject().getBuild().getDirectory(); // target
         final String classesDirStr = getProject().getBuild().getOutputDirectory(); // target/classes
         final String argLine = "argLine";
-        final Artifact pluginArtifact = pluginArtifactMap.get("com.jdfc:jdfc-maven-plugin");
         try {
-            final File targetDir = new File(targetDirStr);
-            if (!targetDir.exists()) {
-                targetDir.mkdirs();
-            }
-            final File pluginJarFile = copyJarFile(pluginArtifact.getFile());
-            final File agentJarFile = extractAgentJarToTargetDir(pluginJarFile, AGENT_FILE_NAME, targetDir);
+            final File agentJarFile = extractAgentJarToDir(targetDirStr);
+
             if (agentJarFile != null) {
                 final Properties projectProperties = getProject().getProperties();
                 final String oldValue = projectProperties.getProperty(argLine);
@@ -60,7 +55,6 @@ public class AgentMojo extends AbstractJdfcMojo {
                     newValue = String.format("%s %s=%s", oldValue, agent, classesDirStr);
                 }
                 projectProperties.setProperty(argLine, newValue);
-                pluginJarFile.delete();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -81,13 +75,20 @@ public class AgentMojo extends AbstractJdfcMojo {
         return copyJarFile;
     }
 
-    public File extractAgentJarToTargetDir(File jarFile, String fileName, File destDirectory) throws Exception {
-        JarInputStream jarInputStream = new JarInputStream(Files.newInputStream(jarFile.toPath()));
+    public File extractAgentJarToDir(String dirStr) throws Exception {
+        final Artifact pluginArtifact = pluginArtifactMap.get("com.jdfc:jdfc-maven-plugin");
+        final File targetDir = new File(dirStr);
+        if (!targetDir.exists()) {
+            targetDir.mkdirs();
+        }
+        final File pluginJarFile = copyJarFile(pluginArtifact.getFile());
+
+        JarInputStream jarInputStream = new JarInputStream(Files.newInputStream(pluginJarFile.toPath()));
         JarEntry jarEntry;
         File file = null;
         while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
-            if (jarEntry.getName().equals(fileName)) {
-                file = new File(destDirectory, fileName);
+            if (jarEntry.getName().equals(AGENT_FILE_NAME)) {
+                file = new File(dirStr, AGENT_FILE_NAME);
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 byte[] buffer = new byte[1024];
                 int length;
@@ -99,6 +100,9 @@ public class AgentMojo extends AbstractJdfcMojo {
             }
         }
         jarInputStream.close();
+        if(!pluginJarFile.delete()) {
+            throw new RuntimeException("Deletion of Plugin Jar File failed.");
+        }
         return file;
     }
 }
