@@ -16,8 +16,17 @@ import java.util.*;
  */
 public class CoverageDataStore {
     private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
+
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> classList;
+
+    private String projectDirStr;
+
+    private String buildDirStr;
+
+    private String classesBuildDirStr;
+
+    private List<String> srcDirStrList;
 
     private CoverageDataStore() {
         // TODO: Maybe add src/main/java here somehow
@@ -40,6 +49,32 @@ public class CoverageDataStore {
 
     public List<String> getClassList() {
         return classList;
+    }
+
+    public String getProjectDirStr() {
+        return projectDirStr;
+    }
+
+    public String getBuildDirStr() {
+        return buildDirStr;
+    }
+
+    public String getClassesBuildDirStr() {
+        return classesBuildDirStr;
+    }
+
+    public List<String> getSrcDirStrList() {
+        return srcDirStrList;
+    }
+
+    public void saveProjectInfo(String projectDirStr,
+                                String buildDirStr,
+                                String classesBuildDirStr,
+                                List<String> srcDirStrList) {
+       this.projectDirStr = projectDirStr;
+       this.buildDirStr = buildDirStr;
+       this.classesBuildDirStr = classesBuildDirStr;
+       this.srcDirStrList = srcDirStrList;
     }
 
     public static void invokeCoverageTracker(final String pClassName,

@@ -11,12 +11,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-
-import static java.lang.String.format;
 
 @Mojo(name = "prepare-agent", defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
 public class AgentMojo extends AbstractJdfcMojo {
@@ -37,24 +36,32 @@ public class AgentMojo extends AbstractJdfcMojo {
     @Override
     protected void executeMojo()  {
         getLog().info("Preparing JDFC agent for analysis. ");
-        final String targetDirStr = getProject().getBuild().getDirectory(); // target
-        final String classesDirStr = getProject().getBuild().getOutputDirectory(); // target/classes
-        final String argLine = "argLine";
-        try {
-            final File agentJarFile = extractAgentJarToDir(targetDirStr);
+        final String projectDirStr = getProject().getBasedir().toString(); // /home/path/to/project/root
+        final List<String> sourceDirStrList = getProject().getCompileSourceRoots(); // [/home/path/to/project/src,..]
+        final String buildDirStr = getProject().getBuild().getDirectory(); // default: target
+        final String classesBuildDirStr = getProject().getBuild().getOutputDirectory(); // default: target/classes
 
+        try {
+            final File agentJarFile = extractAgentJarToDir(buildDirStr);
             if (agentJarFile != null) {
+                // get command line arguments
                 final Properties projectProperties = getProject().getProperties();
-                final String oldValue = projectProperties.getProperty(argLine);
-                // create command line arguments for agent
-                final String agent = format("-javaagent:%s", agentJarFile);
-                String newValue;
-                if (oldValue == null) {
-                    newValue = String.format("%s=%s", agent, classesDirStr);
+                final String argLineStr = projectProperties.getProperty("argLine");
+
+                // prepare agent command line argument
+                final String srcsDirString = String.join(",", sourceDirStrList);
+                final String agentStr = String.format("-javaagent:%s", agentJarFile);
+                final String agentArgsStr =
+                        String.format("%s,%s,%s,%s", projectDirStr, buildDirStr, classesBuildDirStr, srcsDirString);
+
+                // append command line arguments
+                String newArgLineStr;
+                if (argLineStr == null) {
+                    newArgLineStr = String.format("%s=%s", agentStr, agentArgsStr);
                 } else {
-                    newValue = String.format("%s %s=%s", oldValue, agent, classesDirStr);
+                    newArgLineStr = String.format("%s %s=%s", argLineStr, agentStr, agentArgsStr);
                 }
-                projectProperties.setProperty(argLine, newValue);
+                projectProperties.setProperty("argLine", newArgLineStr);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
