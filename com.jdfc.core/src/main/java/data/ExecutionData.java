@@ -10,9 +10,12 @@ public class ExecutionData {
     private int methodCount = 0;
     private double rate = 0.0;
     private String fqn = "";
+    private String name = "";
+    private String parentFqn = "";
 
-    public ExecutionData(String fqn) {
+    public ExecutionData(String fqn, String name) {
         this.fqn = fqn;
+        this.name = name;
     }
 
     public int getTotal() {

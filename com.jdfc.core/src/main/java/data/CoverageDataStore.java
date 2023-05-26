@@ -27,7 +27,7 @@ public class CoverageDataStore {
 
     private CoverageDataStore() {
         // TODO: Maybe add src/main/java here somehow
-        ExecutionData executionData = new ExecutionData("");
+        ExecutionData executionData = new ExecutionData("", "");
         this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new ArrayList<>();
         this.untestedClassList = new ArrayList<>();
@@ -149,7 +149,7 @@ public class CoverageDataStore {
         for (File f : fileList) {
             String fqn = createFqn(pExecutionDataNode, f.getName());
             if (f.isDirectory() && !f.getName().equals("META-INF")) {
-                ExecutionData pkgData = new ExecutionData(fqn);
+                ExecutionData pkgData = new ExecutionData(fqn, f.getName());
                 ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
                 addNodesFromDirRecursive(f, newPkgExecutionDataNode, pBaseDir, suffix);
@@ -159,7 +159,7 @@ public class CoverageDataStore {
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
                 untestedClassList.add(relativePath);
                 String nameWithoutType = f.getName().split("\\.")[0];
-                ClassExecutionData classNodeData = new ClassExecutionData(fqn, relativePath);
+                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath);
                 if (pExecutionDataNode.isRoot()) {
                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                 } else {

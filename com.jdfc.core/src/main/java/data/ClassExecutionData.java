@@ -30,8 +30,8 @@ public class ClassExecutionData extends ExecutionData {
     private final String relativePath;
     private final Set<ProgramVariable> fields;
 
-    public ClassExecutionData(String fqn, String pRelativePath) {
-        super(fqn);
+    public ClassExecutionData(String fqn, String name, String pRelativePath) {
+        super(fqn, name);
         methodLastLine = new HashMap<>();
         methodFirstLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
