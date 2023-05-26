@@ -20,7 +20,8 @@ public class CoverageDataStore {
     private final List<String> classList;
 
     private CoverageDataStore() {
-        ExecutionData executionData = new ExecutionData();
+        // TODO: Maybe add src/main/java here somehow
+        ExecutionData executionData = new ExecutionData("");
         this.root = new ExecutionDataNode<>(executionData);
         this.classList = new ArrayList<>();
     }
@@ -97,12 +98,12 @@ public class CoverageDataStore {
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
         boolean isClassDir = Arrays.stream(fileList).anyMatch(x -> x.getName().contains(suffix));
         if (pExecutionDataNode.isRoot() && isClassDir) {
-            ExecutionData rootClassData = new ExecutionData();
-            pExecutionDataNode.addChild("default", rootClassData);
+            pExecutionDataNode.addChild("default", this.root.getData());
         }
         for (File f : fileList) {
+            String fqn = createFqn(pExecutionDataNode, f.getName());
             if (f.isDirectory() && !f.getName().equals("META-INF")) {
-                ExecutionData pkgData = new ExecutionData();
+                ExecutionData pkgData = new ExecutionData(fqn);
                 ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
                 addNodesFromDirRecursive(f, newPkgExecutionDataNode, pBaseDir, suffix);
@@ -112,13 +113,21 @@ public class CoverageDataStore {
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
                 classList.add(relativePath);
                 String nameWithoutType = f.getName().split("\\.")[0];
-                ClassExecutionData classNodeData = new ClassExecutionData(relativePath);
+                ClassExecutionData classNodeData = new ClassExecutionData(fqn, relativePath);
                 if (pExecutionDataNode.isRoot()) {
                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                 } else {
                     pExecutionDataNode.addChild(nameWithoutType, classNodeData);
                 }
             }
+        }
+    }
+
+    private String createFqn(ExecutionDataNode<ExecutionData> node, String childName) {
+        if (node.isRoot()) {
+            return childName;
+        } else {
+            return String.format("%s.%s", node.getData().getFqn(), childName);
         }
     }
 }

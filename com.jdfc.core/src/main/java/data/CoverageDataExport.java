@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import utils.JDFCUtils;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -15,10 +16,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class CoverageDataExport {
 
@@ -29,10 +27,28 @@ public class CoverageDataExport {
     }
 
     public static void dumpCoverageDataToFile() throws ParserConfigurationException, TransformerException {
+        // Create JDFC directory
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
         File JDFCDir = new File(outPath);
         if (!JDFCDir.exists()) {
             JDFCDir.mkdirs();
+        }
+
+        // Create test file
+        String testPath = String.format("%s%s%s.txt", outPath, File.separator, "test");
+        File test = new File(testPath);
+        test.getParentFile().mkdirs();
+
+        CoverageDataStore.getInstance().getRoot().computeCoverage();
+
+        Set<ExecutionData> executionData = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
+
+        try (FileOutputStream outputStream = new FileOutputStream(test)) {
+            byte[] strToBytes = JDFCUtils.prettyPrintSet(executionData).getBytes();
+            outputStream.write(strToBytes);
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         String classXMLPath = String.format("%s%s%s.xml", outPath, File.separator, "jdfc");
@@ -111,6 +127,18 @@ public class CoverageDataExport {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Set<ExecutionData> treeToSetRecursive(ExecutionDataNode<ExecutionData> node) {
+        // ""
+        // com
+        ExecutionData data = node.getData();
+        Set<ExecutionData> result = new HashSet<>();
+        result.add(data);
+        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> child : node.getChildren().entrySet()) {
+            result.addAll(treeToSetRecursive(child.getValue()));
+        }
+        return result;
     }
 
     /**

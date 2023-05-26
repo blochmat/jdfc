@@ -98,6 +98,19 @@ public class ExecutionDataNode<T extends ExecutionData> {
         return this.children.size() == 0;
     }
 
+    public void computeCoverage() {
+        for(ExecutionDataNode<T> node : this.children.values()) {
+            ExecutionData data = node.getData();
+            if (data instanceof ClassExecutionData) {
+                ClassExecutionData cData = (ClassExecutionData) data;
+                cData.computeCoverageForClass();
+                node.aggregateDataToRootRecursive();
+            } else {
+                node.computeCoverage();
+            }
+        }
+    }
+
     /**
      * Calculation of coverage values from all children to root node
      */

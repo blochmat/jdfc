@@ -30,7 +30,8 @@ public class ClassExecutionData extends ExecutionData {
     private final String relativePath;
     private final Set<ProgramVariable> fields;
 
-    public ClassExecutionData(String pRelativePath) {
+    public ClassExecutionData(String fqn, String pRelativePath) {
+        super(fqn);
         methodLastLine = new HashMap<>();
         methodFirstLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
@@ -478,5 +479,9 @@ public class ClassExecutionData extends ExecutionData {
             }
         }
         return null;
+    }
+
+    public String toString() {
+        return String.format("Fqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%n", getFqn(), relativePath, getMethodCount(), getTotal(), getCovered());
     }
 }
