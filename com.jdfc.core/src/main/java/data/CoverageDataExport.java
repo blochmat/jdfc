@@ -20,6 +20,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CoverageDataExport {
 
@@ -37,18 +38,174 @@ public class CoverageDataExport {
             JDFCDir.mkdirs();
         }
 
-        // Create test file
+        analyseUntestedClasses();
+        CoverageDataStore.getInstance().getRoot().computeCoverage();
+
+        // Debug output
         String testPath = String.format("%s%s%s.txt", outPath, File.separator, "test");
         File test = new File(testPath);
         test.getParentFile().mkdirs();
+        Set<ExecutionData> exDataSet = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
+        try (FileOutputStream outputStream = new FileOutputStream(test)) {
+            byte[] strToBytes = exDataSet.toString().getBytes();
+            outputStream.write(strToBytes);
 
-        // Remove tested classes from classList
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        // Actual output
+        String classXMLPath = String.format("%s%s%s.xml", outPath, File.separator, "jdfc-coverage");
 
+        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+
+        Optional<ExecutionData> rootDataOptional = exDataSet.stream().filter(data -> Objects.equals(data.getFqn(), "")).findFirst();
+        if(!rootDataOptional.isPresent()) {
+            throw new RuntimeException("Root data not present.");
+        }
+
+        // create coverage element with root data
+        ExecutionData rootData = rootDataOptional.get();
+        exDataSet.remove(rootData);
+        Element coverage = doc.createElement("coverage");
+        coverage.setAttribute("pair-rate", String.valueOf(rootData.getRate()));
+        coverage.setAttribute("pairs-covered", String.valueOf(rootData.getCovered()));
+        coverage.setAttribute("pairs-valid", String.valueOf(rootData.getTotal()));
+        coverage.setAttribute("version", "1.0-SNAPSHOT");
+        coverage.setAttribute("timestamp", String.valueOf(System.currentTimeMillis()));
+        doc.appendChild(coverage);
+
+        Set<ExecutionData> pkgDataSet = exDataSet.stream()
+                .filter(data -> !(data instanceof ClassExecutionData))
+                .collect(Collectors.toSet());
+        Set<ClassExecutionData> cDataSet = exDataSet.stream()
+                .filter(data -> data instanceof ClassExecutionData)
+                .map(data -> (ClassExecutionData) data)
+                .collect(Collectors.toSet());
+
+        // DEBUG
+        String test2Path = String.format("%s%s%s.txt", outPath, File.separator, "test2");
+        File test2 = new File(test2Path);
+        test2.getParentFile().mkdirs();
+        try (FileOutputStream outputStream = new FileOutputStream(test2)) {
+            byte[] strToBytes = JDFCUtils.prettyPrintSet(pkgDataSet).getBytes();
+            outputStream.write(strToBytes);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // DEBUG
+        String test3Path = String.format("%s%s%s.txt", outPath, File.separator, "test3");
+        File test3 = new File(test3Path);
+        test3.getParentFile().mkdirs();
+        try (FileOutputStream outputStream = new FileOutputStream(test3)) {
+            byte[] strToBytes = JDFCUtils.prettyPrintSet(cDataSet).getBytes();
+            outputStream.write(strToBytes);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // create sources
+        Element sources = doc.createElement("sources");
+        coverage.appendChild(sources);
+
+        // fill sources
+        String projectDirString = CoverageDataStore.getInstance().getProjectDirStr();
+        for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
+            Element source = doc.createElement("source");
+            // substring(1) to remove first /
+            String relPath = JDFCUtils.getStringDiff(projectDirString, src).substring(1);
+            source.setTextContent(relPath);
+            sources.appendChild(source);
+        }
+
+        // create packages
+        Element packages = doc.createElement("packages");
+        coverage.appendChild(packages);
+
+        for(ExecutionData pkgData : pkgDataSet) {
+            // create package
+            Element pkg = doc.createElement("package");
+            pkg.setAttribute("name", pkgData.getFqn());
+            pkg.setAttribute("pair-rate", String.valueOf(pkgData.getRate()));
+            packages.appendChild(pkg);
+
+            // add classes of package
+            Element classes = doc.createElement("classes");
+            pkg.appendChild(classes);
+
+//            for(ClassExecutionData cData : cDataSet) {
+//                if (Objects.equals(pkgData.getFqn(), cData.getParentFqn())) {
+//                    Element clazz = doc.createElement("class");
+//                    clazz.setAttribute("name", cData.getFqn());
+//                    clazz.setAttribute("filename", "relativePath required.");
+//                    classes.appendChild(clazz);
+//
+//                    Element methods = doc.createElement("methods");
+//                    clazz.appendChild(methods);
+//
+//                    Element method = doc.createElement("method");
+//                    method.setAttribute("name", "todo");
+//                    method.setAttribute("signature", "e.g. ()V");
+//                    method.setAttribute("pair-rate", "double");
+//                    methods.appendChild(method);
+//
+//                    Element pairs = doc.createElement("pairs");
+//                    method.appendChild(pairs);
+//
+//                    Element pair = doc.createElement("pair");
+//                    pair.setAttribute("type", "e.g. I");
+//                    pair.setAttribute("hits", "int");
+//                    pairs.appendChild(pair);
+//
+//                    Element def = doc.createElement("def");
+//                    def.setAttribute("name", "todo");
+//                    def.setAttribute("line", "int");
+//                    def.setAttribute("idx", "int");
+//                    pair.appendChild(def);
+//
+//                    Element use = doc.createElement("use");
+//                    use.setAttribute("name", "todo");
+//                    use.setAttribute("line", "int");
+//                    use.setAttribute("idx", "int");
+//                    pair.appendChild(use);
+//                }
+//            }
+        }
+
+        // The end.
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+        File file = new File(classXMLPath);
+        file.getParentFile().mkdirs();
+        try {
+            OutputStream out = new FileOutputStream(file);
+            StreamResult streamResult = new StreamResult(new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)));
+            transformer.transform(new DOMSource(doc), streamResult);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Set<ExecutionData> treeToSetRecursive(ExecutionDataNode<ExecutionData> node) {
+        Set<ExecutionData> result = new HashSet<>();
+        if (node.isRoot() || node.isLeaf() || node.containsLeafs()) {
+            ExecutionData data = node.getData();
+            result.add(data);
+        }
+
+        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> child : node.getChildren().entrySet()) {
+            result.addAll(treeToSetRecursive(child.getValue()));
+        }
+        return result;
+    }
+
+    private static void analyseUntestedClasses() {
         List<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
-        // If untested classes exist => compute def use pairs
         for (String relPath : classList) {
             // pClassesDir = target/classes
             String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesBuildDirStr(), relPath, ".class");
@@ -69,107 +226,6 @@ public class CoverageDataExport {
                 throw new RuntimeException(e);
             }
         }
-
-        CoverageDataStore.getInstance().getRoot().computeCoverage();
-
-        Set<ExecutionData> executionData = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
-
-        try (FileOutputStream outputStream = new FileOutputStream(test)) {
-            byte[] strToBytes = JDFCUtils.prettyPrintSet(executionData).getBytes();
-            outputStream.write(strToBytes);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String classXMLPath = String.format("%s%s%s.xml", outPath, File.separator, "jdfc");
-
-        Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-        Element coverage = doc.createElement("coverage");
-        coverage.setAttribute("pair-rate", "double");
-        coverage.setAttribute("pairs-covered", "int");
-        coverage.setAttribute("pairs-valid", "int");
-        coverage.setAttribute("version", "SNAPSHOT-1.0.0");
-        coverage.setAttribute("timestamp", "todo");
-        doc.appendChild(coverage);
-
-        Element sources = doc.createElement("sources");
-        coverage.appendChild(sources);
-
-        Element source = doc.createElement("source");
-        source.setTextContent("src/main/java");
-        sources.appendChild(source);
-
-        Element packages = doc.createElement("packages");
-        coverage.appendChild(packages);
-
-        Element pkg = doc.createElement("package");
-        pkg.setAttribute("name", "path.from.src");
-        pkg.setAttribute("pair-rate", "double");
-        packages.appendChild(pkg);
-
-        Element classes = doc.createElement("classes");
-        pkg.appendChild(classes);
-
-        Element clazz = doc.createElement("class");
-        clazz.setAttribute("name", "fully.qualified.name");
-        clazz.setAttribute("filename", "fully/qualified/name.java");
-        classes.appendChild(clazz);
-
-        Element methods = doc.createElement("methods");
-        clazz.appendChild(methods);
-
-        Element method = doc.createElement("method");
-        method.setAttribute("name", "todo");
-        method.setAttribute("signature", "e.g. ()V");
-        method.setAttribute("pair-rate", "double");
-        methods.appendChild(method);
-
-        Element pairs = doc.createElement("pairs");
-        method.appendChild(pairs);
-
-        Element pair = doc.createElement("pair");
-        pair.setAttribute("type", "e.g. I");
-        pair.setAttribute("hits", "int");
-        pairs.appendChild(pair);
-
-        Element def = doc.createElement("def");
-        def.setAttribute("name", "todo");
-        def.setAttribute("line", "int");
-        def.setAttribute("idx", "int");
-        pair.appendChild(def);
-
-        Element use = doc.createElement("use");
-        use.setAttribute("name", "todo");
-        use.setAttribute("line", "int");
-        use.setAttribute("idx", "int");
-        pair.appendChild(use);
-
-        // The end.
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-        File file = new File(classXMLPath);
-        file.getParentFile().mkdirs();
-        try {
-            OutputStream out = new FileOutputStream(file);
-            StreamResult streamResult = new StreamResult(new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)));
-            transformer.transform(new DOMSource(doc), streamResult);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static Set<ExecutionData> treeToSetRecursive(ExecutionDataNode<ExecutionData> node) {
-        // ""
-        // com
-        ExecutionData data = node.getData();
-        Set<ExecutionData> result = new HashSet<>();
-        result.add(data);
-        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> child : node.getChildren().entrySet()) {
-            result.addAll(treeToSetRecursive(child.getValue()));
-        }
-        return result;
     }
 
     /**

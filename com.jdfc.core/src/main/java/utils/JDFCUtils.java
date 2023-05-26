@@ -246,4 +246,22 @@ public class JDFCUtils {
 
         return splitPoints;
     }
+
+    /**
+     * Return everything from string b that is not in string a
+     * @param a
+     * @param b
+     * @return
+     */
+    public static String getStringDiff(String a, String b) {
+        if (a == null && b == null) {
+            throw new IllegalArgumentException("String difference can not be determined from two null arguments");
+        }
+
+        if(a == null || Objects.equals(a, "")) {
+           return b;
+        }
+
+        return b.replaceAll(a, "");
+    }
 }

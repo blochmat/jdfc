@@ -8,6 +8,7 @@ public class ExecutionData {
     private int total = 0;
     private int covered = 0;
     private int methodCount = 0;
+    private double rate = 0.0;
     private String fqn = "";
 
     public ExecutionData(String fqn) {
@@ -38,15 +39,19 @@ public class ExecutionData {
         this.methodCount = methodCount;
     }
 
+    public double getRate() {
+        return rate;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
+    }
+
     public String getFqn() {
         return fqn;
     }
 
-    public void setFqn(String fqn) {
-        this.fqn = fqn;
-    }
-
     public String toString() {
-        return String.format("Fqn: %s%nMethods: %d%nTotal: %d%nCovered: %d%n", fqn, methodCount, total, covered);
+        return String.format("Fqn: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", fqn, methodCount, total, covered, rate);
     }
 }

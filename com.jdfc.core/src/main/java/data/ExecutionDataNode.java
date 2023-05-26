@@ -98,6 +98,15 @@ public class ExecutionDataNode<T extends ExecutionData> {
         return this.children.size() == 0;
     }
 
+    public boolean containsLeafs() {
+        for(ExecutionDataNode<T> exData : children.values()) {
+            if (exData.isLeaf()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void computeCoverage() {
         for(ExecutionDataNode<T> node : this.children.values()) {
             ExecutionData data = node.getData();
@@ -129,6 +138,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
             parentData.setTotal(newTotal);
             parentData.setCovered(newCovered);
             parentData.setMethodCount(newMethodCount);
+            parentData.setRate((double) newCovered / newTotal);
             this.parent.aggregateDataToRootRecursive();
         }
     }

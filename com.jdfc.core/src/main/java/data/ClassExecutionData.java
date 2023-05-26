@@ -387,6 +387,7 @@ public class ClassExecutionData extends ExecutionData {
         this.calculateMethodCount();
         this.calculateTotal();
         this.calculateCovered();
+        this.calculateRate();
     }
 
     public int computeCoveredForMethod(String pKey) {
@@ -403,6 +404,10 @@ public class ClassExecutionData extends ExecutionData {
 
     public void calculateCovered() {
         this.setCovered(defUsePairsCovered.keySet().stream().mapToInt(this::computeCoveredForMethod).sum());
+    }
+
+    public void calculateRate() {
+        this.setRate((double) getCovered() / getTotal());
     }
 
     private Map<ProgramVariable, ProgramVariable> mergeMaps(Map<ProgramVariable, ProgramVariable> map1,
@@ -482,6 +487,6 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public String toString() {
-        return String.format("Fqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%n", getFqn(), relativePath, getMethodCount(), getTotal(), getCovered());
+        return String.format("Fqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
     }
 }
