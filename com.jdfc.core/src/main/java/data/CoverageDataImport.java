@@ -2,6 +2,8 @@ package data;
 
 import instr.JDFCInstrument;
 import org.objectweb.asm.ClassReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -18,6 +20,8 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class CoverageDataImport {
+
+    private final static Logger logger = LoggerFactory.getLogger(CoverageDataImport.class);
 
     public static void loadExecutionData(String pClassesDir, String pJDFCDir) {
         File classes = new File(pClassesDir);
@@ -38,6 +42,7 @@ public class CoverageDataImport {
         for (File xml : xmlFiles) {
             String relativePathWithType = jdfcPath.relativize(xml.toPath()).toString();
             String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
+            logger.debug(relativePath);
             ExecutionDataNode<ExecutionData> classExecutionDataNode = CoverageDataStore.getInstance().findClassDataNode(relativePath);
             ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
             try {

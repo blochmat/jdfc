@@ -1,5 +1,6 @@
 package data;
 
+import instr.JDFCInstrument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -38,6 +39,31 @@ public class CoverageDataExport {
         String testPath = String.format("%s%s%s.txt", outPath, File.separator, "test");
         File test = new File(testPath);
         test.getParentFile().mkdirs();
+
+        List<String> classList = CoverageDataStore.getInstance().getClassList();
+        JDFCInstrument JDFCInstrument = new JDFCInstrument();
+
+//        // If untested classes exist => compute def use pairs
+//        for (String relPath : classList) {
+//            // pClassesDir = target/classes
+//            String classFilePath = String.format("%s/%s%s", pClassesDir, relPath, ".class");
+//            File classFile = new File(classFilePath);
+//            try {
+//                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+//                ClassReader cr = new ClassReader(classFileBuffer);
+//                JDFCInstrument.instrument(cr);
+//                ExecutionDataNode<ExecutionData> classExecutionDataNode =
+//                        CoverageDataStore.getInstance().findClassDataNode(relPath);
+//                ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
+//                classExecutionData.computeCoverageForClass();
+//                classExecutionDataNode.aggregateDataToRootRecursive();
+//                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } catch (ParserConfigurationException | TransformerException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
 
         CoverageDataStore.getInstance().getRoot().computeCoverage();
 

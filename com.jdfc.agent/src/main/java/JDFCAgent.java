@@ -23,6 +23,7 @@ public final class JDFCAgent {
         CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), baseDir, fileEnding);
         JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer();
         inst.addTransformer(jdfcClassTransformer);
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> CoverageDataStore.getInstance().exportCoverageData()));
     }
 }

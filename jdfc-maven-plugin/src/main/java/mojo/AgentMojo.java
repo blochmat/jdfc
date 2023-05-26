@@ -39,6 +39,7 @@ public class AgentMojo extends AbstractJdfcMojo {
      */
     @Override
     protected void executeMojo()  {
+        getLog().info("Preparing JDFC agent for analysis. ");
         final String argLine = "argLine";
         final Artifact pluginArtifact = pluginArtifactMap.get("com.jdfc:jdfc-maven-plugin");
         try {
