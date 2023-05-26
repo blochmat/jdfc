@@ -25,12 +25,9 @@ public class AgentMojo extends AbstractJdfcMojo {
      * Map of plugin artifacts.
      */
     @Parameter(property = "plugin.artifactMap", required = true, readonly = true)
-    private Map<String, Artifact> pluginArtifactMap;
+    public Map<String, Artifact> pluginArtifactMap;
 
-    @Parameter(defaultValue = "${project.build.directory}")
-    private String targetDirString;
-
-    static final String AGENT_FILE_NAME = "com.jdfc.agent-1.0-SNAPSHOT-runtime.jar";
+    private static final String AGENT_FILE_NAME = "com.jdfc.agent-1.0-SNAPSHOT-runtime.jar";
 
     /**
      * When executing the mojo we add the agent argument to the command line.
@@ -40,10 +37,12 @@ public class AgentMojo extends AbstractJdfcMojo {
     @Override
     protected void executeMojo()  {
         getLog().info("Preparing JDFC agent for analysis. ");
+        final String targetDirStr = getProject().getBuild().getDirectory(); // target
+        final String classesDirStr = getProject().getBuild().getOutputDirectory(); // target/classes
         final String argLine = "argLine";
         final Artifact pluginArtifact = pluginArtifactMap.get("com.jdfc:jdfc-maven-plugin");
         try {
-            final File targetDir = new File(targetDirString);
+            final File targetDir = new File(targetDirStr);
             if (!targetDir.exists()) {
                 targetDir.mkdirs();
             }

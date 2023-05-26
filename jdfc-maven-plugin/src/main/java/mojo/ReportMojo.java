@@ -21,14 +21,14 @@ public class ReportMojo extends AbstractMavenReport {
     @Override
     protected void executeReport(Locale locale) {
         getLog().info("Report creation started.");
-        final String target = getProject().getBuild().getDirectory(); // target
-        final String classesDir = getProject().getBuild().getOutputDirectory(); // target/classes
-        final String importDir = String.format("%s%sjdfc", target, File.separator);
+        final String targetDirStr = getProject().getBuild().getDirectory(); // target
+        final String classesDirStr = getProject().getBuild().getOutputDirectory(); // target/classes
+        final String importDir = String.format("%s%sjdfc", targetDirStr, File.separator);
 
         // Load stored data into CoverageDataStore
-        CoverageDataImport.loadExecutionData(classesDir, importDir);
+        CoverageDataImport.loadExecutionData(classesDirStr, importDir);
 
-        final String exportDir = String.format("%s%sjdfc-report", target, File.separator);
+        final String exportDir = String.format("%s%sjdfc-report", targetDirStr, File.separator);
         final String source = getProject().getBuild().getSourceDirectory();
         ReportGenerator reportGenerator = new ReportGenerator(exportDir, source);
         reportGenerator.createReport();
