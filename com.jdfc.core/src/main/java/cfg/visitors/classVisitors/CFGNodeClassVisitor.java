@@ -6,6 +6,7 @@ import data.CoverageDataStore;
 import cfg.CFG;
 import cfg.CFGCreator;
 import cfg.data.LocalVariable;
+import data.MethodData;
 import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -48,6 +49,7 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
         }
 
         if(classNode.access != Opcodes.ACC_INTERFACE) {
+            this.classExecutionData.getMethods().add(new MethodData(pName, pDescriptor));
             final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);

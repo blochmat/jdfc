@@ -29,6 +29,7 @@ public class ClassExecutionData extends ExecutionData {
     private final Set<InterProceduralMatch> interProceduralMatches;
     private final String relativePath;
     private final Set<ProgramVariable> fields;
+    private final Set<MethodData> methods;
 
     public ClassExecutionData(String fqn, String name, String pRelativePath) {
         super(fqn, name);
@@ -41,6 +42,7 @@ public class ClassExecutionData extends ExecutionData {
         relativePath = pRelativePath;
         interProceduralMatches = new HashSet<>();
         fields = new HashSet<>();
+        methods = new HashSet<>();
     }
 
     /**
@@ -86,6 +88,10 @@ public class ClassExecutionData extends ExecutionData {
 
     public Set<ProgramVariable> getFields(){
         return fields;
+    }
+
+    public Set<MethodData> getMethods() {
+        return methods;
     }
 
     /**
