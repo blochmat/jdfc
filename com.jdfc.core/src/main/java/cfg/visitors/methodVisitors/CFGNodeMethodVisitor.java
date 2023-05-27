@@ -11,7 +11,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
-import icfg.nodes.ICFGEntryNode;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -250,6 +249,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
         // Put everything into new MethodData
         classVisitor.classExecutionData.getMethods().get(internalMethodName).setCfg(cfg);
+        classVisitor.classExecutionData.getMethods()
+                .get(internalMethodName).setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
         classVisitor.classExecutionData.getMethods().get(internalMethodName).setFirstLine(firstLine);
         classVisitor.classExecutionData.getMethods().get(internalMethodName).setLastLine(currentLineNumber);
     }
@@ -313,7 +314,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         Set<ProgramVariable> parameters = createParamVars();
         final CFGNode firstNode = nodes.get(0.0);
         if (firstNode != null) {
-            final CFGNode entryNode = new ICFGEntryNode( parameters, Sets.newLinkedHashSet(), Integer.MIN_VALUE,
+            final CFGNode entryNode = new CFGNode( parameters, Sets.newLinkedHashSet(), Integer.MIN_VALUE,
                     Integer.MIN_VALUE, Sets.newLinkedHashSet(), Sets.newHashSet(firstNode));
             firstNode.addPredecessor(entryNode);
             nodes.put((double) Integer.MIN_VALUE, entryNode);
@@ -329,7 +330,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                             localVariable.getName(),
                             localVariable.getDescriptor(),
                             Integer.MIN_VALUE,
-                            firstLine,
+                            Integer.MIN_VALUE,
                             true);
             parameters.add(variable);
         }

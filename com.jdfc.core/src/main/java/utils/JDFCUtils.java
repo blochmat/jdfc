@@ -1,6 +1,8 @@
 package utils;
 
 import com.google.common.collect.Multimap;
+import data.ProgramVariable;
+import org.objectweb.asm.Type;
 
 import java.util.*;
 
@@ -267,5 +269,39 @@ public class JDFCUtils {
 
     public static String getMethodName(String internalMethodName) {
         return internalMethodName.split(":")[0];
+    }
+
+    public static String getReturnType(String descriptor) {
+        Type returnType = Type.getReturnType(descriptor);
+        return returnType.getClassName();
+    }
+
+    public static String getTypeName(String descriptor) {
+        return Type.getType(descriptor).getClassName();
+    }
+
+    public static String createParamPattern(Set<ProgramVariable> params) {
+        List<ProgramVariable> list = new ArrayList<>(params);
+        StringBuilder result = new StringBuilder();
+        for(ProgramVariable v : list) {
+            if (list.indexOf(v) == list.size() - 1) {
+                result.append(String.format("\\s*%s\\s+%s\\s*", JDFCUtils.getTypeName(v.getDescriptor()), v.getName()));
+            } else {
+                result.append(String.format("\\s*%s\\s+%s\\s*,", JDFCUtils.getTypeName(v.getDescriptor()), v.getName()));
+            }
+        }
+        return result.toString();
+    }
+
+    public static String createExceptionPattern(List<String> exceptions) {
+        StringBuilder result = new StringBuilder();
+        for(String ex : exceptions) {
+            if (exceptions.indexOf(ex) == exceptions.size() - 1) {
+                result.append(String.format("\\%s\\s*", ex));
+            } else {
+                result.append(String.format("%s\\s*,", ex));
+            }
+        }
+        return result.toString();
     }
 }

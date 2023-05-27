@@ -50,9 +50,10 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
 
         if(classNode.access != Opcodes.ACC_INTERFACE) {
             final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-            this.classExecutionData.getMethods().put(internalMethodName, new MethodData(pName, pDescriptor));
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
+            this.classExecutionData.getMethods().put(internalMethodName,
+                    new MethodData(methodNode.access, methodNode.desc, methodNode.name, methodNode.exceptions));
             // TODO: Do something with fields here
             if (methodNode != null && isInstrumentationRequired(pName)) {
                 return new CFGNodeMethodVisitor(this, mv, methodNode,
