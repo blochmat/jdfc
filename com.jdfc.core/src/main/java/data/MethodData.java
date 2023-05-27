@@ -1,11 +1,15 @@
 package data;
 
 import cfg.CFG;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class MethodData {
+    private Logger logger = LoggerFactory.getLogger(MethodData.class);
     private int total = 0;
     private int covered = 0;
     private double rate = 0.0;
@@ -26,24 +30,12 @@ public class MethodData {
         return total;
     }
 
-    public void setTotal(int total) {
-        this.total = total;
-    }
-
     public int getCovered() {
         return covered;
     }
 
-    public void setCovered(int covered) {
-        this.covered = covered;
-    }
-
     public double getRate() {
         return rate;
-    }
-
-    public void setRate(double rate) {
-        this.rate = rate;
     }
 
     public String getName() {
@@ -82,10 +74,18 @@ public class MethodData {
         this.lastLine = lastLine;
     }
 
+    public void computeCoverage() {
+        this.total = pairs.size();
+        this.covered = (int) pairs.stream().filter(DefUsePair::isCovered).count();
+        if (total != 0) {
+            this.rate = (double) covered / total;
+        }
+    }
+
     public DefUsePair findDefUsePair(DefUsePair pair) {
         for(DefUsePair p : pairs) {
             if (p.getDefinition().equals(pair.getDefinition()) && p.getUsage().equals(pair.getUsage())) {
-                return pair;
+                return p;
             }
         }
         return null;
@@ -98,5 +98,9 @@ public class MethodData {
             }
         }
         return null;
+    }
+
+    public String toString() {
+        return String.format("MethodData {%nMethod: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n", name, total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
     }
 }

@@ -106,6 +106,7 @@ public class CoverageDataExport {
             e.printStackTrace();
         }
 
+
         // create sources
         Element sources = doc.createElement("sources");
         coverage.appendChild(sources);
@@ -145,36 +146,35 @@ public class CoverageDataExport {
                     Element methods = doc.createElement("methods");
                     clazz.appendChild(methods);
 
-                    for(Map.Entry<String, Map<DefUsePair, Boolean>> mEntry : cData.getDefUsePairsCovered().entrySet()) {
-                        // TODO: Create method object holding name, signature and coverage
-                        String methodName = mEntry.getKey();
+                    for(MethodData mData : cData.getMethods().values()) {
                         Element method = doc.createElement("method");
-                        method.setAttribute("name", methodName);
-                        method.setAttribute("signature", "e.g. ()V");
-                        method.setAttribute("pair-rate", "double");
+                        method.setAttribute("name", mData.getName());
+                        method.setAttribute("signature", mData.getSignature());
+                        method.setAttribute("pair-rate", String.valueOf(mData.getRate()));
                         methods.appendChild(method);
 
-                        Element pairs = doc.createElement("pairs");
-                        method.appendChild(pairs);
+                        for(DefUsePair pData : mData.getPairs()) {
+                            Element pairs = doc.createElement("pairs");
+                            method.appendChild(pairs);
 
-                        Element pair = doc.createElement("pair");
-                        pair.setAttribute("type", "e.g. I");
-                        pair.setAttribute("hits", "int");
-                        pairs.appendChild(pair);
+                            Element pair = doc.createElement("pair");
+                            pair.setAttribute("type", "e.g. I");
+                            pair.setAttribute("hits", "int");
+                            pairs.appendChild(pair);
 
-                        Element def = doc.createElement("def");
-                        def.setAttribute("name", "todo");
-                        def.setAttribute("line", "int");
-                        def.setAttribute("idx", "int");
-                        pair.appendChild(def);
+                            Element def = doc.createElement("def");
+                            def.setAttribute("name", "todo");
+                            def.setAttribute("line", "int");
+                            def.setAttribute("idx", "int");
+                            pair.appendChild(def);
 
-                        Element use = doc.createElement("use");
-                        use.setAttribute("name", "todo");
-                        use.setAttribute("line", "int");
-                        use.setAttribute("idx", "int");
-                        pair.appendChild(use);
+                            Element use = doc.createElement("use");
+                            use.setAttribute("name", "todo");
+                            use.setAttribute("line", "int");
+                            use.setAttribute("idx", "int");
+                            pair.appendChild(use);
+                        }
                     }
-
                 }
             }
         }

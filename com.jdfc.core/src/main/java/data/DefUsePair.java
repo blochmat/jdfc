@@ -44,6 +44,6 @@ public class DefUsePair {
 
     @Override
     public String toString() {
-        return String.format("(%n%s,%n%s%n)", definition.toString(), usage.toString());
+        return String.format("(%n%s,%n%s,%n%b%n)", definition.toString(), usage.toString(), covered);
     }
 }

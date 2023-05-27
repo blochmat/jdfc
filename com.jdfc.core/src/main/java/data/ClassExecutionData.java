@@ -5,7 +5,6 @@ import cfg.data.LocalVariable;
 import cfg.nodes.CFGNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utils.JDFCUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -157,8 +156,6 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
         }
-        logger.debug("Definition-Use pairs:");
-        logger.debug(JDFCUtils.prettyPrintMap(defUsePairs));
     }
 
     /**
@@ -349,10 +346,10 @@ public class ClassExecutionData extends ExecutionData {
 
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
-                    this.getMethods().get(methodName).findDefUsePair(pair).setCovered(true);
+                    this.methods.get(methodName).findDefUsePair(pair).setCovered(true);
                 } else {
                     defUsePairsCovered.get(methodName).put(pair, false);
-                    this.getMethods().get(methodName).findDefUsePair(pair).setCovered(false);
+                    this.methods.get(methodName).findDefUsePair(pair).setCovered(false);
                     if (!isDefCovered) {
                         variablesUncovered.get(methodName).add(def);
                     }
@@ -361,6 +358,9 @@ public class ClassExecutionData extends ExecutionData {
                     }
                 }
             }
+
+            this.methods.get(methodName).computeCoverage();
+
 
             // What does this?
             // If two DU-Pairs definition has the same name and the use is equal
