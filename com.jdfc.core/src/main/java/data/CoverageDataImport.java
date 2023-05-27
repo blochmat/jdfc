@@ -40,6 +40,9 @@ public class CoverageDataImport {
         List<File> xmlFiles = loadFilesFromDirRecursive(jdfc, xmlSuffix);
 
         for (File xml : xmlFiles) {
+            if (xml.getName().equals("jdfc-coverage.xml")) {
+                continue;
+            }
             String relativePathWithType = jdfcPath.relativize(xml.toPath()).toString();
             String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
             logger.debug(relativePath);
@@ -54,7 +57,7 @@ public class CoverageDataImport {
                 if (!classExecutionData.getVariablesCovered().isEmpty()) {
                     CoverageDataStore.getInstance().getUntestedClassList().remove(relativePath);
                 }
-                classExecutionData.computeCoverageForClass();
+                classExecutionData.computeCoverageForClassOld();
                 classExecutionDataNode.setData(classExecutionData);
                 classExecutionDataNode.aggregateDataToRootRecursive();
             } catch (SAXException | IOException | ParserConfigurationException e) {
@@ -76,7 +79,7 @@ public class CoverageDataImport {
                 ExecutionDataNode<ExecutionData> classExecutionDataNode =
                         CoverageDataStore.getInstance().findClassDataNode(relPath);
                 ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
-                classExecutionData.computeCoverageForClass();
+                classExecutionData.computeCoverageForClassOld();
                 classExecutionDataNode.aggregateDataToRootRecursive();
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
             } catch (IOException e) {
