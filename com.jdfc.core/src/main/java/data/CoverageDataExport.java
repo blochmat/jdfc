@@ -41,18 +41,7 @@ public class CoverageDataExport {
         analyseUntestedClasses();
         CoverageDataStore.getInstance().getRoot().computeCoverage();
 
-        // Debug output
-        String testPath = String.format("%s%s%s.txt", outPath, File.separator, "test");
-        File test = new File(testPath);
-        test.getParentFile().mkdirs();
         Set<ExecutionData> exDataSet = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
-        try (FileOutputStream outputStream = new FileOutputStream(test)) {
-            byte[] strToBytes = JDFCUtils.prettyPrintSet(exDataSet).getBytes();
-            outputStream.write(strToBytes);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         // Actual output
         String classXMLPath = String.format("%s%s%s.xml", outPath, File.separator, "jdfc-coverage");
@@ -82,30 +71,6 @@ public class CoverageDataExport {
                 .filter(data -> data instanceof ClassExecutionData)
                 .map(data -> (ClassExecutionData) data)
                 .collect(Collectors.toSet());
-
-        // DEBUG
-        String test2Path = String.format("%s%s%s.txt", outPath, File.separator, "test2");
-        File test2 = new File(test2Path);
-        test2.getParentFile().mkdirs();
-        try (FileOutputStream outputStream = new FileOutputStream(test2)) {
-            byte[] strToBytes = JDFCUtils.prettyPrintSet(pkgDataSet).getBytes();
-            outputStream.write(strToBytes);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // DEBUG
-        String test3Path = String.format("%s%s%s.txt", outPath, File.separator, "test3");
-        File test3 = new File(test3Path);
-        test3.getParentFile().mkdirs();
-        try (FileOutputStream outputStream = new FileOutputStream(test3)) {
-            byte[] strToBytes = JDFCUtils.prettyPrintSet(cDataSet).getBytes();
-            outputStream.write(strToBytes);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
 
         // create sources
         Element sources = doc.createElement("sources");
@@ -153,25 +118,28 @@ public class CoverageDataExport {
                         method.setAttribute("pair-rate", String.valueOf(mData.getRate()));
                         methods.appendChild(method);
 
+                        Element pairs = doc.createElement("pairs");
+                        method.appendChild(pairs);
+
                         for(DefUsePair pData : mData.getPairs()) {
-                            Element pairs = doc.createElement("pairs");
-                            method.appendChild(pairs);
 
                             Element pair = doc.createElement("pair");
-                            pair.setAttribute("type", "e.g. I");
-                            pair.setAttribute("hits", "int");
+                            pair.setAttribute("type", pData.getType());
+                            pair.setAttribute("covered", String.valueOf(pData.isCovered()));
                             pairs.appendChild(pair);
 
+                            ProgramVariable d = pData.getDefinition();
                             Element def = doc.createElement("def");
-                            def.setAttribute("name", "todo");
-                            def.setAttribute("line", "int");
-                            def.setAttribute("idx", "int");
+                            def.setAttribute("name", d.getName());
+                            def.setAttribute("line", String.valueOf(d.getLineNumber()));
+                            def.setAttribute("idx", String.valueOf(d.getInstructionIndex()));
                             pair.appendChild(def);
 
+                            ProgramVariable u = pData.getUsage();
                             Element use = doc.createElement("use");
-                            use.setAttribute("name", "todo");
-                            use.setAttribute("line", "int");
-                            use.setAttribute("idx", "int");
+                            use.setAttribute("name", u.getName());
+                            use.setAttribute("line", String.valueOf(u.getLineNumber()));
+                            use.setAttribute("idx", String.valueOf(u.getInstructionIndex()));
                             pair.appendChild(use);
                         }
                     }

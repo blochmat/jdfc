@@ -4,13 +4,23 @@ import java.util.Objects;
 
 public class DefUsePair {
 
+    private final String type;
     private final ProgramVariable definition;
     private final ProgramVariable usage;
     private boolean covered;
 
     public DefUsePair(ProgramVariable definition, ProgramVariable usage) {
+        if(definition.getDescriptor().equals(usage.getDescriptor())){
+            this.type = definition.getDescriptor();
+        } else {
+            throw new IllegalArgumentException("Definition and Use type are not equal.");
+        }
         this.definition = definition;
         this.usage = usage;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public ProgramVariable getDefinition() {
