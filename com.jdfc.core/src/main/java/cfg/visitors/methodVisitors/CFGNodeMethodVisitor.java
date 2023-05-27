@@ -78,7 +78,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitInsn(int opcode) {
-        logger.debug("visitInsn");
+        String debug = String.format("visitInsn %s", JDFCUtils.getOpcode(opcode));
+        logger.debug(debug);
         super.visitInsn(opcode);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -97,7 +98,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitIntInsn(int opcode, int operand) {
-        logger.debug("visitIntInsn");
+        String debug = String.format("visitIntInsn %s", JDFCUtils.getOpcode(opcode));
+        logger.debug(debug);
         super.visitIntInsn(opcode, operand);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -106,7 +108,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitVarInsn(int opcode, int var) {
-        logger.debug("visitVarInsn");
+        String debug = String.format("visitVarInsn %s", JDFCUtils.getOpcode(opcode));
+        logger.debug(debug);
         super.visitVarInsn(opcode, var);
         visitFrameNew();
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
@@ -114,7 +117,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
-        logger.debug("visitTypeInsn");
+        String debug = String.format("visitTypeInsn %s", JDFCUtils.getOpcode(opcode));
+        logger.debug(debug);
         super.visitTypeInsn(opcode, type);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -123,7 +127,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        logger.debug("visitFieldInsn");
+        String debug = String.format("visitFieldInsn %s", JDFCUtils.getOpcode(opcode));
+        logger.debug(debug);
         super.visitFieldInsn(opcode, owner, name, descriptor);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -133,7 +138,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-        logger.debug("visitMethodInsn");
+        String debug = String.format("visitMethodInsn %s", JDFCUtils.getOpcode(opcode));
+        logger.debug(debug);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
 //        if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
@@ -172,7 +178,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
-        logger.debug("visitJumpInsn");
+        String debug = String.format("visitJumpInsn %s %s", JDFCUtils.getOpcode(opcode), label);
+        logger.debug(debug);
         super.visitJumpInsn(opcode, label);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
