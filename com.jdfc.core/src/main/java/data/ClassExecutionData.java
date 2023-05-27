@@ -29,7 +29,7 @@ public class ClassExecutionData extends ExecutionData {
     private final Set<InterProceduralMatch> interProceduralMatches;
     private final String relativePath;
     private final Set<ProgramVariable> fields;
-    private final Set<MethodData> methods;
+    private final Map<String, MethodData> methods;
 
     public ClassExecutionData(String fqn, String name, String pRelativePath) {
         super(fqn, name);
@@ -42,7 +42,7 @@ public class ClassExecutionData extends ExecutionData {
         relativePath = pRelativePath;
         interProceduralMatches = new HashSet<>();
         fields = new HashSet<>();
-        methods = new HashSet<>();
+        methods = new HashMap<>();
     }
 
     /**
@@ -90,7 +90,7 @@ public class ClassExecutionData extends ExecutionData {
         return fields;
     }
 
-    public Set<MethodData> getMethods() {
+    public Map<String, MethodData> getMethods() {
         return methods;
     }
 
@@ -148,6 +148,7 @@ public class ClassExecutionData extends ExecutionData {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
                             defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
+                            methods.get(methodCFGsEntry.getKey()).getPairs().add(new DefUsePair(def, use));
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
                                 variablesCovered.get(methodCFGsEntry.getKey()).add(def);
                             }
@@ -348,8 +349,10 @@ public class ClassExecutionData extends ExecutionData {
 
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
+                    this.getMethods().get(methodName).findDefUsePair(pair).setCovered(true);
                 } else {
                     defUsePairsCovered.get(methodName).put(pair, false);
+                    this.getMethods().get(methodName).findDefUsePair(pair).setCovered(false);
                     if (!isDefCovered) {
                         variablesUncovered.get(methodName).add(def);
                     }

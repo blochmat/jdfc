@@ -237,10 +237,14 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         logger.debug(JDFCUtils.prettyPrintMap(nodes));
 
         boolean isImpure = false;
-        CFG CFG = new CFGImpl(internalMethodName, nodes, edges, localVariableTable, isImpure);
-        methodCFGs.put(internalMethodName, CFG);
+        CFG cfg = new CFGImpl(internalMethodName, nodes, edges, localVariableTable, isImpure);
+        methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
+        // Put everything into new MethodData
+        classVisitor.classExecutionData.getMethods().get(internalMethodName).setCfg(cfg);
+        classVisitor.classExecutionData.getMethods().get(internalMethodName).setFirstLine(firstLine);
+        classVisitor.classExecutionData.getMethods().get(internalMethodName).setLastLine(currentLineNumber);
     }
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {

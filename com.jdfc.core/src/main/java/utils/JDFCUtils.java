@@ -264,4 +264,8 @@ public class JDFCUtils {
 
         return b.replaceAll(a, "");
     }
+
+    public static String getMethodName(String internalMethodName) {
+        return internalMethodName.split(":")[0];
+    }
 }

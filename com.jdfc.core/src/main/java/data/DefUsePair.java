@@ -6,6 +6,7 @@ public class DefUsePair {
 
     private final ProgramVariable definition;
     private final ProgramVariable usage;
+    private boolean covered;
 
     public DefUsePair(ProgramVariable definition, ProgramVariable usage) {
         this.definition = definition;
@@ -18,6 +19,14 @@ public class DefUsePair {
 
     public ProgramVariable getUsage() {
         return usage;
+    }
+
+    public boolean isCovered() {
+        return covered;
+    }
+
+    public void setCovered(boolean covered) {
+        this.covered = covered;
     }
 
     @Override
