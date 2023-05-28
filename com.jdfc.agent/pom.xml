@@ -15,21 +15,20 @@
   <name>JDFC :: Agent</name>
   <description>JDFC Java Agent</description>
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<!--    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>-->
 
-    <maven.build.timestamp.format>yyyyMMddhhmm</maven.build.timestamp.format>
+<!--    <maven.build.timestamp.format>yyyyMMddhhmm</maven.build.timestamp.format>-->
 
-    <bytecode.version>1.6</bytecode.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+<!--    <maven.compiler.source>1.8</maven.compiler.source>-->
+<!--    <maven.compiler.target>1.8</maven.compiler.target>-->
 
     <!-- Dependencies versions -->
-    <asm.version>8.0.1</asm.version>
-    <args4j.version>2.0.28</args4j.version>
+<!--    <asm.version>8.0.1</asm.version>-->
+<!--    <args4j.version>2.0.28</args4j.version>-->
     <junit.version>4.13</junit.version>
-    <googlecodeprettify.version>20100721</googlecodeprettify.version>
+<!--    <googlecodeprettify.version>20100721</googlecodeprettify.version>-->
 
-    <maven.version>3.0</maven.version>
+<!--    <maven.version>3.0</maven.version>-->
   </properties>
 
     <dependencies>
@@ -42,6 +41,14 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

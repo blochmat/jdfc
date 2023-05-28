@@ -13,6 +13,13 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
+      </plugin>
+      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
@@ -51,15 +58,6 @@
     </plugins>
   </build>
   <properties>
-    <maven.build.timestamp.format>yyyyMMddhhmm</maven.build.timestamp.format>
-    <args4j.version>2.0.28</args4j.version>
     <junit.version>4.13</junit.version>
-    <asm.version>8.0.1</asm.version>
-    <maven.version>3.0</maven.version>
-    <googlecodeprettify.version>20100721</googlecodeprettify.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <bytecode.version>1.6</bytecode.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
   </properties>
 </project>
