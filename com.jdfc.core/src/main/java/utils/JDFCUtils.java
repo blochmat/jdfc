@@ -1,9 +1,13 @@
 package utils;
 
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
 import org.objectweb.asm.Type;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
 
 public class JDFCUtils {
@@ -303,5 +307,10 @@ public class JDFCUtils {
             }
         }
         return result.toString();
+    }
+
+    public static void parseToAST(File javaFile) throws FileNotFoundException {
+        CompilationUnit cu = StaticJavaParser.parse(javaFile);
+        cu.toString();
     }
 }

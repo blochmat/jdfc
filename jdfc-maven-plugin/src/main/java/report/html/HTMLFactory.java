@@ -1,11 +1,6 @@
 package report.html;
 
-import data.ClassExecutionData;
-import data.ExecutionData;
-import data.ExecutionDataNode;
-import data.InterProceduralMatch;
-import data.DefUsePair;
-import data.ProgramVariable;
+import data.*;
 
 import java.io.*;
 import java.util.*;
@@ -165,6 +160,7 @@ public class HTMLFactory {
                                       final File pSourceDir)
             throws IOException {
         if (pData instanceof ClassExecutionData) {
+            // TODO: Here we manipulate class stuff. So we need a change here
             String sourceViewPath = String.format("%s/%s.java.html", pWorkDir.toString(), pClassName);
             File sourceViewHTML = new File(sourceViewPath);
 

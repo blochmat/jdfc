@@ -37,9 +37,9 @@ public class AgentMojo extends AbstractJdfcMojo {
     protected void executeMojo()  {
         getLog().info("Preparing JDFC agent for analysis. ");
         final String projectDirStr = getProject().getBasedir().toString(); // /home/path/to/project/root
-        final List<String> sourceDirStrList = getProject().getCompileSourceRoots(); // [/home/path/to/project/src,..]
         final String buildDirStr = getProject().getBuild().getDirectory(); // default: target
         final String classesBuildDirStr = getProject().getBuild().getOutputDirectory(); // default: target/classes
+        final List<String> sourceDirStrList = getProject().getCompileSourceRoots(); // [/home/path/to/project/src,..]
 
         try {
             final File agentJarFile = extractAgentJarToDir(buildDirStr);
@@ -49,8 +49,8 @@ public class AgentMojo extends AbstractJdfcMojo {
                 final String argLineStr = projectProperties.getProperty("argLine");
 
                 // prepare agent command line argument
-                final String srcsDirString = String.join(",", sourceDirStrList);
                 final String agentStr = String.format("-javaagent:%s", agentJarFile);
+                final String srcsDirString = String.join(",", sourceDirStrList);
                 final String agentArgsStr =
                         String.format("%s,%s,%s,%s", projectDirStr, buildDirStr, classesBuildDirStr, srcsDirString);
 
