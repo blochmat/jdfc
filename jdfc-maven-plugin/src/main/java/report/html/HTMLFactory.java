@@ -237,6 +237,8 @@ public class HTMLFactory {
                                          final int pLineNumber,
                                          final String pLineString,
                                          final ClassExecutionData pData) {
+
+        // TODO: Special handling of method definitions
         HTMLElement divTagLine = HTMLElement.div();
         divTagLine.getAttributes().add("class=\"line\"");
 
@@ -244,6 +246,7 @@ public class HTMLFactory {
         List<String> words = extractChars(pLineString, "\\W+");
         List<String> workList = createWorkList(words, specialChars);
 
+        // workList contains words and special chars
         while (!workList.isEmpty()) {
             String item = workList.get(0);
             if (item.contains("*") || item.contains("/**")) {
@@ -256,37 +259,52 @@ public class HTMLFactory {
             Pattern specCharPattern = Pattern.compile("\\W+");
             Matcher specCharMatcher = specCharPattern.matcher(item);
 
+            // if letter is a special char
             if (specCharMatcher.matches()) {
+                // comments
                 if (item.contains("//")) {
                     divTagLine.getContent().add(createCommentSpan(item, workList));
+                // string
                 } else if (item.contains("\"") || item.contains("'")) {
                     processString(divTagLine, workList, item);
+                // everything else?
                 } else {
                     divTagLine.getContent().add(HTMLElement.pre(item));
                 }
             } else {
+                // normal text
+                // search for method by line number
                 String methodName = pData.getMethodNameFromLineNumber(pLineNumber);
                 Boolean isDefinition = workList.get(0).contains("=") && !isCompareOperator(workList.get(0));
                 ProgramVariable programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isDefinition);
 
                 if (programVariable == null) {
+                    // if word is no variable
                     HTMLElement spanTag = HTMLElement.span(item);
                     divTagLine.getContent().add(spanTag);
+                    // add highlighting if it is a special word
                     addCodeHighlighting(spanTag, item);
                 } else {
                     if (isRedefined(pData, pLineNumber, item)) {
+                        // is redefined variable and therefore no longer present in the coverage data
                         HTMLElement spanTag = HTMLElement.span(item);
                         divTagLine.getContent().add(spanTag);
                         spanTag.getAttributes().add("class=\"orange\"");
                     } else {
+                        // is a variable present in the data
                         boolean isVarCovered = isVarCovered(pData, methodName, programVariable);
+                        // find interprocedurally associated vars (must be altered or deleted)
                         List<ProgramVariable> associatedVars = getAssociatedVars(programVariable, pData);
+                        // check if associated uses or defs are covered and highlight
                         Map<DefUsePair, Boolean> defUsePairsCovered = getDefUsePairCovered(pData, associatedVars);
                         String backgroundColor = getVariableBackgroundColor(isVarCovered, defUsePairsCovered);
                         divTagLine.getContent().add(
                                 createVariableInformation(pData, pClassFile, pClassName, methodName,
                                         defUsePairsCovered, programVariable, backgroundColor));
+
                         if(pData.getVariablesCovered().get(methodName) != null) {
+                            // remove variable from variable list (both, ofc, because it seems that we are not sure
+                            // in which one we can find it)
                             pData.getVariablesCovered().get(methodName).remove(programVariable);
                             pData.getVariablesUncovered().get(methodName).remove(programVariable);
                         }
