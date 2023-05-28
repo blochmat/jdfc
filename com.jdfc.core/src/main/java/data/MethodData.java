@@ -116,12 +116,25 @@ public class MethodData {
         this.lastLine = lastLine;
     }
 
+    public String buildInternalMethodName() {
+        return String.format("%s: %s", name, signature);
+    }
+
     public void computeCoverage() {
         this.total = pairs.size();
         this.covered = (int) pairs.stream().filter(DefUsePair::isCovered).count();
         if (total != 0) {
             this.rate = (double) covered / total;
         }
+    }
+
+    public ProgramVariable findParamByName(String name) {
+        for (ProgramVariable p : params) {
+            if (p.getName().equals(name)) {
+                return p;
+            }
+        }
+        return null;
     }
 
     public DefUsePair findDefUsePair(DefUsePair pair) {

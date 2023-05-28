@@ -1,6 +1,10 @@
 package report.html;
 
+import com.github.javaparser.Range;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import data.*;
+import utils.JDFCUtils;
 
 import java.io.*;
 import java.util.*;
@@ -167,12 +171,15 @@ public class HTMLFactory {
             String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), STYLE_SHEET);
             String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), SCRIPT);
 
+            // load class file
             String classFilePath = String.format("%s/%s.java", pSourceDir.toString(), ((ClassExecutionData) pData).getRelativePath());
             File classFile = new File(classFilePath);
 
+            // build html
             HTMLElement classSourceViewHTML =
                     createClassSourceViewHTML(classFile, (ClassExecutionData) pData, pClassName, styleSheetPath, scriptPath);
 
+            // save file
             Writer writer = new FileWriter(sourceViewHTML);
             writer.write(classSourceViewHTML.render());
             writer.close();
@@ -186,6 +193,7 @@ public class HTMLFactory {
                                                   final String pClassName,
                                                   final String pPathToStyleSheet,
                                                   final String pPathToScript) {
+        // Standard html file creation, nothing special
         String classFileName = String.format("%s.java", pClassName);
         HTMLElement htmlMainTag = HTMLElement.html();
         htmlMainTag.getContent().add(createDefaultHTMLHead(classFileName, pPathToStyleSheet));
@@ -193,6 +201,7 @@ public class HTMLFactory {
         HTMLElement htmlBodyTag = createDefaultHTMLBody(pClassName, null, pPathToScript, "code");
         htmlMainTag.getContent().add(htmlBodyTag);
         try {
+            // Fill body
             htmlBodyTag.getContent().add(createSourceCode(pClassFile, pData, pClassName));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -203,10 +212,17 @@ public class HTMLFactory {
     private HTMLElement createSourceCode(final File pClassFile,
                                          final ClassExecutionData pData,
                                          final String pClassName) throws FileNotFoundException {
+        // Read source file
         Scanner scanner = new Scanner(pClassFile);
+
+        // Get all method definitions from the ast
+        List<MethodDeclaration> mDeclList = JDFCUtils.getMethodDeclList(pClassFile, pClassName);
+
         HTMLElement table = HTMLElement.table();
         table.getAttributes().add("id=\"classDetailView\"");
         int currentLineCounter = 0;
+
+        // for each line
         while (scanner.hasNextLine()) {
             currentLineCounter += 1;
             String currentLineString = scanner.nextLine();
@@ -214,14 +230,16 @@ public class HTMLFactory {
             HTMLElement row = HTMLElement.tr();
             table.getContent().add(row);
 
+            // First cell in row: Line number
             HTMLElement sourceCodeLine = HTMLElement.td(currentLineCounter);
             sourceCodeLine.getAttributes().add(String.format("id=\"L%s\"", currentLineCounter));
             row.getContent().add(sourceCodeLine);
 
+            // Second cell in row: class file text
             HTMLElement sourceCodeText = HTMLElement.td();
             row.getContent().add(sourceCodeText);
-
-            HTMLElement finalizedText = finalizeLineText(pClassFile, pClassName, currentLineCounter, currentLineString, pData);
+            // Add highlighting, coverage info etc.
+            HTMLElement finalizedText = finalizeLineText(pClassFile, pClassName, currentLineCounter, currentLineString, pData, mDeclList);
             sourceCodeText.getContent().add(finalizedText);
         }
         scanner.close();
@@ -232,9 +250,8 @@ public class HTMLFactory {
                                          final String pClassName,
                                          final int pLineNumber,
                                          final String pLineString,
-                                         final ClassExecutionData pData) {
-
-        // TODO: Special handling of method definitions
+                                         final ClassExecutionData pData,
+                                         final List<MethodDeclaration> mDeclList) {
         HTMLElement divTagLine = HTMLElement.div();
         divTagLine.getAttributes().add("class=\"line\"");
 
@@ -270,9 +287,30 @@ public class HTMLFactory {
             } else {
                 // normal text
                 // search for method by line number
-                String methodName = pData.getMethodNameFromLineNumber(pLineNumber);
-                Boolean isDefinition = workList.get(0).contains("=") && !isCompareOperator(workList.get(0));
+                String methodName = pData.getInternalMethodNameByLine(pLineNumber, mDeclList);
+                // what we want
+                // String methodName = pData.getMethods().get(lNr).buildInternalMethodName();
+                boolean isDefinition = workList.get(0).contains("=") && !isCompareOperator(workList.get(0));
+                // search for variable in method
                 ProgramVariable programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isDefinition);
+
+                // check if variable is a param
+                for (MethodDeclaration mDecl : mDeclList) {
+                    if (mDecl.getName().getIdentifier().equals(methodName)) {
+                        Optional<Parameter> paramOpt = mDecl.getParameterByName(item);
+                        if (paramOpt.isPresent()) {
+                            Parameter param = paramOpt.get();
+                            Optional<Range> rangeOpt = param.getRange();
+                            if(rangeOpt.isPresent()) {
+                                Range range = rangeOpt.get();
+                                if (range.begin.line == pLineNumber) {
+                                    programVariable = pData.getMethods().get(methodName).findParamByName(item);
+                                }
+                            }
+
+                        }
+                    }
+                }
 
                 if (programVariable == null) {
                     // if word is no variable
@@ -948,9 +986,10 @@ public class HTMLFactory {
                 possibleVariables.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
                 return possibleVariables.get(0);
             }
-        } else {
-            return getMethodParamDefinition(pData, pName);
         }
+//        else {
+//            return getMethodParamDefinition(pData, pName);
+//        }
         return null;
     }
 

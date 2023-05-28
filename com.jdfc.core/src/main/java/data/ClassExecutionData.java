@@ -3,6 +3,8 @@ package data;
 import cfg.CFG;
 import cfg.data.LocalVariable;
 import cfg.nodes.CFGNode;
+import com.github.javaparser.Range;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -498,11 +500,13 @@ public class ClassExecutionData extends ExecutionData {
         return false;
     }
 
-    public String getMethodNameFromLineNumber(final int pLineNumber) {
-        for (Map.Entry<String, Integer> firstLineEntry : methodFirstLine.entrySet()) {
-            if (firstLineEntry.getValue() <= pLineNumber) {
-                if (methodLastLine.get(firstLineEntry.getKey()) >= pLineNumber) {
-                    return firstLineEntry.getKey();
+    public String getInternalMethodNameByLine(final int lNr, final List<MethodDeclaration> mDeclList) {
+        // TODO: this can be done much better and should all be stored in MethodData
+        for (MethodDeclaration mDecl : mDeclList) {
+            Optional<Range> rangeOpt = mDecl.getRange();
+            if (rangeOpt.isPresent()) {
+                Range range = rangeOpt.get();
+                if(range.begin.line <= lNr && lNr <= range.end.line) {
                 }
             }
         }

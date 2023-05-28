@@ -2,6 +2,8 @@ package utils;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
 import org.objectweb.asm.Type;
@@ -309,8 +311,14 @@ public class JDFCUtils {
         return result.toString();
     }
 
-    public static void parseToAST(File javaFile) throws FileNotFoundException {
+    public static List<MethodDeclaration> getMethodDeclList(File javaFile, String cName) throws FileNotFoundException {
         CompilationUnit cu = StaticJavaParser.parse(javaFile);
-        cu.toString();
+        Optional<ClassOrInterfaceDeclaration> ciOptional = cu.getClassByName(cName);
+        if (ciOptional.isPresent()) {
+            ClassOrInterfaceDeclaration ci = ciOptional.get();
+            return ci.getMethods();
+        } else {
+            throw new IllegalArgumentException("Class is not present in file.");
+        }
     }
 }
