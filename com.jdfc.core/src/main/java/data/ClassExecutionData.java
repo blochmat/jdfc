@@ -392,10 +392,14 @@ public class ClassExecutionData extends ExecutionData {
 
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
-                    this.methods.get(methodName).findDefUsePair(pair).setCovered(true);
+                    if (!methodName.equals("<init>: ()V")) {
+                        this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(true);
+                    }
                 } else {
                     defUsePairsCovered.get(methodName).put(pair, false);
-                    this.methods.get(methodName).findDefUsePair(pair).setCovered(false);
+                    if (!methodName.equals("<init>: ()V")) {
+                        this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(true);
+                    }
                     if (!isDefCovered) {
                         variablesUncovered.get(methodName).add(def);
                     }
@@ -405,7 +409,9 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
 
-            this.methods.get(methodName).computeCoverage();
+            if (!methodName.equals("<init>: ()V")) {
+                this.getMethodByInternalName(methodName).computeCoverage();
+            }
         }
         this.calculateMethodCount();
         this.calculateTotal();
