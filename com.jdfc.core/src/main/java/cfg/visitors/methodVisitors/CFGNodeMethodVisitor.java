@@ -251,13 +251,14 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
         // New Code
 
-        // TODO: <init>: ()V is not in methods
         if (!internalMethodName.equals("<init>: ()V")) {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
             System.err.println("PARAMS");
             System.err.println(JDFCUtils.prettyPrintSet(mData.getParams()));
+        } else {
+            // TODO: <init>: ()V is not in methods
         }
     }
 

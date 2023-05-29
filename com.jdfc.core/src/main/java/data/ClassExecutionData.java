@@ -190,9 +190,10 @@ public class ClassExecutionData extends ExecutionData {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
                             defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
-                            // TODO getByInternalMethodName
                             if (!methodCFGsEntry.getKey().equals("<init>: ()V")) {
                                 this.getMethodByInternalName(methodCFGsEntry.getKey()).getPairs().add(new DefUsePair(def, use));
+                            } else {
+                                // TODO: "<init>: ()V" is not in methods
                             }
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
                                 variablesCovered.get(methodCFGsEntry.getKey()).add(def);
@@ -389,11 +390,15 @@ public class ClassExecutionData extends ExecutionData {
                     defUsePairsCovered.get(methodName).put(pair, true);
                     if (!methodName.equals("<init>: ()V")) {
                         this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(true);
+                    } else {
+                        // TODO: "<init>: ()V" is not in methods
                     }
                 } else {
                     defUsePairsCovered.get(methodName).put(pair, false);
                     if (!methodName.equals("<init>: ()V")) {
                         this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(false);
+                    } else {
+                        // TODO: "<init>: ()V" is not in methods
                     }
                     if (!isDefCovered) {
                         variablesUncovered.get(methodName).add(def);
@@ -406,6 +411,8 @@ public class ClassExecutionData extends ExecutionData {
 
             if (!methodName.equals("<init>: ()V")) {
                 this.getMethodByInternalName(methodName).computeCoverage();
+            } else {
+                // TODO: "<init>: ()V" is not in methods
             }
         }
         this.calculateMethodCount();
