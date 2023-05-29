@@ -415,6 +415,10 @@ public class JDFCUtils {
         }
     }
 
+    public static boolean isInnerClass(String name) {
+        return name.contains("$");
+    }
+
     public static boolean isAnonymousInnerClass(String name) {
         Pattern pattern = Pattern.compile("[_a-zA-Z$][_a-zA-Z0-9$]*\\$\\d+");
         Matcher matcher = pattern.matcher(name.replace(".class", ""));
