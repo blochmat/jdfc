@@ -114,7 +114,7 @@ public class CoverageDataExport {
                     for(MethodData mData : cData.getMethods().values()) {
                         Element method = doc.createElement("method");
                         method.setAttribute("name", mData.getName());
-                        method.setAttribute("signature", mData.getSignature());
+                        method.setAttribute("signature", mData.getDesc());
                         method.setAttribute("pair-rate", String.valueOf(mData.getRate()));
                         methods.appendChild(method);
 

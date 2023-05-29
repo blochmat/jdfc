@@ -1,12 +1,15 @@
 package data;
 
 import cfg.CFG;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -159,7 +162,21 @@ public class CoverageDataStore {
                 // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
                 untestedClassList.add(relativePath);
                 String nameWithoutType = f.getName().split("\\.")[0];
-                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath);
+                // Get AST of source file
+                CompilationUnit cu = null;
+                for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
+                    String relSourceFileStr = relativePathWithType.replace(".class", ".java");
+                    String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
+                    File sourceFile = new File(sourceFileStr);
+                    if (sourceFile.exists()) {
+                        try {
+                            cu = StaticJavaParser.parse(sourceFile);
+                        } catch (FileNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
                 if (pExecutionDataNode.isRoot()) {
                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                 } else {

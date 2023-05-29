@@ -3,7 +3,8 @@ package data;
 import cfg.CFG;
 import cfg.data.LocalVariable;
 import cfg.nodes.CFGNode;
-import com.github.javaparser.Range;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,9 @@ import java.util.stream.Stream;
 public class ClassExecutionData extends ExecutionData {
 
     private final Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
+    private final String relativePath;
+    private final CompilationUnit srcFileAst;
+    private final ClassOrInterfaceDeclaration ciAst;
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
@@ -28,22 +32,28 @@ public class ClassExecutionData extends ExecutionData {
     private final Map<String, Set<ProgramVariable>> variablesCovered;
     private final Map<String, Set<ProgramVariable>> variablesUncovered;
     private final Set<InterProceduralMatch> interProceduralMatches;
-    private final String relativePath;
     private final Set<ProgramVariable> fields;
-    private final Map<String, MethodData> methods;
+    private final Map<Integer, MethodData> methods;
 
-    public ClassExecutionData(String fqn, String name, String pRelativePath) {
+    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
+        System.err.println(fqn);
+        System.err.println(name);
+        relativePath = pRelativePath;
+        System.err.println(relativePath);
+        this.srcFileAst = srcFileAst;
+        this.ciAst = extractClassDeclaration(srcFileAst, name);
+        this.methods = extractMethodDeclarations(this.ciAst);
+
+        // TODO: Most of this stuff should go into MethodData
         methodLastLine = new HashMap<>();
         methodFirstLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
         defUsePairsCovered = new TreeMap<>();
         variablesCovered = new HashMap<>();
         variablesUncovered = new HashMap<>();
-        relativePath = pRelativePath;
         interProceduralMatches = new HashSet<>();
         fields = new HashSet<>();
-        methods = new HashMap<>();
     }
 
     /**
@@ -91,9 +101,40 @@ public class ClassExecutionData extends ExecutionData {
         return fields;
     }
 
-    public Map<String, MethodData> getMethods() {
+    public Map<Integer, MethodData> getMethods() {
         return methods;
     }
+
+    // New Code
+    public MethodData getMethodByInternalName(String internalName) {
+        for(MethodData mData : methods.values()) {
+            if (mData.buildInternalMethodName().equals(internalName)) {
+                return mData;
+            }
+        }
+        return null;
+    }
+
+    public MethodData getMethodByName(String name) {
+        for(MethodData mData : methods.values()) {
+            if (mData.getName().equals(name)) {
+                return mData;
+            }
+        }
+        return null;
+    }
+
+    public MethodData getMethodByLineNumber(int lNr) {
+        for(MethodData mData : methods.values()) {
+            if (mData.getBeginLine() <= lNr && lNr <= mData.getEndLine()) {
+                return mData;
+            }
+        }
+        return null;
+    }
+
+
+    // TODO: Old Code
 
     /**
      * Initalize all required lists for every method
@@ -149,7 +190,10 @@ public class ClassExecutionData extends ExecutionData {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
                             defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
-                            methods.get(methodCFGsEntry.getKey()).getPairs().add(new DefUsePair(def, use));
+                            // TODO getByInternalMethodName
+                            if (!methodCFGsEntry.getKey().equals("<init>: ()V")) {
+                                this.getMethodByInternalName(methodCFGsEntry.getKey()).getPairs().add(new DefUsePair(def, use));
+                            }
                             if (def.getInstructionIndex() == Integer.MIN_VALUE) {
                                 variablesCovered.get(methodCFGsEntry.getKey()).add(def);
                             }
@@ -500,17 +544,37 @@ public class ClassExecutionData extends ExecutionData {
         return false;
     }
 
-    public String getInternalMethodNameByLine(final int lNr, final List<MethodDeclaration> mDeclList) {
-        // TODO: this can be done much better and should all be stored in MethodData
-        for (MethodDeclaration mDecl : mDeclList) {
-            Optional<Range> rangeOpt = mDecl.getRange();
-            if (rangeOpt.isPresent()) {
-                Range range = rangeOpt.get();
-                if(range.begin.line <= lNr && lNr <= range.end.line) {
-                }
-            }
+    private ClassOrInterfaceDeclaration extractClassDeclaration(CompilationUnit srcFileAst, String name) {
+        String a = name.replace(".class", "");
+        Optional<ClassOrInterfaceDeclaration> ciOptional = srcFileAst.getClassByName(a);
+        if (ciOptional.isPresent()) {
+            return ciOptional.get();
+        } else {
+            throw new IllegalArgumentException("Class is not present in file.");
         }
-        return null;
+    }
+
+    private Map<Integer, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
+        Map<Integer, MethodData> methods = new HashMap<>();
+        for(MethodDeclaration mDecl : ciAst.getMethods()) {
+            int mAccess = mDecl.getAccessSpecifier().ordinal();
+            String mName = mDecl.getName().getIdentifier();
+
+            // TODO: mSignature = max (int, int)
+            MethodData mData = new MethodData(mAccess, mName, mDecl);
+            methods.put(mData.getBeginLine(), mData);
+        }
+        return methods;
+    }
+
+    private List<MethodDeclaration> extractMethodDeclList() {
+        Optional<ClassOrInterfaceDeclaration> ciOptional = this.srcFileAst.getClassByName(getName());
+        if (ciOptional.isPresent()) {
+            ClassOrInterfaceDeclaration ci = ciOptional.get();
+            return ci.getMethods();
+        } else {
+            throw new IllegalArgumentException("Class is not present in file.");
+        }
     }
 
     public String toString() {

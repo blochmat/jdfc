@@ -216,6 +216,7 @@ public class HTMLFactory {
         Scanner scanner = new Scanner(pClassFile);
 
         // Get all method definitions from the ast
+        // TODO: Maybe delete
         List<MethodDeclaration> mDeclList = JDFCUtils.getMethodDeclList(pClassFile, pClassName);
 
         HTMLElement table = HTMLElement.table();
@@ -287,31 +288,33 @@ public class HTMLFactory {
             } else {
                 // normal text
                 // search for method by line number
-                String methodName = pData.getInternalMethodNameByLine(pLineNumber, mDeclList);
+//                String methodName = pData.getInternalMethodNameByLine(pLineNumber, mDeclList);
                 // what we want
-                // String methodName = pData.getMethods().get(lNr).buildInternalMethodName();
-                boolean isDefinition = workList.get(0).contains("=") && !isCompareOperator(workList.get(0));
-                // search for variable in method
-                ProgramVariable programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isDefinition);
-
-                // check if variable is a param
-                for (MethodDeclaration mDecl : mDeclList) {
-                    if (mDecl.getName().getIdentifier().equals(methodName)) {
-                        Optional<Parameter> paramOpt = mDecl.getParameterByName(item);
-                        if (paramOpt.isPresent()) {
-                            Parameter param = paramOpt.get();
-                            Optional<Range> rangeOpt = param.getRange();
-                            if(rangeOpt.isPresent()) {
-                                Range range = rangeOpt.get();
-                                if (range.begin.line == pLineNumber) {
-                                    programVariable = pData.getMethods().get(methodName).findParamByName(item);
-                                }
+                MethodData mData = pData.getMethodByLineNumber(pLineNumber);
+                String methodName = null;
+                ProgramVariable programVariable = null;
+                if (mData == null) {
+                    System.err.println(pLineNumber);
+                } else {
+                    methodName = mData.buildInternalMethodName();
+                    boolean isDefinition = workList.get(0).contains("=") && !isCompareOperator(workList.get(0));
+                    programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isDefinition);
+                    // check if variable is a param
+                    MethodDeclaration mDecl = mData.getSrcAst();
+                    Optional<Parameter> paramOpt = mDecl.getParameterByName(item);
+                    if (paramOpt.isPresent()) {
+                        Parameter param = paramOpt.get();
+                        Optional<Range> rangeOpt = param.getRange();
+                        if(rangeOpt.isPresent()) {
+                            Range range = rangeOpt.get();
+                            if (range.begin.line == pLineNumber) {
+                                programVariable = mData.findParamByName(item);
                             }
-
                         }
                     }
                 }
 
+                // search for variable in method
                 if (programVariable == null) {
                     // if word is no variable
                     HTMLElement spanTag = HTMLElement.span(item);
@@ -327,6 +330,9 @@ public class HTMLFactory {
                     } else {
                         // is a variable present in the data
                         boolean isVarCovered = isVarCovered(pData, methodName, programVariable);
+                        System.err.println(methodName);
+                        System.err.println(item);
+                        System.err.println(isVarCovered);
                         // find interprocedurally associated vars (must be altered or deleted)
                         List<ProgramVariable> associatedVars = getAssociatedVars(programVariable, pData);
                         // check if associated uses or defs are covered and highlight

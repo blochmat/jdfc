@@ -1,64 +1,146 @@
 package data;
 
 import cfg.CFG;
+import com.github.javaparser.Position;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MethodData {
     private Logger logger = LoggerFactory.getLogger(MethodData.class);
-    private int total = 0;
-    private int covered = 0;
-    private double rate = 0.0;
-    private final int access;
-    private final String name;
-    private final String signature;
-    private final List<String> exceptions;
-    private final Set<DefUsePair> pairs;
-    private CFG cfg;
-    private Set<ProgramVariable> params;
-    private int firstLine;
-    private int lastLine;
 
-    public MethodData(int access, String name, String signature, List<String> exceptions) {
+    /**
+     * Amount of DU-pairs in method
+     */
+    private int total = 0;
+
+    /**
+     * Amount of covered DU-pairs in method
+     */
+    private int covered = 0;
+
+    /**
+     * Rate between total and covered DU-pairs of method
+     */
+    private double rate = 0.0;
+
+    /**
+     * Access modifier of method, e.g. 0 = protected, 1 = public, 2 = private
+     */
+    private final int access;
+
+    /**
+     * Name of method, e.g. max
+     */
+    private final String name;
+
+    /**
+     * Internal signature of method, e.g. int max(int x, int y) = (II)I
+     */
+    private String desc;
+
+    /**
+     * Exceptions thrown by method
+     */
+    private String[] exceptions;
+
+    /**
+     * AST of method source code
+     */
+    private final MethodDeclaration srcAst;
+
+    /**
+     * CFG of compiled method
+     */
+    private CFG cfg;
+
+    /**
+     * All DU-pairs of method
+     */
+    private final Set<DefUsePair> pairs;
+
+    /**
+     * All method params as {@link ProgramVariable}
+     */
+    private Set<ProgramVariable> params;
+
+    /**
+     * Line of method declaration in source code
+     */
+    private int beginLine;
+
+    /**
+     * Line of method ending in source code (including last closing bracket)
+     */
+    private int endLine;
+
+    public String toString() {
+        System.err.println("Hello");
+        return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nExceptions: %s%nBegin: %d%nEnd: %d%nParams: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
+                access, name, desc, Arrays.toString(exceptions), beginLine, endLine, JDFCUtils.prettyPrintSet(params), total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
+    }
+
+    public MethodData(int access, String name, MethodDeclaration srcAst) {
         this.access = access;
         this.name = name;
-        this.signature = signature;
-        this.exceptions = exceptions;
+        this.desc = JDFCUtils.toJvmDescriptor(srcAst);
+        this.exceptions = JDFCUtils.toJvmExceptionDescriptor(srcAst).toArray(new String[0]);
+        this.srcAst = srcAst;
+        this.beginLine = extractBegin(srcAst);
+        this.endLine = extractEnd(srcAst);
+        this.params = new HashSet<>();
         this.pairs = new HashSet<>();
     }
 
-    /**
-     * Determines if a string is the definition of this method
-     *
-     * @param str Single line string (without line breaks)
-     * @return returns true if the provided string matches a valid method declaration
-     */
-    public boolean isDeclaration(String str) {
-        Pattern pattern;
-        if (exceptions.isEmpty()) {
-            pattern = Pattern.compile(String.format("\\s*%s\\s+%s\\s+%s\\s*(\\s*%s\\s*)\\s*{",
-                    JDFCUtils.getAccess(this.access),
-                    JDFCUtils.getReturnType(this.signature),
-                    this.name,
-                    JDFCUtils.createParamPattern(this.params)));
+    private int extractBegin(MethodDeclaration srcAst) {
+        Optional<Position> posOpt = srcAst.getBegin();
+        if(posOpt.isPresent()) {
+            return posOpt.get().line;
         } else {
-            pattern = Pattern.compile(String.format("\\s*%s\\s+%s\\s+%s\\s*(\\s*%s\\s*)\\s+throws\\s+%s\\s*{",
-                    JDFCUtils.getAccess(this.access),
-                    JDFCUtils.getReturnType(this.signature),
-                    this.name,
-                    JDFCUtils.createParamPattern(this.params),
-                    JDFCUtils.createExceptionPattern(this.exceptions)));
+            throw new IllegalArgumentException("Method begin is undefined.");
         }
-        Matcher matcher = pattern.matcher(str);
-        return matcher.matches();
     }
+
+    private int extractEnd(MethodDeclaration srcAst) {
+        Optional<Position> posOpt = srcAst.getEnd();
+        if(posOpt.isPresent()) {
+            return posOpt.get().line;
+        } else {
+            throw new IllegalArgumentException("Method end is undefined.");
+        }
+    }
+
+//    /**
+//     * Determines if a string is the definition of this method
+//     *
+//     * @param str Single line string (without line breaks)
+//     * @return returns true if the provided string matches a valid method declaration
+//     */
+//    public boolean isDeclaration(String str) {
+//        Pattern pattern;
+//        if (exceptions.isEmpty()) {
+//            pattern = Pattern.compile(String.format("\\s*%s\\s+%s\\s+%s\\s*(\\s*%s\\s*)\\s*{",
+//                    JDFCUtils.getAccess(this.access),
+//                    JDFCUtils.getReturnType(this.signature),
+//                    this.name,
+//                    JDFCUtils.createParamPattern(this.params)));
+//        } else {
+//            pattern = Pattern.compile(String.format("\\s*%s\\s+%s\\s+%s\\s*(\\s*%s\\s*)\\s+throws\\s+%s\\s*{",
+//                    JDFCUtils.getAccess(this.access),
+//                    JDFCUtils.getReturnType(this.signature),
+//                    this.name,
+//                    JDFCUtils.createParamPattern(this.params),
+//                    JDFCUtils.createExceptionPattern(this.exceptions)));
+//        }
+//        Matcher matcher = pattern.matcher(str);
+//        return matcher.matches();
+//    }
 
     public int getTotal() {
         return total;
@@ -76,8 +158,24 @@ public class MethodData {
         return name;
     }
 
-    public String getSignature() {
-        return signature;
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public String[] getExceptions() {
+        return exceptions;
+    }
+
+    public void setExceptions(String[] exceptions) {
+        this.exceptions = exceptions;
+    }
+
+    public MethodDeclaration getSrcAst() {
+        return srcAst;
     }
 
     public Set<DefUsePair> getPairs() {
@@ -100,24 +198,24 @@ public class MethodData {
         this.params = params;
     }
 
-    public int getFirstLine() {
-        return firstLine;
+    public int getBeginLine() {
+        return beginLine;
     }
 
-    public void setFirstLine(int firstLine) {
-        this.firstLine = firstLine;
+    public void setBeginLine(int beginLine) {
+        this.beginLine = beginLine;
     }
 
-    public int getLastLine() {
-        return lastLine;
+    public int getEndLine() {
+        return endLine;
     }
 
-    public void setLastLine(int lastLine) {
-        this.lastLine = lastLine;
+    public void setEndLine(int endLine) {
+        this.endLine = endLine;
     }
 
     public String buildInternalMethodName() {
-        return String.format("%s: %s", name, signature);
+        return String.format("%s: %s", name, desc);
     }
 
     public void computeCoverage() {
@@ -155,7 +253,4 @@ public class MethodData {
         return null;
     }
 
-    public String toString() {
-        return String.format("MethodData {%nMethod: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n", name, total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
-    }
 }

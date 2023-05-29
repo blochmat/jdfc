@@ -4,9 +4,12 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.type.ArrayType;
+import com.github.javaparser.ast.type.ReferenceType;
+import com.github.javaparser.ast.type.Type;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
-import org.objectweb.asm.Type;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -177,7 +180,7 @@ public class JDFCUtils {
         }
     }
 
-    public static String getAccess(int value) {
+    public static String getASMAccessStr(int value) {
         switch (value){
             case 0: return "protected";
             case 1: return "public";
@@ -185,6 +188,40 @@ public class JDFCUtils {
             default: return "Unknown Access";
         }
     }
+
+    public static String getJParserAccessStr(int value) {
+        switch (value){
+            case 0: return "public";
+            // TODO
+            case 1: return "unknown";
+            // TODO
+            case 2: return "unknown";
+            case 3: return "protected";
+            default: return "Unknown Access";
+        }
+    }
+
+    public static int convertToASMAccess(int value) {
+        switch (value){
+            case 0: return 1;
+            // TODO
+            case 1: return Integer.MIN_VALUE;
+            // TODO
+            case 2: return Integer.MAX_VALUE;
+            case 3: return 0;
+            default: throw new IllegalArgumentException(String.format("Inconvertible access value: %d", value));
+        }
+    }
+
+    public static int convertToJParserAccess(int value) {
+        switch (value){
+            case 0: return 3;
+            case 1: return 0;
+            case 2: return Integer.MIN_VALUE;
+            default: throw new IllegalArgumentException(String.format("Inconvertible access value: %d", value));
+        }
+    }
+
     private static String getIndent(int level) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < level; i++) {
@@ -278,12 +315,12 @@ public class JDFCUtils {
     }
 
     public static String getReturnType(String descriptor) {
-        Type returnType = Type.getReturnType(descriptor);
+        org.objectweb.asm.Type returnType = org.objectweb.asm.Type.getReturnType(descriptor);
         return returnType.getClassName();
     }
 
     public static String getTypeName(String descriptor) {
-        return Type.getType(descriptor).getClassName();
+        return org.objectweb.asm.Type.getType(descriptor).getClassName();
     }
 
     public static String createParamPattern(Set<ProgramVariable> params) {
@@ -319,6 +356,60 @@ public class JDFCUtils {
             return ci.getMethods();
         } else {
             throw new IllegalArgumentException("Class is not present in file.");
+        }
+    }
+
+    public static String toJvmDescriptor(MethodDeclaration method) {
+        StringBuilder descriptor = new StringBuilder();
+
+        descriptor.append('(');
+        for (Parameter parameter : method.getParameters()) {
+            descriptor.append(toJvmType(parameter.getType()));
+        }
+        descriptor.append(')');
+        descriptor.append(toJvmType(method.getType()));
+
+        return descriptor.toString();
+    }
+
+    public static List<String> toJvmExceptionDescriptor(MethodDeclaration method) {
+        List<String> exceptionDescriptors = new ArrayList<>();
+        for (ReferenceType exception : method.getThrownExceptions()) {
+            exceptionDescriptors.add(toJvmType(exception));
+        }
+        return exceptionDescriptors;
+    }
+
+    private static String toJvmType(Type type) {
+        if (type.isArrayType()) {
+            return "[" + toJvmType(((ArrayType) type).getComponentType());
+        } else if (type.isPrimitiveType()) {
+            switch (type.asString()) {
+                case "byte":
+                    return "B";
+                case "char":
+                    return "C";
+                case "double":
+                    return "D";
+                case "float":
+                    return "F";
+                case "int":
+                    return "I";
+                case "long":
+                    return "J";
+                case "short":
+                    return "S";
+                case "boolean":
+                    return "Z";
+                default:
+                    throw new IllegalArgumentException("Unknown primitive type: " + type.asString());
+            }
+        } else if (type.isVoidType()) {
+            return "V";
+        } else if (type.isClassOrInterfaceType()) {
+            return "L" + type.asString().replace('.', '/') + ";";
+        } else {
+            throw new IllegalArgumentException("Unsupported type: " + type);
         }
     }
 }

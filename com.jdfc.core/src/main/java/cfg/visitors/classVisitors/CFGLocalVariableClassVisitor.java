@@ -48,7 +48,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         this.getFields().add(
                 ProgramVariable.create(this.getClassNode().name,
                         name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false));
-        logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getAccess(access), descriptor, name, value));
+        logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getASMAccessStr(access), descriptor, name, value));
         return fv;
     }
 

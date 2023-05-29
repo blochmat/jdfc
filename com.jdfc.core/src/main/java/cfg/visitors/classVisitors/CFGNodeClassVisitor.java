@@ -16,6 +16,7 @@ import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,11 +36,12 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
     }
 
     @Override
-    public MethodVisitor visitMethod(final int pAccess,
-                                     final String pName,
-                                     final String pDescriptor,
-                                     final String pSignature,
-                                     final String[] pExceptions) {
+    public MethodVisitor visitMethod(final int pAccess, // 0, 1, 2
+                                     final String pName, // e.g. max
+                                     final String pDescriptor, // e.g. (II)I
+                                     final String pSignature,  // idk
+                                     final String[] pExceptions) // idk
+    {
 
         final MethodVisitor mv;
         if (cv != null) {
@@ -49,11 +51,25 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
         }
 
         if(classNode.access != Opcodes.ACC_INTERFACE) {
-            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-            final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
-            this.classExecutionData.getMethods().put(internalMethodName,
-                    new MethodData(methodNode.access, methodNode.desc, methodNode.name, methodNode.exceptions));
+            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            // TODO: should also go into MethodData
+            final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
+
+            System.err.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.err.println(Opcodes.ACC_INTERFACE);
+            System.err.println(pName);
+            System.err.println(pDescriptor);
+            System.err.println(pSignature);
+            System.err.println(Arrays.toString(pExceptions));
+
+            // New Code
+            MethodData mData = this.classExecutionData.getMethodByName(pName);
+            if(mData != null) {
+                System.err.println(mData);
+            }
+            System.err.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+
             // TODO: Do something with fields here
             if (methodNode != null && isInstrumentationRequired(pName)) {
                 return new CFGNodeMethodVisitor(this, mv, methodNode,

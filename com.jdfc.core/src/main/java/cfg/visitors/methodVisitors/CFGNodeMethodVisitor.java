@@ -10,6 +10,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import data.MethodData;
 import data.ProgramVariable;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
@@ -244,15 +245,18 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
         boolean isImpure = false;
         CFG cfg = new CFGImpl(internalMethodName, nodes, edges, localVariableTable, isImpure);
+        // TODO: Old Code
         methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
-        // Put everything into new MethodData
-        classVisitor.classExecutionData.getMethods().get(internalMethodName).setCfg(cfg);
-        classVisitor.classExecutionData.getMethods()
-                .get(internalMethodName).setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
-        classVisitor.classExecutionData.getMethods().get(internalMethodName).setFirstLine(firstLine);
-        classVisitor.classExecutionData.getMethods().get(internalMethodName).setLastLine(currentLineNumber);
+        // New Code
+
+        // TODO: <init>: ()V is not in methods
+        if (!internalMethodName.equals("<init>: ()V")) {
+            MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
+            mData.setCfg(cfg);
+            mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
+        }
     }
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {
