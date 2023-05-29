@@ -566,7 +566,6 @@ public class ClassExecutionData extends ExecutionData {
             int mAccess = mDecl.getAccessSpecifier().ordinal();
             String mName = mDecl.getName().getIdentifier();
 
-            // TODO: mSignature = max (int, int)
             MethodData mData = new MethodData(mAccess, mName, mDecl);
             methods.put(mData.getBeginLine(), mData);
         }

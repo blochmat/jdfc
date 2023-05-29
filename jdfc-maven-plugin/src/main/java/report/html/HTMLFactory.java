@@ -1,8 +1,6 @@
 package report.html;
 
-import com.github.javaparser.Range;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
 import data.*;
 import utils.JDFCUtils;
 
@@ -297,21 +295,30 @@ public class HTMLFactory {
                     System.err.println(pLineNumber);
                 } else {
                     methodName = mData.buildInternalMethodName();
-                    boolean isDefinition = workList.get(0).contains("=") && !isCompareOperator(workList.get(0));
-                    programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isDefinition);
-                    // check if variable is a param
-                    MethodDeclaration mDecl = mData.getSrcAst();
-                    Optional<Parameter> paramOpt = mDecl.getParameterByName(item);
-                    if (paramOpt.isPresent()) {
-                        Parameter param = paramOpt.get();
-                        Optional<Range> rangeOpt = param.getRange();
-                        if(rangeOpt.isPresent()) {
-                            Range range = rangeOpt.get();
-                            if (range.begin.line == pLineNumber) {
-                                programVariable = mData.findParamByName(item);
-                            }
-                        }
+                    boolean isInlineDefinition = isDefinition(workList.get(0));
+                    boolean isMethodParam = isMethodParam(mData, pLineString);
+                    boolean isDefinition = isInlineDefinition || isMethodParam;
+
+                    if(isMethodParam) {
+                        // TODO: We already know that it is a param up here btw
+                        programVariable = findProgramVariable(pData, methodName, Integer.MIN_VALUE, item, sameWordsCount, true);
+                    } else {
+                        programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isDefinition);
                     }
+//                    // check if variable is a param
+//                    MethodDeclaration mDecl = mData.getSrcAst();
+//                    Optional<Parameter> paramOpt = mDecl.getParameterByName(item);
+//                    if (paramOpt.isPresent()) {
+//                        Parameter param = paramOpt.get();
+//                        Optional<Range> rangeOpt = param.getRange();
+//                        if(rangeOpt.isPresent()) {
+//                            Range range = rangeOpt.get();
+//                            if (range.begin.line == pLineNumber) {
+//                                // TODO: Params seems to be empty or params are not found properly yet.
+//                                programVariable = mData.findParamByName(item);
+//                            }
+//                        }
+//                    }
                 }
 
                 // search for variable in method
@@ -330,14 +337,12 @@ public class HTMLFactory {
                     } else {
                         // is a variable present in the data
                         boolean isVarCovered = isVarCovered(pData, methodName, programVariable);
-                        System.err.println(methodName);
-                        System.err.println(item);
-                        System.err.println(isVarCovered);
                         // find interprocedurally associated vars (must be altered or deleted)
                         List<ProgramVariable> associatedVars = getAssociatedVars(programVariable, pData);
                         // check if associated uses or defs are covered and highlight
                         Map<DefUsePair, Boolean> defUsePairsCovered = getDefUsePairCovered(pData, associatedVars);
                         String backgroundColor = getVariableBackgroundColor(isVarCovered, defUsePairsCovered);
+                        System.err.println(backgroundColor);
                         divTagLine.getContent().add(
                                 createVariableInformation(pData, pClassFile, pClassName, methodName,
                                         defUsePairsCovered, programVariable, backgroundColor));
@@ -355,8 +360,15 @@ public class HTMLFactory {
         return divTagLine;
     }
 
-    private boolean isCompareOperator(String pIn) {
-        return pIn.contains("==") || pIn.contains("!=") || pIn.contains("<=") || pIn.contains(">=");
+    private boolean isDefinition(String topOfWorkList) {
+        boolean isAssignment = topOfWorkList.contains("=");
+        boolean isComparison = topOfWorkList.contains("==") || topOfWorkList.contains("!=") || topOfWorkList.contains("<=") || topOfWorkList.contains(">=");
+
+        return (isAssignment && !isComparison);
+    }
+
+    private boolean isMethodParam(MethodData mData, String lineString) {
+       return mData.getSrcAst().getDeclarationAsString().contains(lineString.replace("{","").trim());
     }
 
     private void processString(HTMLElement pDivTagLine, List<String> pWorkList, String pItem) {

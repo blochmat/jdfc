@@ -256,6 +256,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
+            System.err.println("PARAMS");
+            System.err.println(JDFCUtils.prettyPrintSet(mData.getParams()));
         }
     }
 
