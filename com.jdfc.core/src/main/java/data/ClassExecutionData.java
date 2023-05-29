@@ -385,11 +385,6 @@ public class ClassExecutionData extends ExecutionData {
                     isUseCovered = false;
                 }
 
-                Set<InterProceduralMatch> interProceduralMatches = findInterProceduralMatches(def, methodName);
-                if (!interProceduralMatches.isEmpty() && !isUseCovered) {
-                    isUseCovered = checkInterProceduralUseCoverage(interProceduralMatches, use);
-                }
-
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
                     if (!methodName.equals("<init>: ()V")) {
@@ -398,7 +393,7 @@ public class ClassExecutionData extends ExecutionData {
                 } else {
                     defUsePairsCovered.get(methodName).put(pair, false);
                     if (!methodName.equals("<init>: ()V")) {
-                        this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(true);
+                        this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(false);
                     }
                     if (!isDefCovered) {
                         variablesUncovered.get(methodName).add(def);

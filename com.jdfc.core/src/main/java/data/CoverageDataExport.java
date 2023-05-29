@@ -1,5 +1,6 @@
 package data;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import instr.JDFCInstrument;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
@@ -112,6 +113,14 @@ public class CoverageDataExport {
                     clazz.appendChild(methods);
 
                     for(MethodData mData : cData.getMethods().values()) {
+
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        try {
+                            objectMapper.writeValue(new File(String.format("/tmp/%s.json", mData.getName())), mData);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
                         Element method = doc.createElement("method");
                         method.setAttribute("name", mData.getName());
                         method.setAttribute("signature", mData.getDesc());

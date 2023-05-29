@@ -1,6 +1,7 @@
 package data;
 
 import cfg.CFG;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class MethodData {
+    @JsonIgnore
     private Logger logger = LoggerFactory.getLogger(MethodData.class);
 
     /**
@@ -53,11 +55,13 @@ public class MethodData {
     /**
      * AST of method source code
      */
+    @JsonIgnore
     private final MethodDeclaration srcAst;
 
     /**
      * CFG of compiled method
      */
+    @JsonIgnore
     private CFG cfg;
 
     /**

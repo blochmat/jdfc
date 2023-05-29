@@ -27,7 +27,7 @@ public class CoverageTracker {
                                         final int pInsnIndex,
                                         final int pLineNumber,
                                         final int pOpcode) {
-        String info = String.format("%s %s %s", pClassName, pInternalMethodName, pLineNumber);
+        String info = String.format("COVERED %s %s %s", pClassName, pInternalMethodName, pLineNumber);
         updateClassExecutionData(pClassName);
         boolean isDefinition = isDefinition(pOpcode);
         LocalVariable localVariable = currentClassExecutionData.findLocalVariable(pInternalMethodName, pVarIndex);
