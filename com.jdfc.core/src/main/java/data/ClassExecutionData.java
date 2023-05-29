@@ -553,8 +553,8 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     private ClassOrInterfaceDeclaration extractClassDeclaration(CompilationUnit srcFileAst, String name) {
-        String a = name.replace(".class", "");
-        Optional<ClassOrInterfaceDeclaration> ciOptional = srcFileAst.getClassByName(a);
+        String cName = name.replace(".class", "");
+        Optional<ClassOrInterfaceDeclaration> ciOptional = srcFileAst.getClassByName(cName);
         if (ciOptional.isPresent()) {
             return ciOptional.get();
         } else {

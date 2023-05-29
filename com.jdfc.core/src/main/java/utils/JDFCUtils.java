@@ -14,6 +14,8 @@ import data.ProgramVariable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JDFCUtils {
 
@@ -411,5 +413,12 @@ public class JDFCUtils {
         } else {
             throw new IllegalArgumentException("Unsupported type: " + type);
         }
+    }
+
+    public static boolean isAnonymousInnerClass(String name) {
+        Pattern pattern = Pattern.compile("[_a-zA-Z$][_a-zA-Z0-9$]*\\$\\d+");
+        Matcher matcher = pattern.matcher(name.replace(".class", ""));
+
+        return matcher.matches();
     }
 }

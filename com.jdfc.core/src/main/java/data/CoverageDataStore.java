@@ -5,6 +5,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -157,30 +158,34 @@ public class CoverageDataStore {
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
                 addNodesFromDirRecursive(f, newPkgExecutionDataNode, pBaseDir, suffix);
             } else if (f.isFile() && f.getName().endsWith(suffix)) {
-                String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
-                String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
-                // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
-                untestedClassList.add(relativePath);
-                String nameWithoutType = f.getName().split("\\.")[0];
-                // Get AST of source file
-                CompilationUnit cu = null;
-                for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
-                    String relSourceFileStr = relativePathWithType.replace(".class", ".java");
-                    String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
-                    File sourceFile = new File(sourceFileStr);
-                    if (sourceFile.exists()) {
-                        try {
-                            cu = StaticJavaParser.parse(sourceFile);
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
+
+                // Do not handle anonymous inner files
+                if(!JDFCUtils.isAnonymousInnerClass(f.getName())) {
+                    String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
+                    String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
+                    // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
+                    untestedClassList.add(relativePath);
+                    String nameWithoutType = f.getName().split("\\.")[0];
+                    // Get AST of source file
+                    CompilationUnit cu = null;
+                    for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
+                        String relSourceFileStr = relativePathWithType.replace(".class", ".java");
+                        String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
+                        File sourceFile = new File(sourceFileStr);
+                        if (sourceFile.exists()) {
+                            try {
+                                cu = StaticJavaParser.parse(sourceFile);
+                            } catch (FileNotFoundException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
                     }
-                }
-                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
-                if (pExecutionDataNode.isRoot()) {
-                    pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
-                } else {
-                    pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
+                    if (pExecutionDataNode.isRoot()) {
+                        pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
+                    } else {
+                        pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                    }
                 }
             }
         }
