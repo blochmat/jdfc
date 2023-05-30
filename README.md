@@ -13,14 +13,15 @@
 ```mermaid
 graph TD
 Z[Package]
-Y((Class))
+Y(Class)
+
 A[com, ExecutionData] --> B[jdfc, ExecutionData]
-B --> C((BranchingInteger, ClassExecutionData))
+B --> C(BranchingInteger, ClassExecutionData)
 C --> D[some, ExecutionData]
 D --> E[path, ExecutionData]
-E --> F((GCD, ClassExecutionData))
+E --> F(GCD, ClassExecutionData)
 E --> G[to, ExecutionData]
-G --> H((SimpleInteger, ClassExecutionData))
+G --> H(SimpleInteger, ClassExecutionData)
 ```
 - ClassExecutionData holds JavaParser tree for class
 - constructor loads methods from JavaParser
