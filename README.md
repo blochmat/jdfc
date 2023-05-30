@@ -52,28 +52,28 @@ NOTE: Classes with tests get loaded by class loader
                 - CFG for every method: Map<*internalMName, cfgImpl>*
 
 ## Entities
-```javascript
+```java
 // Local variable in a method
 LocalVariable {
     name: String,
-    descriptor: String,                                 // ASM desc
-    signature: String,                                  // ASM signature
+    descriptor: String,                                             // ASM desc
+    signature: String,                                              // ASM signature
     index: int,
 }
 
 // Variable in the analysis. Can be local var or field
 ProgramVariable {
-    owner: String,                                      // ASM desc
+    owner: String,                                                  // ASM desc
     name: String,
-    descriptor: String,                                 // ASM desc
-    instructionIndex: int,                              // ASM instructionIndex
-    lineNumber: int,                                    // Line number from compiled class file
+    descriptor: String,                                             // ASM desc
+    instructionIndex: int,                                          // ASM instructionIndex
+    lineNumber: int,                                                // Line number from compiled class file
     isDefinition: boolean,
 }
 
 // Definition-Use Pair containing type and coverage info
 DefUsePair {
-    type: String,                                       // ASM desc
+    type: String,                                                   // ASM desc
     definition: ProgramVariable,
     usage: ProgramVariable,
     covered: boolean,
@@ -83,7 +83,7 @@ DefUsePair {
 InterProceduralMatch {
     definition: ProgramVariable,
     callSiteDefinition: ProgramVariable,
-    String methodName,                                  // assumption: max: (II)I
+    String methodName,                                              // assumption: max: (II)I
     String callSiteMethodName,
 }
 
@@ -100,7 +100,7 @@ CFGNode {
 
 
 CFGImpl implements CFG {
-    methodName: String,                                 // max: (II)I
+    methodName: String,                                             // max: (II)I
     nodes: NavigableMap<Double, CFGNode>,
     edges: Multimap<Double, Double>,
     localVariableTable: Map<Integer, LocalVariable>,
@@ -112,15 +112,15 @@ MethodData {
     covered: int,
     rate: double,
     access: int, (ASM or JavaParser?)
-    name: String,                                       // e.g. max
-    desc: String,                                       // ASM desc (self built)
-    exceptions: String[]                                // [ASM desc, ASM desc, ..]
-    srcAst: MethodDeclaration           @JsonIgnore     // JavaParser
+    name: String,                                                   // e.g. max
+    desc: String,                                                   // ASM desc (self built)
+    exceptions: String[]                                            // [ASM desc, ASM desc, ..]
+    srcAst: MethodDeclaration           @JsonIgnore                 // JavaParser
     cfg: CFG
     pairs: Set<DefUsePair>
-    params: Set<ProgramVariable>                        // method params
-    beginLine: int                                      // begin.line from JavaParser
-    endLien: int                                        // end.line from JavaParser
+    params: Set<ProgramVariable>                                    // method params
+    beginLine: int                                                  // begin.line from JavaParser
+    endLien: int                                                    // end.line from JavaParser
 }
 
 ExecutionData {
@@ -139,10 +139,10 @@ ClassExecutionData extends ExecutionData {
     srcFileAst: CompilationUnit,
     ciAst: ClassOrInterfaceDeclaration,
     methodCFGs: Map<String, CFG>,
-    methodFirstLine: Map<String, Integer>, **(delete)**
+    methodFirstLine: Map<String, Integer>,                          // delete
     methodLastLine: Map<String, Integer>, **(delete)**
-    defUsePairs: TreeMap<String, List<DefUsePair>>, (could be used for intraclass dupairs)
-    defUsePairsCovered: TreeMap<String, Map<DefUsePair, Boolean>>, **(delete)**
+    defUsePairs: TreeMap<String, List<DefUsePair>>,                 // could be used for intraclass dupairs
+    defUsePairsCovered: TreeMap<String, Map<DefUsePair, Boolean>>,  // delete
     variablesUncovered: Map<String, Set<ProgramVariable>>,
     variablesCovered: Map<String, Set<ProgramVariable>>,
     interProceduralMatches: Set<InterProceduralMatch>, **(delete)**
