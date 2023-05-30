@@ -1,8 +1,7 @@
 # JDFC - Java Data Flow Coverage
 
 ## Entities
-In the following all data entities of JDFC are described:
-```javascript
+```
 // Local variable in a method
 LocalVariable {
     name: String,
@@ -51,7 +50,7 @@ CFGNode {
 
 // Control flow graph
 CFGImpl implements CFG {
-    methodName: String,                                             // max: (II)I
+    methodName: String,                                             // max: (II)I (internalMethodName)
     nodes: NavigableMap<Double, CFGNode>,
     edges: Multimap<Double, Double>,
     localVariableTable: Map<Integer, LocalVariable>,
@@ -109,12 +108,17 @@ ExecutionDataNode<T extends ExecutionData> {
     data: T,
     parent: ExecutionDataNode<T>,
     children: Map<String, ExecutionDataNode<T>>,
-}```
+}
+```
+CoverageTracker {
+    singleton: CoverageTracker,
+    currentClassExecutionData: ClassExecutionData                   // We hold this for some reason
+    classExecutionDataMap: Map<String, ClassExecutionData>
+}
+```
 
 
 ## JDFC Program Flow
-
-
 **AgentMojo.execute**
 - Extract Agent from plugin jar
 - Add agent argument to command line
@@ -122,7 +126,6 @@ ExecutionDataNode<T extends ExecutionData> {
 **Agent.premain**
 - CoverageDataStore: save project info (all relevant dirs)
 - CoverageDataStore: load .class files into tree structure e.g.
-
 ```mermaid
 graph TD
 Z[Package]
@@ -136,7 +139,6 @@ E --> F(GCD, ClassExecutionData)
 E --> G[to, ExecutionData]
 G --> H(SimpleInteger, ClassExecutionData)
 ```
-
 - ClassExecutionData holds JavaParser tree for class
 - constructor loads methods from JavaParser
     - <*builder: ()LBuilder;, MethodData>* (Problem: full inner class name would be ()Lcom/jdfc/apache/Option$Builder)
@@ -151,17 +153,52 @@ NOTE: Classes with tests get loaded by class loader
 
 **JDFCInstrument.instrument**
 - get classExData by name (e.g. BranchingInteger)
+- CFGCreator.createCFGsForClass
+    - CFGLocalVariableClassVisitor.visit
+        - visitField: collects field information for class: Set<*ProgramVariable>*
+        - visitMethod: CFGLocalVariableMethodVisitor
+            - local variable information for all methods in the class: Map<*internalMName, <idx, LocalVariable>>*
 
-**CFGCreator.createCFGsForClass**
-- CFGLocalVariableClassVisitor.visit
-    - visitField: collects field information for class: Set<*ProgramVariable>*
-    - visitMethod: CFGLocalVariableMethodVisitor
-        - local variable information for all methods in the class: Map<*internalMName, <idx, LocalVariable>>*
+    - CFGNodeClassVisitor.visit
+        - visitMethod: create cfg if not interface or inner class
+            - CFGNodeMethodVisitor
+                - visitEnd
+                    - edges
+                    - CFG for method: Map<*internalMName, cfgImpl>*
+                    - put first line: <internalMethodName, firstLine>
+                    - put last line: <internalMethodName, lastLine>
+                    - set cfg, params in MethodData (findByInternalMethodName fails)
+        - visitEnd
+            - CoverageDataStore finish class execution data setup
+                - set methodCFGs in class: Map<internalMethodName, CFG>
+                - initialize def use lists (??)
+                - calculate reaching definitions
+                - calculate intra procedural def use pairs
+- InstrumentationClassVisitor.visit
+    - visitMethod
+        - if instrumentation required
+        - InstrumentationMethodVisitor.visit
+            - visitVarInsn:
+            - visitIincInsn:
+                - insert call CoverageDataStore.invokeCoverageTracker (internalMethodName, currentLineNumber)
 
-- CFGNodeClassVisitor.visit
-    - visitMethod: create cfg if not interface or inner class
-        - CFGNodeMethodVisitor
-            - visitEnd
-                - edges
-                - CFG for every method: Map<*internalMName, cfgImpl>*
+**Run Tests**
+- CoverageDataStore.invokeCoverageTracker is basically doing nothing
+- CoverageTracker.addLocalVarCoveredEntry
+    - update classExData by className
+        - if its not null and not the same class
+        - if the map does not already contain the class
+        - find the class node from the tree
+        - extract the data
+        - put it into the map
+    - check if var is definition by opcode
+    - find local variable by internalMethodName, insn index from localVariableTables (!!)
+    - add current class to tested classes (relativePath)
+    - remove current class from untested classes (relativePath)
+    - if localvar is not null
+        - create a program variable
+        - add local variable to variablesCovered in class by internalMethodName (!!)
+
+**Shutdown hook**
+
 
