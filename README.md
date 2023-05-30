@@ -9,16 +9,18 @@
 
 **Agent.premain**
 - CoverageDataStore: save project info (all relevant dirs)
-- CoverageDataStore: load .class files into tree structure
+- CoverageDataStore: load .class files into tree structure e.g.
 ```mermaid
 graph TD
-A["com", ExecutionData] --> B["jdfc", ExecutionData]
-B --> C("BranchingInteger", ClassExecutionData)
-C --> D["some", ExecutionData]
-D --> E["path", ExecutionData]
-E --> F("GCD", ClassExecutionData)
-E --> G["to", ExecutionData]
-G --> H("SimpleInteger", ClassExecutionData)
+Z[Package]
+Y((Class))
+A[com, ExecutionData] --> B[jdfc, ExecutionData]
+B --> C((BranchingInteger, ClassExecutionData))
+C --> D[some, ExecutionData]
+D --> E[path, ExecutionData]
+E --> F((GCD, ClassExecutionData))
+E --> G[to, ExecutionData]
+G --> H((SimpleInteger, ClassExecutionData))
 ```
 - ClassExecutionData holds JavaParser tree for class
 - constructor loads methods from JavaParser
