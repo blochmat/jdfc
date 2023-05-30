@@ -1,58 +1,8 @@
 # JDFC - Java Data Flow Coverage
 
-## JDFC Program Flow
-
-
-**AgentMojo.execute**
-- Extract Agent from plugin jar
-- Add agent argument to command line
-
-**Agent.premain**
-- CoverageDataStore: save project info (all relevant dirs)
-- CoverageDataStore: load .class files into tree structure e.g.
-```mermaid
-graph TD
-Z[Package]
-Y(Class)
-
-A[com, ExecutionData] --> B[jdfc, ExecutionData]
-B --> C(BranchingInteger, ClassExecutionData)
-C --> D[some, ExecutionData]
-D --> E[path, ExecutionData]
-E --> F(GCD, ClassExecutionData)
-E --> G[to, ExecutionData]
-G --> H(SimpleInteger, ClassExecutionData)
-```
-- ClassExecutionData holds JavaParser tree for class
-- constructor loads methods from JavaParser
-    - <*builder: ()LBuilder;, MethodData>* (Problem: full inner class name would be ()Lcom/jdfc/apache/Option$Builder)
-- add JDFCTransformer
-- add Shutdown hook
-
-NOTE: Classes with tests get loaded by class loader
-
-**JDFCTransformer.transform**
-- filter classes to instrument
-- call JDFCInstrument.instrument
-
-**JDFCInstrument.instrument**
-- get classExData by name (e.g. BranchingInteger)
-
-**CFGCreator.createCFGsForClass**
-- CFGLocalVariableClassVisitor.visit
-    - visitField: collects field information for class: Set<*ProgramVariable>*
-    - visitMethod: CFGLocalVariableMethodVisitor
-        - local variable information for all methods in the class: Map<*internalMName, <idx, LocalVariable>>*
-
-- CFGNodeClassVisitor.visit
-    - visitMethod: create cfg if not interface or inner class
-        - CFGNodeMethodVisitor
-            - visitEnd
-                - edges
-                - CFG for every method: Map<*internalMName, cfgImpl>*
-
 ## Entities
-```java
+In the following all data entities of JDFC are described:
+```javascript
 // Local variable in a method
 LocalVariable {
     name: String,
@@ -87,6 +37,7 @@ InterProceduralMatch {
     String callSiteMethodName,
 }
 
+// Node in a method cfg
 CFGNode {
     definitions: Set<ProgramVariable>,
     uses: Set<ProgramVariable>,
@@ -98,7 +49,7 @@ CFGNode {
     reach: Set<ProgramVariable>
 }
 
-
+// Control flow graph
 CFGImpl implements CFG {
     methodName: String,                                             // max: (II)I
     nodes: NavigableMap<Double, CFGNode>,
@@ -107,6 +58,7 @@ CFGImpl implements CFG {
     isImpure: boolean,
 }
 
+// Relevant dataflow information of method including a source syntax tree and cfg
 MethodData {
     total: int,
     covered: int,
@@ -116,13 +68,14 @@ MethodData {
     desc: String,                                                   // ASM desc (self built)
     exceptions: String[]                                            // [ASM desc, ASM desc, ..]
     srcAst: MethodDeclaration           @JsonIgnore                 // JavaParser
-    cfg: CFG
+    cfg: CFG                            @JsonIgnore
     pairs: Set<DefUsePair>
     params: Set<ProgramVariable>                                    // method params
     beginLine: int                                                  // begin.line from JavaParser
     endLien: int                                                    // end.line from JavaParser
 }
 
+// Super type of package and class data
 ExecutionData {
     total: int,
     covered: int,
@@ -133,6 +86,7 @@ ExecutionData {
     parentFqn: String,
 }
 
+// Class dataflow information wrapper
 ClassExecutionData extends ExecutionData {
     logger: Logger,
     relativePath: String,
@@ -140,20 +94,74 @@ ClassExecutionData extends ExecutionData {
     ciAst: ClassOrInterfaceDeclaration,
     methodCFGs: Map<String, CFG>,
     methodFirstLine: Map<String, Integer>,                          // delete
-    methodLastLine: Map<String, Integer>, **(delete)**
+    methodLastLine: Map<String, Integer>,                           // delete
     defUsePairs: TreeMap<String, List<DefUsePair>>,                 // could be used for intraclass dupairs
     defUsePairsCovered: TreeMap<String, Map<DefUsePair, Boolean>>,  // delete
     variablesUncovered: Map<String, Set<ProgramVariable>>,
     variablesCovered: Map<String, Set<ProgramVariable>>,
-    interProceduralMatches: Set<InterProceduralMatch>, **(delete)**
+    interProceduralMatches: Set<InterProceduralMatch>,              // delete
     fields: Set<ProgramVariable>,
     methods: Map<Integer, MethodData>,
 }
 
+// Node in execution data tree, which also serves as project structure representation
 ExecutionDataNode<T extends ExecutionData> {
     data: T,
     parent: ExecutionDataNode<T>,
     children: Map<String, ExecutionDataNode<T>>,
-}
+}```
+
+
+## JDFC Program Flow
+
+
+**AgentMojo.execute**
+- Extract Agent from plugin jar
+- Add agent argument to command line
+
+**Agent.premain**
+- CoverageDataStore: save project info (all relevant dirs)
+- CoverageDataStore: load .class files into tree structure e.g.
+
+```mermaid
+graph TD
+Z[Package]
+Y(Class)
+
+A[com, ExecutionData] --> B[jdfc, ExecutionData]
+B --> C(BranchingInteger, ClassExecutionData)
+C --> D[some, ExecutionData]
+D --> E[path, ExecutionData]
+E --> F(GCD, ClassExecutionData)
+E --> G[to, ExecutionData]
+G --> H(SimpleInteger, ClassExecutionData)
 ```
+
+- ClassExecutionData holds JavaParser tree for class
+- constructor loads methods from JavaParser
+    - <*builder: ()LBuilder;, MethodData>* (Problem: full inner class name would be ()Lcom/jdfc/apache/Option$Builder)
+- add JDFCTransformer
+- add Shutdown hook
+
+NOTE: Classes with tests get loaded by class loader
+
+**JDFCTransformer.transform**
+- filter classes to instrument
+- call JDFCInstrument.instrument
+
+**JDFCInstrument.instrument**
+- get classExData by name (e.g. BranchingInteger)
+
+**CFGCreator.createCFGsForClass**
+- CFGLocalVariableClassVisitor.visit
+    - visitField: collects field information for class: Set<*ProgramVariable>*
+    - visitMethod: CFGLocalVariableMethodVisitor
+        - local variable information for all methods in the class: Map<*internalMName, <idx, LocalVariable>>*
+
+- CFGNodeClassVisitor.visit
+    - visitMethod: create cfg if not interface or inner class
+        - CFGNodeMethodVisitor
+            - visitEnd
+                - edges
+                - CFG for every method: Map<*internalMName, cfgImpl>*
 
