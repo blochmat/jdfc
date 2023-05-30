@@ -2,13 +2,6 @@
 
 ## JDFC Program Flow
 
-```mermaid
-graph TD
-A[Square Rect] -- Link text --> B((Circle))
-A --> C(Round Rect)
-B --> D{Rhombus}
-C --> D
-```
 
 **AgentMojo.execute**
 - Extract Agent from plugin jar
@@ -16,10 +9,17 @@ C --> D
 
 **Agent.premain**
 - CoverageDataStore: save project info (all relevant dirs)
-- CoverageDataStore: load .class files into tree
-- <com, ExecutionData> : package
-- <jdfc, ExecutionData> : package
-- <BranchingInteger, ClassExecutionData>: package
+- CoverageDataStore: load .class files into tree structure
+```mermaid
+graph TD
+A["com", ExecutionData] --> B["jdfc", ExecutionData]
+B --> C("BranchingInteger", ClassExecutionData)
+C --> D["some", ExecutionData]
+D --> E["path", ExecutionData]
+E --> F("GCD", ClassExecutionData)
+E --> G["to", ExecutionData]
+G --> H("SimpleInteger", ClassExecutionData)
+```
 - ClassExecutionData holds JavaParser tree for class
 - constructor loads methods from JavaParser
 - <*builder: ()LBuilder;, MethodData>*
