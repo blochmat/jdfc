@@ -110,6 +110,9 @@ ExecutionDataNode<T extends ExecutionData> {
     children: Map<String, ExecutionDataNode<T>>,
 }
 ```
+
+## Singletons
+```
 CoverageTracker {
     singleton: CoverageTracker,
     currentClassExecutionData: ClassExecutionData                   // We hold this for some reason
