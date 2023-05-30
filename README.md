@@ -51,18 +51,109 @@ NOTE: Classes with tests get loaded by class loader
                 - edges
                 - CFG for every method: Map<*internalMName, cfgImpl>*
 
-DataTypes:
-```
-CoverageDataStorage {
-
-}
-
+## Entities
+```javascript
+// Local variable in a method
 LocalVariable {
-    name: String
-    descriptor: String
-    signature: String
-    index: int
+    name: String,
+    descriptor: String,                                 // ASM desc
+    signature: String,                                  // ASM signature
+    index: int,
 }
 
+// Variable in the analysis. Can be local var or field
+ProgramVariable {
+    owner: String,                                      // ASM desc
+    name: String,
+    descriptor: String,                                 // ASM desc
+    instructionIndex: int,                              // ASM instructionIndex
+    lineNumber: int,                                    // Line number from compiled class file
+    isDefinition: boolean,
+}
+
+// Definition-Use Pair containing type and coverage info
+DefUsePair {
+    type: String,                                       // ASM desc
+    definition: ProgramVariable,
+    usage: ProgramVariable,
+    covered: boolean,
+}
+
+// Delete
+InterProceduralMatch {
+    definition: ProgramVariable,
+    callSiteDefinition: ProgramVariable,
+    String methodName,                                  // assumption: max: (II)I
+    String callSiteMethodName,
+}
+
+CFGNode {
+    definitions: Set<ProgramVariable>,
+    uses: Set<ProgramVariable>,
+    index: int,
+    opcode: int,
+    predecessors: Set<CFGNode> predecessors,
+    successors: Set<CFGNode> successors,
+    reachOut: Set<ProgramVariable>
+    reach: Set<ProgramVariable>
+}
+
+
+CFGImpl implements CFG {
+    methodName: String,                                 // max: (II)I
+    nodes: NavigableMap<Double, CFGNode>,
+    edges: Multimap<Double, Double>,
+    localVariableTable: Map<Integer, LocalVariable>,
+    isImpure: boolean,
+}
+
+MethodData {
+    total: int,
+    covered: int,
+    rate: double,
+    access: int, (ASM or JavaParser?)
+    name: String,                                       // e.g. max
+    desc: String,                                       // ASM desc (self built)
+    exceptions: String[]                                // [ASM desc, ASM desc, ..]
+    srcAst: MethodDeclaration           @JsonIgnore     // JavaParser
+    cfg: CFG
+    pairs: Set<DefUsePair>
+    params: Set<ProgramVariable>                        // method params
+    beginLine: int                                      // begin.line from JavaParser
+    endLien: int                                        // end.line from JavaParser
+}
+
+ExecutionData {
+    total: int,
+    covered: int,
+    methodCount: int,
+    rate: double,
+    fqn: String,
+    name: String,
+    parentFqn: String,
+}
+
+ClassExecutionData extends ExecutionData {
+    logger: Logger,
+    relativePath: String,
+    srcFileAst: CompilationUnit,
+    ciAst: ClassOrInterfaceDeclaration,
+    methodCFGs: Map<String, CFG>,
+    methodFirstLine: Map<String, Integer>, **(delete)**
+    methodLastLine: Map<String, Integer>, **(delete)**
+    defUsePairs: TreeMap<String, List<DefUsePair>>, (could be used for intraclass dupairs)
+    defUsePairsCovered: TreeMap<String, Map<DefUsePair, Boolean>>, **(delete)**
+    variablesUncovered: Map<String, Set<ProgramVariable>>,
+    variablesCovered: Map<String, Set<ProgramVariable>>,
+    interProceduralMatches: Set<InterProceduralMatch>, **(delete)**
+    fields: Set<ProgramVariable>,
+    methods: Map<Integer, MethodData>,
+}
+
+ExecutionDataNode<T extends ExecutionData> {
+    data: T,
+    parent: ExecutionDataNode<T>,
+    children: Map<String, ExecutionDataNode<T>>,
+}
 ```
 
