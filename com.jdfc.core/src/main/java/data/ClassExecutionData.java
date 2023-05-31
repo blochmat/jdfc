@@ -10,8 +10,10 @@ import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.types.ResolvedArrayType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +100,27 @@ public class ClassExecutionData extends ExecutionData {
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
             int mAccess = mDecl.getAccessSpecifier().ordinal();
             String mName = mDecl.getName().getIdentifier();
-            Type mRType = mDecl.getType();
-            List<Type> paramList = mDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toList());
-            String jvmDesc = JDFCUtils.toJvmDescriptor(mDecl); // ()LBuilder;
-            String jvmAsmDesc = this.buildJvmAsmDesc(mRType, paramList, jvmDesc); // com/jdfc/apache/Option$Builder
+            Set<Type> types = new HashSet<>();
+
+            // Return type
+            types.add(mDecl.getType());
+            // Param types
+            types.addAll(mDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet()));
+            // Exception types
+            types.addAll(mDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet()));
+            // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
+            String jvmDesc = JDFCUtils.toJvmDescriptor(mDecl);
+
+            if (jvmDesc.equals("()[LString;")) {
+                System.out.println("FOUND");
+            }
+            // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
+            Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
+            String jvmAsmDesc = this.buildJvmAsmDesc(resolvedTypes, jvmDesc);
+
+            if (jvmDesc.equals("()[LString;")) {
+                System.out.println("FOUND");
+            }
 
             MethodData mData = new MethodData(mAccess, mName, jvmAsmDesc, mDecl);
             methods.put(mData.getBeginLine(), mData);
@@ -110,13 +129,9 @@ public class ClassExecutionData extends ExecutionData {
         return methods;
     }
 
-    private String buildJvmAsmDesc(Type rType, List<Type> pType, String jvmDesc) {
-        List<Type> allTypes = new ArrayList<>(pType);
-        allTypes.add(rType);
-
-        for(Type t : allTypes) {
+    private String buildJvmAsmDesc(Set<ResolvedType> resolvedTypes, String jvmDesc) {
+        for(ResolvedType resolvedType : resolvedTypes) {
             try {
-                ResolvedType resolvedType = t.resolve();
                 if (resolvedType.isReferenceType()) {
                     Optional<ResolvedReferenceTypeDeclaration> typeDeclaration = resolvedType.asReferenceType().getTypeDeclaration();
                     if (typeDeclaration.isPresent()) {
@@ -125,8 +140,6 @@ public class ClassExecutionData extends ExecutionData {
                             if(this.nestedTypeList.containsKey(rrtd.getName())) {
                                 // inner or nested class
                                 jvmDesc = jvmDesc.replace(rrtd.getName(), this.nestedTypeList.get(rrtd.getName()));
-                            } else if(rrtd.getName().equals(this.getName())) {
-                                System.out.println("asdf");
                             } else {
                                 // java native class
                                 String newName = rrtd.getQualifiedName().replace(".", "/");
@@ -134,6 +147,12 @@ public class ClassExecutionData extends ExecutionData {
                             }
                         }
                     }
+                } else if (resolvedType.isArray()) {
+                    ResolvedArrayType rat = resolvedType.asArrayType();
+                    ResolvedType rt = rat.getComponentType();
+                    resolvedTypes.add(rt);
+                    resolvedTypes.remove(resolvedType);
+                    jvmDesc = buildJvmAsmDesc(resolvedTypes, jvmDesc);
                 }
             } catch (Exception e) {
                 System.out.println("Exception");
@@ -142,6 +161,7 @@ public class ClassExecutionData extends ExecutionData {
         }
         return jvmDesc;
     }
+
 
     // New Code
     public MethodData getMethodByInternalName(String internalName) {

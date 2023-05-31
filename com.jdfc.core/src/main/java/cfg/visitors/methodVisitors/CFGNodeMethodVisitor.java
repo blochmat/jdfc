@@ -253,8 +253,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
         if (!internalMethodName.contains("<init>")) {
             System.err.println(internalMethodName);
-            // TODO: searching for "builder: ()Lcom/jdfc/apache/Option$Builder;"
-            //              but list contains "builder: ()LBuilder;"
+            // TODO: searching for "getValuesList: ()Ljava/util/List; ()Ljava/util/List<Ljava/lang/String;>;;"
+            //   but list contains "getValuesList: ()LList<String>;"
             // Possible solution: We could take the internalName provided by ASM and search initially by lineNumber and name to find
             // the correct method declaration
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);

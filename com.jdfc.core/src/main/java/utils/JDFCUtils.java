@@ -8,6 +8,8 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ArrayType;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
 
@@ -364,12 +366,33 @@ public class JDFCUtils {
     public static String toJvmDescriptor(MethodDeclaration method) {
         StringBuilder descriptor = new StringBuilder();
 
+        // Param Types
         descriptor.append('(');
         for (Parameter parameter : method.getParameters()) {
             descriptor.append(toJvmType(parameter.getType()));
         }
         descriptor.append(')');
-        descriptor.append(toJvmType(method.getType()));
+
+        // Return Type
+        String returnType = toJvmType(method.getType());
+        descriptor.append(returnType);
+
+        if(!returnType.endsWith(";")) {
+            descriptor.append(";");
+        }
+
+        // TODO: Descriptor missing
+
+        // Exception Types
+        List<String> exceptionDescriptors = new ArrayList<>();
+        for (ReferenceType exception : method.getThrownExceptions()) {
+            exceptionDescriptors.add(toJvmType(exception));
+        }
+
+        if(!exceptionDescriptors.isEmpty()) {
+            descriptor.append(" ");
+            descriptor.append(exceptionDescriptors);
+        }
 
         return descriptor.toString();
     }
@@ -408,11 +431,23 @@ public class JDFCUtils {
             }
         } else if (type.isVoidType()) {
             return "V";
+        } else if (JDFCUtils.isException(type.resolve())) {
+            return type.asString().replace('.', '/');
         } else if (type.isClassOrInterfaceType()) {
             return "L" + type.asString().replace('.', '/') + ";";
         } else {
             throw new IllegalArgumentException("Unsupported type: " + type);
         }
+    }
+
+    public static boolean isException(ResolvedType type) {
+        if (type.isReferenceType()) {
+            ResolvedReferenceType RRT = type.asReferenceType();
+            List<ResolvedReferenceType> ancestorList = RRT.getAllAncestors();
+            return ancestorList.stream()
+                    .anyMatch(x -> x.getQualifiedName().equals("java.lang.Exception") || x.getQualifiedName().equals("java.lang.RuntimeException"));
+        }
+        return false;
     }
 
     public static boolean isInnerClass(String name) {

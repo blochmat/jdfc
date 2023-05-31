@@ -337,3 +337,4 @@ NOTE: Classes with tests get loaded by class loader
                             - createVariableTooltipContent
                                 - createAssociatedVariablesTable
                                     - check if associated var is covered by internalMethodName (!!)
+

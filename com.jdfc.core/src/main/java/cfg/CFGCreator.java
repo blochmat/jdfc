@@ -155,11 +155,17 @@ public class CFGCreator {
         result.append(pMethodName);
         result.append(": ");
         result.append(pDescriptor);
+
+        if(!pDescriptor.endsWith(";")) {
+            result.append(";");
+        }
+
         if (pSignature != null) {
-            result.append("; ").append(pSignature);
+            result.append(" ").append(pSignature).append(";");
+
         }
         if (pExceptions != null && pExceptions.length != 0) {
-            result.append("; ").append(Arrays.toString(pExceptions));
+            result.append(" ").append(Arrays.toString(pExceptions));
         }
         return result.toString();
     }
