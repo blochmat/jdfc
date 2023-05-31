@@ -425,4 +425,14 @@ public class JDFCUtils {
 
         return matcher.matches();
     }
+
+    public static String innerClassFqnToJVMInternal(String fqn) {
+        String[] parts = fqn.split("\\.");
+        if (parts.length > 1) {
+            String lastPart = parts[parts.length - 1];
+            return String.join("/", Arrays.copyOf(parts, parts.length - 1)) + '$' + lastPart;
+        } else {
+            return fqn;
+        }
+    }
 }

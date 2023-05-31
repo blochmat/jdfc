@@ -4,6 +4,9 @@ import cfg.CFG;
 import cfg.data.LocalVariable;
 import cfg.nodes.CFGNode;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import org.slf4j.Logger;
@@ -23,7 +26,11 @@ public class ClassExecutionData extends ExecutionData {
     private final Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
     private final String relativePath;
     private final CompilationUnit srcFileAst;
-    private final ClassOrInterfaceDeclaration ciAst;
+    private final PackageDeclaration pkgDecl;
+    private final List<ImportDeclaration> impDeclList;
+    private final ClassOrInterfaceDeclaration ciDecl;
+//    private final List<ClassOrInterfaceDeclaration> innerCiDeclList;
+    private final List<String> nestedTypeList;
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
@@ -35,12 +42,16 @@ public class ClassExecutionData extends ExecutionData {
     private final Set<ProgramVariable> fields;
     private final Map<Integer, MethodData> methods;
 
-    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {
+    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst,
+                              List<String> nestedTypeList) {
         super(fqn, name);
         relativePath = pRelativePath;
         this.srcFileAst = srcFileAst;
-        this.ciAst = extractClassDeclaration(srcFileAst, name);
-        this.methods = extractMethodDeclarations(this.ciAst);
+        this.pkgDecl = extractPackageDeclaration(srcFileAst);
+        this.impDeclList = extractImportDeclarationList(srcFileAst);
+        this.ciDecl = extractClassDeclaration(srcFileAst, name);
+        this.nestedTypeList = nestedTypeList;
+        this.methods = extractMethodDeclarations(this.ciDecl);
 
         // TODO: Most of this stuff should go into MethodData
         methodLastLine = new HashMap<>();
@@ -53,52 +64,40 @@ public class ClassExecutionData extends ExecutionData {
         fields = new HashSet<>();
     }
 
-    /**
-     * Sets the method {@link CFG}s.
-     *
-     * @param pMethodCFGs The mapping of method names and {@link CFG}s
-     */
-    public void setMethodCFGs(final Map<String, CFG> pMethodCFGs) {
-        methodCFGs = pMethodCFGs;
+    public String toString() {
+        return String.format("ParentFqn: %s%nFqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
     }
 
-    public Map<String, Integer> getMethodFirstLine() {
-        return methodFirstLine;
+    private PackageDeclaration extractPackageDeclaration(CompilationUnit cu){
+        Optional<PackageDeclaration> pkdDeclOpt = cu.getPackageDeclaration();
+        return pkdDeclOpt.orElse(null);
     }
 
-    public Map<String, Integer> getMethodLastLine() {
-        return methodLastLine;
+    private List<ImportDeclaration> extractImportDeclarationList(CompilationUnit cu) {
+        NodeList<ImportDeclaration> impDeclList = cu.getImports();
+        return new ArrayList<>(impDeclList);
     }
 
-    public TreeMap<String, List<DefUsePair>> getDefUsePairs() {
-        return defUsePairs;
+    private ClassOrInterfaceDeclaration extractClassDeclaration(CompilationUnit srcFileAst, String name) {
+        String cName = name.replace(".class", "");
+        Optional<ClassOrInterfaceDeclaration> ciOptional = srcFileAst.getClassByName(cName);
+        if (ciOptional.isPresent()) {
+            return ciOptional.get();
+        } else {
+            throw new IllegalArgumentException("Class is not present in file.");
+        }
     }
 
-    public TreeMap<String, Map<DefUsePair, Boolean>> getDefUsePairsCovered() {
-        return defUsePairsCovered;
-    }
+    private Map<Integer, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
+        Map<Integer, MethodData> methods = new HashMap<>();
+        for(MethodDeclaration mDecl : ciAst.getMethods()) {
+            int mAccess = mDecl.getAccessSpecifier().ordinal();
+            String mName = mDecl.getName().getIdentifier();
 
-    public Map<String, Set<ProgramVariable>> getVariablesCovered() {
-        return variablesCovered;
-    }
+            MethodData mData = new MethodData(mAccess, mName, mDecl);
+            methods.put(mData.getBeginLine(), mData);
+        }
 
-    public Map<String, Set<ProgramVariable>> getVariablesUncovered() {
-        return variablesUncovered;
-    }
-
-    public String getRelativePath() {
-        return relativePath;
-    }
-
-    public Set<InterProceduralMatch> getInterProceduralMatches() {
-        return interProceduralMatches;
-    }
-
-    public Set<ProgramVariable> getFields(){
-        return fields;
-    }
-
-    public Map<Integer, MethodData> getMethods() {
         return methods;
     }
 
@@ -550,27 +549,6 @@ public class ClassExecutionData extends ExecutionData {
         return false;
     }
 
-    private ClassOrInterfaceDeclaration extractClassDeclaration(CompilationUnit srcFileAst, String name) {
-        String cName = name.replace(".class", "");
-        Optional<ClassOrInterfaceDeclaration> ciOptional = srcFileAst.getClassByName(cName);
-        if (ciOptional.isPresent()) {
-            return ciOptional.get();
-        } else {
-            throw new IllegalArgumentException("Class is not present in file.");
-        }
-    }
-
-    private Map<Integer, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
-        Map<Integer, MethodData> methods = new HashMap<>();
-        for(MethodDeclaration mDecl : ciAst.getMethods()) {
-            int mAccess = mDecl.getAccessSpecifier().ordinal();
-            String mName = mDecl.getName().getIdentifier();
-
-            MethodData mData = new MethodData(mAccess, mName, mDecl);
-            methods.put(mData.getBeginLine(), mData);
-        }
-        return methods;
-    }
 
     private List<MethodDeclaration> extractMethodDeclList() {
         Optional<ClassOrInterfaceDeclaration> ciOptional = this.srcFileAst.getClassByName(getName());
@@ -582,7 +560,48 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
-    public String toString() {
-        return String.format("ParentFqn: %s%nFqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
+
+    public void setMethodCFGs(final Map<String, CFG> pMethodCFGs) {
+        methodCFGs = pMethodCFGs;
+    }
+
+    public Map<String, Integer> getMethodFirstLine() {
+        return methodFirstLine;
+    }
+
+    public Map<String, Integer> getMethodLastLine() {
+        return methodLastLine;
+    }
+
+    public TreeMap<String, List<DefUsePair>> getDefUsePairs() {
+        return defUsePairs;
+    }
+
+    public TreeMap<String, Map<DefUsePair, Boolean>> getDefUsePairsCovered() {
+        return defUsePairsCovered;
+    }
+
+    public Map<String, Set<ProgramVariable>> getVariablesCovered() {
+        return variablesCovered;
+    }
+
+    public Map<String, Set<ProgramVariable>> getVariablesUncovered() {
+        return variablesUncovered;
+    }
+
+    public String getRelativePath() {
+        return relativePath;
+    }
+
+    public Set<InterProceduralMatch> getInterProceduralMatches() {
+        return interProceduralMatches;
+    }
+
+    public Set<ProgramVariable> getFields(){
+        return fields;
+    }
+
+    public Map<Integer, MethodData> getMethods() {
+        return methods;
     }
 }

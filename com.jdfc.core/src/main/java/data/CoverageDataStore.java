@@ -3,6 +3,10 @@ package data;
 import cfg.CFG;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
@@ -35,6 +39,11 @@ public class CoverageDataStore {
         this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new ArrayList<>();
         this.untestedClassList = new ArrayList<>();
+
+        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+        combinedTypeSolver.add(new ReflectionTypeSolver());
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
     }
 
     private static class Container {
@@ -168,6 +177,7 @@ public class CoverageDataStore {
                     String nameWithoutType = f.getName().split("\\.")[0];
                     // Get AST of source file
                     CompilationUnit cu = null;
+                    List<String> nestedTypeList = new ArrayList<>();
                     for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
                         String relSourceFileStr = relativePathWithType.replace(".class", ".java");
                         String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
@@ -175,12 +185,22 @@ public class CoverageDataStore {
                         if (sourceFile.exists()) {
                             try {
                                 cu = StaticJavaParser.parse(sourceFile);
+                                // Find all nested classes, create their JVM internal representation, and
+                                // save the type representation in nestedTypeList
+                                cu.findAll(ClassOrInterfaceDeclaration.class)
+                                        .stream()
+                                        .filter(ClassOrInterfaceDeclaration::isNestedType)
+                                        .forEach(ciDecl -> {
+                                            String cFqn = ciDecl.resolve().getQualifiedName();
+                                            String jvmInternal = JDFCUtils.innerClassFqnToJVMInternal(cFqn);
+                                            nestedTypeList.add(jvmInternal);
+                                        });
                             } catch (FileNotFoundException e) {
                                 throw new RuntimeException(e);
                             }
                         }
                     }
-                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
+                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu, nestedTypeList);
                     if (pExecutionDataNode.isRoot()) {
                         pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                     } else {

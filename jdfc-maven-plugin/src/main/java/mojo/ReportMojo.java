@@ -1,9 +1,5 @@
 package mojo;
 
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
 import data.CoverageDataImport;
 import data.CoverageDataStore;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -12,11 +8,8 @@ import org.apache.maven.reporting.AbstractMavenReport;
 import report.ReportGenerator;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-
 
 @Mojo(name = "create-report", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
 public class ReportMojo extends AbstractMavenReport {
@@ -35,18 +28,31 @@ public class ReportMojo extends AbstractMavenReport {
         final List<String> sourceDirStrList = getProject().getCompileSourceRoots(); // [/home/path/to/project/src,..]
         final String importDir = String.format("%s%sjdfc", buildDirStr, File.separator);
 
-        // TODO: DEBUG
-        try {
-            CompilationUnit cu = StaticJavaParser.parse(new File(String.format("%s/%s", sourceDirStrList.get(0), "com/jdfc/apache/Option.java")));
-            Optional<ClassOrInterfaceDeclaration> cOpt = cu.getClassByName("Option");
-            if (cOpt.isPresent()) {
-                ClassOrInterfaceDeclaration c = cOpt.get();
-                List<MethodDeclaration> m = c.getMethods();
-                m.toString();
-            }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+//        // TODO: DEBUG
+//        try {
+//            CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+//            combinedTypeSolver.add(new ReflectionTypeSolver());
+//            JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+//            StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
+//            CompilationUnit cu = StaticJavaParser.parse(new File(String.format("%s/%s", sourceDirStrList.get(0), "com/jdfc/apache/Option.java")));
+//            List<ClassOrInterfaceDeclaration> test =  cu.findAll(ClassOrInterfaceDeclaration.class);
+//            List<ClassOrInterfaceDeclaration> asdf = test.stream().filter(ClassOrInterfaceDeclaration::isNestedType).collect(Collectors.toList());
+//            asdf.forEach(c -> {
+//                        ResolvedReferenceTypeDeclaration resolvedTypeDeclaration = c.resolve();
+//                        String fqn = resolvedTypeDeclaration.getQualifiedName(); // com.jdfc.apache.Option.Builder
+//                        String jvmInternal = JDFCUtils.innerClassFqnToJVMInternal(fqn); // com/jdfc/apache/Option$Builder
+//                        System.out.println(jvmInternal);
+//
+//                    });
+//            Optional<ClassOrInterfaceDeclaration> cOpt = cu.getClassByName("Option");
+//            if (cOpt.isPresent()) {
+//                ClassOrInterfaceDeclaration c = cOpt.get();
+//                List<MethodDeclaration> m = c.getMethods();
+//                m.toString();
+//            }
+//        } catch (FileNotFoundException e) {
+//            throw new RuntimeException(e);
+//        }
 
         CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, sourceDirStrList);
         CoverageDataImport.loadExecutionData(classesBuildDirStr, importDir);
