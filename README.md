@@ -118,8 +118,85 @@ CoverageTracker {
     currentClassExecutionData: ClassExecutionData                   // We hold this for some reason
     classExecutionDataMap: Map<String, ClassExecutionData>
 }
+
+CoverageDAtaStore {
+    root: ExecutionDataNode<ExecutionData>,
+    testedClassList: List<String>                                   // relativePath
+    untestedClassList: List<String>                                 // relativePath
+    projectDirStr: String                                           // absolute path to project dir
+    buildDirStr: String                                             // abs path to build dir ("default: target")
+    classesBuildDirStr: String                                      // abs path to class build dir ("default: target/classes")
+    srcDirStrList: List<String>                                     // rel path to src dirs of client project
+}
 ```
 
+## I/O
+```
+CoverageDataExport {}                                               // could be combined
+CoverageDataImport {}
+```
+
+## Visitors
+```
+JDFCClassVisitor extends ClassVisitor {
+    classNode: ClassNode                                            // ASM
+    classExecutionDat: ClassExecutionData
+    localVariableTables: Map<String, Map<Integer, LocalVariable>>   // <internalMethodName, <idx, LocalVariable>> (!!)
+    fields: Set<ProgramVariable>                                    // fields of the class
+    jacocoMethodName: String                                        // "$jacoco" to avoid collision (put in util)
+}
+
+JDFCMethodVisitor extends MethodVisitor {
+    classVisitor: JDFCClassVisitor
+    methodNode: MethodNode                                          // ASM
+    localVariableTable: Map<Integer, LocalVariable>                 // local variable table of method
+    internalMethodName: String                                      // internalMethodName (!!)
+    currentNode: AbstractInsnNode                                   // current node under analysis
+    currentInstructionIndex: int                                    // ASM
+    currentLineNumber: int                                          // self-computed (!!)
+    firstLine: int                                                  // delete (!!)
+    classDescriptor: String                                         // self-computed (!!)
+    jacocoPrefix: String                                            // "$jacoco" (put in util)
+}
+
+CFGLocalVariableClassVisitor extends JDFCClassVisitor {
+    logger: Logger
+}
+
+CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {}
+
+CFGNodeClassVisitor extends JDFCClassVisitor {
+    logger: Logger,
+    methodCFGs: Map<String, CFG>                                    // Map<internalMethodName, CFG> (!!) is empty here
+}
+
+CFGNodeMethodVisitor extends JDFCMethodVisitor {
+    logger: Logger,
+    methodCFGs: Map<String, CFG>,                                   // filled in visitEnd (!!)
+    edges: Multimap<Double, Double> edges,                          // (0.0) => [1.0, 2.0], filled in visit end
+    nodes: NavigableMap<Double, CFGNode>,                           // <(0.0), CFGNode>
+    crNodes: Set<Double>,                                           // delete
+}
+
+CFGEdgeAnalysisVisitor extends MethodVisitor {                // This basically a normal ASM MethodVisitor
+    logger: Logger,
+    methodNode: MethodNode,                                         // ASM
+    edges: Multimap<Double, Double>                                 // get computed in visitEnd
+}
+
+InstrumentationClassVisitor extends JDFCClassVisitor {}
+
+InstrumentationMethodVisitor extends JDFCMethodVisitor {}
+
+```
+
+## Analyzers
+```
+CFGEdgeAnalyzer extends Analyzer<SourceValue> {
+    logger: Logger,
+    edges: Multimap<Double, Double>
+}
+```
 
 ## JDFC Program Flow
 **AgentMojo.execute**
