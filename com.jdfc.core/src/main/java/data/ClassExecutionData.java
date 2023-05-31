@@ -9,8 +9,13 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,7 +35,7 @@ public class ClassExecutionData extends ExecutionData {
     private final List<ImportDeclaration> impDeclList;
     private final ClassOrInterfaceDeclaration ciDecl;
 //    private final List<ClassOrInterfaceDeclaration> innerCiDeclList;
-    private final List<String> nestedTypeList;
+    private final Map<String, String> nestedTypeList;
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
@@ -43,7 +48,7 @@ public class ClassExecutionData extends ExecutionData {
     private final Map<Integer, MethodData> methods;
 
     public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst,
-                              List<String> nestedTypeList) {
+                              Map<String, String> nestedTypeList) {
         super(fqn, name);
         relativePath = pRelativePath;
         this.srcFileAst = srcFileAst;
@@ -93,12 +98,49 @@ public class ClassExecutionData extends ExecutionData {
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
             int mAccess = mDecl.getAccessSpecifier().ordinal();
             String mName = mDecl.getName().getIdentifier();
+            Type mRType = mDecl.getType();
+            List<Type> paramList = mDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toList());
+            String jvmDesc = JDFCUtils.toJvmDescriptor(mDecl); // ()LBuilder;
+            String jvmAsmDesc = this.buildJvmAsmDesc(mRType, paramList, jvmDesc); // com/jdfc/apache/Option$Builder
 
-            MethodData mData = new MethodData(mAccess, mName, mDecl);
+            MethodData mData = new MethodData(mAccess, mName, jvmAsmDesc, mDecl);
             methods.put(mData.getBeginLine(), mData);
         }
 
         return methods;
+    }
+
+    private String buildJvmAsmDesc(Type rType, List<Type> pType, String jvmDesc) {
+        List<Type> allTypes = new ArrayList<>(pType);
+        allTypes.add(rType);
+
+        for(Type t : allTypes) {
+            try {
+                ResolvedType resolvedType = t.resolve();
+                if (resolvedType.isReferenceType()) {
+                    Optional<ResolvedReferenceTypeDeclaration> typeDeclaration = resolvedType.asReferenceType().getTypeDeclaration();
+                    if (typeDeclaration.isPresent()) {
+                        ResolvedReferenceTypeDeclaration rrtd = typeDeclaration.get();
+                        if (rrtd.isClass()) {
+                            if(this.nestedTypeList.containsKey(rrtd.getName())) {
+                                // inner or nested class
+                                jvmDesc = jvmDesc.replace(rrtd.getName(), this.nestedTypeList.get(rrtd.getName()));
+                            } else if(rrtd.getName().equals(this.getName())) {
+                                System.out.println("asdf");
+                            } else {
+                                // java native class
+                                String newName = rrtd.getQualifiedName().replace(".", "/");
+                                jvmDesc = jvmDesc.replace(rrtd.getName(), newName);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Exception");
+                // ...
+            }
+        }
+        return jvmDesc;
     }
 
     // New Code
@@ -187,7 +229,7 @@ public class ClassExecutionData extends ExecutionData {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
                             defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
-                            if (!methodCFGsEntry.getKey().equals("<init>: ()V")) {
+                            if (!methodCFGsEntry.getKey().contains("<init>")) {
                                 this.getMethodByInternalName(methodCFGsEntry.getKey()).getPairs().add(new DefUsePair(def, use));
                             } else {
                                 // TODO: "<init>: ()V" is not in methods
@@ -385,14 +427,14 @@ public class ClassExecutionData extends ExecutionData {
 
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
-                    if (!methodName.equals("<init>: ()V")) {
+                    if (!methodName.contains("<init>")) {
                         this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(true);
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
                 } else {
                     defUsePairsCovered.get(methodName).put(pair, false);
-                    if (!methodName.equals("<init>: ()V")) {
+                    if (!methodName.contains("<init>")) {
                         this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(false);
                     } else {
                         // TODO: "<init>: ()V" is not in methods
@@ -406,7 +448,7 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
 
-            if (!methodName.equals("<init>: ()V")) {
+            if (!methodName.contains("<init>")) {
                 this.getMethodByInternalName(methodName).computeCoverage();
             } else {
                 // TODO: "<init>: ()V" is not in methods

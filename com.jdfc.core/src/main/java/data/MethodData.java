@@ -85,15 +85,14 @@ public class MethodData {
     private int endLine;
 
     public String toString() {
-        System.err.println("Hello");
         return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nExceptions: %s%nBegin: %d%nEnd: %d%nParams: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
                 access, name, desc, Arrays.toString(exceptions), beginLine, endLine, JDFCUtils.prettyPrintSet(params), total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
     }
 
-    public MethodData(int access, String name, MethodDeclaration srcAst) {
+    public MethodData(int access, String name, String desc, MethodDeclaration srcAst) {
         this.access = access;
         this.name = name;
-        this.desc = JDFCUtils.toJvmDescriptor(srcAst);
+        this.desc = desc;
         this.exceptions = JDFCUtils.toJvmExceptionDescriptor(srcAst).toArray(new String[0]);
         this.srcAst = srcAst;
         this.beginLine = extractBegin(srcAst);

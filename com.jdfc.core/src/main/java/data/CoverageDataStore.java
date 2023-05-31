@@ -6,6 +6,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,10 +41,6 @@ public class CoverageDataStore {
         this.testedClassList = new ArrayList<>();
         this.untestedClassList = new ArrayList<>();
 
-        CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
-        combinedTypeSolver.add(new ReflectionTypeSolver());
-        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
-        StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
     }
 
     private static class Container {
@@ -176,8 +173,19 @@ public class CoverageDataStore {
                     untestedClassList.add(relativePath);
                     String nameWithoutType = f.getName().split("\\.")[0];
                     // Get AST of source file
+
+                    CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+                    combinedTypeSolver.add(new ReflectionTypeSolver()); // For java standard library types
+                    for(String source : srcDirStrList) {
+                        combinedTypeSolver.add(new JavaParserTypeSolver(new File(source))); // For source code
+                    }
+                    // NOTE: in case libraries are required for the source code add
+                    // combinedTypeSolver.add(new JarTypeSolver("lib/your-library.jar")); // For library types
+
+                    JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+                    StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
                     CompilationUnit cu = null;
-                    List<String> nestedTypeList = new ArrayList<>();
+                    Map<String, String> nestedTypeMap = new HashMap<>();
                     for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
                         String relSourceFileStr = relativePathWithType.replace(".class", ".java");
                         String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
@@ -193,14 +201,14 @@ public class CoverageDataStore {
                                         .forEach(ciDecl -> {
                                             String cFqn = ciDecl.resolve().getQualifiedName();
                                             String jvmInternal = JDFCUtils.innerClassFqnToJVMInternal(cFqn);
-                                            nestedTypeList.add(jvmInternal);
+                                            nestedTypeMap.put(ciDecl.getName().getIdentifier(), jvmInternal);
                                         });
                             } catch (FileNotFoundException e) {
                                 throw new RuntimeException(e);
                             }
                         }
                     }
-                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu, nestedTypeList);
+                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu, nestedTypeMap);
                     if (pExecutionDataNode.isRoot()) {
                         pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                     } else {

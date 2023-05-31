@@ -251,7 +251,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
         // New Code
 
-        if (!internalMethodName.equals("<init>: ()V")) {
+        if (!internalMethodName.contains("<init>")) {
             System.err.println(internalMethodName);
             // TODO: searching for "builder: ()Lcom/jdfc/apache/Option$Builder;"
             //              but list contains "builder: ()LBuilder;"
