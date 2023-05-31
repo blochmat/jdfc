@@ -252,6 +252,11 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         // New Code
 
         if (!internalMethodName.equals("<init>: ()V")) {
+            System.err.println(internalMethodName);
+            // TODO: searching for "builder: ()Lcom/jdfc/apache/Option$Builder;"
+            //              but list contains "builder: ()LBuilder;"
+            // Possible solution: We could take the internalName provided by ASM and search initially by lineNumber and name to find
+            // the correct method declaration
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());

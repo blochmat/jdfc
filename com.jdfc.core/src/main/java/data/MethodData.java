@@ -219,6 +219,7 @@ public class MethodData {
     }
 
     public String buildInternalMethodName() {
+        System.err.println(String.format("DEBUG %s: %s", name, desc));
         return String.format("%s: %s", name, desc);
     }
 

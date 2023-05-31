@@ -1,5 +1,9 @@
 package mojo;
 
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import data.CoverageDataImport;
 import data.CoverageDataStore;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -8,8 +12,10 @@ import org.apache.maven.reporting.AbstractMavenReport;
 import report.ReportGenerator;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 
 @Mojo(name = "create-report", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
@@ -29,11 +35,26 @@ public class ReportMojo extends AbstractMavenReport {
         final List<String> sourceDirStrList = getProject().getCompileSourceRoots(); // [/home/path/to/project/src,..]
         final String importDir = String.format("%s%sjdfc", buildDirStr, File.separator);
 
+        // TODO: DEBUG
+        try {
+            CompilationUnit cu = StaticJavaParser.parse(new File(String.format("%s/%s", sourceDirStrList.get(0), "com/jdfc/apache/Option.java")));
+            Optional<ClassOrInterfaceDeclaration> cOpt = cu.getClassByName("Option");
+            if (cOpt.isPresent()) {
+                ClassOrInterfaceDeclaration c = cOpt.get();
+                List<MethodDeclaration> m = c.getMethods();
+                m.toString();
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
         CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, sourceDirStrList);
         CoverageDataImport.loadExecutionData(classesBuildDirStr, importDir);
 
         final String exportDir = String.format("%s%sjdfc-report", buildDirStr, File.separator);
         final String source = getProject().getBuild().getSourceDirectory();
+
+        // TODO: We could add a check for multiple possible sources
         ReportGenerator reportGenerator = new ReportGenerator(exportDir, source);
         reportGenerator.createReport();
     }

@@ -37,10 +37,7 @@ public class ClassExecutionData extends ExecutionData {
 
     public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
-        System.err.println(fqn);
-        System.err.println(name);
         relativePath = pRelativePath;
-        System.err.println(relativePath);
         this.srcFileAst = srcFileAst;
         this.ciAst = extractClassDeclaration(srcFileAst, name);
         this.methods = extractMethodDeclarations(this.ciAst);
@@ -107,6 +104,7 @@ public class ClassExecutionData extends ExecutionData {
 
     // New Code
     public MethodData getMethodByInternalName(String internalName) {
+        System.err.println("DEBUG "+methods.size());
         for(MethodData mData : methods.values()) {
             if (mData.buildInternalMethodName().equals(internalName)) {
                 return mData;

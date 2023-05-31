@@ -280,5 +280,60 @@ NOTE: Classes with tests get loaded by class loader
         - add local variable to variablesCovered in class by internalMethodName (!!)
 
 **Shutdown hook**
+- CoverageDataStore.dumpClassExecutionDataToFile (XML)
+    - dump interProceduralMatches
+    - dump method
+        - first line
+        - last line
+        - internalMethodName (!!)
+        - def use pairs (for both)
+            - instructionIndex
+            - isDefinition
+            - lineNumber (!!)
+            - name
+            - owner (which is basically the ASM class descriptor)
+            - type (ASM descriptor)
+        - variables covered
+            - descriptor (ASM descriptor)
+            - instructionIndex
+            - isDefinition
+            - line number (!!)
+            - name
+            - owner (ASM class descriptor)
 
+**ReportMojo.execute**
+- CoverageDataStore: save project info (all relevant dirs)
+- CoverageDataImport.loadExecutionData
+    - CoverageDataStore: load .class files into tree structure
+        - load CompilationUnit, basic setup of class and method ast
+    - load xml files (only exists for tested classes)
+    - for each xml setup classExecutionDatat
+        - load classExecutionData interProceduralMatches (delete)
+        - load classExecutionData variablesCovered
+        - load classExecutionData.get(internalMethodName).defUsePairs (!!)
+        - setup classExecutionData.get(internalMethodName).defUsePairsCovered (!!)
+        - if vars covered not empty the class is counted as tested (special case that there exist test, but none executes any var)
+        - compute coverage for class
+        - set data in node
+        - aggregate data to root
+    - for untested classes run JDFCInstrument.instrument again (!!)
+        - do all the same as for tested afterwards
+        - additionally dump the data to file to be available for the report
 
+**ReportGenerate.createReport**
+- createPackageRelatedHTMLFilesRecursive
+    - if class
+        - createClassOverview
+        - createClassSourceView (!!)
+            - createClassSourceView
+                - createSourceCode
+                    - everything here is done by source line numbers
+                    - finalizeLineText
+                        - here we find method by internalMethodName (!!)
+                        - check if var is covered by internalMethodName (!!) (because it is the key of all the used maps)
+                        - remove vars from covered and uncovered
+                        - createVariableInformation
+                            - create background etc.
+                            - createVariableTooltipContent
+                                - createAssociatedVariablesTable
+                                    - check if associated var is covered by internalMethodName (!!)

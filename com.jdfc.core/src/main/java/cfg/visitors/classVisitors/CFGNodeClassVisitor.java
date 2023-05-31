@@ -15,8 +15,8 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,7 +31,6 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
                                final Set<ProgramVariable> fields,
                                final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(Opcodes.ASM5, pClassNode, pClassExecutionData, fields, pLocalVariableTables);
-        logger.debug(String.format("Visiting %s", pClassNode.name));
         methodCFGs = pMethodCFGs;
     }
 
@@ -50,27 +49,14 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
             mv = null;
         }
 
-        if(classNode.access != Opcodes.ACC_INTERFACE) {
+        if(classNode.access != Opcodes.ACC_INTERFACE && !JDFCUtils.isInnerClass(classNode.name)) {
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
             final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-            // TODO: should also go into MethodData
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
-
-            System.err.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            System.err.println(Opcodes.ACC_INTERFACE);
-            System.err.println(pName);
-            System.err.println(pDescriptor);
-            System.err.println(pSignature);
-            System.err.println(Arrays.toString(pExceptions));
 
             // New Code
             MethodData mData = this.classExecutionData.getMethodByName(pName);
-            if(mData != null) {
-                System.err.println(mData);
-            }
-            System.err.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
 
-            // TODO: Do something with fields here
             if (methodNode != null && isInstrumentationRequired(pName)) {
                 return new CFGNodeMethodVisitor(this, mv, methodNode,
                         internalMethodName, methodCFGs, localVariableTable);
@@ -88,8 +74,10 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
             super.visitEnd();
         }
 
-//        propagateInterProceduralInformation(methodCFGs);
-        CoverageDataStore.getInstance().finishClassExecutionDataSetup(classExecutionData, methodCFGs);
+//        propagateInterProceduralInformation(methodCFGs)
+        if(classNode.access != Opcodes.ACC_INTERFACE && !JDFCUtils.isInnerClass(classNode.name)) {
+            CoverageDataStore.getInstance().finishClassExecutionDataSetup(classExecutionData, methodCFGs);
+        }
     }
 
 //    private void propagateInterProceduralInformation(Map<String, ICFG> pMethodCFGs) {

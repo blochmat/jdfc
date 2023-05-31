@@ -69,7 +69,6 @@ public class CFGCreator {
         logger.debug(JDFCUtils.prettyPrintSet(fields));
         logger.debug(JDFCUtils.prettyPrintMap(localVariableTables));
 
-        // Create method CFGs with entry, exit, call, return nodes
         final Map<String, CFG> methodICFGs = new HashMap<>();
         final CFGNodeClassVisitor CFGNodeClassVisitor =
                 new CFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, fields, localVariableTables);

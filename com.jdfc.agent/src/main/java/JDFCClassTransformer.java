@@ -22,7 +22,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
         if (!CoverageDataStore.getInstance().getUntestedClassList().contains(className)) {
             return classfileBuffer;
         }
-        logger.debug("transform");
+        logger.debug("Transform: " + className);
         final ClassReader cr = new ClassReader(classfileBuffer);
         return JDFCInstrument.instrument(cr);
     }
