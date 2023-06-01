@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.FileHelper;
 import utils.JDFCUtils;
-import utils.JavaPaserHelper;
+import utils.JavaParserHelper;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -147,7 +147,7 @@ public class CoverageDataStore {
                                          ExecutionDataNode<ExecutionData> pExecutionDataNode,
                                          Path pBaseDir,
                                          String suffix) {
-        JavaPaserHelper javaPaserHelper = new JavaPaserHelper();
+        JavaParserHelper javaParserHelper = new JavaParserHelper();
         FileHelper fileHelper = new FileHelper();
 
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
@@ -178,7 +178,7 @@ public class CoverageDataStore {
                         File sourceFile = new File(sourceFileStr);
                         if (sourceFile.exists()) {
                             try {
-                                CompilationUnit cu = javaPaserHelper.parse(sourceFile);
+                                CompilationUnit cu = javaParserHelper.parse(sourceFile);
                                 ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
                                 if (pExecutionDataNode.isRoot()) {
                                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);

@@ -18,7 +18,7 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
-import utils.JavaPaserHelper;
+import utils.JavaParserHelper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -117,17 +117,18 @@ public class ClassExecutionData extends ExecutionData {
     private Map<Integer, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
         Map<Integer, MethodData> methods = new HashMap<>();
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
-            JavaPaserHelper javaPaserHelper = new JavaPaserHelper();
+            JavaParserHelper javaParserHelper = new JavaParserHelper();
             Set<Type> types = new HashSet<>();
             // Add return, param and exception types
             types.add(mDecl.getType());
             types.addAll(mDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet()));
             types.addAll(mDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet()));
             // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
-            String jvmDesc = javaPaserHelper.toJvmDescriptor(mDecl);
+            String jvmDesc = javaParserHelper.toJvmDescriptor(mDecl);
             // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
             Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
-            String jvmAsmDesc = javaPaserHelper.buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc);
+            String jvmAsmDesc = javaParserHelper.buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc, new HashSet<>(),
+                    new HashSet<>());
 
             int mAccess = mDecl.getAccessSpecifier().ordinal();
             String mName = mDecl.getName().getIdentifier();
@@ -265,7 +266,7 @@ public class ClassExecutionData extends ExecutionData {
                     for (ProgramVariable use : node.getUses()) {
                         if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
                             defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
-                            if (!methodCFGsEntry.getKey().contains("<init>")) {
+                            if (!methodCFGsEntry.getKey().contains("<init>") && !methodCFGsEntry.getKey().contains("<clinit>")) {
                                 this.getMethodByInternalName(methodCFGsEntry.getKey()).getPairs().add(new DefUsePair(def, use));
                             } else {
                                 // TODO: "<init>: ()V" is not in methods
@@ -463,14 +464,14 @@ public class ClassExecutionData extends ExecutionData {
 
                 if (isDefCovered && isUseCovered) {
                     defUsePairsCovered.get(methodName).put(pair, true);
-                    if (!methodName.contains("<init>")) {
+                    if (!methodName.contains("<init>") && !methodName.contains("<clinit>")) {
                         this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(true);
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
                 } else {
                     defUsePairsCovered.get(methodName).put(pair, false);
-                    if (!methodName.contains("<init>")) {
+                    if (!methodName.contains("<init>") && !methodName.contains("<clinit>")) {
                         this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(false);
                     } else {
                         // TODO: "<init>: ()V" is not in methods
@@ -484,7 +485,7 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
 
-            if (!methodName.contains("<init>")) {
+            if (!methodName.contains("<init>") && !methodName.contains("<clinit>")) {
                 this.getMethodByInternalName(methodName).computeCoverage();
             } else {
                 // TODO: "<init>: ()V" is not in methods

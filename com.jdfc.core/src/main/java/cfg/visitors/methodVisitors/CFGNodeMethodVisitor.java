@@ -253,10 +253,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         System.out.printf("%s: %d%n", internalMethodName, firstLine);
         // New Code
 
-        if (!internalMethodName.contains("<init>")) {
+        if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
             System.err.println(internalMethodName);
-            // TODO: searching for "getValuesList: ()Ljava/util/List<Ljava/lang/String;>;"
-            //   but list contains "getValuesList: ()LList<String>;"
+            // TODO: searching for "getOptionComparator: ()Ljava/util/Comparator<Lcom/jdfc/apache/Option;>;"
+            //   but list contains "getOptionComparator: ()Ljava/util/Comparator<<Lcom/jdfc/apache/Option;>;"
             // Possible solution: We could take the internalName provided by ASM and search initially by lineNumber and name to find
             // the correct method declaration
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
