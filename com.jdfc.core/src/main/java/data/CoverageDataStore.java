@@ -23,7 +23,6 @@ import java.util.Objects;
  */
 public class CoverageDataStore {
     private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
-
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> testedClassList;
     private final List<String> untestedClassList;
@@ -33,7 +32,6 @@ public class CoverageDataStore {
     private List<String> srcDirStrList;
 
     private CoverageDataStore() {
-        // TODO: Maybe add src/main/java here somehow
         ExecutionData executionData = new ExecutionData("", "");
         this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new ArrayList<>();
@@ -81,10 +79,11 @@ public class CoverageDataStore {
                                 String buildDirStr,
                                 String classesBuildDirStr,
                                 List<String> srcDirStrList) {
-       this.projectDirStr = projectDirStr;
-       this.buildDirStr = buildDirStr;
-       this.classesBuildDirStr = classesBuildDirStr;
-       this.srcDirStrList = srcDirStrList;
+        logger.debug("saveProjectInfo");
+        this.projectDirStr = projectDirStr;
+        this.buildDirStr = buildDirStr;
+        this.classesBuildDirStr = classesBuildDirStr;
+        this.srcDirStrList = srcDirStrList;
     }
 
     public static void invokeCoverageTracker(final String pClassName,
@@ -98,6 +97,7 @@ public class CoverageDataStore {
     }
 
     public void exportCoverageData() {
+        logger.debug("exportCoverageData");
         // TODO: Insert export method call here
         try {
             CoverageDataExport.dumpCoverageDataToFile();
@@ -125,6 +125,7 @@ public class CoverageDataStore {
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
+        logger.debug("findClassDataNode");
         ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.replace(File.separator, "/").split("/")));
 
         // root path
@@ -139,6 +140,7 @@ public class CoverageDataStore {
                                          ExecutionDataNode<ExecutionData> pExecutionDataNode,
                                          Path pBaseDir,
                                          String suffix) {
+        logger.debug("addNodesFromDirRecursive");
         JavaParserHelper javaParserHelper = new JavaParserHelper();
         FileHelper fileHelper = new FileHelper();
 
@@ -188,6 +190,7 @@ public class CoverageDataStore {
     }
 
     private String createFqn(ExecutionDataNode<ExecutionData> node, String childName) {
+        logger.debug("createFqn");
         if (node.isRoot()) {
             return childName;
         } else {

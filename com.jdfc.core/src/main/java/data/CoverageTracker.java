@@ -1,6 +1,8 @@
 package data;
 
 import cfg.data.LocalVariable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +11,7 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class CoverageTracker {
 
+    private static final Logger logger = LoggerFactory.getLogger(CoverageTracker.class);
     private static CoverageTracker singleton;
     private ClassExecutionData currentClassExecutionData = null;
     private final Map<String, ClassExecutionData> classExecutionDataMap = new HashMap<>();
@@ -26,9 +29,8 @@ public class CoverageTracker {
                                         final int pInsnIndex,
                                         final int pLineNumber,
                                         final int pOpcode) {
-        String info = String.format("COVERED %s %s %s", pClassName, pInternalMethodName, pLineNumber);
-        updateClassExecutionData(pClassName);
-        boolean isDefinition = isDefinition(pOpcode);
+        logger.debug("addLocalVarCoveredEntry");
+        this.updateClassExecutionData(pClassName);
         LocalVariable localVariable = currentClassExecutionData.findLocalVariable(pInternalMethodName, pVarIndex);
 
         // add to testedClassList, remove from untestedClassList
@@ -36,13 +38,14 @@ public class CoverageTracker {
         CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
 
         if (localVariable != null) {
-            ProgramVariable programVariable =
-                    ProgramVariable.create(null, localVariable.getName(), localVariable.getDescriptor(), pInsnIndex, pLineNumber, isDefinition);
-            addCoveredEntry(pInternalMethodName, currentClassExecutionData, programVariable);
+            ProgramVariable programVariable = ProgramVariable.create(null, localVariable.getName(),
+                    localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode));
+            currentClassExecutionData.getMethodByInternalName(pInternalMethodName).getCoveredVars().add(programVariable);
         }
     }
 
     private void updateClassExecutionData(final String pClassName) {
+        logger.debug("updateClassExecutionData");
         if (currentClassExecutionData == null || !currentClassExecutionData.getRelativePath().equals(pClassName)) {
             if(classExecutionDataMap.containsKey(pClassName)) {
                 currentClassExecutionData = classExecutionDataMap.get(pClassName);
@@ -53,15 +56,8 @@ public class CoverageTracker {
         }
     }
 
-    private static void addCoveredEntry(final String internalMethodName,
-                                        final ClassExecutionData classExecutionData,
-                                        final ProgramVariable programVariable) {
-        if (programVariable != null) {
-            classExecutionData.getMethodByInternalName(internalMethodName).getCoveredVars().add(programVariable);
-        }
-    }
-
-    static boolean isDefinition(final int pOpcode) {
+    private boolean isDefinition(final int pOpcode) {
+        logger.debug("isDefinition");
         switch (pOpcode) {
             case ISTORE:
             case LSTORE:

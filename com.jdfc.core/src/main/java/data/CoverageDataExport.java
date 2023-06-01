@@ -32,6 +32,7 @@ public class CoverageDataExport {
     }
 
     public static void dumpCoverageDataToFile() throws ParserConfigurationException, TransformerException {
+        logger.debug("dumpCoverageDataToFile");
         // Create JDFC directory
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
         File JDFCDir = new File(outPath);
@@ -172,6 +173,7 @@ public class CoverageDataExport {
     }
 
     public static Set<ExecutionData> treeToSetRecursive(ExecutionDataNode<ExecutionData> node) {
+        logger.debug("treeToSetRecursive");
         Set<ExecutionData> result = new HashSet<>();
         if (node.isRoot() || node.isLeaf() || node.containsLeafs()) {
             ExecutionData data = node.getData();
@@ -185,6 +187,7 @@ public class CoverageDataExport {
     }
 
     private static void analyseUntestedClasses() {
+        logger.debug("analyseUntestedClasses");
         List<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
@@ -217,6 +220,7 @@ public class CoverageDataExport {
      * @throws TransformerException Occurs in case of failing to transform the built file into xml
      */
     public static void dumpClassExecutionDataToFile(final ClassExecutionData pClassExecutionData) throws ParserConfigurationException, TransformerException {
+        logger.debug("dumpClassExecutionDataToFile");
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
         File JDFCDir = new File(outPath);
         if (!JDFCDir.exists()) {
@@ -258,6 +262,7 @@ public class CoverageDataExport {
     }
 
     private static Element createInterProceduralMatchList(Document pDoc, Set<InterProceduralMatch> pParameterMatches) {
+        logger.debug("createInterProceduralMatchList");
         Element interProceduralMatches = pDoc.createElement("interProceduralMatchList");
         for(InterProceduralMatch element : pParameterMatches) {
             Element match = pDoc.createElement("match");
@@ -278,6 +283,7 @@ public class CoverageDataExport {
                                         Integer pMethodLastLine,
                                         Set<DefUsePair> pDefUsePairs,
                                         Set<ProgramVariable> pDefUseCovered) {
+        logger.debug("createMethod");
         Element methodTag = pDoc.createElement("method");
         methodTag.setAttribute("name", pMethodName);
         methodTag.setAttribute("firstLine", String.valueOf(pMethodFirstLine));
@@ -290,6 +296,7 @@ public class CoverageDataExport {
     }
 
     private static Element createDefUsePairs(Document pDoc, Set<DefUsePair> pDefUsePairList) {
+        logger.debug("createDefUsePairs");
         Element defUsePairList = pDoc.createElement("defUsePairList");
         for (DefUsePair element : pDefUsePairList) {
             Element defUsePair = pDoc.createElement("defUsePair");
@@ -313,6 +320,7 @@ public class CoverageDataExport {
     }
 
     private static Element createVariablesCovered(Document pDoc, Set<ProgramVariable> pProgramVarsCovered) {
+        logger.debug("createVariablesCovered");
         Element variablesCoveredList = pDoc.createElement("variablesCoveredList");
         for (ProgramVariable element : pProgramVarsCovered) {
             Element programVariableTag = createProgramVariable(pDoc, element);
@@ -322,6 +330,7 @@ public class CoverageDataExport {
     }
 
     private static Element createProgramVariable(Document pDoc, ProgramVariable pProgramVariable) {
+        logger.debug("createProgramVariable");
         Element programVariable = pDoc.createElement("programVariable");
         programVariable.setAttribute("owner", pProgramVariable.getOwner());
         programVariable.setAttribute("name", pProgramVariable.getName());
