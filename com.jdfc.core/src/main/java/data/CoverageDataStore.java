@@ -164,7 +164,7 @@ public class CoverageDataStore {
                 addNodesFromDirRecursive(f, newPkgExecutionDataNode, pBaseDir, suffix);
             } else if (f.isFile() && f.getName().endsWith(suffix)) {
                 // Do not handle anonymous inner files
-                if(!JDFCUtils.isInnerClass(f.getName()) && !JDFCUtils.isAnonymousInnerClass(f.getName())) {
+                if(!JDFCUtils.isNestedClass(f.getName()) && !JDFCUtils.isAnonymousInnerClass(f.getName())) {
                     String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
                     String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
                     // Add className to classList of storage. Thereby we determine, if class needs to be instrumented

@@ -1,13 +1,11 @@
 package cfg.visitors.classVisitors;
 
 import cfg.CFG;
-import cfg.CFGCreator;
 import cfg.data.LocalVariable;
 import cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
 import data.ClassExecutionData;
 import data.CoverageDataStore;
 import data.MethodData;
-import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -15,22 +13,24 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Map;
-import java.util.Set;
 
 public class CFGNodeClassVisitor extends JDFCClassVisitor {
 
     private final Logger logger = LoggerFactory.getLogger(CFGNodeClassVisitor.class);
+
+    private final ASMHelper asmHelper = new ASMHelper();
+
     private final Map<String, CFG> methodCFGs;
 
     public CFGNodeClassVisitor(final ClassNode pClassNode,
                                final ClassExecutionData pClassExecutionData,
                                final Map<String, CFG> pMethodCFGs,
-                               final Set<ProgramVariable> fields,
                                final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
-        super(Opcodes.ASM5, pClassNode, pClassExecutionData, fields, pLocalVariableTables);
+        super(Opcodes.ASM5, pClassNode, pClassExecutionData, pLocalVariableTables);
         methodCFGs = pMethodCFGs;
     }
 
@@ -49,9 +49,9 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
             mv = null;
         }
 
-        if(classNode.access != Opcodes.ACC_INTERFACE && !JDFCUtils.isInnerClass(classNode.name)) {
+        if(classNode.access != Opcodes.ACC_INTERFACE && !JDFCUtils.isNestedClass(classNode.name)) {
             final MethodNode methodNode = getMethodNode(pName, pDescriptor);
-            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             final Map<Integer, LocalVariable> localVariableTable = localVariableTables.get(internalMethodName);
 
             // New Code
@@ -73,9 +73,8 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
         } else {
             super.visitEnd();
         }
-
 //        propagateInterProceduralInformation(methodCFGs)
-        if(classNode.access != Opcodes.ACC_INTERFACE && !JDFCUtils.isInnerClass(classNode.name)) {
+        if(classNode.access != Opcodes.ACC_INTERFACE && !JDFCUtils.isNestedClass(classNode.name)) {
             CoverageDataStore.getInstance().finishClassExecutionDataSetup(classExecutionData, methodCFGs);
         }
     }

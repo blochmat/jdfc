@@ -1,8 +1,7 @@
 package instr.classVisitors;
 
-import data.ClassExecutionData;
 import cfg.data.LocalVariable;
-import data.ProgramVariable;
+import data.ClassExecutionData;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -10,16 +9,13 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public abstract class JDFCClassVisitor extends ClassVisitor {
 
     public final ClassNode classNode;
     public final ClassExecutionData classExecutionData;
     public final Map<String, Map<Integer, LocalVariable>> localVariableTables;
-    public final Set<ProgramVariable> fields;
     public final String jacocoMethodName = "$jacoco";
 
     public JDFCClassVisitor(final int pApi,
@@ -29,7 +25,6 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
         localVariableTables = new HashMap<>();
-        fields = new HashSet<>();
     }
 
     public JDFCClassVisitor(final int pApi,
@@ -40,19 +35,16 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
         localVariableTables = new HashMap<>();
-        fields = new HashSet<>();
     }
 
     public JDFCClassVisitor(final int pApi,
                             final ClassNode pClassNode,
                             final ClassExecutionData pClassExecutionData,
-                            final Set<ProgramVariable> fields,
                             final Map<String, Map<Integer, LocalVariable>> pLocalVariableTables) {
         super(pApi);
         classNode = pClassNode;
         classExecutionData = pClassExecutionData;
         localVariableTables = pLocalVariableTables;
-        this.fields = fields;
     }
 
     @Override
@@ -100,10 +92,6 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
 
     public ClassNode getClassNode() {
         return classNode;
-    }
-
-    public Set<ProgramVariable> getFields() {
-        return fields;
     }
 
     /**

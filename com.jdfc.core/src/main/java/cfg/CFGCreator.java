@@ -1,18 +1,16 @@
 package cfg;
 
+import cfg.data.LocalVariable;
 import cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
 import cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
-import cfg.data.LocalVariable;
 import data.ProgramVariable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utils.JDFCUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +56,7 @@ public class CFGCreator {
         Preconditions.checkNotNull(pClassExecutionData,
                 "We need a non-null class execution data to generate CFGs from.");
 
-        // Get local variable information
+        // Get local variable information for all methods in the class
         final CFGLocalVariableClassVisitor localVariableVisitor = new CFGLocalVariableClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(localVariableVisitor, 0);
 
@@ -66,14 +64,14 @@ public class CFGCreator {
         final Map<String, Map<Integer, LocalVariable>> localVariableTables =
                 localVariableVisitor.getLocalVariableTables();
 
-        logger.debug(JDFCUtils.prettyPrintSet(fields));
-        logger.debug(JDFCUtils.prettyPrintMap(localVariableTables));
-
         final Map<String, CFG> methodICFGs = new HashMap<>();
+
+        // Build CFG for all methods in the class
         final CFGNodeClassVisitor CFGNodeClassVisitor =
-                new CFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, fields, localVariableTables);
+                new CFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, localVariableTables);
         pClassReader.accept(CFGNodeClassVisitor, 0);
-        logger.debug(JDFCUtils.prettyPrintMap(methodICFGs));
+
+
         logger.debug("CFG CREATION DONE");
 
 //        // TODO: Connect ICFGS
@@ -133,43 +131,5 @@ public class CFGCreator {
 //            }
 //
 //        }
-    }
-
-    /**
-     * Computes the internal method name representation that is used, for example, in the map emitted
-     * by {@link CFGCreator#createICFGsForClass(ClassReader, ClassNode, ClassExecutionData)}.
-     *
-     * @param pMethodName The name of the method
-     * @param pDescriptor The method's descriptor
-     * @param pSignature  The method's signature
-     * @param pExceptions An array of exceptions thrown by the method
-     * @return The internal method name representation
-     */
-    public static String computeInternalMethodName(
-            final String pMethodName,
-            final String pDescriptor,
-            final String pSignature,
-            final String[] pExceptions) {
-        logger.debug("computeInternalMethodName");
-        final StringBuilder result = new StringBuilder();
-        result.append(pMethodName);
-        result.append(": ");
-
-        if (pSignature != null) {
-            result.append(pSignature);
-            if (!pSignature.endsWith(";")){
-                result.append(";");
-            }
-        } else {
-            result.append(pDescriptor);
-            if(!pDescriptor.endsWith(";")) {
-                result.append(";");
-            }
-        }
-
-        if (pExceptions != null && pExceptions.length != 0) {
-            result.append(" ").append(Arrays.toString(pExceptions));
-        }
-        return result.toString();
     }
 }

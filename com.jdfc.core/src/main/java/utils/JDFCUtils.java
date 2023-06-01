@@ -357,7 +357,7 @@ public class JDFCUtils {
         }
     }
 
-    public static boolean isInnerClass(String name) {
+    public static boolean isNestedClass(String name) {
         return name.contains("$");
     }
 

@@ -2,7 +2,6 @@ package cfg.visitors.classVisitors;
 
 import cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import data.ClassExecutionData;
-import cfg.CFGCreator;
 import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -12,7 +11,11 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.ASMHelper;
 import utils.JDFCUtils;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -26,8 +29,17 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     private final Logger logger = LoggerFactory.getLogger(CFGLocalVariableClassVisitor.class);
 
+    private final ASMHelper asmHelper = new ASMHelper();
+
+    private final Set<ProgramVariable> fields;
+
     public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassNode, pClassExecutionData);
+        fields = new HashSet<>();
+    }
+
+    public Set<ProgramVariable> getFields() {
+        return fields;
     }
 
     /**
@@ -45,7 +57,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
             final String signature,
             final Object value) {
         final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
-        this.getFields().add(
+        this.fields.add(
                 ProgramVariable.create(this.getClassNode().name,
                         name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false));
         logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getASMAccessStr(access), descriptor, name, value));
@@ -63,7 +75,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
                                      final String[] pExceptions) {
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         final MethodNode methodNode = getMethodNode(pName, pDescriptor);
-        final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+        final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (methodNode != null && isInstrumentationRequired(pName)) {
             return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);

@@ -1,7 +1,6 @@
 package cfg.visitors.methodVisitors;
 
 import cfg.CFG;
-import cfg.CFGCreator;
 import cfg.CFGImpl;
 import cfg.data.LocalVariable;
 import cfg.nodes.CFGNode;
@@ -155,16 +154,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
             nodes.put((double) currentInstructionIndex, node);
 //        }
-    }
-
-    private String computeInternalMethodName(String name, String descriptor) {
-        logger.debug("computeInternalMethodName");
-        for (MethodNode node : classVisitor.classNode.methods) {
-            if (node.name.equals(name) && node.desc.equals(descriptor)) {
-                return CFGCreator.computeInternalMethodName(node.name, node.desc, node.signature, node.exceptions.toArray(new String[0]));
-            }
-        }
-        return null;
     }
 
     @Override

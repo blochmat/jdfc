@@ -1,16 +1,22 @@
 package instr.classVisitors;
 
 import data.ClassExecutionData;
-import cfg.CFGCreator;
 import instr.methodVisitors.InstrumentationMethodVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import utils.ASMHelper;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
 public class InstrumentationClassVisitor extends JDFCClassVisitor {
+
+    private final Logger logger = LoggerFactory.getLogger(InstrumentationClassVisitor.class);
+
+    private final ASMHelper asmHelper = new ASMHelper();
 
     public InstrumentationClassVisitor(final ClassVisitor pClassVisitor,
                                        final ClassNode pClassNode,
@@ -27,7 +33,7 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         if (isInstrumentationRequired(pName)) {
             MethodNode methodNode = getMethodNode(pName, pDescriptor);
-            final String internalMethodName = CFGCreator.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+            final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName);
         }
 
