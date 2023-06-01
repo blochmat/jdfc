@@ -249,10 +249,12 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         methodCFGs.put(internalMethodName, cfg);
         classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
         classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
+
+        System.out.printf("%s: %d%n", internalMethodName, firstLine);
         // New Code
 
         if (!internalMethodName.contains("<init>")) {
-//            System.err.println(internalMethodName);
+            System.err.println(internalMethodName);
             // TODO: searching for "getValuesList: ()Ljava/util/List<Ljava/lang/String;>;"
             //   but list contains "getValuesList: ()LList<String>;"
             // Possible solution: We could take the internalName provided by ASM and search initially by lineNumber and name to find
@@ -260,8 +262,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
-//            System.err.println("PARAMS");
-//            System.err.println(JDFCUtils.prettyPrintSet(mData.getParams()));
+            System.err.println("PARAMS");
+            System.err.println(JDFCUtils.prettyPrintSet(mData.getParams()));
         } else {
             // TODO: <init>: ()V is not in methods
         }

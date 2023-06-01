@@ -1,16 +1,13 @@
 package data;
 
 import cfg.CFG;
-import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.FileHelper;
 import utils.JDFCUtils;
+import utils.JavaPaserHelper;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -151,20 +148,22 @@ public class CoverageDataStore {
                                          ExecutionDataNode<ExecutionData> pExecutionDataNode,
                                          Path pBaseDir,
                                          String suffix) {
+        JavaPaserHelper javaPaserHelper = new JavaPaserHelper();
+        FileHelper fileHelper = new FileHelper();
+
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
-        boolean isClassDir = Arrays.stream(fileList).anyMatch(x -> x.getName().contains(suffix));
-        if (pExecutionDataNode.isRoot() && isClassDir) {
+        boolean containsClasses = fileHelper.filesWithSuffixPresentIn(fileList, suffix);
+        if (pExecutionDataNode.isRoot() && containsClasses) {
             pExecutionDataNode.addChild("default", this.root.getData());
         }
         for (File f : fileList) {
             String fqn = createFqn(pExecutionDataNode, f.getName());
-            if (f.isDirectory() && !f.getName().equals("META-INF")) {
+            if (f.isDirectory() && !fileHelper.isMetaInfFile(f)) {
                 ExecutionData pkgData = new ExecutionData(fqn, f.getName());
                 ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);
                 pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
                 addNodesFromDirRecursive(f, newPkgExecutionDataNode, pBaseDir, suffix);
             } else if (f.isFile() && f.getName().endsWith(suffix)) {
-
                 // Do not handle anonymous inner files
                 if(!JDFCUtils.isInnerClass(f.getName()) && !JDFCUtils.isAnonymousInnerClass(f.getName())) {
                     String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
@@ -180,18 +179,8 @@ public class CoverageDataStore {
                         String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
                         File sourceFile = new File(sourceFileStr);
                         if (sourceFile.exists()) {
-                            CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
-                            combinedTypeSolver.add(new ReflectionTypeSolver()); // For java standard library types
-                            for(String source : srcDirStrList) {
-                                combinedTypeSolver.add(new JavaParserTypeSolver(new File(source))); // For source code
-                            }
-                            // NOTE: in case libraries are required for the source code add
-                            // combinedTypeSolver.add(new JarTypeSolver("lib/your-library.jar")); // For library types
-
-                            JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
-                            StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
                             try {
-                                cu = StaticJavaParser.parse(sourceFile);
+                                cu = javaPaserHelper.parse(sourceFile);
                                 // Find all nested classes, create their JVM internal representation, and
                                 // save the type representation in nestedTypeList
                                 cu.findAll(ClassOrInterfaceDeclaration.class)
@@ -202,16 +191,16 @@ public class CoverageDataStore {
                                             String jvmInternal = JDFCUtils.innerClassFqnToJVMInternal(cFqn);
                                             nestedTypeMap.put(ciDecl.getName().getIdentifier(), jvmInternal);
                                         });
+                                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu, nestedTypeMap);
+                                if (pExecutionDataNode.isRoot()) {
+                                    pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
+                                } else {
+                                    pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                                }
                             } catch (FileNotFoundException e) {
                                 throw new RuntimeException(e);
                             }
                         }
-                    }
-                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu, nestedTypeMap);
-                    if (pExecutionDataNode.isRoot()) {
-                        pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
-                    } else {
-                        pExecutionDataNode.addChild(nameWithoutType, classNodeData);
                     }
                 }
             }
