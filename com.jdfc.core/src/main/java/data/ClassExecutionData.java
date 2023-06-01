@@ -111,16 +111,9 @@ public class ClassExecutionData extends ExecutionData {
             // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
             String jvmDesc = JDFCUtils.toJvmDescriptor(mDecl);
 
-            if (jvmDesc.equals("()[LString;")) {
-                System.out.println("FOUND");
-            }
             // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
             Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
             String jvmAsmDesc = this.buildJvmAsmDesc(resolvedTypes, jvmDesc);
-
-            if (jvmDesc.equals("()[LString;")) {
-                System.out.println("FOUND");
-            }
 
             MethodData mData = new MethodData(mAccess, mName, jvmAsmDesc, mDecl);
             methods.put(mData.getBeginLine(), mData);
@@ -130,6 +123,10 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     private String buildJvmAsmDesc(Set<ResolvedType> resolvedTypes, String jvmDesc) {
+        if (jvmDesc.contains("()LList")) {
+            System.out.println("FOUND");
+        }
+
         for(ResolvedType resolvedType : resolvedTypes) {
             try {
                 if (resolvedType.isReferenceType()) {
@@ -145,6 +142,8 @@ public class ClassExecutionData extends ExecutionData {
                                 String newName = rrtd.getQualifiedName().replace(".", "/");
                                 jvmDesc = jvmDesc.replace(rrtd.getName(), newName);
                             }
+                        } else {
+                            System.out.println("HEH");
                         }
                     }
                 } else if (resolvedType.isArray()) {

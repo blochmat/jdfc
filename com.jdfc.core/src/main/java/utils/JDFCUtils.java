@@ -381,8 +381,6 @@ public class JDFCUtils {
             descriptor.append(";");
         }
 
-        // TODO: Descriptor missing
-
         // Exception Types
         List<String> exceptionDescriptors = new ArrayList<>();
         for (ReferenceType exception : method.getThrownExceptions()) {

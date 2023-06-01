@@ -252,16 +252,16 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         // New Code
 
         if (!internalMethodName.contains("<init>")) {
-            System.err.println(internalMethodName);
-            // TODO: searching for "getValuesList: ()Ljava/util/List; ()Ljava/util/List<Ljava/lang/String;>;;"
+//            System.err.println(internalMethodName);
+            // TODO: searching for "getValuesList: ()Ljava/util/List<Ljava/lang/String;>;"
             //   but list contains "getValuesList: ()LList<String>;"
             // Possible solution: We could take the internalName provided by ASM and search initially by lineNumber and name to find
             // the correct method declaration
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
-            System.err.println("PARAMS");
-            System.err.println(JDFCUtils.prettyPrintSet(mData.getParams()));
+//            System.err.println("PARAMS");
+//            System.err.println(JDFCUtils.prettyPrintSet(mData.getParams()));
         } else {
             // TODO: <init>: ()V is not in methods
         }

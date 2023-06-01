@@ -173,17 +173,6 @@ public class CoverageDataStore {
                     untestedClassList.add(relativePath);
                     String nameWithoutType = f.getName().split("\\.")[0];
                     // Get AST of source file
-
-                    CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
-                    combinedTypeSolver.add(new ReflectionTypeSolver()); // For java standard library types
-                    for(String source : srcDirStrList) {
-                        combinedTypeSolver.add(new JavaParserTypeSolver(new File(source))); // For source code
-                    }
-                    // NOTE: in case libraries are required for the source code add
-                    // combinedTypeSolver.add(new JarTypeSolver("lib/your-library.jar")); // For library types
-
-                    JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
-                    StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
                     CompilationUnit cu = null;
                     Map<String, String> nestedTypeMap = new HashMap<>();
                     for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
@@ -191,6 +180,16 @@ public class CoverageDataStore {
                         String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
                         File sourceFile = new File(sourceFileStr);
                         if (sourceFile.exists()) {
+                            CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+                            combinedTypeSolver.add(new ReflectionTypeSolver()); // For java standard library types
+                            for(String source : srcDirStrList) {
+                                combinedTypeSolver.add(new JavaParserTypeSolver(new File(source))); // For source code
+                            }
+                            // NOTE: in case libraries are required for the source code add
+                            // combinedTypeSolver.add(new JarTypeSolver("lib/your-library.jar")); // For library types
+
+                            JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+                            StaticJavaParser.getParserConfiguration().setSymbolResolver(symbolSolver);
                             try {
                                 cu = StaticJavaParser.parse(sourceFile);
                                 // Find all nested classes, create their JVM internal representation, and

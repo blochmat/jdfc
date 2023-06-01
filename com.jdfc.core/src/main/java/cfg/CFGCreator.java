@@ -154,16 +154,19 @@ public class CFGCreator {
         final StringBuilder result = new StringBuilder();
         result.append(pMethodName);
         result.append(": ");
-        result.append(pDescriptor);
-
-        if(!pDescriptor.endsWith(";")) {
-            result.append(";");
-        }
 
         if (pSignature != null) {
-            result.append(" ").append(pSignature).append(";");
-
+            result.append(pSignature);
+            if (!pSignature.endsWith(";")){
+                result.append(";");
+            }
+        } else {
+            result.append(pDescriptor);
+            if(!pDescriptor.endsWith(";")) {
+                result.append(";");
+            }
         }
+
         if (pExceptions != null && pExceptions.length != 0) {
             result.append(" ").append(Arrays.toString(pExceptions));
         }
