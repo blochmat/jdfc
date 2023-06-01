@@ -50,10 +50,6 @@ public class JavaParserHelper {
                                   String jvmDesc,
                                   Set<ResolvedType> toAdd,
                                   Set<ResolvedType> toRemove) {
-        if (jvmDesc.contains("Collection")) {
-            System.out.println("FOUND");
-        }
-
         for(ResolvedType resolvedType : resolvedTypes) {
             try {
                 if (resolvedType.isReferenceType()) {

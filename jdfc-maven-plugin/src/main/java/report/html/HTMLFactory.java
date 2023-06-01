@@ -336,6 +336,9 @@ public class HTMLFactory {
                         spanTag.getAttributes().add("class=\"orange\"");
                     } else {
                         // is a variable present in the data
+                        if (item.equals("c")) {
+                            System.out.println("FOUND");
+                        }
                         boolean isVarCovered = isVarCovered(pData, methodName, programVariable);
                         // find interprocedurally associated vars (must be altered or deleted)
                         List<ProgramVariable> associatedVars = getAssociatedVars(programVariable, pData);

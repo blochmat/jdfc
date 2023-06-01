@@ -12,8 +12,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
-import com.github.javaparser.resolution.types.ResolvedArrayType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,46 +137,6 @@ public class ClassExecutionData extends ExecutionData {
 
         return methods;
     }
-
-    private String buildJvmAsmDesc(Set<ResolvedType> resolvedTypes, String jvmDesc) {
-        if (jvmDesc.contains("()LList")) {
-            System.out.println("FOUND");
-        }
-
-        for(ResolvedType resolvedType : resolvedTypes) {
-            try {
-                if (resolvedType.isReferenceType()) {
-                    Optional<ResolvedReferenceTypeDeclaration> typeDeclaration = resolvedType.asReferenceType().getTypeDeclaration();
-                    if (typeDeclaration.isPresent()) {
-                        ResolvedReferenceTypeDeclaration rrtd = typeDeclaration.get();
-                        if (rrtd.isClass()) {
-                            if(this.nestedTypeMap.containsKey(rrtd.getName())) {
-                                // inner or nested class
-                                jvmDesc = jvmDesc.replace(rrtd.getName(), this.nestedTypeMap.get(rrtd.getName()));
-                            } else {
-                                // java native class
-                                String newName = rrtd.getQualifiedName().replace(".", "/");
-                                jvmDesc = jvmDesc.replace(rrtd.getName(), newName);
-                            }
-                        } else {
-                            System.out.println("HEH");
-                        }
-                    }
-                } else if (resolvedType.isArray()) {
-                    ResolvedArrayType rat = resolvedType.asArrayType();
-                    ResolvedType rt = rat.getComponentType();
-                    resolvedTypes.add(rt);
-                    resolvedTypes.remove(resolvedType);
-                    jvmDesc = buildJvmAsmDesc(resolvedTypes, jvmDesc);
-                }
-            } catch (Exception e) {
-                System.out.println("Exception");
-                // ...
-            }
-        }
-        return jvmDesc;
-    }
-
 
     // New Code
     public MethodData getMethodByInternalName(String internalName) {
