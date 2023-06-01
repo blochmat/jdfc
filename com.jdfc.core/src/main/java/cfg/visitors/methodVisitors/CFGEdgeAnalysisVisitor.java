@@ -59,6 +59,7 @@ public class CFGEdgeAnalysisVisitor extends MethodVisitor {
 
         @Override
         protected void newControlFlowEdge(int insnIndex, int successorIndex) {
+            logger.debug("newControlFlowEdge");
             if (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) successorIndex)) {
                 // Normal nodes
                 edges.put((double) insnIndex, (double) successorIndex);
@@ -69,6 +70,7 @@ public class CFGEdgeAnalysisVisitor extends MethodVisitor {
 
         @Override
         protected boolean newControlFlowExceptionEdge(int insnIndex, int successorIndex) {
+            logger.debug("newControlFlowExceptionEdge");
             if (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) successorIndex)) {
                 edges.put((double) insnIndex, (double) successorIndex);
             }

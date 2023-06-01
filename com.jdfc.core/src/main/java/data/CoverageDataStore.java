@@ -1,6 +1,5 @@
 package data;
 
-import cfg.CFG;
 import com.github.javaparser.ast.CompilationUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +12,10 @@ import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
@@ -120,16 +122,6 @@ public class CoverageDataStore {
                 e.printStackTrace();
             }
         }
-    }
-
-    public void finishClassExecutionDataSetup(final ClassExecutionData pClassExecutionData,
-                                              final Map<String, CFG> pMethodCFGs) {
-        pClassExecutionData.setMethodCFGs(pMethodCFGs);
-        pClassExecutionData.initializeDefUseLists();
-//        pClassExecutionData.insertAdditionalDefs();
-        pClassExecutionData.calculateReachingDefs();
-        pClassExecutionData.calculateIntraProceduralDefUsePairs();
-//        pClassExecutionData.setupInterProceduralMatches();
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {

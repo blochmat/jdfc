@@ -4,7 +4,6 @@ import cfg.data.LocalVariable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -54,12 +53,11 @@ public class CoverageTracker {
         }
     }
 
-    private static void addCoveredEntry(final String methodNameDesc,
+    private static void addCoveredEntry(final String internalMethodName,
                                         final ClassExecutionData classExecutionData,
                                         final ProgramVariable programVariable) {
         if (programVariable != null) {
-            Map<String, Set<ProgramVariable>> coveredList = classExecutionData.getVariablesCovered();
-            coveredList.get(methodNameDesc).add(programVariable);
+            classExecutionData.getMethodByInternalName(internalMethodName).getCoveredVars().add(programVariable);
         }
     }
 

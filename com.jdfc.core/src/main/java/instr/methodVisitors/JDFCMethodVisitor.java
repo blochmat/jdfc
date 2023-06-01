@@ -1,7 +1,6 @@
 package instr.methodVisitors;
 
 import cfg.data.LocalVariable;
-import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -24,8 +23,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public int currentInstructionIndex = -1;
     public int currentLineNumber = -1;
     public int firstLine = -1;
-    public String classDescriptor;
-    public final String jacocoPrefix = "$jacoco";
 
     public JDFCMethodVisitor(final int pApi,
                              final JDFCClassVisitor pClassVisitor,
@@ -37,21 +34,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         methodNode = pMethodNode;
         internalMethodName = pInternalMethodName;
         localVariableTable = new HashMap<>();
-        classDescriptor = String.format("L%s;", classVisitor.classExecutionData.getRelativePath());
-    }
-
-    public JDFCMethodVisitor(final int pApi,
-                             final JDFCClassVisitor pClassVisitor,
-                             final MethodVisitor pMethodVisitor,
-                             final MethodNode pMethodNode,
-                             final String pInternalMethodName,
-                             final Map<Integer, LocalVariable> pLocalVariableTable) {
-        super(pApi, pMethodVisitor);
-        classVisitor = pClassVisitor;
-        methodNode = pMethodNode;
-        internalMethodName = pInternalMethodName;
-        localVariableTable = pLocalVariableTable;
-        classDescriptor = String.format("L%s;", classVisitor.classExecutionData.getRelativePath());
     }
 
     @Override
@@ -194,38 +176,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         if (currentNode.getOpcode() == F_NEW) {
             updateCurrentNode();
         }
-    }
-
-    protected ProgramVariable getProgramVariableFromLocalVar(final int varNumber,
-                                                             final int pOpcode,
-                                                             final int pIndex,
-                                                             final int pLineNumber) {
-        final String varName = getVariableNameFromLocalVariablesTable(varNumber);
-        final String varType = getVariableTypeFromLocalVariablesTable(varNumber);
-        final boolean isDefinition = isDefinition(pOpcode);
-        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, isDefinition);
-    }
-
-    private String getVariableNameFromLocalVariablesTable(final int pVarNumber) {
-        final LocalVariable localVariable = localVariableTable.get(pVarNumber);
-        if (localVariable != null) {
-            return localVariable.getName();
-        } else {
-            return String.valueOf(pVarNumber);
-        }
-    }
-
-    private String getVariableTypeFromLocalVariablesTable(final int pVarNumber) {
-        final LocalVariable localVariable = localVariableTable.get(pVarNumber);
-        if (localVariable != null) {
-            return localVariable.getDescriptor();
-        } else {
-            return "UNKNOWN";
-        }
-    }
-
-    protected boolean isInstrumentationRequired(String pString) {
-        return !pString.contains(jacocoPrefix);
     }
 
     protected boolean isDefinition(final int pOpcode) {

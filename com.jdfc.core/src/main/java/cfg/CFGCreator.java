@@ -1,19 +1,13 @@
 package cfg;
 
-import cfg.data.LocalVariable;
 import cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
 import cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
-import data.ProgramVariable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Creates {@link CFG}s for each method of a class file.
@@ -47,30 +41,24 @@ public class CFGCreator {
      * @param pClassNode   An empty class node to start the analysis with
      *
      */
-    public static void createICFGsForClass(final ClassReader pClassReader,
-                                           final ClassNode pClassNode,
-                                           final ClassExecutionData pClassExecutionData) {
-        logger.debug("createICFGsForClass");
+    public static void createCFGsForClass(final ClassReader pClassReader,
+                                          final ClassNode pClassNode,
+                                          final ClassExecutionData pClassExecutionData) {
+        logger.debug("createCFGsForClass");
         Preconditions.checkNotNull(pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
         Preconditions.checkNotNull(pClassExecutionData,
                 "We need a non-null class execution data to generate CFGs from.");
 
         // Get local variable information for all methods in the class
-        final CFGLocalVariableClassVisitor localVariableVisitor = new CFGLocalVariableClassVisitor(pClassNode, pClassExecutionData);
+        final CFGLocalVariableClassVisitor localVariableVisitor =
+                new CFGLocalVariableClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(localVariableVisitor, 0);
-
-        final Set<ProgramVariable> fields = localVariableVisitor.getFields();
-        final Map<String, Map<Integer, LocalVariable>> localVariableTables =
-                localVariableVisitor.getLocalVariableTables();
-
-        final Map<String, CFG> methodICFGs = new HashMap<>();
 
         // Build CFG for all methods in the class
         final CFGNodeClassVisitor CFGNodeClassVisitor =
-                new CFGNodeClassVisitor(pClassNode, pClassExecutionData, methodICFGs, localVariableTables);
+                new CFGNodeClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(CFGNodeClassVisitor, 0);
-
 
         logger.debug("CFG CREATION DONE");
     }

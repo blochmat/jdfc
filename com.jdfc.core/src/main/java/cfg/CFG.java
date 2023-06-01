@@ -1,10 +1,8 @@
 package cfg;
 
-import com.google.common.collect.Multimap;
-import cfg.data.LocalVariable;
 import cfg.nodes.CFGNode;
+import com.google.common.collect.Multimap;
 
-import java.util.Map;
 import java.util.NavigableMap;
 
 /**
@@ -33,20 +31,4 @@ public interface CFG {
     NavigableMap<Double, CFGNode> getNodes();
 
     Multimap<Double, Double> getEdges();
-
-    /**
-     * Returns a local variable table representation of this method.
-     *
-     * @return Map containing all local variables of a method
-     */
-    Map<Integer, LocalVariable> getLocalVariableTable();
-
-    /**
-     * Returns if a method is impure.
-     *
-     * @return isImpure
-     */
-    boolean isImpure();
-
-    void setImpure();
 }

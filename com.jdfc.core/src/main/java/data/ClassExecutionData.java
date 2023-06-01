@@ -2,7 +2,6 @@ package data;
 
 import cfg.CFG;
 import cfg.data.LocalVariable;
-import cfg.nodes.CFGNode;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.NodeList;
@@ -140,7 +139,7 @@ public class ClassExecutionData extends ExecutionData {
 
     // New Code
     public MethodData getMethodByInternalName(String internalName) {
-        System.err.println("DEBUG "+methods.size());
+        logger.debug(String.format("getMethodByInternalName(%s)", internalName));
         for(MethodData mData : methods.values()) {
             if (mData.buildInternalMethodName().equals(internalName)) {
                 return mData;
@@ -168,19 +167,6 @@ public class ClassExecutionData extends ExecutionData {
     }
 
 
-    // TODO: Old Code
-
-    /**
-     * Initalize all required lists for every method
-     */
-    public void initializeDefUseLists() {
-        for (Map.Entry<String, CFG> entry : methodCFGs.entrySet()) {
-            defUsePairs.put(entry.getKey(), new ArrayList<>());
-            defUsePairsCovered.put(entry.getKey(), new HashMap<>());
-            variablesCovered.put(entry.getKey(), new HashSet<>());
-        }
-    }
-
     /**
      * Inserts new defintions in case of an impure method invoke. New definitions are added for parameters passed
      * with a complex (object) type
@@ -204,40 +190,6 @@ public class ClassExecutionData extends ExecutionData {
 //        }
 //    }
 
-    /**
-     * Calulates reaching defintions for all method cfgs
-     */
-    public void calculateReachingDefs() {
-        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            methodCFGsEntry.getValue().calculateReachingDefinitions();
-        }
-    }
-
-    /**
-     * Calculates all possible Def-Use-Pairs.
-     */
-    public void calculateIntraProceduralDefUsePairs() {
-        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
-            for (Map.Entry<Double, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
-                CFGNode node = entry.getValue();
-                for (ProgramVariable def : node.getReach()) {
-                    for (ProgramVariable use : node.getUses()) {
-                        if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
-                            defUsePairs.get(methodCFGsEntry.getKey()).add(new DefUsePair(def, use));
-                            if (!methodCFGsEntry.getKey().contains("<init>") && !methodCFGsEntry.getKey().contains("<clinit>")) {
-                                this.getMethodByInternalName(methodCFGsEntry.getKey()).getPairs().add(new DefUsePair(def, use));
-                            } else {
-                                // TODO: "<init>: ()V" is not in methods
-                            }
-                            if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                                variablesCovered.get(methodCFGsEntry.getKey()).add(def);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     /**
      * Established inter-procedural connection between parameters
@@ -376,6 +328,7 @@ public class ClassExecutionData extends ExecutionData {
      * @return definition of given use
      */
     private ProgramVariable findDefinitionByUse(String pMethodName, ProgramVariable pUsage) {
+        logger.debug("findDefinitionByUse");
         for (DefUsePair pair : defUsePairs.get(pMethodName)) {
             if (pair.getUsage().equals(pUsage)) {
                 return pair.getDefinition();
@@ -391,6 +344,7 @@ public class ClassExecutionData extends ExecutionData {
      * @return List of all usages associated with given definition
      */
     private List<ProgramVariable> findUsagesByDefinition(String pMethodName, ProgramVariable pDefinition) {
+        logger.debug("findUsagesByDefinition");
         List<ProgramVariable> result = new ArrayList<>();
         for (DefUsePair pair : defUsePairs.get(pMethodName)) {
             if (pair.getDefinition().equals(pDefinition)) {
@@ -401,6 +355,7 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void computeCoverageForClass() {
+        logger.debug("computeCoverageForClass");
         for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
             String methodName = entry.getKey();
             variablesUncovered.put(methodName, new HashSet<>());
@@ -543,11 +498,16 @@ public class ClassExecutionData extends ExecutionData {
         return result;
     }
 
-    public LocalVariable findLocalVariable(final String pMethodName,
+    public LocalVariable findLocalVariable(final String internalMethodName,
                                            final int pVarIndex) {
-        CFG CFG = methodCFGs.get(pMethodName);
-        Map<Integer, LocalVariable> localVariableTable = CFG.getLocalVariableTable();
-        return localVariableTable.get(pVarIndex);
+        // TODO
+        if(!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+            Map<Integer, LocalVariable> localVariableTable = this.getMethodByInternalName(internalMethodName)
+                    .getLocalVariableTable();
+            return localVariableTable.get(pVarIndex);
+        } else {
+            return null;
+        }
     }
 
     private boolean checkInterProceduralUseCoverage(final Set<InterProceduralMatch> pInterProceduralMatches,

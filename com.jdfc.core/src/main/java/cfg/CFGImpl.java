@@ -3,7 +3,6 @@ package cfg;
 import cfg.nodes.CFGNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
-import cfg.data.LocalVariable;
 import data.ProgramVariable;
 import utils.JDFCUtils;
 
@@ -20,22 +19,16 @@ public class CFGImpl implements CFG {
     private final String methodName;
     private final NavigableMap<Double, CFGNode> nodes;
     private final Multimap<Double, Double> edges;
-    private final Map<Integer, LocalVariable> localVariableTable;
-    private boolean isImpure;
 
     public CFGImpl(
             final String pMethodName,
             final NavigableMap<Double, CFGNode> pNodes,
-            final Multimap<Double, Double> edges,
-            final Map<Integer, LocalVariable> pLocalVariableTable,
-            final boolean pIsImpure) {
+            final Multimap<Double, Double> edges) {
         Preconditions.checkNotNull(pMethodName);
         Preconditions.checkNotNull(pNodes);
         methodName = pMethodName;
         nodes = pNodes;
         this.edges = edges;
-        localVariableTable = pLocalVariableTable;
-        isImpure = pIsImpure;
     }
 
     /**
@@ -48,24 +41,6 @@ public class CFGImpl implements CFG {
 
     @Override
     public Multimap<Double, Double> getEdges() { return edges; }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<Integer, LocalVariable> getLocalVariableTable() {
-        return localVariableTable;
-    }
-
-    @Override
-    public boolean isImpure() {
-        return isImpure;
-    }
-
-    @Override
-    public void setImpure() {
-        this.isImpure = true;
-    }
 
     /**
      * {@inheritDoc}

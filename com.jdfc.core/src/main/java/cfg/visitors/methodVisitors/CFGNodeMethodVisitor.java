@@ -28,23 +28,17 @@ import static org.objectweb.asm.Opcodes.*;
 
 public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final Logger logger = LoggerFactory.getLogger(CFGNodeMethodVisitor.class);
-    private final Map<String, CFG> methodCFGs;
     private final Multimap<Double, Double> edges;
     private final NavigableMap<Double, CFGNode> nodes;
-    private final Set<Double> crNodes;
 
     public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
                                 final MethodVisitor pMethodVisitor,
                                 final MethodNode pMethodNode,
-                                final String pInternalMethodName,
-                                final Map<String, CFG> pMethodCFGs,
-                                final Map<Integer, LocalVariable> pLocalVariableTable) {
-        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName, pLocalVariableTable);
+                                final String pInternalMethodName) {
+        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
         logger.debug(String.format("Visiting %s", pInternalMethodName));
-        methodCFGs = pMethodCFGs;
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
-        crNodes = Sets.newHashSet();
     }
 
     @Override
@@ -132,7 +126,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put((double) currentInstructionIndex, node);
-//        createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor);
     }
 
     @Override
@@ -141,19 +134,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         logger.debug(debug);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
-//        if (owner.equals(classVisitor.classNode.name) && isInstrumentationRequired(internalMethodName)) {
-//            String calledMethodName = computeInternalMethodName(name, descriptor);
-//            int paramsCount = (int) Arrays.stream(Type.getArgumentTypes(descriptor)).filter(x -> !x.toString().equals("[")).count();
-//            final CFGNode callNode = new ICFGCallNode(currentInstructionIndex, opcode, calledMethodName);
-//            nodes.put((double) currentInstructionIndex + 0.1, callNode);
-////            final ToBeDeleted node = new ToBeDeleted(currentInstructionIndex, currentLineNumber, opcode, owner, null, callSiteMethodName, paramsCount);
-//            final CFGNode returnNode = new ICFGReturnNode(currentInstructionIndex, Integer.MIN_VALUE);
-//            nodes.put((double) currentInstructionIndex + 0.9, returnNode);
-//            crNodes.add((double) currentInstructionIndex);
-//        } else {
-            final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-            nodes.put((double) currentInstructionIndex, node);
-//        }
+        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+        nodes.put((double) currentInstructionIndex, node);
     }
 
     @Override
@@ -226,35 +208,45 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
         edges.putAll(createEdges());
         addEntryNode();
-        logger.debug(JDFCUtils.prettyPrintMap(nodes));
-        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
         setPredecessorSuccessorRelation();
-
-        logger.debug(JDFCUtils.prettyPrintMap(nodes));
-
-        boolean isImpure = false;
-        CFG cfg = new CFGImpl(internalMethodName, nodes, edges, localVariableTable, isImpure);
-        // TODO: Old Code
-        methodCFGs.put(internalMethodName, cfg);
-        classVisitor.classExecutionData.getMethodFirstLine().put(internalMethodName, firstLine);
-        classVisitor.classExecutionData.getMethodLastLine().put(internalMethodName, currentLineNumber);
-
-        System.out.printf("%s: %d%n", internalMethodName, firstLine);
-        // New Code
+        CFG cfg = new CFGImpl(internalMethodName, nodes, edges);
 
         if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
-            System.err.println(internalMethodName);
-            // TODO: searching for "getValuesList: ()Ljava/util/List<Ljava/lang/String;>;"
-            //   but list contains "getValuesList: ()Ljava/util/List<java/lang/String>;"
-            // Possible solution: We could take the internalName provided by ASM and search initially by lineNumber and name to find
-            // the correct method declaration
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
+            cfg.calculateReachingDefinitions();
             mData.setCfg(cfg);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
-            System.err.println("PARAMS");
-            System.err.println(JDFCUtils.prettyPrintSet(mData.getParams()));
+            mData.calculateDefUsePairs();
         } else {
             // TODO: <init>: ()V is not in methods
+        }
+    }
+
+    private ProgramVariable getProgramVariableFromLocalVar(final int varNumber,
+                                                           final int pOpcode,
+                                                           final int pIndex,
+                                                           final int pLineNumber) {
+        final String varName = getVariableNameFromLocalVariablesTable(varNumber);
+        final String varType = getVariableTypeFromLocalVariablesTable(varNumber);
+        final boolean isDefinition = isDefinition(pOpcode);
+        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, isDefinition);
+    }
+
+    private String getVariableNameFromLocalVariablesTable(final int pVarNumber) {
+        final LocalVariable localVariable = localVariableTable.get(pVarNumber);
+        if (localVariable != null) {
+            return localVariable.getName();
+        } else {
+            return String.valueOf(pVarNumber);
+        }
+    }
+
+    private String getVariableTypeFromLocalVariablesTable(final int pVarNumber) {
+        final LocalVariable localVariable = localVariableTable.get(pVarNumber);
+        if (localVariable != null) {
+            return localVariable.getDescriptor();
+        } else {
+            return "UNKNOWN";
         }
     }
 

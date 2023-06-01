@@ -38,10 +38,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         fields = new HashSet<>();
     }
 
-    public Set<ProgramVariable> getFields() {
-        return fields;
-    }
-
     /**
      * {@inheritDoc}
      *
@@ -56,6 +52,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
             final String descriptor,
             final String signature,
             final Object value) {
+        logger.debug("visitField");
         final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
         this.fields.add(
                 ProgramVariable.create(this.getClassNode().name,
@@ -73,13 +70,26 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
                                      final String pDescriptor,
                                      final String pSignature,
                                      final String[] pExceptions) {
+        logger.debug("visitMethod");
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
-        final MethodNode methodNode = getMethodNode(pName, pDescriptor);
+        final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (methodNode != null && isInstrumentationRequired(pName)) {
             return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
         }
         return mv;
+    }
+
+    @Override
+    public void visitEnd() {
+        logger.debug("visitEnd");
+        if (cv != null) {
+            cv.visitEnd();
+        } else {
+            super.visitEnd();
+        }
+        // TODO: Add fields to classExecutionData
+        System.out.println(fields);
     }
 }

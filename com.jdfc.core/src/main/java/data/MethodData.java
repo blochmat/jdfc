@@ -1,6 +1,8 @@
 package data;
 
 import cfg.CFG;
+import cfg.data.LocalVariable;
+import cfg.nodes.CFGNode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -8,10 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class MethodData {
     @JsonIgnore
@@ -53,6 +52,11 @@ public class MethodData {
     private String[] exceptions;
 
     /**
+     * Local variables in class
+     */
+    private Map<Integer, LocalVariable> localVariableTable;
+
+    /**
      * AST of method source code
      */
     @JsonIgnore
@@ -68,6 +72,11 @@ public class MethodData {
      * All DU-pairs of method
      */
     private final Set<DefUsePair> pairs;
+
+    /**
+     * All covered variables
+     */
+    private final Set<ProgramVariable> coveredVars;
 
     /**
      * All method params as {@link ProgramVariable}
@@ -98,6 +107,7 @@ public class MethodData {
         this.endLine = extractEnd(srcAst);
         this.params = new HashSet<>();
         this.pairs = new HashSet<>();
+        this.coveredVars = new HashSet<>();
     }
 
     private int extractBegin(MethodDeclaration srcAst) {
@@ -176,6 +186,31 @@ public class MethodData {
         this.exceptions = exceptions;
     }
 
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public void setCovered(int covered) {
+        this.covered = covered;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
+    }
+
+    public int getAccess() {
+        return access;
+    }
+
+    public Map<Integer, LocalVariable> getLocalVariableTable() {
+        return localVariableTable;
+    }
+
+    public void setLocalVariableTable(Map<Integer, LocalVariable> localVariableTable) {
+        logger.debug("setLocalVariableName");
+        this.localVariableTable = localVariableTable;
+    }
+
     public MethodDeclaration getSrcAst() {
         return srcAst;
     }
@@ -216,9 +251,14 @@ public class MethodData {
         this.endLine = endLine;
     }
 
+    public Set<ProgramVariable> getCoveredVars() {
+        return coveredVars;
+    }
+
     public String buildInternalMethodName() {
-        System.err.println(String.format("DEBUG %s: %s", name, desc));
-        return String.format("%s: %s", name, desc);
+        String internalName = String.format("%s: %s", name, desc);
+        logger.debug(String.format("buildInternalMethodName = %s", internalName));
+        return internalName;
     }
 
     public void computeCoverage() {
@@ -256,4 +296,23 @@ public class MethodData {
         return null;
     }
 
+    /**
+     * Calculates all possible Def-Use-Pairs.
+     */
+    public void calculateDefUsePairs() {
+        logger.debug("calculateDefUsePairs");
+        for (Map.Entry<Double, CFGNode> entry : this.cfg.getNodes().entrySet()) {
+            CFGNode node = entry.getValue();
+            for (ProgramVariable def : node.getReach()) {
+                for (ProgramVariable use : node.getUses()) {
+                    if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
+                        this.pairs.add(new DefUsePair(def, use));
+                    }
+                    if (def.getInstructionIndex() == Integer.MIN_VALUE) {
+                        this.coveredVars.add(def);
+                    }
+                }
+            }
+        }
+    }
 }

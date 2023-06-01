@@ -229,19 +229,16 @@ public class CoverageDataExport {
         Element classTag = doc.createElement("class");
         doc.appendChild(classTag);
 
+        // TODO: Delete
         Set<InterProceduralMatch> interProceduralMatches = pClassExecutionData.getInterProceduralMatches();
         classTag.appendChild(createInterProceduralMatchList(doc, interProceduralMatches));
 
-        Map<String, Integer> methodFirstLine = pClassExecutionData.getMethodFirstLine();
-        Map<String, Integer> methodLastLine = pClassExecutionData.getMethodLastLine();
-        TreeMap<String, List<DefUsePair>> defUsePairs = pClassExecutionData.getDefUsePairs();
-        Map<String, Set<ProgramVariable>> variablesCovered = pClassExecutionData.getVariablesCovered();
-        for (Map.Entry<String, List<DefUsePair>> methodEntry : defUsePairs.entrySet()) {
-            if (methodEntry.getValue().size() != 0) {
-                String methodName = methodEntry.getKey();
-                classTag.appendChild(createMethod(doc, methodName,
-                        methodFirstLine.get(methodName), methodLastLine.get(methodName),
-                        methodEntry.getValue(), variablesCovered.get(methodName)));
+        for (MethodData mData : pClassExecutionData.getMethods().values()) {
+            if (mData.getPairs().size() != 0) {
+                String internalMethodName = mData.buildInternalMethodName();
+                classTag.appendChild(createMethod(doc, internalMethodName,
+                        mData.getBeginLine(), mData.getEndLine(),
+                        mData.getPairs(), mData.getCoveredVars()));
             }
         }
 
@@ -279,7 +276,7 @@ public class CoverageDataExport {
                                         String pMethodName,
                                         Integer pMethodFirstLine,
                                         Integer pMethodLastLine,
-                                        List<DefUsePair> pDefUsePairs,
+                                        Set<DefUsePair> pDefUsePairs,
                                         Set<ProgramVariable> pDefUseCovered) {
         Element methodTag = pDoc.createElement("method");
         methodTag.setAttribute("name", pMethodName);
@@ -292,7 +289,7 @@ public class CoverageDataExport {
         return methodTag;
     }
 
-    private static Element createDefUsePairs(Document pDoc, List<DefUsePair> pDefUsePairList) {
+    private static Element createDefUsePairs(Document pDoc, Set<DefUsePair> pDefUsePairList) {
         Element defUsePairList = pDoc.createElement("defUsePairList");
         for (DefUsePair element : pDefUsePairList) {
             Element defUsePair = pDoc.createElement("defUsePair");
