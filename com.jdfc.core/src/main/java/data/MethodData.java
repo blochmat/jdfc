@@ -93,7 +93,6 @@ public class MethodData {
         this.access = access;
         this.name = name;
         this.desc = desc;
-        this.exceptions = JDFCUtils.toJvmExceptionDescriptor(srcAst).toArray(new String[0]);
         this.srcAst = srcAst;
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);

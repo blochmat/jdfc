@@ -18,6 +18,7 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
+import utils.JavaPaserHelper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,7 +38,7 @@ public class ClassExecutionData extends ExecutionData {
     private final List<ImportDeclaration> impDeclList;
     private final ClassOrInterfaceDeclaration ciDecl;
 //    private final List<ClassOrInterfaceDeclaration> innerCiDeclList;
-    private final Map<String, String> nestedTypeList;
+    private final Map<String, String> nestedTypeMap;
     private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
@@ -49,15 +50,14 @@ public class ClassExecutionData extends ExecutionData {
     private final Set<ProgramVariable> fields;
     private final Map<Integer, MethodData> methods;
 
-    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst,
-                              Map<String, String> nestedTypeList) {
+    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
         relativePath = pRelativePath;
         this.srcFileAst = srcFileAst;
         this.pkgDecl = extractPackageDeclaration(srcFileAst);
         this.impDeclList = extractImportDeclarationList(srcFileAst);
         this.ciDecl = extractClassDeclaration(srcFileAst, name);
-        this.nestedTypeList = nestedTypeList;
+        this.nestedTypeMap = extractNestedTypes(srcFileAst);
         this.methods = extractMethodDeclarations(this.ciDecl);
 
         // TODO: Most of this stuff should go into MethodData
@@ -95,25 +95,42 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
+    /**
+     * Find all nested classes, create their JVM internal representation, and save the mapping
+     *
+     * @param srcFileAst
+     * @return
+     */
+    private Map<String, String> extractNestedTypes(CompilationUnit srcFileAst) {
+        Map<String, String> result = new HashMap<>();
+        srcFileAst.findAll(ClassOrInterfaceDeclaration.class)
+                .stream()
+                .filter(ClassOrInterfaceDeclaration::isNestedType)
+                .forEach(c -> {
+                    String cFqn = c.resolve().getQualifiedName();
+                    String jvmInternal = JDFCUtils.innerClassFqnToJVMInternal(cFqn);
+                    result.put(c.getName().getIdentifier(), jvmInternal);
+                });
+        return result;
+    }
+
     private Map<Integer, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
         Map<Integer, MethodData> methods = new HashMap<>();
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
-            int mAccess = mDecl.getAccessSpecifier().ordinal();
-            String mName = mDecl.getName().getIdentifier();
+            JavaPaserHelper javaPaserHelper = new JavaPaserHelper();
             Set<Type> types = new HashSet<>();
-
-            // Return type
+            // Add return, param and exception types
             types.add(mDecl.getType());
-            // Param types
             types.addAll(mDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet()));
-            // Exception types
             types.addAll(mDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet()));
             // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
-            String jvmDesc = JDFCUtils.toJvmDescriptor(mDecl);
-
+            String jvmDesc = javaPaserHelper.toJvmDescriptor(mDecl);
             // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
             Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
-            String jvmAsmDesc = this.buildJvmAsmDesc(resolvedTypes, jvmDesc);
+            String jvmAsmDesc = javaPaserHelper.buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc);
+
+            int mAccess = mDecl.getAccessSpecifier().ordinal();
+            String mName = mDecl.getName().getIdentifier();
 
             MethodData mData = new MethodData(mAccess, mName, jvmAsmDesc, mDecl);
             methods.put(mData.getBeginLine(), mData);
@@ -134,9 +151,9 @@ public class ClassExecutionData extends ExecutionData {
                     if (typeDeclaration.isPresent()) {
                         ResolvedReferenceTypeDeclaration rrtd = typeDeclaration.get();
                         if (rrtd.isClass()) {
-                            if(this.nestedTypeList.containsKey(rrtd.getName())) {
+                            if(this.nestedTypeMap.containsKey(rrtd.getName())) {
                                 // inner or nested class
-                                jvmDesc = jvmDesc.replace(rrtd.getName(), this.nestedTypeList.get(rrtd.getName()));
+                                jvmDesc = jvmDesc.replace(rrtd.getName(), this.nestedTypeMap.get(rrtd.getName()));
                             } else {
                                 // java native class
                                 String newName = rrtd.getQualifiedName().replace(".", "/");

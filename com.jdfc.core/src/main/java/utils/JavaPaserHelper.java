@@ -7,6 +7,8 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ArrayType;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.types.ResolvedArrayType;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -17,9 +19,7 @@ import data.CoverageDataStore;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +44,46 @@ public class JavaPaserHelper {
        return StaticJavaParser.parse(file);
     }
 
-    public String buildJvmName(MethodDeclaration method) {
+    public String buildJvmAsmDesc(Set<ResolvedType> resolvedTypes, Map<String, String> nestedTypeMap, String jvmDesc) {
+        if (jvmDesc.contains("()LList")) {
+            System.out.println("FOUND");
+        }
+
+        for(ResolvedType resolvedType : resolvedTypes) {
+            try {
+                if (resolvedType.isReferenceType()) {
+                    Optional<ResolvedReferenceTypeDeclaration> typeDeclaration = resolvedType.asReferenceType().getTypeDeclaration();
+                    if (typeDeclaration.isPresent()) {
+                        ResolvedReferenceTypeDeclaration rrtd = typeDeclaration.get();
+                        if (rrtd.isClass()) {
+                            if(nestedTypeMap.containsKey(rrtd.getName())) {
+                                // inner or nested class
+                                jvmDesc = jvmDesc.replace(rrtd.getName(), nestedTypeMap.get(rrtd.getName()));
+                            } else {
+                                // java native class
+                                String newName = rrtd.getQualifiedName().replace(".", "/");
+                                jvmDesc = jvmDesc.replace(rrtd.getName(), newName);
+                            }
+                        } else {
+                            System.out.println("HEH");
+                        }
+                    }
+                } else if (resolvedType.isArray()) {
+                    ResolvedArrayType rat = resolvedType.asArrayType();
+                    ResolvedType rt = rat.getComponentType();
+                    resolvedTypes.add(rt);
+                    resolvedTypes.remove(resolvedType);
+                    jvmDesc = buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc);
+                }
+            } catch (Exception e) {
+                System.out.println("Exception");
+                // ...
+            }
+        }
+        return jvmDesc;
+    }
+
+    public String toJvmDescriptor(MethodDeclaration method) {
         StringBuilder descriptor = new StringBuilder();
 
         // Param Types

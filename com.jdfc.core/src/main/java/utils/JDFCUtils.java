@@ -4,12 +4,6 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.type.ArrayType;
-import com.github.javaparser.ast.type.ReferenceType;
-import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.resolution.types.ResolvedType;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
 
@@ -361,91 +355,6 @@ public class JDFCUtils {
         } else {
             throw new IllegalArgumentException("Class is not present in file.");
         }
-    }
-
-    public static String toJvmDescriptor(MethodDeclaration method) {
-        StringBuilder descriptor = new StringBuilder();
-
-        // Param Types
-        descriptor.append('(');
-        for (Parameter parameter : method.getParameters()) {
-            descriptor.append(toJvmType(parameter.getType()));
-        }
-        descriptor.append(')');
-
-        // Return Type
-        String returnType = toJvmType(method.getType());
-        descriptor.append(returnType);
-
-        if(!returnType.endsWith(";")) {
-            descriptor.append(";");
-        }
-
-        // Exception Types
-        List<String> exceptionDescriptors = new ArrayList<>();
-        for (ReferenceType exception : method.getThrownExceptions()) {
-            exceptionDescriptors.add(toJvmType(exception));
-        }
-
-        if(!exceptionDescriptors.isEmpty()) {
-            descriptor.append(" ");
-            descriptor.append(exceptionDescriptors);
-        }
-
-        return descriptor.toString();
-    }
-
-    public static List<String> toJvmExceptionDescriptor(MethodDeclaration method) {
-        List<String> exceptionDescriptors = new ArrayList<>();
-        for (ReferenceType exception : method.getThrownExceptions()) {
-            exceptionDescriptors.add(toJvmType(exception));
-        }
-        return exceptionDescriptors;
-    }
-
-    private static String toJvmType(Type type) {
-        if (type.isArrayType()) {
-            return "[" + toJvmType(((ArrayType) type).getComponentType());
-        } else if (type.isPrimitiveType()) {
-            switch (type.asString()) {
-                case "byte":
-                    return "B";
-                case "char":
-                    return "C";
-                case "double":
-                    return "D";
-                case "float":
-                    return "F";
-                case "int":
-                    return "I";
-                case "long":
-                    return "J";
-                case "short":
-                    return "S";
-                case "boolean":
-                    return "Z";
-                default:
-                    throw new IllegalArgumentException("Unknown primitive type: " + type.asString());
-            }
-        } else if (type.isVoidType()) {
-            return "V";
-        } else if (JDFCUtils.isException(type.resolve())) {
-            return type.asString().replace('.', '/');
-        } else if (type.isClassOrInterfaceType()) {
-            return "L" + type.asString().replace('.', '/') + ";";
-        } else {
-            throw new IllegalArgumentException("Unsupported type: " + type);
-        }
-    }
-
-    public static boolean isException(ResolvedType type) {
-        if (type.isReferenceType()) {
-            ResolvedReferenceType RRT = type.asReferenceType();
-            List<ResolvedReferenceType> ancestorList = RRT.getAllAncestors();
-            return ancestorList.stream()
-                    .anyMatch(x -> x.getQualifiedName().equals("java.lang.Exception") || x.getQualifiedName().equals("java.lang.RuntimeException"));
-        }
-        return false;
     }
 
     public static boolean isInnerClass(String name) {

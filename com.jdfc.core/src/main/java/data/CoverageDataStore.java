@@ -2,7 +2,6 @@ package data;
 
 import cfg.CFG;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.FileHelper;
@@ -171,27 +170,16 @@ public class CoverageDataStore {
                     // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
                     untestedClassList.add(relativePath);
                     String nameWithoutType = f.getName().split("\\.")[0];
+
                     // Get AST of source file
-                    CompilationUnit cu = null;
-                    Map<String, String> nestedTypeMap = new HashMap<>();
                     for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
                         String relSourceFileStr = relativePathWithType.replace(".class", ".java");
                         String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
                         File sourceFile = new File(sourceFileStr);
                         if (sourceFile.exists()) {
                             try {
-                                cu = javaPaserHelper.parse(sourceFile);
-                                // Find all nested classes, create their JVM internal representation, and
-                                // save the type representation in nestedTypeList
-                                cu.findAll(ClassOrInterfaceDeclaration.class)
-                                        .stream()
-                                        .filter(ClassOrInterfaceDeclaration::isNestedType)
-                                        .forEach(ciDecl -> {
-                                            String cFqn = ciDecl.resolve().getQualifiedName();
-                                            String jvmInternal = JDFCUtils.innerClassFqnToJVMInternal(cFqn);
-                                            nestedTypeMap.put(ciDecl.getName().getIdentifier(), jvmInternal);
-                                        });
-                                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu, nestedTypeMap);
+                                CompilationUnit cu = javaPaserHelper.parse(sourceFile);
+                                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
                                 if (pExecutionDataNode.isRoot()) {
                                     pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                                 } else {
