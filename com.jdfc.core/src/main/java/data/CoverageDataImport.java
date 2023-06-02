@@ -45,7 +45,6 @@ public class CoverageDataImport {
             }
             String relativePathWithType = jdfcPath.relativize(xml.toPath()).toString();
             String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
-            logger.debug(relativePath);
             ExecutionDataNode<ExecutionData> classExecutionDataNode = CoverageDataStore.getInstance().findClassDataNode(relativePath);
             ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
             try {

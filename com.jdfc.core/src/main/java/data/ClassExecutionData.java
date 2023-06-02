@@ -1,6 +1,7 @@
 package data;
 
 import cfg.data.LocalVariable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.NodeList;
@@ -28,17 +29,28 @@ public class ClassExecutionData extends ExecutionData {
 
     private final Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
     private final String relativePath;
+    @JsonIgnore
     private final CompilationUnit srcFileAst;
+    @JsonIgnore
     private final PackageDeclaration pkgDecl;
+    @JsonIgnore
     private final List<ImportDeclaration> impDeclList;
+    @JsonIgnore
     private final ClassOrInterfaceDeclaration ciDecl;
     private final Map<String, String> nestedTypeMap;
+    @JsonIgnore
     private final Map<String, Integer> methodFirstLine;
+    @JsonIgnore
     private final Map<String, Integer> methodLastLine;
+    @JsonIgnore
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
+    @JsonIgnore
     private final TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
+    @JsonIgnore
     private final Map<String, Set<ProgramVariable>> variablesCovered;
+    @JsonIgnore
     private final Map<String, Set<ProgramVariable>> variablesUncovered;
+    @JsonIgnore
     private final Set<InterProceduralMatch> interProceduralMatches;
     private final Set<ProgramVariable> fields;
     private final Map<Integer, MethodData> methods;
