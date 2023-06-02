@@ -1,8 +1,8 @@
 package report.html;
 
-import com.github.javaparser.ast.body.MethodDeclaration;
 import data.*;
-import utils.JDFCUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 public class HTMLFactory {
 
+    private Logger logger = LoggerFactory.getLogger(HTMLFactory.class);
     private final Resources resources;
     private final File baseDir;
 
@@ -98,8 +99,9 @@ public class HTMLFactory {
     public void createClassOverview(final String pClassName,
                                     final ExecutionData pData,
                                     final File pWorkDir) throws IOException {
+        logger.debug(String.format("createClassOverview(%s, <ExecutionData>, %s)", pClassName, pWorkDir));
         if (pData instanceof ClassExecutionData) {
-            String filePath = String.format("%s/%s.html", pWorkDir.toString(), pClassName);
+            String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
             File classFile = new File(filePath);
 
             String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), STYLE_SHEET);
@@ -121,6 +123,7 @@ public class HTMLFactory {
                                                 final String pClassFileName,
                                                 final String pPathToStyleSheet,
                                                 final String pPathToScript) {
+        logger.debug(String.format("createClassOverviewHTML(<ClassExecutionData>, %s, %s, %s, %s)", pClassFile, pClassFileName, pPathToStyleSheet, pPathToScript));
         String classFileName = String.format("%s.java", pClassFileName);
 
         HTMLElement htmlMainTag = HTMLElement.html();
@@ -161,16 +164,16 @@ public class HTMLFactory {
                                       final File pWorkDir,
                                       final File pSourceDir)
             throws IOException {
+        logger.debug(String.format("createClassSourceView(%s, <ExecutionData>, %s, %s)", pClassName, pWorkDir.toString(), pSourceDir.toString()));
         if (pData instanceof ClassExecutionData) {
-            // TODO: Here we manipulate class stuff. So we need a change here
-            String sourceViewPath = String.format("%s/%s.java.html", pWorkDir.toString(), pClassName);
+            String sourceViewPath = String.format("%s/%s.java.html", pWorkDir, pClassName);
             File sourceViewHTML = new File(sourceViewPath);
 
             String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), STYLE_SHEET);
             String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), SCRIPT);
 
             // load class file
-            String classFilePath = String.format("%s/%s.java", pSourceDir.toString(), ((ClassExecutionData) pData).getRelativePath());
+            String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassExecutionData) pData).getRelativePath());
             File classFile = new File(classFilePath);
 
             // build html
@@ -191,6 +194,7 @@ public class HTMLFactory {
                                                   final String pClassName,
                                                   final String pPathToStyleSheet,
                                                   final String pPathToScript) {
+        logger.debug(String.format("createClassSourceViewHTML(%s, <ClassExecutionData>, %s, %s, %s)", pClassFile, pClassName, pPathToStyleSheet, pPathToScript));
         // Standard html file creation, nothing special
         String classFileName = String.format("%s.java", pClassName);
         HTMLElement htmlMainTag = HTMLElement.html();
@@ -210,12 +214,11 @@ public class HTMLFactory {
     private HTMLElement createSourceCode(final File pClassFile,
                                          final ClassExecutionData pData,
                                          final String pClassName) throws FileNotFoundException {
+        logger.debug(String.format("createSourceCode(%s, <ClassExecutionData>, %s)", pClassFile, pClassName));
         // Read source file
         Scanner scanner = new Scanner(pClassFile);
 
         // Get all method definitions from the ast
-        // TODO: Maybe delete
-        List<MethodDeclaration> mDeclList = JDFCUtils.getMethodDeclList(pClassFile, pClassName);
 
         HTMLElement table = HTMLElement.table();
         table.getAttributes().add("id=\"classDetailView\"");
@@ -238,7 +241,7 @@ public class HTMLFactory {
             HTMLElement sourceCodeText = HTMLElement.td();
             row.getContent().add(sourceCodeText);
             // Add highlighting, coverage info etc.
-            HTMLElement finalizedText = finalizeLineText(pClassFile, pClassName, currentLineCounter, currentLineString, pData, mDeclList);
+            HTMLElement finalizedText = finalizeLineText(pClassFile, pClassName, currentLineCounter, currentLineString, pData);
             sourceCodeText.getContent().add(finalizedText);
         }
         scanner.close();
@@ -249,8 +252,8 @@ public class HTMLFactory {
                                          final String pClassName,
                                          final int pLineNumber,
                                          final String pLineString,
-                                         final ClassExecutionData pData,
-                                         final List<MethodDeclaration> mDeclList) {
+                                         final ClassExecutionData pData) {
+        logger.debug(String.format("finalizeLineText(%s, %s, %s, %s, <ClassExecutionData>)", pClassFile, pClassName, pLineNumber, pLineString));
         HTMLElement divTagLine = HTMLElement.div();
         divTagLine.getAttributes().add("class=\"line\"");
 
@@ -295,12 +298,13 @@ public class HTMLFactory {
                     System.err.println(pLineNumber);
                 } else {
                     methodName = mData.buildInternalMethodName();
-                    boolean isInlineDefinition = isDefinition(workList.get(0));
+                    boolean isInlineDefinition = this.isDefinition(workList.get(0));
                     boolean isMethodParam = isMethodParam(mData, pLineString);
                     boolean isDefinition = isInlineDefinition || isMethodParam;
 
                     if(isMethodParam) {
                         // TODO: We already know that it is a param up here btw
+                        //       pass mData and get variables from there
                         programVariable = findProgramVariable(pData, methodName, Integer.MIN_VALUE, item, sameWordsCount, true);
                     } else {
                         programVariable = findProgramVariable(pData, methodName, pLineNumber, item, sameWordsCount, isDefinition);
@@ -371,7 +375,7 @@ public class HTMLFactory {
     }
 
     private boolean isMethodParam(MethodData mData, String lineString) {
-       return mData.getSrcAst().getDeclarationAsString().contains(lineString.replace("{","").trim());
+        return mData.getDeclarationStr().contains(lineString.replace("{","").trim());
     }
 
     private void processString(HTMLElement pDivTagLine, List<String> pWorkList, String pItem) {
@@ -582,24 +586,24 @@ public class HTMLFactory {
     private HTMLElement createDataTable(final List<String> pColumns,
                                         final ClassExecutionData pData,
                                         final String pClassfileName) {
+        logger.debug(String.format("createDataTable(%s, <ExecutionData>, %s)", pColumns.toString(), pClassfileName));
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
-        for (Map.Entry<String, List<DefUsePair>> entry : pData.getDefUsePairs().entrySet()) {
-            String elementName = entry.getKey();
+        for (MethodData mData : pData.getMethods().values()) {
+            String internalMethodName = mData.buildInternalMethodName();
 
             // Methods with 0 DefUsePairs are standard object constructors; we do not want to show those.
-            if (entry.getValue().size() != 0) {
-                if (elementName.contains("<init>")) {
-                    elementName = elementName.replace("<init>", "init");
+            if (mData.getPairs().size() != 0) {
+                if (internalMethodName.contains("<init>")) {
+                    internalMethodName = internalMethodName.replace("<init>", "init");
                 }
-                int total = entry.getValue().size();
-                int covered = pData.getMethodByInternalName(entry.getKey()).getCovered();
+                int total = mData.getTotal();
+                int covered = mData.getCovered();
                 int missed = total - covered;
-                String link = String.format("%s.java.html#L%s", pClassfileName,
-                        pData.getMethodFirstLine().get(entry.getKey()));
+                String link = String.format("%s.java.html#L%s", pClassfileName, mData.getBeginLine());
                 HTMLElement trTag = HTMLElement.tr();
                 HTMLElement tdTag = HTMLElement.td();
-                tdTag.getContent().add(HTMLElement.a(link, elementName));
+                tdTag.getContent().add(HTMLElement.a(link, internalMethodName));
                 trTag.getContent().add(tdTag);
                 trTag.getContent().add(HTMLElement.td(total));
                 trTag.getContent().add(HTMLElement.td(covered));
@@ -991,6 +995,7 @@ public class HTMLFactory {
                                                 final String pName,
                                                 final int pSameWordsCount,
                                                 final boolean pIsDefinition) {
+        // TODO: Some nullpointer here
         if (pMethodName != null) {
             List<ProgramVariable> possibleVariables = getPossibleVars(pData, pMethodName, pLineNumber, pName);
             if (!possibleVariables.isEmpty()) {

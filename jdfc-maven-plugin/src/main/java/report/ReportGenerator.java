@@ -45,7 +45,7 @@ public class ReportGenerator {
     private void createPackageRelatedHTMLFilesRecursive(final HTMLFactory pFactory,
                                                         final ExecutionDataNode<ExecutionData> pNode,
                                                         final String pPathName) throws IOException {
-        logger.debug("createPackageRelatedHTMLFilesRecursive");
+        logger.debug(String.format("createPackageRelatedHTMLFilesRecursive(<HTMLFactory>, <ExecutionDataNode>, %s)", pPathName));
         Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = pNode.getChildren();
         Map<String, ExecutionDataNode<ExecutionData>> classExecutionDataNodeMap = new TreeMap<>();
         File outputFolder = new File(pPathName);

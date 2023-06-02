@@ -52,6 +52,11 @@ public class MethodData {
     private String desc;
 
     /**
+     * Method declaration string from source file
+     */
+    private String declarationStr;
+
+    /**
      * Local variables in class
      */
     private Map<Integer, LocalVariable> localVariableTable;
@@ -78,6 +83,9 @@ public class MethodData {
      */
     private Set<ProgramVariable> coveredVars;
 
+    /**
+     * All uncovered variables
+     */
     private Set<ProgramVariable> uncoveredVars;
 
     /**
@@ -104,6 +112,7 @@ public class MethodData {
         this.access = access;
         this.name = name;
         this.desc = desc;
+        this.declarationStr = srcAst.getDeclarationAsString();
         this.srcAst = srcAst;
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
@@ -129,71 +138,6 @@ public class MethodData {
         } else {
             throw new IllegalArgumentException("Method end is undefined.");
         }
-    }
-
-    public int getTotal() {
-        return total;
-    }
-
-    public int getCovered() {
-        return covered;
-    }
-
-    public double getRate() {
-        return rate;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public Map<Integer, LocalVariable> getLocalVariableTable() {
-        return localVariableTable;
-    }
-
-    public void setLocalVariableTable(Map<Integer, LocalVariable> localVariableTable) {
-        logger.debug("setLocalVariableName");
-        this.localVariableTable = localVariableTable;
-    }
-
-    public MethodDeclaration getSrcAst() {
-        return srcAst;
-    }
-
-    public Set<DefUsePair> getPairs() {
-        return pairs;
-    }
-
-    public CFG getCfg() {
-        return cfg;
-    }
-
-    public void setCfg(CFG cfg) {
-        this.cfg = cfg;
-    }
-
-    public void setParams(Set<ProgramVariable> params) {
-        this.params = params;
-    }
-
-    public int getBeginLine() {
-        return beginLine;
-    }
-
-    public int getEndLine() {
-        return endLine;
-    }
-
-    public Set<ProgramVariable> getCoveredVars() {
-        return coveredVars;
-    }
-
-    public Set<ProgramVariable> getUncoveredVars() {
-        return uncoveredVars;
     }
 
     public String buildInternalMethodName() {
