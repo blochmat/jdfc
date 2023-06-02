@@ -1,10 +1,17 @@
 package data;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Objects;
 
 /**
  *  Coverage data container for packages. Base model for {@code ClassExecutionData}
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExecutionData {
 
     private int total = 0;
@@ -23,10 +30,6 @@ public class ExecutionData {
             int i = temp.length() - 1;
             this.parentFqn = temp.substring(0, i);
         }
-    }
-
-    public int getTotal() {
-        return total;
     }
 
     public void setTotal(int total) {

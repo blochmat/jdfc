@@ -233,7 +233,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varName = getLocalVarName(varNumber);
         final String varType = getLocalVarType(varNumber);
         final boolean isDefinition = isDefinition(pOpcode);
-        return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, isDefinition);
+        return new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition);
     }
 
     private String getLocalVarName(final int pVarNumber) {
@@ -327,7 +327,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
             final ProgramVariable variable =
-                    ProgramVariable.create(null,
+                    new ProgramVariable(null,
                             localVariable.getName(),
                             localVariable.getDescriptor(),
                             Integer.MIN_VALUE,

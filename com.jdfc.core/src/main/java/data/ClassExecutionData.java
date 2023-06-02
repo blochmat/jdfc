@@ -12,6 +12,10 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
@@ -24,36 +28,40 @@ import java.util.stream.Collectors;
  * Coverage data container of a single class. It contains information about all methods including CFG's, Def-Use pairs,
  * inter-procedural matches, covered and uncovered variables.
  */
-
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClassExecutionData extends ExecutionData {
 
-    private final Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
-    private final String relativePath;
     @JsonIgnore
-    private final CompilationUnit srcFileAst;
+    private Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
+    private String relativePath;
     @JsonIgnore
-    private final PackageDeclaration pkgDecl;
+    private CompilationUnit srcFileAst;
     @JsonIgnore
-    private final List<ImportDeclaration> impDeclList;
+    private PackageDeclaration pkgDecl;
     @JsonIgnore
-    private final ClassOrInterfaceDeclaration ciDecl;
-    private final Map<String, String> nestedTypeMap;
+    private List<ImportDeclaration> impDeclList;
     @JsonIgnore
-    private final Map<String, Integer> methodFirstLine;
+    private ClassOrInterfaceDeclaration ciDecl;
+    private Map<String, String> nestedTypeMap;
     @JsonIgnore
-    private final Map<String, Integer> methodLastLine;
+    private Map<String, Integer> methodFirstLine;
     @JsonIgnore
-    private final TreeMap<String, List<DefUsePair>> defUsePairs;
+    private Map<String, Integer> methodLastLine;
     @JsonIgnore
-    private final TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
+    private TreeMap<String, List<DefUsePair>> defUsePairs;
     @JsonIgnore
-    private final Map<String, Set<ProgramVariable>> variablesCovered;
+    private TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
     @JsonIgnore
-    private final Map<String, Set<ProgramVariable>> variablesUncovered;
+    private Map<String, Set<ProgramVariable>> variablesCovered;
     @JsonIgnore
-    private final Set<InterProceduralMatch> interProceduralMatches;
-    private final Set<ProgramVariable> fields;
-    private final Map<Integer, MethodData> methods;
+    private Map<String, Set<ProgramVariable>> variablesUncovered;
+    @JsonIgnore
+    private Set<InterProceduralMatch> interProceduralMatches;
+    private Set<ProgramVariable> fields;
+    private Map<Integer, MethodData> methods;
 
     public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
@@ -328,41 +336,5 @@ public class ClassExecutionData extends ExecutionData {
             }
         }
         return false;
-    }
-
-    public Map<String, Integer> getMethodFirstLine() {
-        return methodFirstLine;
-    }
-
-    public Map<String, Integer> getMethodLastLine() {
-        return methodLastLine;
-    }
-
-    public TreeMap<String, List<DefUsePair>> getDefUsePairs() {
-        return defUsePairs;
-    }
-
-    public TreeMap<String, Map<DefUsePair, Boolean>> getDefUsePairsCovered() {
-        return defUsePairsCovered;
-    }
-
-    public Map<String, Set<ProgramVariable>> getVariablesCovered() {
-        return variablesCovered;
-    }
-
-    public Map<String, Set<ProgramVariable>> getVariablesUncovered() {
-        return variablesUncovered;
-    }
-
-    public String getRelativePath() {
-        return relativePath;
-    }
-
-    public Set<InterProceduralMatch> getInterProceduralMatches() {
-        return interProceduralMatches;
-    }
-
-    public Map<Integer, MethodData> getMethods() {
-        return methods;
     }
 }

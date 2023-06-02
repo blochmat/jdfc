@@ -6,15 +6,20 @@ import cfg.nodes.CFGNode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
 import java.util.*;
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MethodData {
     @JsonIgnore
-    private final Logger logger = LoggerFactory.getLogger(MethodData.class);
+    private Logger logger = LoggerFactory.getLogger(MethodData.class);
 
     /**
      * Amount of DU-pairs in method
@@ -34,17 +39,17 @@ public class MethodData {
     /**
      * Access modifier of method, e.g. 0 = protected, 1 = public, 2 = private
      */
-    private final int access;
+    private int access;
 
     /**
      * Name of method, e.g. max
      */
-    private final String name;
+    private String name;
 
     /**
      * Internal signature of method, e.g. int max(int x, int y) = (II)I
      */
-    private final String desc;
+    private String desc;
 
     /**
      * Local variables in class
@@ -55,7 +60,7 @@ public class MethodData {
      * AST of method source code
      */
     @JsonIgnore
-    private final MethodDeclaration srcAst;
+    private MethodDeclaration srcAst;
 
     /**
      * CFG of compiled method
@@ -66,14 +71,14 @@ public class MethodData {
     /**
      * All DU-pairs of method
      */
-    private final Set<DefUsePair> pairs;
+    private Set<DefUsePair> pairs;
 
     /**
      * All covered variables
      */
-    private final Set<ProgramVariable> coveredVars;
+    private Set<ProgramVariable> coveredVars;
 
-    private final Set<ProgramVariable> uncoveredVars;
+    private Set<ProgramVariable> uncoveredVars;
 
     /**
      * All method params as {@link ProgramVariable}
@@ -83,12 +88,12 @@ public class MethodData {
     /**
      * Line of method declaration in source code
      */
-    private final int beginLine;
+    private int beginLine;
 
     /**
      * Line of method ending in source code (including last closing bracket)
      */
-    private final int endLine;
+    private int endLine;
 
     public String toString() {
         return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nParams: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",

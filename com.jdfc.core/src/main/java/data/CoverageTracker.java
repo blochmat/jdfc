@@ -38,7 +38,7 @@ public class CoverageTracker {
         CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
 
         if (localVariable != null) {
-            ProgramVariable programVariable = ProgramVariable.create(null, localVariable.getName(),
+            ProgramVariable programVariable = new ProgramVariable(null, localVariable.getName(),
                     localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode));
             currentClassExecutionData.getMethodByInternalName(pInternalMethodName).getCoveredVars().add(programVariable);
         }

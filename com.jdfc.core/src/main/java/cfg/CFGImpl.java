@@ -1,9 +1,13 @@
 package cfg;
 
 import cfg.nodes.CFGNode;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
@@ -16,12 +20,16 @@ import java.util.Set;
 /**
  * A implementation of a {@link CFG}.
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CFGImpl implements CFG {
 
-    private final Logger logger = LoggerFactory.getLogger(CFGImpl.class);
-    private final String methodName;
-    private final NavigableMap<Double, CFGNode> nodes;
-    private final Multimap<Double, Double> edges;
+    @JsonIgnore
+    private Logger logger = LoggerFactory.getLogger(CFGImpl.class);
+    private String methodName;
+    private NavigableMap<Double, CFGNode> nodes;
+    private Multimap<Double, Double> edges;
 
     public CFGImpl(
             final String pMethodName,
