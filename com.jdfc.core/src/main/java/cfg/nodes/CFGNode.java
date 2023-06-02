@@ -157,7 +157,7 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGNode: %d %s (%d predecessors, %d successors)",
-                index, JDFCUtils.getOpcode(opcode), predecessors.size(), successors.size());
+                "CFGNode: %d %s (%d predecessors, %d successors) | definitions %s | uses %s",
+                index, JDFCUtils.getOpcode(opcode), predecessors.size(), successors.size(), definitions, uses);
     }
 }

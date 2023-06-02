@@ -9,11 +9,16 @@ import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.objectweb.asm.Opcodes.ASM5;
 
 public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
 
     private final Logger logger = LoggerFactory.getLogger(CFGLocalVariableMethodVisitor.class);
+
+    private final Map<Integer, LocalVariable> localVariableTable = new HashMap<>();
 
     public CFGLocalVariableMethodVisitor(
             final CFGLocalVariableClassVisitor pClassVisitor,
@@ -46,10 +51,7 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitEnd() {
         logger.debug("visitEnd");
-        // TODO
-        if(!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
-            classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
-                    .setLocalVariableTable(localVariableTable);
-        }
+        classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
+                .setLocalVariableTable(localVariableTable);
     }
 }

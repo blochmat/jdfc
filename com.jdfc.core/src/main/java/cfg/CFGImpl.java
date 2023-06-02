@@ -4,6 +4,8 @@ import cfg.nodes.CFGNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
 import java.util.LinkedList;
@@ -16,6 +18,7 @@ import java.util.Set;
  */
 public class CFGImpl implements CFG {
 
+    private final Logger logger = LoggerFactory.getLogger(CFGImpl.class);
     private final String methodName;
     private final NavigableMap<Double, CFGNode> nodes;
     private final Multimap<Double, Double> edges;
@@ -47,6 +50,8 @@ public class CFGImpl implements CFG {
      */
     @Override
     public void calculateReachingDefinitions() {
+        logger.debug("calculateReachingDefinitions");
+        logger.debug(JDFCUtils.prettyPrintMap(nodes));
         LinkedList<CFGNode> workList = new LinkedList<>();
         for (Map.Entry<Double, CFGNode> node : nodes.entrySet()) {
             node.getValue().resetReachOut();
@@ -61,6 +66,8 @@ public class CFGImpl implements CFG {
                 workList.addAll(node.getPredecessors());
             }
         }
+
+        logger.debug(JDFCUtils.prettyPrintMap(nodes));
     }
 
     /**

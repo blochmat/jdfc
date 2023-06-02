@@ -593,7 +593,7 @@ public class HTMLFactory {
                     elementName = elementName.replace("<init>", "init");
                 }
                 int total = entry.getValue().size();
-                int covered = pData.computeCoveredForMethod(entry.getKey());
+                int covered = pData.getMethodByInternalName(entry.getKey()).getCovered();
                 int missed = total - covered;
                 String link = String.format("%s.java.html#L%s", pClassfileName,
                         pData.getMethodFirstLine().get(entry.getKey()));

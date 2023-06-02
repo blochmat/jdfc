@@ -74,7 +74,9 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-        if (methodNode != null && isInstrumentationRequired(pName)) {
+        // TODO
+        if (methodNode != null && isInstrumentationRequired(pName) && !internalMethodName.contains("<init>")
+                && !internalMethodName.contains("<clinit>")) {
             return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
         }

@@ -138,7 +138,11 @@ public class ExecutionDataNode<T extends ExecutionData> {
             parentData.setTotal(newTotal);
             parentData.setCovered(newCovered);
             parentData.setMethodCount(newMethodCount);
-            parentData.setRate((double) newCovered / newTotal);
+            if (newTotal != 0.0) {
+                parentData.setRate((double) newCovered / newTotal);
+            } else {
+                parentData.setRate(0.0);
+            }
             this.parent.aggregateDataToRootRecursive();
         }
     }

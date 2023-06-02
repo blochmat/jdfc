@@ -30,6 +30,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final Logger logger = LoggerFactory.getLogger(CFGNodeMethodVisitor.class);
     private final Multimap<Double, Double> edges;
     private final NavigableMap<Double, CFGNode> nodes;
+    private final MethodData mData;
 
     public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
                                 final MethodVisitor pMethodVisitor,
@@ -39,6 +40,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         logger.debug(String.format("Visiting %s", pInternalMethodName));
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
+        mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
+        logger.debug(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
     }
 
     @Override
@@ -213,9 +216,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
         if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
-            cfg.calculateReachingDefinitions();
-            mData.setCfg(cfg);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
+            mData.setCfg(cfg);
+            mData.getCfg().calculateReachingDefinitions();
             mData.calculateDefUsePairs();
         } else {
             // TODO: <init>: ()V is not in methods
@@ -226,14 +229,16 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                                                            final int pOpcode,
                                                            final int pIndex,
                                                            final int pLineNumber) {
-        final String varName = getVariableNameFromLocalVariablesTable(varNumber);
-        final String varType = getVariableTypeFromLocalVariablesTable(varNumber);
+        logger.debug(String.format("getProgramVariableFromLocalVar(%d, %d, %d, %d)", varNumber, pOpcode, pIndex, pLineNumber));
+        final String varName = getLocalVarName(varNumber);
+        final String varType = getLocalVarType(varNumber);
         final boolean isDefinition = isDefinition(pOpcode);
         return ProgramVariable.create(null, varName, varType, pIndex, pLineNumber, isDefinition);
     }
 
-    private String getVariableNameFromLocalVariablesTable(final int pVarNumber) {
-        final LocalVariable localVariable = localVariableTable.get(pVarNumber);
+    private String getLocalVarName(final int pVarNumber) {
+        logger.debug(String.format("getLocalVarName(%d)", pVarNumber));
+        final LocalVariable localVariable = mData.getLocalVariableTable().get(pVarNumber);
         if (localVariable != null) {
             return localVariable.getName();
         } else {
@@ -241,8 +246,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private String getVariableTypeFromLocalVariablesTable(final int pVarNumber) {
-        final LocalVariable localVariable = localVariableTable.get(pVarNumber);
+    private String getLocalVarType(final int pVarNumber) {
+        logger.debug(String.format("getLocalVarType(%d)", pVarNumber));
+        final LocalVariable localVariable = mData.getLocalVariableTable().get(pVarNumber);
         if (localVariable != null) {
             return localVariable.getDescriptor();
         } else {
@@ -319,7 +325,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private Set<ProgramVariable> createParamVars() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
-        for (LocalVariable localVariable : localVariableTable.values()) {
+        for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
             final ProgramVariable variable =
                     ProgramVariable.create(null,
                             localVariable.getName(),

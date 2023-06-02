@@ -1,6 +1,5 @@
 package instr.methodVisitors;
 
-import cfg.data.LocalVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -8,16 +7,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.objectweb.asm.Opcodes.*;
 
 public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     public final JDFCClassVisitor classVisitor;
     public final MethodNode methodNode;
-    public final Map<Integer, LocalVariable> localVariableTable;
     public String internalMethodName;
     public AbstractInsnNode currentNode = null;
     public int currentInstructionIndex = -1;
@@ -33,7 +28,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         classVisitor = pClassVisitor;
         methodNode = pMethodNode;
         internalMethodName = pInternalMethodName;
-        localVariableTable = new HashMap<>();
     }
 
     @Override

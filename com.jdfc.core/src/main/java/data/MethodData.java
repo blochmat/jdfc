@@ -14,7 +14,7 @@ import java.util.*;
 
 public class MethodData {
     @JsonIgnore
-    private Logger logger = LoggerFactory.getLogger(MethodData.class);
+    private final Logger logger = LoggerFactory.getLogger(MethodData.class);
 
     /**
      * Amount of DU-pairs in method
@@ -44,12 +44,7 @@ public class MethodData {
     /**
      * Internal signature of method, e.g. int max(int x, int y) = (II)I
      */
-    private String desc;
-
-    /**
-     * Exceptions thrown by method
-     */
-    private String[] exceptions;
+    private final String desc;
 
     /**
      * Local variables in class
@@ -78,6 +73,8 @@ public class MethodData {
      */
     private final Set<ProgramVariable> coveredVars;
 
+    private final Set<ProgramVariable> uncoveredVars;
+
     /**
      * All method params as {@link ProgramVariable}
      */
@@ -86,16 +83,16 @@ public class MethodData {
     /**
      * Line of method declaration in source code
      */
-    private int beginLine;
+    private final int beginLine;
 
     /**
      * Line of method ending in source code (including last closing bracket)
      */
-    private int endLine;
+    private final int endLine;
 
     public String toString() {
-        return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nExceptions: %s%nBegin: %d%nEnd: %d%nParams: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
-                access, name, desc, Arrays.toString(exceptions), beginLine, endLine, JDFCUtils.prettyPrintSet(params), total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
+        return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nParams: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
+                access, name, desc, beginLine, endLine, JDFCUtils.prettyPrintSet(params), total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
     }
 
     public MethodData(int access, String name, String desc, MethodDeclaration srcAst) {
@@ -108,6 +105,7 @@ public class MethodData {
         this.params = new HashSet<>();
         this.pairs = new HashSet<>();
         this.coveredVars = new HashSet<>();
+        this.uncoveredVars = new HashSet<>();
     }
 
     private int extractBegin(MethodDeclaration srcAst) {
@@ -128,32 +126,6 @@ public class MethodData {
         }
     }
 
-//    /**
-//     * Determines if a string is the definition of this method
-//     *
-//     * @param str Single line string (without line breaks)
-//     * @return returns true if the provided string matches a valid method declaration
-//     */
-//    public boolean isDeclaration(String str) {
-//        Pattern pattern;
-//        if (exceptions.isEmpty()) {
-//            pattern = Pattern.compile(String.format("\\s*%s\\s+%s\\s+%s\\s*(\\s*%s\\s*)\\s*{",
-//                    JDFCUtils.getAccess(this.access),
-//                    JDFCUtils.getReturnType(this.signature),
-//                    this.name,
-//                    JDFCUtils.createParamPattern(this.params)));
-//        } else {
-//            pattern = Pattern.compile(String.format("\\s*%s\\s+%s\\s+%s\\s*(\\s*%s\\s*)\\s+throws\\s+%s\\s*{",
-//                    JDFCUtils.getAccess(this.access),
-//                    JDFCUtils.getReturnType(this.signature),
-//                    this.name,
-//                    JDFCUtils.createParamPattern(this.params),
-//                    JDFCUtils.createExceptionPattern(this.exceptions)));
-//        }
-//        Matcher matcher = pattern.matcher(str);
-//        return matcher.matches();
-//    }
-
     public int getTotal() {
         return total;
     }
@@ -170,36 +142,8 @@ public class MethodData {
         return name;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
     public String getDesc() {
         return desc;
-    }
-
-    public String[] getExceptions() {
-        return exceptions;
-    }
-
-    public void setExceptions(String[] exceptions) {
-        this.exceptions = exceptions;
-    }
-
-    public void setTotal(int total) {
-        this.total = total;
-    }
-
-    public void setCovered(int covered) {
-        this.covered = covered;
-    }
-
-    public void setRate(double rate) {
-        this.rate = rate;
-    }
-
-    public int getAccess() {
-        return access;
     }
 
     public Map<Integer, LocalVariable> getLocalVariableTable() {
@@ -227,10 +171,6 @@ public class MethodData {
         this.cfg = cfg;
     }
 
-    public Set<ProgramVariable> getParams() {
-        return params;
-    }
-
     public void setParams(Set<ProgramVariable> params) {
         this.params = params;
     }
@@ -239,20 +179,16 @@ public class MethodData {
         return beginLine;
     }
 
-    public void setBeginLine(int beginLine) {
-        this.beginLine = beginLine;
-    }
-
     public int getEndLine() {
         return endLine;
     }
 
-    public void setEndLine(int endLine) {
-        this.endLine = endLine;
-    }
-
     public Set<ProgramVariable> getCoveredVars() {
         return coveredVars;
+    }
+
+    public Set<ProgramVariable> getUncoveredVars() {
+        return uncoveredVars;
     }
 
     public String buildInternalMethodName() {
@@ -269,28 +205,10 @@ public class MethodData {
         }
     }
 
-    public ProgramVariable findParamByName(String name) {
-        for (ProgramVariable p : params) {
-            if (p.getName().equals(name)) {
-                return p;
-            }
-        }
-        return null;
-    }
-
     public DefUsePair findDefUsePair(DefUsePair pair) {
         for(DefUsePair p : pairs) {
             if (p.getDefinition().equals(pair.getDefinition()) && p.getUsage().equals(pair.getUsage())) {
                 return p;
-            }
-        }
-        return null;
-    }
-
-    public DefUsePair findDefUsePair(ProgramVariable def, ProgramVariable use) {
-        for(DefUsePair pair : pairs) {
-            if (pair.getDefinition().equals(def) && pair.getUsage().equals(use)) {
-                return pair;
             }
         }
         return null;
@@ -303,6 +221,8 @@ public class MethodData {
         logger.debug("calculateDefUsePairs");
         for (Map.Entry<Double, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
+
+            logger.debug(JDFCUtils.prettyPrintSet(node.getReach()));
             for (ProgramVariable def : node.getReach()) {
                 for (ProgramVariable use : node.getUses()) {
                     if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
@@ -314,5 +234,6 @@ public class MethodData {
                 }
             }
         }
+        logger.debug(JDFCUtils.prettyPrintSet(this.pairs));
     }
 }

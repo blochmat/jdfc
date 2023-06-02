@@ -1,6 +1,5 @@
 package data;
 
-import cfg.CFG;
 import cfg.data.LocalVariable;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
@@ -19,7 +18,6 @@ import utils.JavaParserHelper;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Coverage data container of a single class. It contains information about all methods including CFG's, Def-Use pairs,
@@ -34,9 +32,7 @@ public class ClassExecutionData extends ExecutionData {
     private final PackageDeclaration pkgDecl;
     private final List<ImportDeclaration> impDeclList;
     private final ClassOrInterfaceDeclaration ciDecl;
-//    private final List<ClassOrInterfaceDeclaration> innerCiDeclList;
     private final Map<String, String> nestedTypeMap;
-    private Map<String, CFG> methodCFGs;
     private final Map<String, Integer> methodFirstLine;
     private final Map<String, Integer> methodLastLine;
     private final TreeMap<String, List<DefUsePair>> defUsePairs;
@@ -92,12 +88,6 @@ public class ClassExecutionData extends ExecutionData {
         }
     }
 
-    /**
-     * Find all nested classes, create their JVM internal representation, and save the mapping
-     *
-     * @param srcFileAst
-     * @return
-     */
     private Map<String, String> extractNestedTypes(CompilationUnit srcFileAst) {
         Map<String, String> result = new HashMap<>();
         srcFileAst.findAll(ClassOrInterfaceDeclaration.class)
@@ -148,15 +138,6 @@ public class ClassExecutionData extends ExecutionData {
         return null;
     }
 
-    public MethodData getMethodByName(String name) {
-        for(MethodData mData : methods.values()) {
-            if (mData.getName().equals(name)) {
-                return mData;
-            }
-        }
-        return null;
-    }
-
     public MethodData getMethodByLineNumber(int lNr) {
         for(MethodData mData : methods.values()) {
             if (mData.getBeginLine() <= lNr && lNr <= mData.getEndLine()) {
@@ -166,243 +147,52 @@ public class ClassExecutionData extends ExecutionData {
         return null;
     }
 
-
-    /**
-     * Inserts new defintions in case of an impure method invoke. New definitions are added for parameters passed
-     * with a complex (object) type
-     */
-//    public void insertAdditionalDefs() {
-//        for (Map.Entry<String, CFG> methodCFGsEntry : methodCFGs.entrySet()) {
-//            for (Map.Entry<Double, CFGNode> entry : methodCFGsEntry.getValue().getNodes().entrySet()) {
-//                CFGNode node = entry.getValue();
-//                if (node instanceof ToBeDeleted) {
-//                    ToBeDeleted callingNode = (ToBeDeleted) node;
-//                    if (callingNode.getRelatedCFG() != null && callingNode.getRelatedCFG().isImpure()) {
-//                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
-//                                getUsageDefinitionMatchRecursive(
-//                                        callingNode.getParameterCount(), null, callingNode, callingNode.getRelatedCallSiteNode());
-//                        if (usageDefinitionMatch != null && !usageDefinitionMatch.isEmpty()) {
-//                            insertNewDefinitions(callingNode, usageDefinitionMatch.keySet());
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-
-    /**
-     * Established inter-procedural connection between parameters
-     */
-//    public void setupInterProceduralMatches() {
-//        for (Map.Entry<String, CFG> methodCFGs : methodCFGs.entrySet()) {
-//            String methodName = methodCFGs.getKey();
-//            CFG graph = methodCFGs.getValue();
-//            for (Map.Entry<Double, CFGNode> node : graph.getNodes().entrySet()) {
-//                if (node.getValue() instanceof ToBeDeleted) {
-//                    ToBeDeleted toBeDeleted = (ToBeDeleted) node.getValue();
-//                    if (toBeDeleted.getRelatedCFG() != null) {
-//                        CFGNode entryNode = toBeDeleted.getRelatedCallSiteNode();
-//                        String entryMethodName = toBeDeleted.getMethodNameDesc();
-//                        Map<ProgramVariable, ProgramVariable> usageDefinitionMatch =
-//                                getUsageDefinitionMatchRecursive(
-//                                        toBeDeleted.getParameterCount(), null, toBeDeleted, entryNode);
-//                        matchPairs(methodName, entryMethodName, usageDefinitionMatch);
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    /**
-     * Insert new definitons at a {@code IFGNode} in case of an impure method invoke
-     *
-     * @param pNode Node invoking a method
-     * @param pMethodParameters parameters involved in method call
-     */
-//    public void insertNewDefinitions(ToBeDeleted pNode, Collection<ProgramVariable> pMethodParameters) {
-//        for (ProgramVariable parameter : pMethodParameters) {
-//            if (!isSimpleType(parameter.getDescriptor())) {
-//                ProgramVariable newParamDefinition =
-//                        ProgramVariable.create(parameter.getOwner(), parameter.getName(), parameter.getDescriptor(),
-//                                pNode.getIndex(), pNode.getLineNumber(),
-//                                parameter.isDefinition());
-//                pNode.addDefinition(newParamDefinition);
-//            }
-//        }
-//    }
-
-    /**
-     * Computes the variable connections to establish inter-procedural matching of parameters
-     * @param pParameterCount Count of parameters involved
-     * @param pNode Invoking node n for the first iteration, then predecessor of n
-     * @param pCallingNode Invoking node n
-     * @param pRelatedCallSiteNode entry node of invoked procedure
-     * @return Map matching definitions in both procedures to one another
-     */
-//    private Map<ProgramVariable, ProgramVariable> getUsageDefinitionMatchRecursive(final int pParameterCount,
-//                                                                                   final CFGNode pNode,
-//                                                                                   final ToBeDeleted pCallingNode,
-//                                                                                   final CFGNode pRelatedCallSiteNode) {
-//        Map<ProgramVariable, ProgramVariable> matchMap = new HashMap<>();
-//        // for each parameter: process one node (predecessor of pNode)
-//        if (pParameterCount > 0) {
-//            CFGNode predecessor;
-//
-//            // Example: 2 parameters
-//            // LOAD x
-//            // LOAD y
-//            // INVOKE  x y
-//            if (pNode == null) {
-//                predecessor = (CFGNode) pCallingNode.getPredecessors().toArray()[0];
-//            } else {
-//                predecessor = (CFGNode) pNode.getPredecessors().toArray()[0];
-//            }
-//
-//            if(pRelatedCallSiteNode == null) {
-//                return matchMap;
-//            }
-//
-//            Set<ProgramVariable> usages = predecessor.getUses();
-//            for (ProgramVariable var : usages) {
-//                // find correlated definition in procedure B
-//                ProgramVariable definitionB;
-//                // If a constructor is called with constant values
-//                if(pCallingNode.getMethodNameDesc().contains("<init>") && pRelatedCallSiteNode.getDefinitions().size() == 1) {
-//                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[0];
-//                    matchMap.put(var, definitionB);
-//                    return matchMap;
-//                }
-//
-//                if (pCallingNode.getOpcode() == Opcodes.INVOKESTATIC) {
-//                    // Special Case: If static method or constructor is called "this" is not defined
-//                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount - 1];
-//                } else {
-//                    definitionB = (ProgramVariable) pRelatedCallSiteNode.getDefinitions().toArray()[pParameterCount];
-//                }
-//                matchMap.put(var, definitionB);
-//            }
-//
-//            matchMap = mergeMaps(matchMap,
-//                    getUsageDefinitionMatchRecursive(
-//                            pParameterCount - 1, predecessor, pCallingNode, pRelatedCallSiteNode));
-//        }
-//        return matchMap;
-//    }
-
-    /**
-     * Create matching between program variables of procedures
-     *
-     * @param pMethodName Method name of invoking procedure
-     * @param pEntryMethodName Method name of invoked procedure
-     * @param pUsageDefinitionMatch Map of matching definitions
-     */
-    private void matchPairs(final String pMethodName,
-                            final String pEntryMethodName,
-                            final Map<ProgramVariable, ProgramVariable> pUsageDefinitionMatch) {
-        for (Map.Entry<ProgramVariable, ProgramVariable> usageDefinitionMatch : pUsageDefinitionMatch.entrySet()) {
-            ProgramVariable usageA = usageDefinitionMatch.getKey();
-            ProgramVariable definitionB = usageDefinitionMatch.getValue();
-            // find definition by use of procedure A
-            ProgramVariable definitionA = findDefinitionByUse(pMethodName, usageA);
-            if (definitionA != null) {
-                // match definitions of procedure A and B
-                InterProceduralMatch newMatch = InterProceduralMatch.create(definitionA, definitionB, pMethodName, pEntryMethodName);
-                interProceduralMatches.add(newMatch);
-                // find all usages of definition of procedure B
-                List<ProgramVariable> usagesB = findUsagesByDefinition(pEntryMethodName, definitionB);
-                // add new pairs
-                for (ProgramVariable usageB : usagesB) {
-                    defUsePairs.get(pMethodName).add(new DefUsePair(definitionA, usageB));
-                }
-            }
-        }
-
-    }
-
-    /**
-     * Finds definition from given use
-     *
-     * @param pMethodName Method name of method containing definition and use
-     * @param pUsage given use
-     * @return definition of given use
-     */
-    private ProgramVariable findDefinitionByUse(String pMethodName, ProgramVariable pUsage) {
-        logger.debug("findDefinitionByUse");
-        for (DefUsePair pair : defUsePairs.get(pMethodName)) {
-            if (pair.getUsage().equals(pUsage)) {
-                return pair.getDefinition();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Find all usages from given defintion
-     * @param pMethodName Method name of method containing definition and uses
-     * @param pDefinition given definition
-     * @return List of all usages associated with given definition
-     */
-    private List<ProgramVariable> findUsagesByDefinition(String pMethodName, ProgramVariable pDefinition) {
-        logger.debug("findUsagesByDefinition");
-        List<ProgramVariable> result = new ArrayList<>();
-        for (DefUsePair pair : defUsePairs.get(pMethodName)) {
-            if (pair.getDefinition().equals(pDefinition)) {
-                result.add(pair.getUsage());
-            }
-        }
-        return result;
-    }
-
     public void computeCoverageForClass() {
         logger.debug("computeCoverageForClass");
-        for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
-            String methodName = entry.getKey();
-            variablesUncovered.put(methodName, new HashSet<>());
-            if (entry.getValue().size() == 0) {
+        for (MethodData mData : this.getMethods().values()) {
+            String internalMethodName = mData.buildInternalMethodName();
+            if (mData.getPairs().size() == 0) {
                 continue;
             }
-            for (DefUsePair pair : entry.getValue()) {
+            for (DefUsePair pair : mData.getPairs()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
                 boolean isDefCovered;
                 boolean isUseCovered;
-                if(variablesCovered.get(methodName) != null) {
-                    isDefCovered = variablesCovered.get(methodName).contains(def);
-                    isUseCovered = variablesCovered.get(methodName).contains(use);
+                if(mData.getCoveredVars() != null) {
+                    isDefCovered = mData.getCoveredVars().contains(def);
+                    isUseCovered = mData.getCoveredVars().contains(use);
                 } else {
                     isDefCovered = false;
                     isUseCovered = false;
                 }
 
                 if (isDefCovered && isUseCovered) {
-                    defUsePairsCovered.get(methodName).put(pair, true);
-                    if (!methodName.contains("<init>") && !methodName.contains("<clinit>")) {
-                        this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(true);
+                    if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+                        this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
                 } else {
-                    defUsePairsCovered.get(methodName).put(pair, false);
-                    if (!methodName.contains("<init>") && !methodName.contains("<clinit>")) {
-                        this.getMethodByInternalName(methodName).findDefUsePair(pair).setCovered(false);
+                    if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+                        this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(false);
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
                     if (!isDefCovered) {
-                        variablesUncovered.get(methodName).add(def);
+                        mData.getUncoveredVars().add(def);
                     }
                     if (!isUseCovered) {
-                        variablesUncovered.get(methodName).add(use);
+                        mData.getUncoveredVars().add(use);
                     }
+                }
+                if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+                    mData.computeCoverage();
+                } else {
+                    // TODO: "<init>: ()V" is not in methods
                 }
             }
 
-            if (!methodName.contains("<init>") && !methodName.contains("<clinit>")) {
-                this.getMethodByInternalName(methodName).computeCoverage();
-            } else {
-                // TODO: "<init>: ()V" is not in methods
-            }
         }
         this.calculateMethodCount();
         this.calculateTotal();
@@ -456,34 +246,24 @@ public class ClassExecutionData extends ExecutionData {
     }
 
 
-    public int computeCoveredForMethod(String pKey) {
-        return (int) defUsePairsCovered.get(pKey).values().stream().filter(x -> x).count();
-    }
-
     public void calculateMethodCount() {
-        this.setMethodCount((int) defUsePairs.entrySet().stream().filter(x -> x.getValue().size() != 0).count());
+        this.setMethodCount(this.methods.size());
     }
 
     public void calculateTotal() {
-        this.setTotal(defUsePairs.values().stream().mapToInt(List::size).sum());
+        this.setTotal(methods.values().stream().mapToInt(MethodData::getTotal).sum());
     }
 
     public void calculateCovered() {
-        this.setCovered(defUsePairsCovered.keySet().stream().mapToInt(this::computeCoveredForMethod).sum());
+        this.setCovered(methods.values().stream().mapToInt(MethodData::getCovered).sum());
     }
 
     public void calculateRate() {
-        this.setRate((double) getCovered() / getTotal());
-    }
-
-    private Map<ProgramVariable, ProgramVariable> mergeMaps(Map<ProgramVariable, ProgramVariable> map1,
-                                                            Map<ProgramVariable, ProgramVariable> map2) {
-        return Stream.of(map1, map2)
-                .flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                ));
+        if (getTotal() != 0.0) {
+            this.setRate((double) getCovered() / getTotal());
+        } else {
+            this.setRate(0.0);
+        }
     }
 
     private Set<InterProceduralMatch> findInterProceduralMatches(final ProgramVariable pDefinition,
@@ -526,14 +306,6 @@ public class ClassExecutionData extends ExecutionData {
         return false;
     }
 
-    private boolean isSimpleType(final String pDescriptor) {
-        return pDescriptor.equals("I")
-                || pDescriptor.equals("D")
-                || pDescriptor.equals("F")
-                || pDescriptor.equals("L")
-                || pDescriptor.equals("Ljava/lang/String;");
-    }
-
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
         for (Map<DefUsePair, Boolean> entryMap : defUsePairsCovered.values()) {
             for (DefUsePair element : entryMap.keySet()) {
@@ -544,22 +316,6 @@ public class ClassExecutionData extends ExecutionData {
             }
         }
         return false;
-    }
-
-
-    private List<MethodDeclaration> extractMethodDeclList() {
-        Optional<ClassOrInterfaceDeclaration> ciOptional = this.srcFileAst.getClassByName(getName());
-        if (ciOptional.isPresent()) {
-            ClassOrInterfaceDeclaration ci = ciOptional.get();
-            return ci.getMethods();
-        } else {
-            throw new IllegalArgumentException("Class is not present in file.");
-        }
-    }
-
-
-    public void setMethodCFGs(final Map<String, CFG> pMethodCFGs) {
-        methodCFGs = pMethodCFGs;
     }
 
     public Map<String, Integer> getMethodFirstLine() {
@@ -592,10 +348,6 @@ public class ClassExecutionData extends ExecutionData {
 
     public Set<InterProceduralMatch> getInterProceduralMatches() {
         return interProceduralMatches;
-    }
-
-    public Set<ProgramVariable> getFields(){
-        return fields;
     }
 
     public Map<Integer, MethodData> getMethods() {

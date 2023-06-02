@@ -42,7 +42,9 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
             final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
             final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
 
-            if (methodNode != null && isInstrumentationRequired(pName)) {
+            // TODO
+            if (methodNode != null && isInstrumentationRequired(pName) && !internalMethodName.contains("<init>")
+                    && !internalMethodName.contains("<clinit>")) {
                 return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName);
             }
         }
