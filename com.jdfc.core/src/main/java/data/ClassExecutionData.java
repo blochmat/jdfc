@@ -47,8 +47,6 @@ public class ClassExecutionData extends ExecutionData {
     private ClassOrInterfaceDeclaration ciDecl;
     private Map<String, String> nestedTypeMap;
     @JsonIgnore
-    private Map<String, Integer> methodLastLine;
-    @JsonIgnore
     private TreeMap<String, List<DefUsePair>> defUsePairs;
     @JsonIgnore
     private TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
@@ -72,7 +70,6 @@ public class ClassExecutionData extends ExecutionData {
         this.methods = extractMethodDeclarations(this.ciDecl);
 
         // TODO: Most of this stuff should go into MethodData
-        methodLastLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
         defUsePairsCovered = new TreeMap<>();
         variablesCovered = new HashMap<>();
