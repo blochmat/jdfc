@@ -47,8 +47,6 @@ public class ClassExecutionData extends ExecutionData {
     private ClassOrInterfaceDeclaration ciDecl;
     private Map<String, String> nestedTypeMap;
     @JsonIgnore
-    private Map<String, Set<ProgramVariable>> variablesUncovered;
-    @JsonIgnore
     private Set<InterProceduralMatch> interProceduralMatches;
     private Set<ProgramVariable> fields;
     private Map<Integer, MethodData> methods;
@@ -61,12 +59,11 @@ public class ClassExecutionData extends ExecutionData {
         this.impDeclList = extractImportDeclarationList(srcFileAst);
         this.ciDecl = extractClassDeclaration(srcFileAst, name);
         this.nestedTypeMap = extractNestedTypes(srcFileAst);
+        this.fields = new HashSet<>();
         this.methods = extractMethodDeclarations(this.ciDecl);
 
         // TODO: Most of this stuff should go into MethodData
-        variablesUncovered = new HashMap<>();
         interProceduralMatches = new HashSet<>();
-        fields = new HashSet<>();
     }
 
     public String toString() {
