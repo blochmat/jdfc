@@ -46,8 +46,6 @@ public class ClassExecutionData extends ExecutionData {
     @JsonIgnore
     private ClassOrInterfaceDeclaration ciDecl;
     private Map<String, String> nestedTypeMap;
-    @JsonIgnore
-    private Set<InterProceduralMatch> interProceduralMatches;
     private Set<ProgramVariable> fields;
     private Map<Integer, MethodData> methods;
 
@@ -61,9 +59,6 @@ public class ClassExecutionData extends ExecutionData {
         this.nestedTypeMap = extractNestedTypes(srcFileAst);
         this.fields = new HashSet<>();
         this.methods = extractMethodDeclarations(this.ciDecl);
-
-        // TODO: Most of this stuff should go into MethodData
-        interProceduralMatches = new HashSet<>();
     }
 
     public String toString() {
@@ -214,18 +209,6 @@ public class ClassExecutionData extends ExecutionData {
         } else {
             this.setRate(0.0);
         }
-    }
-
-    private Set<InterProceduralMatch> findInterProceduralMatches(final ProgramVariable pDefinition,
-                                                                 final String pMethodName) {
-        Set<InterProceduralMatch> result = new HashSet<>();
-        for (InterProceduralMatch element : interProceduralMatches) {
-            if (element.getDefinition().equals(pDefinition) && element.methodName.equals(pMethodName)) {
-                result.add(element);
-            }
-        }
-
-        return result;
     }
 
     public LocalVariable findLocalVariable(final String internalMethodName,

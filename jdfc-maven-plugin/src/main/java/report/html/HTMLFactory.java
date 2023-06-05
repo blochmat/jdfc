@@ -520,17 +520,6 @@ public class HTMLFactory {
         return string;
     }
 
-    private List<ProgramVariable> getAssociatedVars(ProgramVariable pVariable, ClassExecutionData pData) {
-        List<ProgramVariable> result = new ArrayList<>();
-        result.add(pVariable);
-        for (InterProceduralMatch entry : pData.getInterProceduralMatches()) {
-            if (entry.getDefinition().equals(pVariable)) {
-                result.add(entry.getCallSiteDefinition());
-            }
-        }
-        return result;
-    }
-
     private HTMLElement createDefaultHTMLHead(final String pTitle,
                                               final String pPathToResources) {
         HTMLElement headTag = HTMLElement.head();
