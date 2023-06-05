@@ -1007,15 +1007,12 @@ public class HTMLFactory {
     private List<ProgramVariable> getPossibleVars(final MethodData mData,
                                                   final int lNr,
                                                   final String name) {
-        // TODO: get from all vars
         List<ProgramVariable> result = new ArrayList<>();
-        if (mData.getCoveredVars() != null) {
-            for (ProgramVariable element : mData.getCoveredVars()) {
-                if (element.getLineNumber() == lNr
-                        && element.getName().equals(name)
-                        && !result.contains(element)) {
-                    result.add(element);
-                }
+        for (ProgramVariable element : mData.getVars()) {
+            if (element.getLineNumber() == lNr
+                    && element.getName().equals(name)
+                    && !result.contains(element)) {
+                result.add(element);
             }
         }
 

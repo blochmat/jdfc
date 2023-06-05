@@ -79,11 +79,6 @@ public class MethodData {
     private Set<DefUsePair> pairs;
 
     /**
-     * All covered variables
-     */
-    private Set<ProgramVariable> coveredVars;
-
-    /**
      * All program variables
      */
 
@@ -119,7 +114,6 @@ public class MethodData {
         this.endLine = extractEnd(srcAst);
         this.params = new HashSet<>();
         this.pairs = new HashSet<>();
-        this.coveredVars = new HashSet<>();
         this.vars = new HashSet<>();
     }
 
@@ -190,7 +184,7 @@ public class MethodData {
                         this.pairs.add(new DefUsePair(def, use));
                     }
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                        this.coveredVars.add(def);
+                        def.setCovered(true);
                     }
                 }
             }

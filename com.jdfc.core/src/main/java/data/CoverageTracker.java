@@ -41,7 +41,6 @@ public class CoverageTracker {
             ProgramVariable programVariable = new ProgramVariable(null, localVariable.getName(),
                     localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode), false);
             currentClassExecutionData.getMethodByInternalName(pInternalMethodName).findVar(programVariable).setCovered(true);
-            currentClassExecutionData.getMethodByInternalName(pInternalMethodName).getCoveredVars().add(programVariable);
         }
     }
 

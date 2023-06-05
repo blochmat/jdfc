@@ -176,23 +176,11 @@ public class ClassExecutionData extends ExecutionData {
                 continue;
             }
             logger.debug("Pairs present.");
-            logger.debug(mData.getCoveredVars().toString());
             for (DefUsePair pair : mData.getPairs()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
-                boolean isDefCovered;
-                boolean isUseCovered;
-                if(mData.getCoveredVars() != null) {
-                    isDefCovered = mData.getCoveredVars().contains(def);
-                    isUseCovered = mData.getCoveredVars().contains(use);
-                } else {
-                    isDefCovered = false;
-                    isUseCovered = false;
-                }
 
-                logger.debug(String.format("isDefCov: %b, isUseCov: %b", isDefCovered, isUseCovered));
-
-                if (isDefCovered && isUseCovered) {
+                if (def.isCovered() && use.isCovered()) {
                     if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
                         logger.debug("COVERED");
