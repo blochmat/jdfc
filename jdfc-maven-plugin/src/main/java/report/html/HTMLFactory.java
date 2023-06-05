@@ -1012,25 +1012,6 @@ public class HTMLFactory {
         return result;
     }
 
-    private ProgramVariable getMethodParamDefinition(final ClassExecutionData pData,
-                                                     final String pName) {
-        for (Map.Entry<String, Set<ProgramVariable>> entry : pData.getVariablesCovered().entrySet()) {
-            for (ProgramVariable element : entry.getValue()) {
-                if (element.getLineNumber() == Integer.MIN_VALUE
-                        && element.getName().equals(pName)) {
-                    return element;
-                }
-            }
-            for (ProgramVariable element : entry.getValue()) {
-                if (element.getLineNumber() == Integer.MIN_VALUE
-                        && element.getName().equals(pName)) {
-                    return element;
-                }
-            }
-        }
-        return null;
-    }
-
     private boolean isRedefined(MethodData mData, int pLineNumber, String pName) {
         for (DefUsePair pair : mData.getPairs()) {
             ProgramVariable def = pair.getDefinition();
@@ -1042,11 +1023,6 @@ public class HTMLFactory {
             }
         }
         return false;
-    }
-
-    private boolean isCoveredVar(ClassExecutionData pData, String pMethodName, ProgramVariable pVariable) {
-        return pData.getVariablesCovered().get(pMethodName)!= null
-                && pData.getVariablesCovered().get(pMethodName).contains(pVariable);
     }
 
     private boolean isDefinition(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {

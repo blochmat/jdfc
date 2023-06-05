@@ -47,8 +47,6 @@ public class ClassExecutionData extends ExecutionData {
     private ClassOrInterfaceDeclaration ciDecl;
     private Map<String, String> nestedTypeMap;
     @JsonIgnore
-    private Map<String, Set<ProgramVariable>> variablesCovered;
-    @JsonIgnore
     private Map<String, Set<ProgramVariable>> variablesUncovered;
     @JsonIgnore
     private Set<InterProceduralMatch> interProceduralMatches;
@@ -66,7 +64,6 @@ public class ClassExecutionData extends ExecutionData {
         this.methods = extractMethodDeclarations(this.ciDecl);
 
         // TODO: Most of this stuff should go into MethodData
-        variablesCovered = new HashMap<>();
         variablesUncovered = new HashMap<>();
         interProceduralMatches = new HashSet<>();
         fields = new HashSet<>();
@@ -245,22 +242,4 @@ public class ClassExecutionData extends ExecutionData {
             return null;
         }
     }
-
-    private boolean checkInterProceduralUseCoverage(final Set<InterProceduralMatch> pInterProceduralMatches,
-                                                    final ProgramVariable pUsage) {
-        for (InterProceduralMatch element : pInterProceduralMatches) {
-            String callSiteMethodName = element.getCallSiteMethodName();
-            // TODO: B0001 - Only null because cfg creation for class fails
-            if(variablesCovered.get(callSiteMethodName) != null) {
-                for (ProgramVariable variable : variablesCovered.get(callSiteMethodName)) {
-                    if (variable.equals(pUsage)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-
 }
