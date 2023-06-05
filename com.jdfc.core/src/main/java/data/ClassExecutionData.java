@@ -168,12 +168,15 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void computeCoverageForClass() {
-        logger.debug("computeCoverageForClass");
+        logger.debug(String.format("%s.computeCoverageForClass", this.getName()));
         for (MethodData mData : this.getMethods().values()) {
+            logger.debug(mData.buildInternalMethodName());
             String internalMethodName = mData.buildInternalMethodName();
             if (mData.getPairs().size() == 0) {
                 continue;
             }
+            logger.debug("Pairs present.");
+            logger.debug(mData.getCoveredVars().toString());
             for (DefUsePair pair : mData.getPairs()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
@@ -187,22 +190,28 @@ public class ClassExecutionData extends ExecutionData {
                     isUseCovered = false;
                 }
 
+                logger.debug(String.format("isDefCov: %b, isUseCov: %b", isDefCovered, isUseCovered));
+
                 if (isDefCovered && isUseCovered) {
                     if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
+                        logger.debug("COVERED");
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
                 } else {
                     if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(false);
+                        logger.debug("NOT COVERED");
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
                     if (!isDefCovered) {
+                        logger.debug(String.format("Uncovered: %s", def));
                         mData.getUncoveredVars().add(def);
                     }
                     if (!isUseCovered) {
+                        logger.debug(String.format("Uncovered: %s", use));
                         mData.getUncoveredVars().add(use);
                     }
                 }
@@ -267,18 +276,22 @@ public class ClassExecutionData extends ExecutionData {
 
 
     public void calculateMethodCount() {
+        logger.debug("calculateMethodCount");
         this.setMethodCount(this.methods.size());
     }
 
     public void calculateTotal() {
+        logger.debug("calculateTotal");
         this.setTotal(methods.values().stream().mapToInt(MethodData::getTotal).sum());
     }
 
     public void calculateCovered() {
+        logger.debug("calculateCovered");
         this.setCovered(methods.values().stream().mapToInt(MethodData::getCovered).sum());
     }
 
     public void calculateRate() {
+        logger.debug("calculateRate");
         if (getTotal() != 0.0) {
             this.setRate((double) getCovered() / getTotal());
         } else {

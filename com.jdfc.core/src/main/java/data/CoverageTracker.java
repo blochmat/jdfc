@@ -23,7 +23,7 @@ public class CoverageTracker {
         return singleton;
     }
 
-    public void addLocalVarCoveredEntry(final String pClassName,
+    public synchronized void addLocalVarCoveredEntry(final String pClassName,
                                         final String pInternalMethodName,
                                         final int pVarIndex,
                                         final int pInsnIndex,
@@ -40,11 +40,8 @@ public class CoverageTracker {
         if (localVariable != null) {
             ProgramVariable programVariable = new ProgramVariable(null, localVariable.getName(),
                     localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode), false);
-//            currentClassExecutionData.getMethodByInternalName(pInternalMethodName).findVar(programVariable).setCovered(true);
-            // TODO: Delete
-            logger.debug("HEHEHEH");
+            currentClassExecutionData.getMethodByInternalName(pInternalMethodName).findVar(programVariable).setCovered(true);
             currentClassExecutionData.getMethodByInternalName(pInternalMethodName).getCoveredVars().add(programVariable);
-            logger.debug("HOHOHOH");
         }
     }
 

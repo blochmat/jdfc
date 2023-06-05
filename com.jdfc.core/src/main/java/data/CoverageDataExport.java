@@ -45,6 +45,8 @@ public class CoverageDataExport {
 
         Set<ExecutionData> exDataSet = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
 
+        logger.debug(JDFCUtils.prettyPrintSet(exDataSet));
+
         // Actual output
         String classXMLPath = String.format("%s%s%s.xml", outPath, File.separator, "jdfc-coverage");
 
@@ -188,6 +190,7 @@ public class CoverageDataExport {
     private static void analyseUntestedClasses() {
         logger.debug("analyseUntestedClasses");
         List<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
+        logger.debug(classList.toString());
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
         for (String relPath : classList) {

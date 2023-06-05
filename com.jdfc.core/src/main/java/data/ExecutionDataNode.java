@@ -1,5 +1,8 @@
 package data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +16,7 @@ import java.util.Map;
  */
 public class ExecutionDataNode<T extends ExecutionData> {
 
+    private final Logger logger = LoggerFactory.getLogger(ExecutionDataNode.class);
     private final Map<String, ExecutionDataNode<T>> children = new HashMap<>();
     private ExecutionDataNode<T> parent = null;
     private T data;
@@ -108,10 +112,12 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     public void computeCoverage() {
+        logger.debug("computeCoverage");
         for(ExecutionDataNode<T> node : this.children.values()) {
             ExecutionData data = node.getData();
             if (data instanceof ClassExecutionData) {
                 ClassExecutionData cData = (ClassExecutionData) data;
+                logger.debug(String.format("computeCoverage: %s", cData.getName()));
                 cData.computeCoverageForClass();
                 node.aggregateDataToRootRecursive();
             } else {
