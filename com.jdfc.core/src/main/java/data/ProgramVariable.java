@@ -18,6 +18,7 @@ public class ProgramVariable implements Comparable<Object> {
     private int instructionIndex;
     private int lineNumber;
     private boolean isDefinition;
+    private boolean isCovered;
 
 //    public ProgramVariable clone() throws CloneNotSupportedException {
 //        return (ProgramVariable) super.clone();

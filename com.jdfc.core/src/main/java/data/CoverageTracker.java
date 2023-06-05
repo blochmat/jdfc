@@ -39,8 +39,12 @@ public class CoverageTracker {
 
         if (localVariable != null) {
             ProgramVariable programVariable = new ProgramVariable(null, localVariable.getName(),
-                    localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode));
+                    localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode), false);
+//            currentClassExecutionData.getMethodByInternalName(pInternalMethodName).findVar(programVariable).setCovered(true);
+            // TODO: Delete
+            logger.debug("HEHEHEH");
             currentClassExecutionData.getMethodByInternalName(pInternalMethodName).getCoveredVars().add(programVariable);
+            logger.debug("HOHOHOH");
         }
     }
 

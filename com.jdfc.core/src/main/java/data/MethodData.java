@@ -89,6 +89,12 @@ public class MethodData {
     private Set<ProgramVariable> uncoveredVars;
 
     /**
+     * All program variables
+     */
+
+    private Set<ProgramVariable> vars;
+
+    /**
      * All method params as {@link ProgramVariable}
      */
     private Set<ProgramVariable> params;
@@ -120,6 +126,7 @@ public class MethodData {
         this.pairs = new HashSet<>();
         this.coveredVars = new HashSet<>();
         this.uncoveredVars = new HashSet<>();
+        this.vars = new HashSet<>();
     }
 
     private int extractBegin(MethodDeclaration srcAst) {
@@ -152,6 +159,17 @@ public class MethodData {
         if (total != 0) {
             this.rate = (double) covered / total;
         }
+    }
+
+    public ProgramVariable findVar(ProgramVariable var) {
+        logger.debug(String.format("findVar(%s)", var));
+        for (ProgramVariable v : vars) {
+            if (v.equals(var)) {
+                logger.debug(String.format("- %s", v));
+                return v;
+            }
+        }
+        return null;
     }
 
     public DefUsePair findDefUsePair(DefUsePair pair) {

@@ -233,7 +233,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varName = getLocalVarName(varNumber);
         final String varType = getLocalVarType(varNumber);
         final boolean isDefinition = isDefinition(pOpcode);
-        return new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition);
+        ProgramVariable var = new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition, false);
+        mData.getVars().add(var);
+        return var;
     }
 
     private String getLocalVarName(final int pVarNumber) {
@@ -294,10 +296,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private Multimap<Double, Double> createEdges() {
         logger.debug("createEdges");
-        CFGEdgeAnalysisVisitor cfgEdgeAnalysationVisitor =
+        CFGEdgeAnalysisVisitor cfgEdgeAnalysisVisitor =
                 new CFGEdgeAnalysisVisitor(methodNode);
-        methodNode.accept(cfgEdgeAnalysationVisitor);
-        return cfgEdgeAnalysationVisitor.getEdges();
+        methodNode.accept(cfgEdgeAnalysisVisitor);
+        return cfgEdgeAnalysisVisitor.getEdges();
     }
 
     private void setPredecessorSuccessorRelation() {
@@ -332,7 +334,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                             localVariable.getDescriptor(),
                             Integer.MIN_VALUE,
                             Integer.MIN_VALUE,
-                            true);
+                            true,
+                            false);
             parameters.add(variable);
         }
        return parameters;
