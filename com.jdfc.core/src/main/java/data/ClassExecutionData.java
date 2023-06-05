@@ -47,8 +47,6 @@ public class ClassExecutionData extends ExecutionData {
     private ClassOrInterfaceDeclaration ciDecl;
     private Map<String, String> nestedTypeMap;
     @JsonIgnore
-    private Map<String, Integer> methodFirstLine;
-    @JsonIgnore
     private Map<String, Integer> methodLastLine;
     @JsonIgnore
     private TreeMap<String, List<DefUsePair>> defUsePairs;
@@ -75,7 +73,6 @@ public class ClassExecutionData extends ExecutionData {
 
         // TODO: Most of this stuff should go into MethodData
         methodLastLine = new HashMap<>();
-        methodFirstLine = new HashMap<>();
         defUsePairs = new TreeMap<>();
         defUsePairsCovered = new TreeMap<>();
         variablesCovered = new HashMap<>();
@@ -319,15 +316,5 @@ public class ClassExecutionData extends ExecutionData {
         return false;
     }
 
-    public boolean isAnalyzedVariable(String pName, int pLineNumber) {
-        for (Map<DefUsePair, Boolean> entryMap : defUsePairsCovered.values()) {
-            for (DefUsePair element : entryMap.keySet()) {
-                if ((element.getDefinition().getName().equals(pName) && element.getDefinition().getLineNumber() == pLineNumber)
-                        || element.getUsage().getName().equals(pName) && element.getUsage().getLineNumber() == pLineNumber) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+
 }

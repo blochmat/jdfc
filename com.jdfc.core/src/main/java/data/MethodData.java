@@ -191,4 +191,20 @@ public class MethodData {
         }
         logger.debug(JDFCUtils.prettyPrintSet(this.pairs));
     }
+
+    /**
+     * Checks, if a pair exists having a def or use with the specified name and line number
+     * @param pName
+     * @param pLineNumber
+     * @return
+     */
+    public boolean isAnalyzedVariable(String pName, int pLineNumber) {
+        for (DefUsePair pair : pairs) {
+            if ((pair.getDefinition().getName().equals(pName) && pair.getDefinition().getLineNumber() == pLineNumber)
+                    || pair.getUsage().getName().equals(pName) && pair.getUsage().getLineNumber() == pLineNumber) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

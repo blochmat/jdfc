@@ -333,12 +333,12 @@ public class HTMLFactory {
                     // add highlighting if it is a special word
                     addCodeHighlighting(spanTag, item);
                 } else {
-//                    if (isRedefined(pData, pLineNumber, item)) {
-//                        // is redefined variable and therefore no longer present in the coverage data
-//                        HTMLElement spanTag = HTMLElement.span(item);
-//                        divTagLine.getContent().add(spanTag);
-//                        spanTag.getAttributes().add("class=\"orange\"");
-//                    } else {
+                    if (isRedefined(mData, pLineNumber, item)) {
+                        // is redefined variable and therefore no longer present in the coverage data
+                        HTMLElement spanTag = HTMLElement.span(item);
+                        divTagLine.getContent().add(spanTag);
+                        spanTag.getAttributes().add("class=\"orange\"");
+                    } else {
                         // is a variable present in the data
                         if (item.equals("c")) {
                             System.out.println("FOUND");
@@ -349,14 +349,7 @@ public class HTMLFactory {
                         String backgroundColor = getVariableBackgroundColor(programVariable.isCovered(), pairSet);
                         divTagLine.getContent().add(
                                 createVariableInformation(pClassFile, pClassName, pairSet, programVariable, backgroundColor));
-
-                        if(pData.getVariablesCovered().get(methodName) != null) {
-                            // remove variable from variable list (both, ofc, because it seems that we are not sure
-                            // in which one we can find it)
-                            pData.getVariablesCovered().get(methodName).remove(programVariable);
-                            pData.getVariablesUncovered().get(methodName).remove(programVariable);
-                        }
-//                    }
+                    }
                 }
             }
         }
@@ -1038,17 +1031,14 @@ public class HTMLFactory {
         return null;
     }
 
-    private boolean isRedefined(ClassExecutionData pData, int pLineNumber, String pName) {
-        for (Map.Entry<String, List<DefUsePair>> defUsePairs : pData.getDefUsePairs().entrySet()) {
-            for (DefUsePair defUsePair : defUsePairs.getValue()) {
-                ProgramVariable definition = defUsePair.getDefinition();
-                if (definition.getLineNumber() > pLineNumber
-                        && definition.getName().equals(pName)
-                        && pData.getMethodFirstLine().get(defUsePairs.getKey()) <= pLineNumber
-                        && pData.getMethodLastLine().get(defUsePairs.getKey()) >= pLineNumber
-                        && !pData.isAnalyzedVariable(pName, pLineNumber)) {
-                    return true;
-                }
+    private boolean isRedefined(MethodData mData, int pLineNumber, String pName) {
+        for (DefUsePair pair : mData.getPairs()) {
+            ProgramVariable def = pair.getDefinition();
+            // if another definition with the same name, but greater line number exists and
+            // the current variable is not part of an active pair we know, that it must have been redefined
+            if (def.getLineNumber() > pLineNumber && def.getName().equals(pName)
+                    && !mData.isAnalyzedVariable(pName, pLineNumber)) {
+                return true;
             }
         }
         return false;
