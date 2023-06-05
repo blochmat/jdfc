@@ -36,17 +36,25 @@ public class ClassExecutionData extends ExecutionData {
 
     @JsonIgnore
     private Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
-    private String relativePath;
+
     @JsonIgnore
     private CompilationUnit srcFileAst;
+
     @JsonIgnore
     private PackageDeclaration pkgDecl;
+
     @JsonIgnore
     private List<ImportDeclaration> impDeclList;
+
     @JsonIgnore
     private ClassOrInterfaceDeclaration ciDecl;
+
+    private String relativePath;
+
     private Map<String, String> nestedTypeMap;
+
     private Set<ProgramVariable> fields;
+
     private Map<Integer, MethodData> methods;
 
     public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {

@@ -98,13 +98,15 @@ public class CoverageDataStore {
 
     public void exportCoverageData() {
         logger.debug("exportCoverageData");
-        // TODO: Insert export method call here
+
+        // Summary export
         try {
             CoverageDataExport.dumpCoverageDataToFile();
         } catch (ParserConfigurationException | TransformerException e) {
             throw new RuntimeException(e);
         }
 
+        // Tested class data export
         for(String className : testedClassList) {
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
@@ -114,6 +116,7 @@ public class CoverageDataStore {
             }
         }
 
+        // Untested class data export
         for(String className : untestedClassList) {
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
