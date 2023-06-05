@@ -47,8 +47,6 @@ public class ClassExecutionData extends ExecutionData {
     private ClassOrInterfaceDeclaration ciDecl;
     private Map<String, String> nestedTypeMap;
     @JsonIgnore
-    private TreeMap<String, List<DefUsePair>> defUsePairs;
-    @JsonIgnore
     private TreeMap<String, Map<DefUsePair, Boolean>> defUsePairsCovered;
     @JsonIgnore
     private Map<String, Set<ProgramVariable>> variablesCovered;
@@ -70,7 +68,6 @@ public class ClassExecutionData extends ExecutionData {
         this.methods = extractMethodDeclarations(this.ciDecl);
 
         // TODO: Most of this stuff should go into MethodData
-        defUsePairs = new TreeMap<>();
         defUsePairsCovered = new TreeMap<>();
         variablesCovered = new HashMap<>();
         variablesUncovered = new HashMap<>();
@@ -196,51 +193,6 @@ public class ClassExecutionData extends ExecutionData {
                 }
             }
 
-        }
-        this.calculateMethodCount();
-        this.calculateTotal();
-        this.calculateCovered();
-        this.calculateRate();
-    }
-
-
-    public void computeCoverageForClassOld() {
-        for (Map.Entry<String, List<DefUsePair>> entry : defUsePairs.entrySet()) {
-            String methodName = entry.getKey();
-            variablesUncovered.put(methodName, new HashSet<>());
-            if (entry.getValue().size() == 0) {
-                continue;
-            }
-            for (DefUsePair pair : entry.getValue()) {
-                ProgramVariable def = pair.getDefinition();
-                ProgramVariable use = pair.getUsage();
-                boolean isDefCovered;
-                boolean isUseCovered;
-                if(variablesCovered.get(methodName) != null) {
-                    isDefCovered = variablesCovered.get(methodName).contains(def);
-                    isUseCovered = variablesCovered.get(methodName).contains(use);
-                } else {
-                    isDefCovered = false;
-                    isUseCovered = false;
-                }
-
-                Set<InterProceduralMatch> interProceduralMatches = findInterProceduralMatches(def, methodName);
-                if (!interProceduralMatches.isEmpty() && !isUseCovered) {
-                    isUseCovered = checkInterProceduralUseCoverage(interProceduralMatches, use);
-                }
-
-                if (isDefCovered && isUseCovered) {
-                    defUsePairsCovered.get(methodName).put(pair, true);
-                } else {
-                    defUsePairsCovered.get(methodName).put(pair, false);
-                    if (!isDefCovered) {
-                        variablesUncovered.get(methodName).add(def);
-                    }
-                    if (!isUseCovered) {
-                        variablesUncovered.get(methodName).add(use);
-                    }
-                }
-            }
         }
         this.calculateMethodCount();
         this.calculateTotal();
