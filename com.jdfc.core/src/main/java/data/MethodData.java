@@ -84,11 +84,6 @@ public class MethodData {
     private Set<ProgramVariable> coveredVars;
 
     /**
-     * All uncovered variables
-     */
-    private Set<ProgramVariable> uncoveredVars;
-
-    /**
      * All program variables
      */
 
@@ -125,7 +120,6 @@ public class MethodData {
         this.params = new HashSet<>();
         this.pairs = new HashSet<>();
         this.coveredVars = new HashSet<>();
-        this.uncoveredVars = new HashSet<>();
         this.vars = new HashSet<>();
     }
 

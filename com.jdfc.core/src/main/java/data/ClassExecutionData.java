@@ -206,14 +206,6 @@ public class ClassExecutionData extends ExecutionData {
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
-                    if (!isDefCovered) {
-                        logger.debug(String.format("Uncovered: %s", def));
-                        mData.getUncoveredVars().add(def);
-                    }
-                    if (!isUseCovered) {
-                        logger.debug(String.format("Uncovered: %s", use));
-                        mData.getUncoveredVars().add(use);
-                    }
                 }
                 if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
                     mData.computeCoverage();
