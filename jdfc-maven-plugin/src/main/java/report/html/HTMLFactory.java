@@ -20,6 +20,8 @@ public class HTMLFactory {
     private final Resources resources;
     private final File baseDir;
 
+    private boolean isJavaDoc;
+
     /**
      * Constructor of {@code HTMLFactory}
      *
@@ -264,7 +266,7 @@ public class HTMLFactory {
         // workList contains words and special chars
         while (!workList.isEmpty()) {
             String item = workList.get(0);
-            if (item.contains("*") || item.contains("/**")) {
+            if (this.isJavaDoc(item)) {
                 divTagLine.getContent().add(HTMLElement.noTag(String.join("", workList)));
                 return divTagLine;
             }
@@ -354,6 +356,18 @@ public class HTMLFactory {
             }
         }
         return divTagLine;
+    }
+
+    private boolean isJavaDoc(String item) {
+        if (item.contains("/**")) {
+            this.isJavaDoc = true;
+        }
+
+        if (item.contains("*/")) {
+            this.isJavaDoc = false;
+        }
+
+        return this.isJavaDoc;
     }
 
     private boolean isDefinition(String topOfWorkList) {

@@ -1,6 +1,7 @@
 package data;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.TypeDeclaration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.FileHelper;
@@ -177,11 +178,13 @@ public class CoverageDataStore {
                         if (sourceFile.exists()) {
                             try {
                                 CompilationUnit cu = javaParserHelper.parse(sourceFile);
-                                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
-                                if (pExecutionDataNode.isRoot()) {
-                                    pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
-                                } else {
-                                    pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                                if (!isOnlyInterface(cu)) {
+                                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
+                                    if (pExecutionDataNode.isRoot()) {
+                                        pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
+                                    } else {
+                                        pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                                    }
                                 }
                             } catch (FileNotFoundException e) {
                                 throw new RuntimeException(e);
@@ -200,5 +203,17 @@ public class CoverageDataStore {
         } else {
             return String.format("%s.%s", node.getData().getFqn(), childName);
         }
+    }
+
+    public boolean isOnlyInterface(CompilationUnit cu) {
+        // Get a list of all types declared in the file
+        List<TypeDeclaration<?>> types = cu.getTypes();
+        // Check if there's exactly one type
+        if (types.size() == 1) {
+            TypeDeclaration<?> type = types.get(0);
+            // If the single type is an interface
+            return type.isClassOrInterfaceDeclaration() && type.asClassOrInterfaceDeclaration().isInterface();
+        }
+        return false;
     }
 }

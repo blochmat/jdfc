@@ -89,7 +89,7 @@ public class ClassExecutionData extends ExecutionData {
         if (ciOptional.isPresent()) {
             return ciOptional.get();
         } else {
-            throw new IllegalArgumentException("Class is not present in file.");
+            throw new IllegalArgumentException(String.format("Class \"%s\" is not present in file \"%s\".", cName, this.relativePath));
         }
     }
 
@@ -140,6 +140,7 @@ public class ClassExecutionData extends ExecutionData {
                 return mData;
             }
         }
+        logger.debug("Return NULL");
         return null;
     }
 
