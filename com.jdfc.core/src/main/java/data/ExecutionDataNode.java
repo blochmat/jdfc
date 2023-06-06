@@ -111,45 +111,90 @@ public class ExecutionDataNode<T extends ExecutionData> {
         return false;
     }
 
-    public void computeCoverage() {
+    public void computeClassCoverage() {
         logger.debug("computeCoverage");
+
         for(ExecutionDataNode<T> node : this.children.values()) {
             ExecutionData data = node.getData();
             if (data instanceof ClassExecutionData) {
                 ClassExecutionData cData = (ClassExecutionData) data;
                 logger.debug(String.format("computeCoverage: %s", cData.getName()));
-                cData.computeCoverageForClass();
-                node.aggregateDataToRootRecursive();
+                cData.computeCoverage();
             } else {
-                node.computeCoverage();
+                node.computeClassCoverage();
             }
         }
     }
 
     /**
-     * Calculation of coverage values from all children to root node
+     * Calculation of coverage values from all children to root node.
+     *
      */
     public void aggregateDataToRootRecursive() {
-        if (!this.isRoot()) {
-            int newTotal = 0;
-            int newCovered = 0;
-            int newMethodCount = 0;
-
-            for(Map.Entry<String, ExecutionDataNode<T>> child : this.parent.getChildren().entrySet()){
-                newTotal += child.getValue().getData().getTotal();
-                newCovered += child.getValue().getData().getCovered();
-                newMethodCount += child.getValue().getData().getMethodCount();
-            }
-            ExecutionData parentData = this.parent.getData();
-            parentData.setTotal(newTotal);
-            parentData.setCovered(newCovered);
-            parentData.setMethodCount(newMethodCount);
-            if (newTotal != 0.0) {
-                parentData.setRate((double) newCovered / newTotal);
-            } else {
-                parentData.setRate(0.0);
-            }
-            this.parent.aggregateDataToRootRecursive();
+        logger.debug("aggregateDataToRootRecursive");
+        if (this.isRoot()) {
+            this.getData().setMethodCount(this.aggregateMethodCount());
+            this.getData().setTotal(this.aggregateTotal());
+            this.getData().setCovered(this.aggregateCovered());
+            this.getData().setRate(this.aggregateRate());
         }
+    }
+
+    private int aggregateMethodCount() {
+        logger.debug(String.format("aggregateMethodCount %s", this.getData().getName()));
+        if (this.getData() instanceof ClassExecutionData) {
+            return this.getData().getMethodCount();
+        }
+
+        int mCount = 0;
+        for(ExecutionDataNode<T> node : this.getChildren().values()) {
+            mCount += node.aggregateMethodCount();
+        }
+
+        this.getData().setMethodCount(mCount);
+        return mCount;
+    }
+
+    private int aggregateTotal() {
+        logger.debug(String.format("aggregateTotal %s", this.getData().getName()));
+        if (this.getData() instanceof ClassExecutionData) {
+            return this.getData().getTotal();
+        }
+
+        int total = 0;
+        for(ExecutionDataNode<T> node : this.getChildren().values()) {
+            total += node.aggregateTotal();
+        }
+
+        this.getData().setTotal(total);
+        return total;
+    }
+
+    private int aggregateCovered() {
+        logger.debug(String.format("aggregateCovered %s", this.getData().getName()));
+        if (this.getData() instanceof ClassExecutionData) {
+            return this.getData().getCovered();
+        }
+
+        int covered = 0;
+        for(ExecutionDataNode<T> node : this.getChildren().values()) {
+            covered += node.aggregateCovered();
+        }
+        this.getData().setCovered(covered);
+        return covered;
+    }
+
+    private double aggregateRate() {
+        logger.debug(String.format("aggregateRate %s", this.getData().getName()));
+        if (this.getData() instanceof ClassExecutionData) {
+            return this.getData().getRate();
+        }
+
+        double rate = 0.0;
+        if (this.getData().getTotal() != 0) {
+            rate = (double) this.getData().getCovered() / this.getData().getTotal();
+        }
+        this.getData().setRate(rate);
+        return rate;
     }
 }

@@ -152,7 +152,7 @@ public class ClassExecutionData extends ExecutionData {
         return null;
     }
 
-    public void computeCoverageForClass() {
+    public void computeCoverage() {
         logger.debug(String.format("%s.computeCoverageForClass", this.getName()));
         for (MethodData mData : this.getMethods().values()) {
             logger.debug(mData.buildInternalMethodName());

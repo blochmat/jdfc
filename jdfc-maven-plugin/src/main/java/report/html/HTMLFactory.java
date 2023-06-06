@@ -90,7 +90,7 @@ public class HTMLFactory {
         htmlMainTag.getContent().add(createDefaultHTMLHead(title, pPathToStyleSheet));
 
         HTMLElement htmlBodyTag = createDefaultHTMLBody(title, pWorkDir, pPathToScript, null);
-        List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Total", "Covered", "Missed"));
+        List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Covered %", "Total", "Covered", "Missed"));
         htmlBodyTag.getContent().add(createDataTable(columns, pClassFileDataMap));
         htmlMainTag.getContent().add(htmlBodyTag);
         return htmlMainTag;
@@ -549,6 +549,8 @@ public class HTMLFactory {
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
         tableTag.getContent().add(createTableBodyTag(pClassFileDataMap));
+
+        // TODO: Build the sum of all displayed elements
         tableTag.getContent().add(createTableFootTag(pClassFileDataMap));
         return tableTag;
     }
@@ -604,6 +606,8 @@ public class HTMLFactory {
         ExecutionData parentData = entry.getValue().getParent().getData();
         rowTag.getContent().add(HTMLElement.td("Total"));
         rowTag.getContent().add(HTMLElement.td(parentData.getMethodCount()));
+        // TODO: fill with rate
+        rowTag.getContent().add(HTMLElement.td("TODO"));
         rowTag.getContent().add(HTMLElement.td(parentData.getTotal()));
         rowTag.getContent().add(HTMLElement.td(parentData.getCovered()));
         rowTag.getContent().add(HTMLElement.td(parentData.getTotal() - parentData.getCovered()));
@@ -635,8 +639,11 @@ public class HTMLFactory {
             } else {
                 tdTag.getContent().add(HTMLElement.a(entry.getKey(), entry.getKey()));
             }
+
             trTag.getContent().add(tdTag);
             trTag.getContent().add(HTMLElement.td(data.getMethodCount()));
+            // TODO: fill with rate
+            trTag.getContent().add(HTMLElement.td("TODO"));
             trTag.getContent().add(HTMLElement.td(data.getTotal()));
             trTag.getContent().add(HTMLElement.td(data.getCovered()));
             trTag.getContent().add(HTMLElement.td(data.getTotal() - data.getCovered()));

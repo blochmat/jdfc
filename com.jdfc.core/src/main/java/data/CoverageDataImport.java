@@ -40,6 +40,9 @@ public class CoverageDataImport {
                 throw new RuntimeException(e);
             }
         }
+
+//        CoverageDataStore.getInstance().getRoot().computeClassCoverage();
+        CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
         logger.debug("Loading successful.");
     }
 

@@ -116,6 +116,7 @@ public class CoverageDataStore {
             }
         }
 
+        // TODO: could be removed
         // Untested class data export
         for(String className : untestedClassList) {
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();

@@ -41,7 +41,8 @@ public class CoverageDataExport {
         }
 
         analyseUntestedClasses();
-        CoverageDataStore.getInstance().getRoot().computeCoverage();
+        CoverageDataStore.getInstance().getRoot().computeClassCoverage();
+        CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
 
         Set<ExecutionData> exDataSet = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
 
@@ -204,7 +205,7 @@ public class CoverageDataExport {
                 ExecutionDataNode<ExecutionData> classExecutionDataNode =
                         CoverageDataStore.getInstance().findClassDataNode(relPath);
                 ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
-                classExecutionData.computeCoverageForClass();
+                classExecutionData.computeCoverage();
                 classExecutionDataNode.aggregateDataToRootRecursive();
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
             } catch (IOException e) {
