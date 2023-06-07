@@ -1,6 +1,8 @@
-package data;
+package data.io;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import data.ClassExecutionData;
+import data.singleton.CoverageDataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,6 @@
 package data;
 
-import cfg.data.LocalVariable;
+import graphs.cfg.LocalVariable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;

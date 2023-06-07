@@ -1,5 +1,5 @@
-import data.CoverageDataExport;
-import data.CoverageDataStore;
+import data.io.CoverageDataExport;
+import data.singleton.CoverageDataStore;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;

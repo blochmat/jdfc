@@ -1,16 +1,13 @@
-package cfg.visitors.methodVisitors;
+package graphs.cfg.visitors.methodVisitors;
 
-import cfg.CFG;
-import cfg.CFGImpl;
-import cfg.data.LocalVariable;
-import cfg.nodes.CFGNode;
-import cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.MethodData;
 import data.ProgramVariable;
+import graphs.cfg.*;
+import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -210,8 +207,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitEnd();
 
         edges.putAll(createEdges());
-        addEntryNode();
-        setPredecessorSuccessorRelation();
+        this.addEntryNode();
+        this.setPredecessorSuccessorRelation();
         CFG cfg = new CFGImpl(internalMethodName, nodes, edges);
 
         if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {

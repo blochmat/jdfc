@@ -1,4 +1,4 @@
-package cfg.visitors.methodVisitors;
+package graphs.cfg.visitors.methodVisitors;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;

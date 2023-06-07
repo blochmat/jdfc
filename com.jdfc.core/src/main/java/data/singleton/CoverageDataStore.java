@@ -1,7 +1,11 @@
-package data;
+package data.singleton;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import data.ClassExecutionData;
+import data.ExecutionData;
+import data.ExecutionDataNode;
+import data.io.CoverageDataExport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.FileHelper;

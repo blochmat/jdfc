@@ -1,8 +1,8 @@
 package instr;
 
 import data.ClassExecutionData;
-import data.CoverageDataStore;
-import cfg.CFGCreator;
+import data.singleton.CoverageDataStore;
+import graphs.cfg.CFGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;

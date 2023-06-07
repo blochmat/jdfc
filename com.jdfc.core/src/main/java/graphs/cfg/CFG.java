@@ -1,9 +1,9 @@
-package cfg;
+package graphs.cfg;
 
-import cfg.nodes.CFGNode;
 import com.google.common.collect.Multimap;
 
 import java.util.NavigableMap;
+import java.util.Set;
 
 /**
  * The Control-Flow Graph (CFG) for one method of the original program.
@@ -31,4 +31,10 @@ public interface CFG {
     NavigableMap<Double, CFGNode> getNodes();
 
     Multimap<Double, Double> getEdges();
+
+    CFGNode getEntryNode();
+
+    CFGNode getExitNode();
+
+    Set<LocalVariable> getDomain();
 }

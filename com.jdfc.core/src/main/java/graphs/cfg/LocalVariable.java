@@ -1,4 +1,4 @@
-package cfg.data;
+package graphs.cfg;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

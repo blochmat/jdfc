@@ -1,6 +1,6 @@
 package report;
 
-import data.CoverageDataStore;
+import data.singleton.CoverageDataStore;
 import data.ExecutionData;
 import data.ExecutionDataNode;
 import org.slf4j.Logger;

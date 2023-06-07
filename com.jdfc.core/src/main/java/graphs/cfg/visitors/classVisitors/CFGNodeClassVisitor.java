@@ -1,6 +1,6 @@
-package cfg.visitors.classVisitors;
+package graphs.cfg.visitors.classVisitors;
 
-import cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
+import graphs.cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
 import data.ClassExecutionData;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.MethodVisitor;

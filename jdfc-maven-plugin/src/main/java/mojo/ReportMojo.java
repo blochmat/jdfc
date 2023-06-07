@@ -1,7 +1,7 @@
 package mojo;
 
-import data.CoverageDataImport;
-import data.CoverageDataStore;
+import data.io.CoverageDataImport;
+import data.singleton.CoverageDataStore;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.reporting.AbstractMavenReport;

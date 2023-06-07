@@ -1,6 +1,6 @@
 package instr.methodVisitors;
 
-import data.CoverageDataStore;
+import data.singleton.CoverageDataStore;
 import instr.classVisitors.InstrumentationClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

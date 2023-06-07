@@ -1,7 +1,7 @@
-package cfg.visitors.methodVisitors;
+package graphs.cfg.visitors.methodVisitors;
 
-import cfg.data.LocalVariable;
-import cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
+import graphs.cfg.LocalVariable;
+import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;

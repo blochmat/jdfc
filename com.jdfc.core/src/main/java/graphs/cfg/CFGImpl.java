@@ -1,6 +1,5 @@
-package cfg;
+package graphs.cfg;
 
-import cfg.nodes.CFGNode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
@@ -52,6 +51,21 @@ public class CFGImpl implements CFG {
 
     @Override
     public Multimap<Double, Double> getEdges() { return edges; }
+
+    @Override
+    public CFGNode getEntryNode() {
+        throw new UnsupportedOperationException("Please implement CFGImpl.getEntryNode");
+    }
+
+    @Override
+    public CFGNode getExitNode() {
+        throw new UnsupportedOperationException("Please implement CFGImpl.getExitNode");
+    }
+
+    @Override
+    public Set<LocalVariable> getDomain() {
+        throw new UnsupportedOperationException("Please implement CFGImpl.getDomain()");
+    }
 
     /**
      * {@inheritDoc}

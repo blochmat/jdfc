@@ -1,7 +1,7 @@
-package cfg;
+package graphs.cfg;
 
-import cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
-import cfg.visitors.classVisitors.CFGNodeClassVisitor;
+import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
+import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
 import org.objectweb.asm.ClassReader;

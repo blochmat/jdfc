@@ -1,6 +1,6 @@
-package cfg.visitors.classVisitors;
+package graphs.cfg.visitors.classVisitors;
 
-import cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
+import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import data.ClassExecutionData;
 import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;

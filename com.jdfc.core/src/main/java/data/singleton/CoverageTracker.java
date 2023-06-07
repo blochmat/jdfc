@@ -1,6 +1,8 @@
-package data;
+package data.singleton;
 
-import cfg.data.LocalVariable;
+import data.ClassExecutionData;
+import data.ProgramVariable;
+import graphs.cfg.LocalVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,5 @@
-package cfg.nodes;
+package graphs.cfg;
 
-import cfg.CFG;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;

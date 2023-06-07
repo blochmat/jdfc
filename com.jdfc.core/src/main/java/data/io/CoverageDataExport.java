@@ -1,6 +1,8 @@
-package data;
+package data.io;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import data.*;
+import data.singleton.CoverageDataStore;
 import instr.JDFCInstrument;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
