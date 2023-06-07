@@ -173,14 +173,10 @@ public class CoverageDataStore {
             } else if (f.isFile() && f.getName().endsWith(suffix)) {
                 // Do not handle anonymous inner files
                 if(!JDFCUtils.isNestedClass(f.getName()) && !JDFCUtils.isAnonymousInnerClass(f.getName())) {
-                    String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
-                    String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
-                    // Add className to classList of storage. Thereby we determine, if class needs to be instrumented
-                    untestedClassList.add(relativePath);
-                    String nameWithoutType = f.getName().split("\\.")[0];
-
                     // Get AST of source file
                     for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
+                        String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
+                        String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
                         String relSourceFileStr = relativePathWithType.replace(".class", ".java");
                         String sourceFileStr = String.format("%s/%s", src, relSourceFileStr);
                         File sourceFile = new File(sourceFileStr);
@@ -188,7 +184,10 @@ public class CoverageDataStore {
                             try {
                                 CompilationUnit cu = javaParserHelper.parse(sourceFile);
                                 if (!isOnlyInterface(cu)) {
+                                    untestedClassList.add(relativePath);
                                     ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
+
+                                    String nameWithoutType = f.getName().split("\\.")[0];
                                     if (pExecutionDataNode.isRoot()) {
                                         pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
                                     } else {
