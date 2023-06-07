@@ -2,7 +2,7 @@ package data;
 
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
-import graphs.cfg.CFGNode;
+import graphs.cfg.nodes.CFGNode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;

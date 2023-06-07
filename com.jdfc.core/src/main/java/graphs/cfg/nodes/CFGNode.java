@@ -1,8 +1,9 @@
-package graphs.cfg;
+package graphs.cfg.nodes;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
+import graphs.cfg.CFG;
 import utils.JDFCUtils;
 
 import java.util.Collections;

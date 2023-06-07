@@ -1,6 +1,7 @@
 package graphs.cfg;
 
 import com.google.common.collect.Multimap;
+import graphs.cfg.nodes.CFGNode;
 
 import java.util.NavigableMap;
 import java.util.Set;
