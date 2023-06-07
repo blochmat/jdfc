@@ -1,7 +1,7 @@
-package graphs.esg;
+package graphs.esg.nodes;
 
 import graphs.sg.InterVariable;
-import graphs.sg.SGNode;
+import graphs.sg.nodes.SGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,7 @@
 package graphs.esg;
 
 import com.google.common.collect.Multimap;
+import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
 
 import java.util.NavigableMap;

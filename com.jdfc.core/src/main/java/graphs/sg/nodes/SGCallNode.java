@@ -1,4 +1,4 @@
-package graphs.sg;
+package graphs.sg.nodes;
 
 public class SGCallNode extends SGNode {
 

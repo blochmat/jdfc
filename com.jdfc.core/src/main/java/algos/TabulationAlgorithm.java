@@ -2,7 +2,7 @@ package algos;
 
 import graphs.esg.ESG;
 import graphs.esg.ESGEdge;
-import graphs.esg.ESGNode;
+import graphs.esg.nodes.ESGNode;
 import graphs.sg.ZeroVariable;
 
 import java.util.*;

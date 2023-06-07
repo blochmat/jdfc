@@ -1,5 +1,7 @@
 package graphs.esg;
 
+import graphs.esg.nodes.ESGNode;
+
 public class ESGEdge {
 
     int fstIdx;
