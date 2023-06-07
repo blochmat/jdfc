@@ -42,7 +42,7 @@ public class CoverageDataExport {
             JDFCDir.mkdirs();
         }
 
-        analyseUntestedClasses();
+        CoverageDataExport.analyseUntestedClasses();
         CoverageDataStore.getInstance().getRoot().computeClassCoverage();
         CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
 
@@ -241,6 +241,19 @@ public class CoverageDataExport {
             objectMapper.writeValue(file, pClassExecutionData);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void logThis(String str) {
+        String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
+        String filePath = String.format("%s/custom.log", outPath);
+
+        try (FileWriter writer = new FileWriter(filePath, false)) {
+            writer.write("============================================== \n");
+            writer.write(str);
+            writer.write("\n");
+        } catch (IOException ioException) {
+            ioException.printStackTrace();  // print to console as a last resort
         }
     }
 }

@@ -43,9 +43,9 @@ public final class JDFCAgent {
             try {
                 CoverageDataStore.getInstance().exportCoverageData();
             } catch (Exception e) {
-                try (FileWriter writer = new FileWriter(String.format("%s/shutdown_error.log", args.get(0)), false)) {
-                    StackTraceElement[] el = e.getStackTrace();
+                try (FileWriter writer = new FileWriter(String.format("%s/jdfc/shutdown_error.log", args.get(1)), false)) {
                     String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+                    writer.write("=============================================== \n");
                     writer.write("Exception during shutdown: " + e.getMessage() + "\n");
                     writer.write(stackTrace);
                     writer.write("\n");
