@@ -1,20 +1,16 @@
 package graphs.esg;
 
 import graphs.esg.nodes.ESGNode;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ESGEdge {
-
-    int fstIdx;
-    ESGNode fst;
-
-    int sndIdx;
-    ESGNode snd;
-
-    public ESGEdge(int fstIdx, ESGNode fst, int sndIdx, ESGNode snd) {
-       this.fstIdx = fstIdx;
-       this.fst = fst;
-       this.sndIdx = sndIdx;
-       this.snd = snd;
-    }
-
+    int sourceIdx;
+    ESGNode source;
+    int targetIdx;
+    ESGNode target;
 }
