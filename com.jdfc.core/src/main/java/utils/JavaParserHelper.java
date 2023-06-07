@@ -52,6 +52,13 @@ public class JavaParserHelper {
                                   String jvmDesc,
                                   Set<ResolvedType> toAdd,
                                   Set<ResolvedType> toRemove) {
+
+        // TODO: finalize: ()V; [java/lang/Throwable]
+        //       finalize: ()V; [Ljava/lang/Throwable;]
+
+        if(jvmDesc.contains("Throwable")) {
+            System.out.println("asdf");
+        }
         for(ResolvedType resolvedType : resolvedTypes) {
             try {
                 if (resolvedType.isReferenceType()) {
@@ -66,6 +73,7 @@ public class JavaParserHelper {
                                 String replacePattern = "L" + rrtd.getName() + ";";
                                 String replacement = "L" + this.escapeDollar(nestedTypeMap.get(rrtd.getName())) + ";";
                                 jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                toRemove.add(resolvedType);
                             } else {
                                 // java native class
                                 if (isException(resolvedType)) {
@@ -73,6 +81,7 @@ public class JavaParserHelper {
                                     String newName = rrtd.getQualifiedName().replace(".", "/");
                                     String replacePattern = rrtd.getName();
                                     jvmDesc = jvmDesc.replaceAll(replacePattern, newName);
+                                    toRemove.add(resolvedType);
                                 } else {
                                     ResolvedReferenceTypeDeclaration classDecl = combinedTypeSolver.solveType("java.lang.Class");
                                     if(classDecl.isAssignableBy(rrtd)) {
@@ -81,13 +90,15 @@ public class JavaParserHelper {
                                         String replacePattern = "L" + rrtd.getName() + "<";
                                         String replacement = "L" + newName + "<";
                                         jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                        toRemove.add(resolvedType);
                                     } else {
                                         // normal class or interface
+                                        // TODO: Handle with care here if Throwable
                                         String newName = rrtd.getQualifiedName().replace(".", "/");
                                         String replacePattern = "L" + rrtd.getName() + ";";
                                         String replacement = "L" + newName + ";";
                                         jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
-                                        System.out.println(jvmDesc);
+                                        toRemove.add(resolvedType);
                                     }
                                 }
                             }
@@ -150,9 +161,11 @@ public class JavaParserHelper {
                     toAdd.add(rt);
                     toRemove.add(resolvedType);
                 } else {
-                    System.out.println("MISSED");
+                    System.out.println("Primitive");
+                    toRemove.add(resolvedType);
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("Exception");
                 // ...
             }
