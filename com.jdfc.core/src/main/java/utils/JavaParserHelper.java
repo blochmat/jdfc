@@ -26,13 +26,15 @@ import java.util.regex.Pattern;
 
 public class JavaParserHelper {
 
-    private CombinedTypeSolver combinedTypeSolver;
+    private final CombinedTypeSolver combinedTypeSolver;
 
     public JavaParserHelper() {
         this.combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(new ReflectionTypeSolver()); // For java standard library types
-        for(String source : CoverageDataStore.getInstance().getSrcDirStrList()) {
-            combinedTypeSolver.add(new JavaParserTypeSolver(new File(source))); // For source code
+        if(CoverageDataStore.getInstance() != null) {
+            for(String source : CoverageDataStore.getInstance().getSrcDirStrList()) {
+                combinedTypeSolver.add(new JavaParserTypeSolver(new File(source))); // For source code
+            }
         }
         // NOTE: in case libraries are required for the source code add
         // combinedTypeSolver.add(new JarTypeSolver("lib/your-library.jar")); // For library types

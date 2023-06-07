@@ -24,6 +24,7 @@ import java.util.Objects;
  */
 public class CoverageDataStore {
     private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
+    private static CoverageDataStore instance;
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> testedClassList;
     private final List<String> untestedClassList;
@@ -40,12 +41,16 @@ public class CoverageDataStore {
 
     }
 
-    private static class Container {
-        static CoverageDataStore instance = new CoverageDataStore();
+    public static CoverageDataStore getInstance() {
+        if(instance == null) {
+            instance = new CoverageDataStore();
+        }
+        return instance;
     }
 
-    public static CoverageDataStore getInstance() {
-        return Container.instance;
+    // Just for testing
+    public static void setInstance(CoverageDataStore mock) {
+        instance = mock;
     }
 
     public ExecutionDataNode<ExecutionData> getRoot() {
