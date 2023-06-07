@@ -60,7 +60,7 @@ public class JavaParserHelper {
                         ResolvedReferenceTypeDeclaration rrtd = typeDeclaration.get();
 
                         // Non-Generic Classes
-                        if (rrtd.isClass()) {
+                        if (rrtd.isClass() || rrtd.isInterface()) {
                             if(nestedTypeMap.containsKey(rrtd.getName())) {
                                 // inner or nested class
                                 String replacePattern = "L" + rrtd.getName() + ";";
@@ -69,22 +69,25 @@ public class JavaParserHelper {
                             } else {
                                 // java native class
                                 if (isException(resolvedType)) {
+                                    // exception
                                     String newName = rrtd.getQualifiedName().replace(".", "/");
                                     String replacePattern = rrtd.getName();
                                     jvmDesc = jvmDesc.replaceAll(replacePattern, newName);
                                 } else {
-                                    // Class<?> or normal class
                                     ResolvedReferenceTypeDeclaration classDecl = combinedTypeSolver.solveType("java.lang.Class");
                                     if(classDecl.isAssignableBy(rrtd)) {
+                                        // Class<?>
                                         String newName = rrtd.getQualifiedName().replace(".", "/");
                                         String replacePattern = "L" + rrtd.getName() + "<";
                                         String replacement = "L" + newName + "<";
                                         jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
                                     } else {
+                                        // normal class or interface
                                         String newName = rrtd.getQualifiedName().replace(".", "/");
                                         String replacePattern = "L" + rrtd.getName() + ";";
                                         String replacement = "L" + newName + ";";
                                         jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                        System.out.println(jvmDesc);
                                     }
                                 }
                             }
