@@ -31,8 +31,8 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
                                      final String pSignature,
                                      final String[] pExceptions) {
         MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
-        if (isInstrumentationRequired(pName)) {
-            MethodNode methodNode = getMethodNode(pName, pDescriptor);
+        MethodNode methodNode = getMethodNode(pName, pDescriptor);
+        if (isInstrumentationRequired(methodNode)) {
             final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
             mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName);
         }

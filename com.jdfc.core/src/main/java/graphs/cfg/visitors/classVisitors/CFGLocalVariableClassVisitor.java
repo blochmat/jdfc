@@ -1,8 +1,8 @@
 package graphs.cfg.visitors.classVisitors;
 
-import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import data.ClassExecutionData;
 import data.ProgramVariable;
+import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -75,7 +75,10 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         // TODO
-        if (methodNode != null && isInstrumentationRequired(pName) && !internalMethodName.contains("<init>")
+
+        if (methodNode != null
+                && isInstrumentationRequired(methodNode)
+                && !internalMethodName.contains("<init>")
                 && !internalMethodName.contains("<clinit>")) {
             return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
