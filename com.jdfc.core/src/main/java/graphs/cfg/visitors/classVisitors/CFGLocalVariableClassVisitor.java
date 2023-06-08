@@ -95,6 +95,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
             super.visitEnd();
         }
         // TODO: Add fields to classExecutionData
-        System.out.println(fields);
+        logger.debug(fields.toString());
     }
 }

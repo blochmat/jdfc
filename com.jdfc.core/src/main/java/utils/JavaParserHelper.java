@@ -17,6 +17,8 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import data.singleton.CoverageDataStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,6 +27,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JavaParserHelper {
+
+    private final Logger logger = LoggerFactory.getLogger(JavaParserHelper.class);
 
     private final CombinedTypeSolver combinedTypeSolver;
 
@@ -56,9 +60,9 @@ public class JavaParserHelper {
         // TODO: register: (LClass;)V;
         //       register: (Ljava/lang/Class;)V;
 
-        if(jvmDesc.contains("(LClass;)V;")) {
-            System.out.println("asdf");
-        }
+//        if(jvmDesc.contains("(LClass;)V;")) {
+//            System.out.println("asdf");
+//        }
         for(ResolvedType resolvedType : resolvedTypes) {
             try {
                 if (resolvedType.isReferenceType()) {
@@ -173,13 +177,12 @@ public class JavaParserHelper {
                     toAdd.add(rt);
                     toRemove.add(resolvedType);
                 } else {
-                    System.out.println("Primitive");
+                    logger.debug("Primitive");
                     toRemove.add(resolvedType);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                System.out.println("Exception");
-                // ...
+                logger.debug("Exception");
             }
         }
 

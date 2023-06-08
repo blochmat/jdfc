@@ -1,11 +1,14 @@
 import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +20,11 @@ public final class JDFCAgent {
      */
     private static final Class<?> export = CoverageDataExport.class;
 
+    private static final Logger logger = LoggerFactory.getLogger(JDFCAgent.class);
+
     public static void premain(final String agentArgs, final Instrumentation inst) {
+        long start = System.currentTimeMillis();
+        logger.info("Instrumentation started.");
         // print uncaught exceptions
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             System.err.println("Exception occurred in thread: " + t.getName());
@@ -40,7 +47,20 @@ public final class JDFCAgent {
 
         // add shutdown hook to compute and write results
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Logger logger = LoggerFactory.getLogger("Global");
             try {
+                long end = System.currentTimeMillis();
+                Duration duration = Duration.ofMillis(end - start);
+                long hours = duration.toHours();
+                duration = duration.minusHours(hours);
+                long minutes = duration.toMinutes();
+                duration = duration.minusMinutes(minutes);
+                long seconds = duration.getSeconds();
+                duration = duration.minusSeconds(seconds);
+                long millis = duration.toMillis();
+
+                String time = String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
+                logger.info(String.format("Instrumentation finished. Time: %s", time));
                 CoverageDataStore.getInstance().exportCoverageData();
             } catch (Exception e) {
                 try (FileWriter writer = new FileWriter(String.format("%s/jdfc/shutdown_error.log", args.get(1)), false)) {

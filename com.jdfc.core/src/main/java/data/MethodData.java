@@ -152,11 +152,17 @@ public class MethodData {
     public ProgramVariable findVar(ProgramVariable var) {
         logger.debug(String.format("findVar(%s)", var));
         for (ProgramVariable v : vars) {
-            if (v.equals(var)) {
+            if (Objects.equals(v.getOwner(), var.getOwner())
+                    && Objects.equals(v.getName(), var.getName())
+                    && Objects.equals(v.getDescriptor(), var.getDescriptor())
+                    && Objects.equals(v.getLineNumber(), var.getLineNumber())
+                    && Objects.equals(v.getInstructionIndex(), var.getInstructionIndex())
+                    && Objects.equals(v.isDefinition(), var.isDefinition())) {
                 logger.debug(String.format("- %s", v));
                 return v;
             }
         }
+        logger.debug("Return NULL");
         return null;
     }
 

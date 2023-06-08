@@ -17,10 +17,12 @@ import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
@@ -107,7 +109,10 @@ public class CoverageDataStore {
     }
 
     public void exportCoverageData() {
-        logger.debug("exportCoverageData");
+        Logger logger = LoggerFactory.getLogger("Global");
+        long start = System.currentTimeMillis();
+        logger.info("Coverage data export started.");
+
 
         // Summary export
         try {
@@ -118,6 +123,7 @@ public class CoverageDataStore {
 
         // Tested class data export
         for(String className : testedClassList) {
+            logger.debug("TESTED: " + className);
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
@@ -129,13 +135,30 @@ public class CoverageDataStore {
         // TODO: could be removed
         // Untested class data export
         for(String className : untestedClassList) {
+            logger.debug("UNTESTED: " + className);
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
             } catch (ParserConfigurationException | TransformerException e) {
-                e.printStackTrace();
+                String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+                logger.debug("Exception:" + e.getMessage());
+                logger.debug(stackTrace);
             }
         }
+
+        long end = System.currentTimeMillis();
+        Duration duration = Duration.ofMillis(end - start);
+        long hours = duration.toHours();
+        duration = duration.minusHours(hours);
+        long minutes = duration.toMinutes();
+        duration = duration.minusMinutes(minutes);
+        long seconds = duration.getSeconds();
+        duration = duration.minusSeconds(seconds);
+        long millis = duration.toMillis();
+
+        String time = String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
+        logger.info(String.format("Coverage data export finished. Time: %s", time));
+        logger.info("Coverage data export finished.");
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
@@ -147,7 +170,11 @@ public class CoverageDataStore {
             nodePath.add(0, "default");
         }
 
-        return root.getChildDataRecursive(nodePath);
+        ExecutionDataNode<ExecutionData> node = root.getChildDataRecursive(nodePath);
+        if (node == null) {
+            logger.debug("Return NULL");
+        }
+        return node;
     }
 
     public void addNodesFromDirRecursive(File pFile,

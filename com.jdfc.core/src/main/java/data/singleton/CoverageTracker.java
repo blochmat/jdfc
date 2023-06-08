@@ -1,6 +1,7 @@
 package data.singleton;
 
 import data.ClassExecutionData;
+import data.MethodData;
 import data.ProgramVariable;
 import graphs.cfg.LocalVariable;
 import org.slf4j.Logger;
@@ -33,16 +34,29 @@ public class CoverageTracker {
                                         final int pOpcode) {
         logger.debug("addLocalVarCoveredEntry");
         this.updateClassExecutionData(pClassName);
+
+        logger.debug("updateClassExecutionData");
         LocalVariable localVariable = currentClassExecutionData.findLocalVariable(pInternalMethodName, pVarIndex);
 
         // add to testedClassList, remove from untestedClassList
+        logger.debug("findLocalVariable");
         CoverageDataStore.getInstance().getTestedClassList().add(currentClassExecutionData.getRelativePath());
+        logger.debug("getTestedClassList");
         CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
+        logger.debug("getUntestedClassList");
 
         if (localVariable != null) {
-            ProgramVariable programVariable = new ProgramVariable(null, localVariable.getName(),
+            logger.debug("localVariable != null");
+            ProgramVariable localPVar = new ProgramVariable(null, localVariable.getName(),
                     localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode), false);
-            currentClassExecutionData.getMethodByInternalName(pInternalMethodName).findVar(programVariable).setCovered(true);
+            logger.debug("uncoveredVar");
+            MethodData mData = currentClassExecutionData.getMethodByInternalName(pInternalMethodName);
+            logger.debug(mData.toString());
+            ProgramVariable pVar = mData.findVar(localPVar);
+
+            if (pVar != null && !pVar.isCovered()) {
+                pVar.setCovered(true);
+            }
         }
     }
 
