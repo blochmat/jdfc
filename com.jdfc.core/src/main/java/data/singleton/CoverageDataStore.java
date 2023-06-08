@@ -158,7 +158,6 @@ public class CoverageDataStore {
 
         String time = String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
         logger.info(String.format("Coverage data export finished. Time: %s", time));
-        logger.info("Coverage data export finished.");
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
