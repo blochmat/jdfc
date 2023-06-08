@@ -6,11 +6,13 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.MethodData;
 import data.ProgramVariable;
-import graphs.cfg.*;
-import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
+import graphs.cfg.CFG;
+import graphs.cfg.CFGImpl;
+import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGEntryNode;
 import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
+import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -214,6 +216,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         this.setPredecessorSuccessorRelation();
         CFG cfg = new CFGImpl(internalMethodName, nodes, edges);
 
+        logger.debug(internalMethodName);
         logger.debug(JDFCUtils.prettyPrintMultimap(edges));
 
         if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
@@ -315,28 +318,32 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void addEntryAndExitNode() {
-        logger.debug("addEntryNode");
+        logger.debug("addEntryAndExitNode");
         Set<ProgramVariable> parameters = createParamVars();
-        final CFGNode firstNode = nodes.get(0.0);
-        final CFGNode lastNode = nodes.get((double) nodes.size() - 1);
 
-        if(firstNode == null) {
-            throw new RuntimeException("Add entry node failed, because first node was null.");
-        }
         final CFGNode entryNode =
                 new CFGEntryNode(parameters, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
         nodes.put((double) Integer.MIN_VALUE, entryNode);
-        edges.put((double) Integer.MIN_VALUE, 0.0);
-
-        if(lastNode == null) {
-            throw new RuntimeException("Add exit node failed, because last node was null.");
-        }
         final CFGNode exitNode =
                 new CFGExitNode(Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newHashSet(), Sets.newLinkedHashSet());
         nodes.put((double) Integer.MAX_VALUE, exitNode);
-        for (Map.Entry<Double, CFGNode> nodeEntry : nodes.entrySet()) {
-            if (172 <= nodeEntry.getValue().getOpcode() && nodeEntry.getValue().getOpcode() <= 177) {
-                edges.put(nodeEntry.getKey(), (double) Integer.MAX_VALUE);
+
+        if(nodes.size() == 2) {
+            // only contains entry and exit nodes
+            edges.put((double) Integer.MIN_VALUE, (double) Integer.MAX_VALUE);
+        } else {
+            // Add edge from entry node
+            final CFGNode firstNode = nodes.get(0.0);
+            if(firstNode == null) {
+                throw new RuntimeException("Add entry node failed, because first node was null.");
+            }
+            edges.put((double) Integer.MIN_VALUE, 0.0);
+
+            // Add edges to exit node
+            for (Map.Entry<Double, CFGNode> nodeEntry : nodes.entrySet()) {
+                if (172 <= nodeEntry.getValue().getOpcode() && nodeEntry.getValue().getOpcode() <= 177) {
+                    edges.put(nodeEntry.getKey(), (double) Integer.MAX_VALUE);
+                }
             }
         }
     }
