@@ -94,11 +94,18 @@ public class JavaParserHelper {
                                     } else {
                                         // normal class or interface
                                         // TODO: Handle with care here if Throwable
-                                        String newName = rrtd.getQualifiedName().replace(".", "/");
-                                        String replacePattern = "L" + rrtd.getName() + ";";
-                                        String replacement = "L" + newName + ";";
-                                        jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
-                                        toRemove.add(resolvedType);
+                                        if (rrtd.getName().equals("Throwable")) {
+                                            String newName = rrtd.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + rrtd.getName() + ";";
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, newName);
+                                            toRemove.add(resolvedType);
+                                        } else {
+                                            String newName = rrtd.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + rrtd.getName() + ";";
+                                            String replacement = "L" + newName + ";";
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            toRemove.add(resolvedType);
+                                        }
                                     }
                                 }
                             }
