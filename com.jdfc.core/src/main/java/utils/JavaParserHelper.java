@@ -53,10 +53,10 @@ public class JavaParserHelper {
                                   Set<ResolvedType> toAdd,
                                   Set<ResolvedType> toRemove) {
 
-        // TODO: finalize: ()V; [java/lang/Throwable]
-        //       finalize: ()V; [Ljava/lang/Throwable;]
+        // TODO: register: (LClass;)V;
+        //       register: (Ljava/lang/Class;)V;
 
-        if(jvmDesc.contains("Throwable")) {
+        if(jvmDesc.contains("(LClass;)V;")) {
             System.out.println("asdf");
         }
         for(ResolvedType resolvedType : resolvedTypes) {
@@ -85,12 +85,17 @@ public class JavaParserHelper {
                                 } else {
                                     ResolvedReferenceTypeDeclaration classDecl = combinedTypeSolver.solveType("java.lang.Class");
                                     if(classDecl.isAssignableBy(rrtd)) {
-                                        // Class<?>
                                         String newName = rrtd.getQualifiedName().replace(".", "/");
-                                        String replacePattern = "L" + rrtd.getName() + "<";
-                                        String replacement = "L" + newName + "<";
-                                        jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
-                                        toRemove.add(resolvedType);
+                                        if (jvmDesc.contains(String.format("L%s<", rrtd.getName()))
+                                                || jvmDesc.contains(String.format("L%s;", rrtd.getName()))) {
+                                            // Class<?> or Class
+                                            String replacePattern = "L" + rrtd.getName();
+                                            String replacement = "L" + newName;
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            toRemove.add(resolvedType);
+                                        } else {
+                                            throw new IllegalArgumentException("Unknown type descriptor: " + rrtd.getQualifiedName());
+                                        }
                                     } else {
                                         // normal class or interface
                                         // TODO: Handle with care here if Throwable

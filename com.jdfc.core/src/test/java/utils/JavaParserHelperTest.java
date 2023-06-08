@@ -11,7 +11,8 @@ public class JavaParserHelperTest {
 //    setType: (LClass<?>;)V; = setType: (Ljava/lang/Class<*>;)V;
 //    getValuesList: ()LList<String>; = getValuesList: ()Ljava/util/List<Ljava/lang/String;>;
 //    getValue: (I)LString; [IndexOutOfBoundsException] = getValue: (I)Ljava/lang/String; [java/lang/IndexOutOfBoundsException]
-
+//    finalize: ()V; [Throwable] = finalize: ()V; [java/lang/Throwable]
+//    register: (LClass;)V; = register: (Ljava/lang/Class;)V;
     @Test
     public void testInnerClassFqnToJVMInternal() {
         // Arrange
