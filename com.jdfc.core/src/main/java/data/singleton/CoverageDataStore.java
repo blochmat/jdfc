@@ -27,7 +27,7 @@ import java.util.*;
  */
 @Data
 public class CoverageDataStore {
-    private static final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
+    private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
     private static CoverageDataStore instance;
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> testedClassList;
@@ -80,18 +80,8 @@ public class CoverageDataStore {
         this.srcDirStrList = srcDirStrList;
     }
 
-    public static synchronized void invokeCoverageTracker(final String varIdStr, final String cIdStr) {
-        logger.debug("addLocalVarCoveredEntry");
-        CoverageDataStore store = CoverageDataStore.getInstance();
-
-        ClassExecutionData cData = store.classExecutionDataBiMap.get(UUID.fromString(cIdStr));
-        CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
-        CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
-
-        ProgramVariable pVar = store.uuidProgramVariableMap.get(UUID.fromString(varIdStr));
-        if (pVar != null && !pVar.isCovered()) {
-            pVar.setCovered(true);
-        }
+    public static void invokeCoverageTracker(final String varIdStr, final String cIdStr) {
+        CoverageTracker.getInstance().addLocalVarCoveredEntry(varIdStr, cIdStr);
     }
 
     public void exportCoverageData() {
@@ -196,9 +186,9 @@ public class CoverageDataStore {
                             try {
                                 CompilationUnit cu = javaParserHelper.parse(sourceFile);
                                 if (!isOnlyInterface(cu)) {
+                                    UUID cId = UUID.randomUUID();
                                     ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
                                     untestedClassList.add(relativePath);
-                                    UUID cId = UUID.randomUUID();
                                     classExecutionDataBiMap.put(cId, classNodeData);
 
                                     String nameWithoutType = f.getName().split("\\.")[0];
