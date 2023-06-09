@@ -340,3 +340,39 @@ NOTE: Classes with tests get loaded by class loader
 
 ## Out of scope
 nested classes
+inner classes
+
+## Properties relevant for report
+- Packages:
+    - name
+    - rate
+    - total
+    - covered
+    - missed
+    - contained classes
+- classes:
+    - name
+    - rate
+    - total
+    - covered
+    - missed
+    - contained methods
+- methods:
+    - name
+    - rate
+    - total
+    - covered
+    - missed
+    - start line
+    - end line
+    - contained program variables
+- program variables:
+    - name
+    - desc
+    - lineNr
+    - position in line (if some with equal name are there)
+    - ifDefiniton: program var uses (ids?)
+    - ifUse: program var def (ids?)
+    - allPairsCovered
+    - noPairsCovered
+    - line text for tooltip
