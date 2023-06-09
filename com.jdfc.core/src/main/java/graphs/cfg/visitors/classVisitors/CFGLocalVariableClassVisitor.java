@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import utils.ASMHelper;
 import utils.JDFCUtils;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.ASM5;
@@ -33,11 +31,8 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
-    private final Set<ProgramVariable> fields;
-
     public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassNode, pClassExecutionData);
-        fields = new HashSet<>();
     }
 
     /**
@@ -59,7 +54,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         UUID pId = UUID.randomUUID();
         ProgramVariable pVar = new ProgramVariable(this.getClassNode().name, name, descriptor, Integer.MIN_VALUE,
                 Integer.MIN_VALUE, false, false);
-        this.fields.add(pVar);
+        classExecutionData.getFieldUuids().add(pId);
         CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
         logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getASMAccessStr(access), descriptor, name, value));
         return fv;
@@ -79,7 +74,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         // TODO
-
         if (methodNode != null
                 && isInstrumentationRequired(methodNode)
                 && !internalMethodName.contains("<init>")
@@ -88,17 +82,5 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
                     this, mv, methodNode, internalMethodName);
         }
         return mv;
-    }
-
-    @Override
-    public void visitEnd() {
-        logger.debug("visitEnd");
-        if (cv != null) {
-            cv.visitEnd();
-        } else {
-            super.visitEnd();
-        }
-        // TODO: Add fields to classExecutionData
-        logger.debug(fields.toString());
     }
 }

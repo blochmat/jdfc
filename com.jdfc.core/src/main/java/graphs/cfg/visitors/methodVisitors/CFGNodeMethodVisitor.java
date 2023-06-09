@@ -45,7 +45,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
         mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
-        logger.debug(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
+        logger.debug(JDFCUtils.prettyPrintMap(mData.getLocalVarIdxToUUID()));
     }
 
     @Override
@@ -247,21 +247,21 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         return pVar;
     }
 
-    private String getLocalVarName(final int pVarNumber) {
-        logger.debug(String.format("getLocalVarName(%d)", pVarNumber));
+    private String getLocalVarName(final int localVarIdx) {
+        logger.debug(String.format("getLocalVarName(%d)", localVarIdx));
         final LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap()
-                .get(mData.getLocalVariableTable().get(pVarNumber));
+                .get(mData.getLocalVarIdxToUUID().get(localVarIdx));
         if (localVariable != null) {
             return localVariable.getName();
         } else {
-            return String.valueOf(pVarNumber);
+            return String.valueOf(localVarIdx);
         }
     }
 
-    private String getLocalVarType(final int pVarNumber) {
-        logger.debug(String.format("getLocalVarType(%d)", pVarNumber));
+    private String getLocalVarType(final int localVarIdx) {
+        logger.debug(String.format("getLocalVarType(%d)", localVarIdx));
         final LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap()
-                .get(mData.getLocalVariableTable().get(pVarNumber));
+                .get(mData.getLocalVarIdxToUUID().get(localVarIdx));
         if (localVariable != null) {
             return localVariable.getDescriptor();
         } else {
@@ -356,7 +356,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private Set<ProgramVariable> createParamVars() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
-        for (UUID uuid : mData.getLocalVariableTable().values()) {
+        for (UUID uuid : mData.getLocalVarIdxToUUID().values()) {
             LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap().get(uuid);
             UUID pId = UUID.randomUUID();
             final ProgramVariable pVar =

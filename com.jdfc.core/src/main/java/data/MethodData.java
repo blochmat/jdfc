@@ -58,7 +58,7 @@ public class MethodData {
     /**
      * Local variables in class
      */
-    private Map<Integer, UUID> localVariableTable;
+    private Map<Integer, UUID> localVarIdxToUUID;
 
     /**
      * AST of method source code
