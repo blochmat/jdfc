@@ -2,6 +2,7 @@ package graphs.cfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
 import data.ProgramVariable;
+import data.singleton.CoverageDataStore;
 import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -16,6 +17,7 @@ import utils.JDFCUtils;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -54,9 +56,11 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
             final Object value) {
         logger.debug("visitField");
         final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
-        this.fields.add(
-                new ProgramVariable(this.getClassNode().name,
-                        name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false, false));
+        UUID pId = UUID.randomUUID();
+        ProgramVariable pVar = new ProgramVariable(this.getClassNode().name, name, descriptor, Integer.MIN_VALUE,
+                Integer.MIN_VALUE, false, false);
+        this.fields.add(pVar);
+        CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
         logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getASMAccessStr(access), descriptor, name, value));
         return fv;
     }

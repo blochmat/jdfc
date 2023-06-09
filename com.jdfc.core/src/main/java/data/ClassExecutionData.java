@@ -1,6 +1,5 @@
 package data;
 
-import graphs.cfg.LocalVariable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
@@ -12,6 +11,8 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
+import data.singleton.CoverageDataStore;
+import graphs.cfg.LocalVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -70,7 +71,8 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public String toString() {
-        return String.format("ParentFqn: %s%nFqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
+        return String.format("%nParentFqn: %s%nFqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%nMethods: %s%n",
+                getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate(), JDFCUtils.prettyPrintMap(methods));
     }
 
     private PackageDeclaration extractPackageDeclaration(CompilationUnit cu){
@@ -125,8 +127,11 @@ public class ClassExecutionData extends ExecutionData {
             int mAccess = mDecl.getAccessSpecifier().ordinal();
             String mName = mDecl.getName().getIdentifier();
 
+            UUID mId = UUID.randomUUID();
             MethodData mData = new MethodData(mAccess, mName, jvmAsmDesc, mDecl);
+
             methods.put(mData.getBeginLine(), mData);
+            CoverageDataStore.getInstance().getMethodDataBiMap().put(mId, mData);
         }
 
         return methods;
