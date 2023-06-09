@@ -3,6 +3,7 @@ package data.io;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import data.*;
 import data.singleton.CoverageDataStore;
+import data.tree.ExecutionDataNode;
 import instr.JDFCInstrument;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
@@ -145,15 +146,15 @@ public class CoverageDataExport {
                             ProgramVariable d = pData.getDefinition();
                             Element def = doc.createElement("def");
                             def.setAttribute("name", d.getName());
-                            def.setAttribute("line", String.valueOf(d.getLineNumber()));
-                            def.setAttribute("idx", String.valueOf(d.getInstructionIndex()));
+                            def.setAttribute("line", String.valueOf(d.getLineNr()));
+                            def.setAttribute("idx", String.valueOf(d.getInsnIdx()));
                             pair.appendChild(def);
 
                             ProgramVariable u = pData.getUsage();
                             Element use = doc.createElement("use");
                             use.setAttribute("name", u.getName());
-                            use.setAttribute("line", String.valueOf(u.getLineNumber()));
-                            use.setAttribute("idx", String.valueOf(u.getInstructionIndex()));
+                            use.setAttribute("line", String.valueOf(u.getLineNr()));
+                            use.setAttribute("idx", String.valueOf(u.getInsnIdx()));
                             pair.appendChild(use);
                         }
                     }

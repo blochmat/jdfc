@@ -172,7 +172,7 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         }
     }
 
-    protected boolean isDefinition(final int pOpcode) {
+    protected boolean isDef(final int pOpcode) {
         switch (pOpcode) {
             case ISTORE:
             case LSTORE:

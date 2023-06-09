@@ -3,6 +3,9 @@ package data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import data.singleton.CoverageDataStore;
 import graphs.cfg.CFG;
 import graphs.cfg.nodes.CFGNode;
 import lombok.AllArgsConstructor;
@@ -56,11 +59,6 @@ public class MethodData {
     private String declarationStr;
 
     /**
-     * Local variables in class
-     */
-    private Map<Integer, UUID> localVarIdxToUUID;
-
-    /**
      * AST of method source code
      */
     @JsonIgnore
@@ -78,15 +76,19 @@ public class MethodData {
     private Set<DefUsePair> pairs;
 
     /**
+     * Local variables in class
+     */
+    private Map<Integer, UUID> localVarIdxToUUID;
+
+    /**
      * All program variables
      */
-
-    private Set<ProgramVariable> vars;
+    private Multimap<Integer, UUID> programVarLineToUUID;
 
     /**
      * All method params as {@link ProgramVariable}
      */
-    private Set<ProgramVariable> params;
+    private Set<UUID> params;
 
     /**
      * Line of method declaration in source code
@@ -113,7 +115,7 @@ public class MethodData {
         this.endLine = extractEnd(srcAst);
         this.params = new HashSet<>();
         this.pairs = new HashSet<>();
-        this.vars = new HashSet<>();
+        this.programVarLineToUUID = ArrayListMultimap.create();
     }
 
     private int extractBegin(MethodDeclaration srcAst) {
@@ -148,22 +150,22 @@ public class MethodData {
         }
     }
 
-    public ProgramVariable findVar(ProgramVariable var) {
-        logger.debug(String.format("findVar(%s)", var));
-        for (ProgramVariable v : vars) {
-            if (Objects.equals(v.getOwner(), var.getOwner())
-                    && Objects.equals(v.getName(), var.getName())
-                    && Objects.equals(v.getDescriptor(), var.getDescriptor())
-                    && Objects.equals(v.getLineNumber(), var.getLineNumber())
-                    && Objects.equals(v.getInstructionIndex(), var.getInstructionIndex())
-                    && Objects.equals(v.isDefinition(), var.isDefinition())) {
-                logger.debug(String.format("- %s", v));
-                return v;
-            }
-        }
-        logger.debug("Return NULL");
-        return null;
-    }
+//    public ProgramVariable findVar(ProgramVariable var) {
+//        logger.debug(String.format("findVar(%s)", var));
+//        for (ProgramVariable v : programVarLineToUUID) {
+//            if (Objects.equals(v.getOwner(), var.getOwner())
+//                    && Objects.equals(v.getName(), var.getName())
+//                    && Objects.equals(v.getDesc(), var.getDesc())
+//                    && Objects.equals(v.getLineNr(), var.getLineNr())
+//                    && Objects.equals(v.getInsnIdx(), var.getInsnIdx())
+//                    && Objects.equals(v.isDef(), var.isDef())) {
+//                logger.debug(String.format("- %s", v));
+//                return v;
+//            }
+//        }
+//        logger.debug("Return NULL");
+//        return null;
+//    }
 
     public DefUsePair findDefUsePair(DefUsePair pair) {
         for(DefUsePair p : pairs) {
@@ -179,17 +181,21 @@ public class MethodData {
      */
     public void calculateDefUsePairs() {
         logger.debug("calculateDefUsePairs");
+
+        CoverageDataStore store = CoverageDataStore.getInstance();
         for (Map.Entry<Double, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
 
             logger.debug(JDFCUtils.prettyPrintSet(node.getReach()));
-            for (ProgramVariable def : node.getReach()) {
-                for (ProgramVariable use : node.getUses()) {
-                    if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
+            for (UUID defID : node.getReach()) {
+                for (UUID useID : node.getUses()) {
+                    ProgramVariable def = store.getUuidProgramVariableMap().get(defID);
+                    ProgramVariable use = store.getUuidProgramVariableMap().get(useID);
+                    if (def.getName().equals(use.getName()) && !def.getDesc().equals("UNKNOWN")) {
                         this.pairs.add(new DefUsePair(def, use));
                     }
-                    if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                        def.setCovered(true);
+                    if (def.getInsnIdx() == Integer.MIN_VALUE) {
+                        def.setCov(true);
                     }
                 }
             }
@@ -205,8 +211,8 @@ public class MethodData {
      */
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
         for (DefUsePair pair : pairs) {
-            if ((pair.getDefinition().getName().equals(pName) && pair.getDefinition().getLineNumber() == pLineNumber)
-                    || pair.getUsage().getName().equals(pName) && pair.getUsage().getLineNumber() == pLineNumber) {
+            if ((pair.getDefinition().getName().equals(pName) && pair.getDefinition().getLineNr() == pLineNumber)
+                    || pair.getUsage().getName().equals(pName) && pair.getUsage().getLineNr() == pLineNumber) {
                 return true;
             }
         }

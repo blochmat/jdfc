@@ -3,7 +3,6 @@ package graphs.cfg;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
-import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.JDFCUtils;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A implementation of a {@link CFG}.
@@ -83,7 +79,7 @@ public class CFGImpl implements CFG {
 
         while (!workList.isEmpty()) {
             CFGNode node = workList.poll();
-            Set<ProgramVariable> oldValue = node.getReachOut();
+            Set<UUID> oldValue = node.getReachOut();
             node.update();
             if (!node.getReachOut().equals(oldValue)) {
                 workList.addAll(node.getPredecessors());

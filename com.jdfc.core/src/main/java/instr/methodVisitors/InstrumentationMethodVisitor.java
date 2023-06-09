@@ -54,7 +54,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 UUID pId = UUID.randomUUID();
                 ProgramVariable localPVar = new ProgramVariable(null, localVariable.getName(),
                         localVariable.getDescriptor(), currentInstructionIndex, currentLineNumber,
-                        this.isDefinition(opcode), false);
+                        this.isDef(opcode), false);
                 CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, localPVar);
                 UUID cId = classVisitor.classExecutionData.getUuid();
 

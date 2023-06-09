@@ -326,9 +326,9 @@ public class JDFCUtils {
         StringBuilder result = new StringBuilder();
         for(ProgramVariable v : list) {
             if (list.indexOf(v) == list.size() - 1) {
-                result.append(String.format("\\s*%s\\s+%s\\s*", JDFCUtils.getTypeName(v.getDescriptor()), v.getName()));
+                result.append(String.format("\\s*%s\\s+%s\\s*", JDFCUtils.getTypeName(v.getDesc()), v.getName()));
             } else {
-                result.append(String.format("\\s*%s\\s+%s\\s*,", JDFCUtils.getTypeName(v.getDescriptor()), v.getName()));
+                result.append(String.format("\\s*%s\\s+%s\\s*,", JDFCUtils.getTypeName(v.getDesc()), v.getName()));
             }
         }
         return result.toString();

@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import com.google.common.collect.*;
 import data.*;
 import data.io.CoverageDataExport;
+import data.tree.ExecutionDataNode;
 import graphs.cfg.LocalVariable;
 import lombok.Data;
 import org.slf4j.Logger;

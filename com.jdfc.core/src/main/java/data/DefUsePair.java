@@ -15,8 +15,8 @@ public class DefUsePair {
     private boolean covered;
 
     public DefUsePair(ProgramVariable definition, ProgramVariable usage) {
-        if(definition.getDescriptor().equals(usage.getDescriptor())){
-            this.type = definition.getDescriptor();
+        if(definition.getDesc().equals(usage.getDesc())){
+            this.type = definition.getDesc();
         } else {
             throw new IllegalArgumentException("Definition and Use type are not equal.");
         }
