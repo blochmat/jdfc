@@ -1,9 +1,9 @@
 package graphs.cfg;
 
-import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
-import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
+import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
+import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.slf4j.Logger;

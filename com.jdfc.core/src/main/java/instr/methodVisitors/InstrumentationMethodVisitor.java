@@ -11,7 +11,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utils.JDFCUtils;
 
 import java.util.UUID;
 
@@ -56,25 +55,16 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         localVariable.getDescriptor(), currentInstructionIndex, currentLineNumber,
                         this.isDefinition(opcode), false);
                 CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, localPVar);
-                UUID cId = CoverageDataStore.getInstance().getClassExecutionDataBiMap().inverse()
-                        .get(classVisitor.classExecutionData);
+                UUID cId = classVisitor.classExecutionData.getUuid();
 
-                if (cId == null) {
-                    logger.debug("IMPORTANT");
-                    logger.debug("DATA");
-                    logger.debug(classVisitor.classExecutionData.toString());
-                    logger.debug("MAP");
-                    logger.debug(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getClassExecutionDataBiMap()));
-                } else {
-                    mv.visitLdcInsn(pId.toString());
-                    mv.visitLdcInsn(cId.toString());
-                    mv.visitMethodInsn(
-                            Opcodes.INVOKESTATIC,
-                            Type.getInternalName(CoverageDataStore.class),
-                            "invokeCoverageTracker",
-                            "(Ljava/lang/String;Ljava/lang/String;)V",
-                            false);
-                }
+                mv.visitLdcInsn(pId.toString());
+                mv.visitLdcInsn(cId.toString());
+                mv.visitMethodInsn(
+                        Opcodes.INVOKESTATIC,
+                        Type.getInternalName(CoverageDataStore.class),
+                        "invokeCoverageTracker",
+                        "(Ljava/lang/String;Ljava/lang/String;)V",
+                        false);
             }
         }
     }

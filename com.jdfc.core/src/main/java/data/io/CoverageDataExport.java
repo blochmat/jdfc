@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 public class CoverageDataExport {
 
+    // DO NOT USE. LOG TO FILE. See logThis method at the bottom.
     private static final Logger logger = LoggerFactory.getLogger(CoverageDataExport.class);
 
     public static void init() {
@@ -36,7 +37,6 @@ public class CoverageDataExport {
     }
 
     public static void dumpCoverageDataToFile() throws ParserConfigurationException, TransformerException {
-        logger.debug("dumpCoverageDataToFile");
         // Create JDFC directory
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
         File JDFCDir = new File(outPath);
@@ -49,8 +49,6 @@ public class CoverageDataExport {
         CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
 
         Set<ExecutionData> exDataSet = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
-
-        logger.debug(JDFCUtils.prettyPrintSet(exDataSet));
 
         // Actual output
         String classXMLPath = String.format("%s%s%s.xml", outPath, File.separator, "jdfc-coverage");
@@ -195,7 +193,6 @@ public class CoverageDataExport {
     private static void analyseUntestedClasses() {
         logger.debug("analyseUntestedClasses");
         List<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
-        logger.debug(classList.toString());
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
         for (String relPath : classList) {
