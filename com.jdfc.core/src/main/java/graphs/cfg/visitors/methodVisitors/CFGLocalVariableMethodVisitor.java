@@ -1,5 +1,6 @@
 package graphs.cfg.visitors.methodVisitors;
 
+import com.google.common.collect.Maps;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
@@ -10,7 +11,6 @@ import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,33 +20,28 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
 
     private final Logger logger = LoggerFactory.getLogger(CFGLocalVariableMethodVisitor.class);
 
-    private final Map<Integer, LocalVariable> localVariableTable = new HashMap<>();
+    private final Map<Integer, UUID> localVariableTable;
 
-    public CFGLocalVariableMethodVisitor(
-            final CFGLocalVariableClassVisitor pClassVisitor,
-            final MethodVisitor pMethodVisitor,
-            final MethodNode pMethodNode,
-            final String pInternalMethodName) {
-        super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
+    public CFGLocalVariableMethodVisitor(final CFGLocalVariableClassVisitor classVisitor,
+                                         final MethodVisitor methodVisitor,
+                                         final MethodNode methodNode,
+                                         final String internalMethodName) {
+        super(ASM5, classVisitor, methodVisitor, methodNode, internalMethodName);
+        localVariableTable = Maps.newHashMap();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void visitLocalVariable(
-            final String pName,
-            final String pDescriptor,
-            final String pSignature,
-            final Label pStart,
-            final Label pEnd,
-            final int pIndex) {
+    public void visitLocalVariable(final String name, final String desc, final String sig, final Label start,
+                                   final Label end, final int index) {
         logger.debug("visitLocalVariable");
-        super.visitLocalVariable(pName, pDescriptor, pSignature, pStart, pEnd, pIndex);
-        UUID lId = UUID.randomUUID();
-        final LocalVariable lVar = new LocalVariable(pName, pDescriptor, pSignature, pIndex);
-        localVariableTable.put(pIndex, lVar);
-        CoverageDataStore.getInstance().getUuidLocalVariableMap().put(lId, lVar);
+        super.visitLocalVariable(name, desc, sig, start, end, index);
+        UUID uuid = UUID.randomUUID();
+        final LocalVariable lVar = new LocalVariable(index, name, desc, sig);
+        localVariableTable.put(index, uuid);
+        CoverageDataStore.getInstance().getUuidLocalVariableMap().put(uuid, lVar);
     }
 
     /**

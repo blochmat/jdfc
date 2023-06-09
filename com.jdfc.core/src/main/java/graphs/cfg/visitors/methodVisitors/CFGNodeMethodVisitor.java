@@ -249,7 +249,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private String getLocalVarName(final int pVarNumber) {
         logger.debug(String.format("getLocalVarName(%d)", pVarNumber));
-        final LocalVariable localVariable = mData.getLocalVariableTable().get(pVarNumber);
+        final LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap()
+                .get(mData.getLocalVariableTable().get(pVarNumber));
         if (localVariable != null) {
             return localVariable.getName();
         } else {
@@ -259,7 +260,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private String getLocalVarType(final int pVarNumber) {
         logger.debug(String.format("getLocalVarType(%d)", pVarNumber));
-        final LocalVariable localVariable = mData.getLocalVariableTable().get(pVarNumber);
+        final LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap()
+                .get(mData.getLocalVariableTable().get(pVarNumber));
         if (localVariable != null) {
             return localVariable.getDescriptor();
         } else {
@@ -354,7 +356,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private Set<ProgramVariable> createParamVars() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
-        for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
+        for (UUID uuid : mData.getLocalVariableTable().values()) {
+            LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap().get(uuid);
             UUID pId = UUID.randomUUID();
             final ProgramVariable pVar =
                     new ProgramVariable(null,

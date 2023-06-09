@@ -12,7 +12,6 @@ import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
 import data.singleton.CoverageDataStore;
-import graphs.cfg.LocalVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -225,18 +224,6 @@ public class ClassExecutionData extends ExecutionData {
             this.setRate((double) getCovered() / getTotal());
         } else {
             this.setRate(0.0);
-        }
-    }
-
-    public LocalVariable findLocalVariable(final String internalMethodName,
-                                           final int pVarIndex) {
-        // TODO
-        if(!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
-            Map<Integer, LocalVariable> localVariableTable = this.getMethodByInternalName(internalMethodName)
-                    .getLocalVariableTable();
-            return localVariableTable.get(pVarIndex);
-        } else {
-            return null;
         }
     }
 }

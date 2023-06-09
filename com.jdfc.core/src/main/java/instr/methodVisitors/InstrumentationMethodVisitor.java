@@ -48,7 +48,8 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         logger.debug("insertLocalVariableEntryCreation");
         if(!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
-            LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
+            UUID localVarUUID = mData.getLocalVariableTable().get(localVarIdx);
+            LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap().get(localVarUUID);
             if(localVariable != null) {
                 UUID pId = UUID.randomUUID();
                 ProgramVariable localPVar = new ProgramVariable(null, localVariable.getName(),

@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LocalVariable {
+    private int index;
     private String name;
     private String descriptor;
     private String signature;
-    private int index;
 }
