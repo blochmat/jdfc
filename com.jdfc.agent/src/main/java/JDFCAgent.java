@@ -1,5 +1,6 @@
 import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public final class JDFCAgent {
 
     /**
@@ -20,16 +22,15 @@ public final class JDFCAgent {
      */
     private static final Class<?> export = CoverageDataExport.class;
 
-    private static final Logger logger = LoggerFactory.getLogger(JDFCAgent.class);
-
     public static void premain(final String agentArgs, final Instrumentation inst) {
-        long start = System.currentTimeMillis();
-        logger.info("Instrumentation started.");
         // print uncaught exceptions
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             System.err.println("Exception occurred in thread: " + t.getName());
             e.printStackTrace();
         });
+
+        long start = System.currentTimeMillis();
+        log.info("Instrumentation started.");
 
         // handle arguments
         List<String> args = Arrays.asList(agentArgs.split(","));
@@ -47,7 +48,7 @@ public final class JDFCAgent {
 
         // add shutdown hook to compute and write results
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Logger logger = LoggerFactory.getLogger("Global");
+            Logger logger = LoggerFactory.getLogger("Shutdown Hook");
             try {
                 long end = System.currentTimeMillis();
                 Duration duration = Duration.ofMillis(end - start);
@@ -60,12 +61,11 @@ public final class JDFCAgent {
                 long millis = duration.toMillis();
 
                 String time = String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
-                logger.info(String.format("Instrumentation finished. Time: %s", time));
+                logger.info(String.format("Instrumentation and Testing finished. Time: %s", time));
                 CoverageDataStore.getInstance().exportCoverageData();
             } catch (Exception e) {
                 try (FileWriter writer = new FileWriter(String.format("%s/jdfc/shutdown_error.log", args.get(1)), false)) {
                     String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
-                    writer.write("=============================================== \n");
                     writer.write("Exception during shutdown: " + e.getMessage() + "\n");
                     writer.write(stackTrace);
                     writer.write("\n");
