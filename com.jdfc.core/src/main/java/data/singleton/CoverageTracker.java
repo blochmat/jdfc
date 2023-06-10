@@ -1,12 +1,14 @@
 package data.singleton;
 
 import data.ClassExecutionData;
+import data.MethodData;
+import data.ProgramVariable;
+import graphs.cfg.LocalVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -24,21 +26,38 @@ public class CoverageTracker {
         return singleton;
     }
 
-    public synchronized void addLocalVarCoveredEntry(final UUID uuid) {
-//        logger.debug("addLocalVarCoveredEntry");
-//        this.updateClassExecutionData(pClassName);
-//        logger.debug("updateClassExecutionData");
-//
-//        CoverageDataStore.getInstance().getTestedClassList().add(currentClassExecutionData.getRelativePath());
-//        logger.debug("getTestedClassList");
-//        CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
-//        logger.debug("getUntestedClassList");
-//
-//        ProgramVariable pVar = mData.findVar(localPVar);
-//
-//        if (pVar != null && !pVar.isCovered()) {
-//            pVar.setCovered(true);
-//        }
+    public synchronized void addLocalVarCoveredEntry(final String pClassName,
+                                        final String pInternalMethodName,
+                                        final int pVarIndex,
+                                        final int pInsnIndex,
+                                        final int pLineNumber,
+                                        final int pOpcode) {
+        logger.debug("addLocalVarCoveredEntry");
+        this.updateClassExecutionData(pClassName);
+
+        logger.debug("updateClassExecutionData");
+        LocalVariable localVariable = currentClassExecutionData.findLocalVariable(pInternalMethodName, pVarIndex);
+
+        // add to testedClassList, remove from untestedClassList
+        logger.debug("findLocalVariable");
+        CoverageDataStore.getInstance().getTestedClassList().add(currentClassExecutionData.getRelativePath());
+        logger.debug("getTestedClassList");
+        CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
+        logger.debug("getUntestedClassList");
+
+        if (localVariable != null) {
+            logger.debug("localVariable != null");
+            ProgramVariable localPVar = new ProgramVariable(null, localVariable.getName(),
+                    localVariable.getDescriptor(), pInsnIndex, pLineNumber, this.isDefinition(pOpcode), false);
+            logger.debug("uncoveredVar");
+            MethodData mData = currentClassExecutionData.getMethodByInternalName(pInternalMethodName);
+            logger.debug(mData.toString());
+            ProgramVariable pVar = mData.findVar(localPVar);
+
+            if (pVar != null && !pVar.isCovered()) {
+                pVar.setCovered(true);
+            }
+        }
     }
 
     private void updateClassExecutionData(final String pClassName) {

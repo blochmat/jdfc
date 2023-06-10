@@ -2,11 +2,10 @@ package data.singleton;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import com.google.common.collect.*;
-import data.*;
+import data.ClassExecutionData;
+import data.ExecutionData;
+import data.ExecutionDataNode;
 import data.io.CoverageDataExport;
-import graphs.cfg.LocalVariable;
-import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.FileHelper;
@@ -19,15 +18,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
  * instance represent the project structure of the project under test
  */
-@Data
 public class CoverageDataStore {
-    private static final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
+    private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
     private static CoverageDataStore instance;
     private final ExecutionDataNode<ExecutionData> root;
     private final List<String> testedClassList;
@@ -37,24 +38,12 @@ public class CoverageDataStore {
     private String classesBuildDirStr;
     private List<String> srcDirStrList;
 
-    private BiMap<UUID, ClassExecutionData> classExecutionDataBiMap;
-    private BiMap<UUID, MethodData> methodDataBiMap;
-    private Map<UUID, ProgramVariable> uuidProgramVariableMap;
-    private Multimap<ProgramVariable, UUID> programVariableUUIDMap;
-    private Map<UUID, LocalVariable> uuidLocalVariableMap;
-    private Multimap<LocalVariable, UUID> localVariableUUIDMultimap;
-
     private CoverageDataStore() {
         ExecutionData executionData = new ExecutionData("", "");
         this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new ArrayList<>();
         this.untestedClassList = new ArrayList<>();
-        this.classExecutionDataBiMap = HashBiMap.create();
-        this.methodDataBiMap = HashBiMap.create();
-        this.uuidProgramVariableMap = Maps.newHashMap();
-        this.programVariableUUIDMap = ArrayListMultimap.create();
-        this.uuidLocalVariableMap = Maps.newHashMap();
-        this.localVariableUUIDMultimap = ArrayListMultimap.create();
+
     }
 
     public static CoverageDataStore getInstance() {
@@ -69,6 +58,34 @@ public class CoverageDataStore {
         instance = mock;
     }
 
+    public ExecutionDataNode<ExecutionData> getRoot() {
+        return root;
+    }
+
+    public List<String> getTestedClassList() {
+        return testedClassList;
+    }
+
+    public List<String> getUntestedClassList() {
+        return untestedClassList;
+    }
+
+    public String getProjectDirStr() {
+        return projectDirStr;
+    }
+
+    public String getBuildDirStr() {
+        return buildDirStr;
+    }
+
+    public String getClassesBuildDirStr() {
+        return classesBuildDirStr;
+    }
+
+    public List<String> getSrcDirStrList() {
+        return srcDirStrList;
+    }
+
     public void saveProjectInfo(String projectDirStr,
                                 String buildDirStr,
                                 String classesBuildDirStr,
@@ -80,18 +97,14 @@ public class CoverageDataStore {
         this.srcDirStrList = srcDirStrList;
     }
 
-    public static synchronized void invokeCoverageTracker(final String varIdStr, final String cIdStr) {
-        logger.debug("addLocalVarCoveredEntry");
-        CoverageDataStore store = CoverageDataStore.getInstance();
-
-        ClassExecutionData cData = store.classExecutionDataBiMap.get(UUID.fromString(cIdStr));
-        CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
-        CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
-
-        ProgramVariable pVar = store.uuidProgramVariableMap.get(UUID.fromString(varIdStr));
-        if (pVar != null && !pVar.isCovered()) {
-            pVar.setCovered(true);
-        }
+    public static void invokeCoverageTracker(final String pClassName,
+                                             final String pInternalMethodName,
+                                             final int pVarIndex,
+                                             final int pInsnIndex,
+                                             final int pLineNumber,
+                                             final int pOpcode) {
+        CoverageTracker.getInstance().addLocalVarCoveredEntry(pClassName, pInternalMethodName, pVarIndex, pInsnIndex,
+                pLineNumber, pOpcode);
     }
 
     public void exportCoverageData() {
@@ -196,10 +209,8 @@ public class CoverageDataStore {
                             try {
                                 CompilationUnit cu = javaParserHelper.parse(sourceFile);
                                 if (!isOnlyInterface(cu)) {
-                                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
                                     untestedClassList.add(relativePath);
-                                    UUID cId = UUID.randomUUID();
-                                    classExecutionDataBiMap.put(cId, classNodeData);
+                                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
 
                                     String nameWithoutType = f.getName().split("\\.")[0];
                                     if (pExecutionDataNode.isRoot()) {

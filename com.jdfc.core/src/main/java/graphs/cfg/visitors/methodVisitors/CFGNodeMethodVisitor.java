@@ -6,7 +6,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.MethodData;
 import data.ProgramVariable;
-import data.singleton.CoverageDataStore;
 import graphs.cfg.CFG;
 import graphs.cfg.CFGImpl;
 import graphs.cfg.LocalVariable;
@@ -26,7 +25,6 @@ import utils.JDFCUtils;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
-import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -240,11 +238,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varName = getLocalVarName(varNumber);
         final String varType = getLocalVarType(varNumber);
         final boolean isDefinition = isDefinition(pOpcode);
-        UUID pId = UUID.randomUUID();
-        ProgramVariable pVar = new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition, false);
-        mData.getVars().add(pVar);
-        CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
-        return pVar;
+        ProgramVariable var = new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition, false);
+        mData.getVars().add(var);
+        return var;
     }
 
     private String getLocalVarName(final int pVarNumber) {
@@ -355,8 +351,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private Set<ProgramVariable> createParamVars() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
-            UUID pId = UUID.randomUUID();
-            final ProgramVariable pVar =
+            final ProgramVariable variable =
                     new ProgramVariable(null,
                             localVariable.getName(),
                             localVariable.getDescriptor(),
@@ -364,8 +359,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                             Integer.MIN_VALUE,
                             true,
                             false);
-            parameters.add(pVar);
-            CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
+            parameters.add(variable);
         }
        return parameters;
     }

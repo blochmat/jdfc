@@ -1,6 +1,5 @@
 package graphs.cfg.visitors.methodVisitors;
 
-import data.singleton.CoverageDataStore;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -43,10 +41,8 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
             final int pIndex) {
         logger.debug("visitLocalVariable");
         super.visitLocalVariable(pName, pDescriptor, pSignature, pStart, pEnd, pIndex);
-        UUID lId = UUID.randomUUID();
-        final LocalVariable lVar = new LocalVariable(pName, pDescriptor, pSignature, pIndex);
-        localVariableTable.put(pIndex, lVar);
-        CoverageDataStore.getInstance().getUuidLocalVariableMap().put(lId, lVar);
+        final LocalVariable variable = new LocalVariable(pName, pDescriptor, pSignature, pIndex);
+        localVariableTable.put(pIndex, variable);
     }
 
     /**
