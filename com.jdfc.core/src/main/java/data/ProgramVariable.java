@@ -17,6 +17,7 @@ public class ProgramVariable implements Comparable<Object> {
     private String desc;
     private int insnIdx;
     private int lineNr;
+    private boolean isField;
     private boolean isDef;
     private boolean isCov;
 

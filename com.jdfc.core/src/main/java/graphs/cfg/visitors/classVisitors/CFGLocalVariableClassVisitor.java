@@ -54,7 +54,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
         UUID pId = UUID.randomUUID();
         ProgramVariable pVar = new ProgramVariable(this.getClassNode().name, name, descriptor, Integer.MIN_VALUE,
-                Integer.MIN_VALUE, false, false);
+                Integer.MIN_VALUE, true, false, false);
         classExecutionData.getFieldUuids().add(pId);
         CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
         logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getASMAccessStr(access), descriptor, name, value));

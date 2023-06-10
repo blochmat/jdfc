@@ -248,7 +248,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varType = getLocalVarType(localVarIdx);
 
         UUID pId = UUID.randomUUID();
-        ProgramVariable pVar = new ProgramVariable(null, varName, varType, insnIdx, lineNr, isDef(opcode), false);
+        ProgramVariable pVar = new ProgramVariable(null, varName, varType, insnIdx, lineNr, false, isDef(opcode), false);
 
         mData.getProgramVarLineToUUID().put(lineNr, pId);
         CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
@@ -377,6 +377,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                             localVariable.getDescriptor(),
                             Integer.MIN_VALUE,
                             Integer.MIN_VALUE,
+                            false,
                             true,
                             false);
             parameters.add(pId);
