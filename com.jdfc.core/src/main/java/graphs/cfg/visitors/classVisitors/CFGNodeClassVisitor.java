@@ -21,6 +21,7 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
     public CFGNodeClassVisitor(final ClassNode pClassNode,
                                final ClassExecutionData pClassExecutionData) {
         super(Opcodes.ASM5, pClassNode, pClassExecutionData);
+        logger.debug("CLASS: VISITING " + pClassExecutionData.getName());
     }
 
     @Override

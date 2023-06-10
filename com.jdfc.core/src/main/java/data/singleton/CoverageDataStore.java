@@ -44,7 +44,7 @@ public class CoverageDataStore {
 
     private BiMap<UUID, ClassExecutionData> classExecutionDataBiMap;
     private BiMap<UUID, MethodData> methodDataBiMap;
-    private Map<UUID, ProgramVariable> uuidProgramVariableMap;
+    private BiMap<UUID, ProgramVariable> uuidProgramVariableMap;
     private Multimap<ProgramVariable, UUID> programVariableUUIDMap;
     private Map<UUID, LocalVariable> uuidLocalVariableMap;
     private Multimap<LocalVariable, UUID> localVariableUUIDMultimap;
@@ -56,7 +56,7 @@ public class CoverageDataStore {
         this.untestedClassList = new ArrayList<>();
         this.classExecutionDataBiMap = HashBiMap.create();
         this.methodDataBiMap = HashBiMap.create();
-        this.uuidProgramVariableMap = Maps.newHashMap();
+        this.uuidProgramVariableMap = HashBiMap.create();
         this.programVariableUUIDMap = ArrayListMultimap.create();
         this.uuidLocalVariableMap = Maps.newHashMap();
         this.localVariableUUIDMultimap = ArrayListMultimap.create();

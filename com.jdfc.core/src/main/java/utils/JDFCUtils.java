@@ -278,6 +278,16 @@ public class JDFCUtils {
         return sb.toString();
     }
 
+    public static <T> String prettyPrintArray(T[] array) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n[\n");
+        for (T element : array) {
+            sb.append(element.toString()).append(",\n");
+        }
+        sb.append("\n]\n");
+        return sb.toString();
+    }
+
     public static LinkedList<Double> splitInterval(double x, double y, int n) {
         LinkedList<Double> splitPoints = new LinkedList<>();
         double intervalSize = (y - x) / (n + 1);

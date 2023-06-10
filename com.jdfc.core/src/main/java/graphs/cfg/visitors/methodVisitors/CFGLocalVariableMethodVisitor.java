@@ -1,6 +1,7 @@
 package graphs.cfg.visitors.methodVisitors;
 
 import com.google.common.collect.Maps;
+import data.MethodData;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
@@ -10,6 +11,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
 
 import java.util.Map;
 import java.util.UUID;
@@ -52,5 +54,12 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
         logger.debug("visitEnd");
         classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
                 .setLocalVarIdxToUUID(localVariableTable);
+        logger.debug("CLASS: LOCAL VARIABLES OF " + classVisitor.classExecutionData.getName());
+        for (MethodData mData: classVisitor.classExecutionData.getMethods().values()) {
+            logger.debug("METHOD: LOCAL VARIABLES OF " + mData.getName());
+            logger.debug(JDFCUtils.prettyPrintMap(mData.getLocalVarIdxToUUID()));
+        }
+        logger.debug("STORE: LOCAL VARIABLES AFTER " + internalMethodName);
+        logger.debug(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getUuidLocalVariableMap()));
     }
 }

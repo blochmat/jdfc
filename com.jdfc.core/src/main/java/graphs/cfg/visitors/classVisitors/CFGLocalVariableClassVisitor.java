@@ -31,6 +31,7 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
+
     public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassNode, pClassExecutionData);
     }
@@ -82,5 +83,10 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
                     this, mv, methodNode, internalMethodName);
         }
         return mv;
+    }
+
+    @Override
+    public void visitEnd() {
+        super.visitEnd();
     }
 }
