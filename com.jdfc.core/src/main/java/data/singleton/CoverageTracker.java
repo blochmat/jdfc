@@ -1,7 +1,6 @@
 package data.singleton;
 
 import data.ClassExecutionData;
-import data.ProgramVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,18 +24,21 @@ public class CoverageTracker {
         return singleton;
     }
 
-    public synchronized void addLocalVarCoveredEntry(final String varIdStr, final String cIdStr) {
-        logger.debug("addLocalVarCoveredEntry");
-        CoverageDataStore store = CoverageDataStore.getInstance();
-
-        ClassExecutionData cData = store.getClassExecutionDataBiMap().get(UUID.fromString(cIdStr));
-        CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
-        CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
-
-        ProgramVariable pVar = store.getUuidProgramVariableMap().get(UUID.fromString(varIdStr));
-        if (pVar != null && !pVar.isCovered()) {
-            pVar.setCovered(true);
-        }
+    public synchronized void addLocalVarCoveredEntry(final UUID uuid) {
+//        logger.debug("addLocalVarCoveredEntry");
+//        this.updateClassExecutionData(pClassName);
+//        logger.debug("updateClassExecutionData");
+//
+//        CoverageDataStore.getInstance().getTestedClassList().add(currentClassExecutionData.getRelativePath());
+//        logger.debug("getTestedClassList");
+//        CoverageDataStore.getInstance().getUntestedClassList().remove(currentClassExecutionData.getRelativePath());
+//        logger.debug("getUntestedClassList");
+//
+//        ProgramVariable pVar = mData.findVar(localPVar);
+//
+//        if (pVar != null && !pVar.isCovered()) {
+//            pVar.setCovered(true);
+//        }
     }
 
     private void updateClassExecutionData(final String pClassName) {
