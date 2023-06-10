@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFG;
@@ -116,7 +115,6 @@ public class MethodData {
         this.endLine = extractEnd(srcAst);
         this.params = new HashSet<>();
         this.pairs = new HashSet<>();
-        this.localVarIdxToUUID = Maps.newHashMap();
         this.programVarLineToUUID = ArrayListMultimap.create();
     }
 
@@ -198,7 +196,6 @@ public class MethodData {
                             && !def.getDesc().equals("UNKNOWN")) {
                         this.pairs.add(new DefUsePair(defID, useID));
                     }
-                    // params are always covered
                     if (def.getInsnIdx() == Integer.MIN_VALUE) {
                         def.setCov(true);
                     }

@@ -49,13 +49,6 @@ public class CoverageDataExport {
         CoverageDataStore.getInstance().getRoot().computeClassCoverage();
         CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
 
-//        logThis(CoverageDataStore.getInstance().getUuidProgramVariableMap().values().stream()
-//                .filter(ProgramVariable::isCov).collect(Collectors.toList()).toString());
-
-        logThis(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getUuidProgramVariableMap()), "program_vars");
-
-        logThis(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getUuidLocalVariableMap()), "local_vars");
-
         Set<ExecutionData> exDataSet = treeToSetRecursive(CoverageDataStore.getInstance().getRoot());
 
         // Actual output
@@ -253,9 +246,9 @@ public class CoverageDataExport {
         }
     }
 
-    public static void logThis(String str, String fileName) {
+    public static void logThis(String str) {
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
-        String filePath = String.format("%s/%s.log", outPath, fileName);
+        String filePath = String.format("%s/custom.log", outPath);
 
         try (FileWriter writer = new FileWriter(filePath, true)) {
             writer.write(getFormattedTimestamp() + " - " + str);

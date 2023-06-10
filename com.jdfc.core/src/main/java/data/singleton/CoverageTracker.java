@@ -32,11 +32,7 @@ public class CoverageTracker {
 
         ClassExecutionData cData = store.getClassExecutionDataBiMap().get(UUID.fromString(cIdStr));
         store.getTestedClassList().add(cData.getRelativePath());
-        logger.debug(cData.getRelativePath());
-        logger.debug(store.getUntestedClassList().toString());
         store.getUntestedClassList().remove(cData.getRelativePath());
-        logger.debug(store.getUntestedClassList().toString());
-        logger.debug("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
 
         ProgramVariable pVar = store.getUuidProgramVariableMap().get(UUID.fromString(varIdStr));
         if (pVar != null && !pVar.isCov()) {

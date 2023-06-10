@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -36,22 +35,17 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final Multimap<Double, Double> edges;
     private final NavigableMap<Double, CFGNode> nodes;
     private final MethodData mData;
-    private final CoverageDataStore store;
 
     public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
                                 final MethodVisitor pMethodVisitor,
                                 final MethodNode pMethodNode,
                                 final String pInternalMethodName) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
-        logger.debug(String.format("METHOD: VISITING %s", pInternalMethodName));
+        logger.debug(String.format("Visiting %s", pInternalMethodName));
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
         mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
-        store = CoverageDataStore.getInstance();
-        logger.debug(String.format("METHOD: LOCAL VARIABLES OF " + mData.getName()));
-        logger.debug(JDFCUtils.prettyPrintSet(
-                mData.getLocalVarIdxToUUID().values().stream()
-                        .map(uuid -> store.getUuidLocalVariableMap().get(uuid)).collect(Collectors.toSet())));
+        logger.debug(JDFCUtils.prettyPrintMap(mData.getLocalVarIdxToUUID()));
     }
 
     @Override
@@ -228,8 +222,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         logger.debug(JDFCUtils.prettyPrintMultimap(edges));
 
         if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
-            logger.debug("METHOD: PROGRAM VARIABLES AFTER " + mData.getName());
-            logger.debug(JDFCUtils.prettyPrintMap(store.getUuidProgramVariableMap()));
+            MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
             mData.setCfg(cfg);
             mData.getCfg().calculateReachingDefinitions();
