@@ -53,7 +53,7 @@ public class ClassExecutionData extends ExecutionData {
 
     private Map<String, String> nestedTypeMap;
 
-    private Set<UUID> fieldUuids;
+    private Set<ProgramVariable> fields;
 
     private Map<Integer, MethodData> methods;
 
@@ -67,7 +67,7 @@ public class ClassExecutionData extends ExecutionData {
         this.impDeclList = extractImportDeclarationList(srcFileAst);
         this.ciDecl = extractClassDeclaration(srcFileAst, name);
         this.nestedTypeMap = extractNestedTypes(srcFileAst);
-        this.fieldUuids = new HashSet<>();
+        this.fields = new HashSet<>();
         this.methods = extractMethodDeclarations(this.ciDecl);
         this.uuid = uuid;
     }

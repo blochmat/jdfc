@@ -51,6 +51,6 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
     public void visitEnd() {
         logger.debug("visitEnd");
         classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
-                .setLocalVarIdxToUUID(localVariableTable);
+                .setLocalVariableTable(localVariableTable);
     }
 }
