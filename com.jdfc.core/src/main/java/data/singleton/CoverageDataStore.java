@@ -187,7 +187,7 @@ public class CoverageDataStore {
                                 CompilationUnit cu = javaParserHelper.parse(sourceFile);
                                 if (!isOnlyInterface(cu)) {
                                     UUID cId = UUID.randomUUID();
-                                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu, cId);
+                                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
                                     untestedClassList.add(relativePath);
                                     classExecutionDataBiMap.put(cId, classNodeData);
 

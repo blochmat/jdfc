@@ -58,9 +58,7 @@ public class ClassExecutionData extends ExecutionData {
 
     private Map<Integer, MethodData> methods;
 
-    private UUID uuid;
-
-    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst, UUID uuid) {
+    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
         relativePath = pRelativePath;
         this.srcFileAst = srcFileAst;
@@ -70,7 +68,6 @@ public class ClassExecutionData extends ExecutionData {
         this.nestedTypeMap = extractNestedTypes(srcFileAst);
         this.fields = new HashSet<>();
         this.methods = extractMethodDeclarations(this.ciDecl);
-        this.uuid = uuid;
     }
 
     public String toString() {
