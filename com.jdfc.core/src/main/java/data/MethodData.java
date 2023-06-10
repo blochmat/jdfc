@@ -1,11 +1,11 @@
 package data;
 
-import graphs.cfg.CFG;
-import graphs.cfg.LocalVariable;
-import graphs.cfg.nodes.CFGNode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import graphs.cfg.CFG;
+import graphs.cfg.LocalVariable;
+import graphs.cfg.nodes.CFGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +20,8 @@ import java.util.*;
 public class MethodData {
     @JsonIgnore
     private Logger logger = LoggerFactory.getLogger(MethodData.class);
+
+    private UUID id;
 
     /**
      * Amount of DU-pairs in method
@@ -57,11 +59,6 @@ public class MethodData {
     private String declarationStr;
 
     /**
-     * Local variables in class
-     */
-    private Map<Integer, LocalVariable> localVariableTable;
-
-    /**
      * AST of method source code
      */
     @JsonIgnore
@@ -74,6 +71,11 @@ public class MethodData {
     private CFG cfg;
 
     /**
+     * Local variables in class
+     */
+    private Map<Integer, LocalVariable> localVariableTable;
+
+    /**
      * All DU-pairs of method
      */
     private Set<DefUsePair> pairs;
@@ -81,8 +83,7 @@ public class MethodData {
     /**
      * All program variables
      */
-
-    private Set<ProgramVariable> vars;
+    private Map<UUID, ProgramVariable> pVarToUUIDMap;
 
     /**
      * All method params as {@link ProgramVariable}
@@ -104,7 +105,8 @@ public class MethodData {
                 access, name, desc, beginLine, endLine, JDFCUtils.prettyPrintSet(params), total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
     }
 
-    public MethodData(int access, String name, String desc, MethodDeclaration srcAst) {
+    public MethodData(UUID id, int access, String name, String desc, MethodDeclaration srcAst) {
+        this.id = id;
         this.access = access;
         this.name = name;
         this.desc = desc;
@@ -114,7 +116,8 @@ public class MethodData {
         this.endLine = extractEnd(srcAst);
         this.params = new HashSet<>();
         this.pairs = new HashSet<>();
-        this.vars = new HashSet<>();
+        this.localVariableTable = new HashMap<>();
+        this.pVarToUUIDMap = new HashMap<>();
     }
 
     private int extractBegin(MethodDeclaration srcAst) {
@@ -149,9 +152,10 @@ public class MethodData {
         }
     }
 
-    public ProgramVariable findVar(ProgramVariable var) {
+    public UUID findVarId(ProgramVariable var) {
         logger.debug(String.format("findVar(%s)", var));
-        for (ProgramVariable v : vars) {
+        for (Map.Entry<UUID,ProgramVariable> entry : pVarToUUIDMap.entrySet()) {
+            ProgramVariable v = entry.getValue();
             if (Objects.equals(v.getOwner(), var.getOwner())
                     && Objects.equals(v.getName(), var.getName())
                     && Objects.equals(v.getDescriptor(), var.getDescriptor())
@@ -159,7 +163,7 @@ public class MethodData {
                     && Objects.equals(v.getInstructionIndex(), var.getInstructionIndex())
                     && Objects.equals(v.isDefinition(), var.isDefinition())) {
                 logger.debug(String.format("- %s", v));
-                return v;
+                return entry.getKey();
             }
         }
         logger.debug("Return NULL");

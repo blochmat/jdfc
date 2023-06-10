@@ -25,6 +25,7 @@ import utils.JDFCUtils;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -239,7 +240,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varType = getLocalVarType(varNumber);
         final boolean isDefinition = isDefinition(pOpcode);
         ProgramVariable var = new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition, false);
-        mData.getVars().add(var);
+        UUID id = UUID.randomUUID();
+        mData.getPVarToUUIDMap().put(id, var);
         return var;
     }
 

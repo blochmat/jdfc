@@ -49,23 +49,29 @@ public class ClassExecutionData extends ExecutionData {
     @JsonIgnore
     private ClassOrInterfaceDeclaration ciDecl;
 
+    private UUID id;
+
     private String relativePath;
 
     private Map<String, String> nestedTypeMap;
 
     private Set<ProgramVariable> fields;
 
-    private Map<Integer, MethodData> methods;
+    private Map<UUID, MethodData> methods;
 
-    public ClassExecutionData(String fqn, String name, String pRelativePath, CompilationUnit srcFileAst) {
+    private Map<Integer, UUID> lineToMethodIdMap;
+
+    public ClassExecutionData(String fqn, String name, UUID id, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
-        relativePath = pRelativePath;
+        this.fields = new HashSet<>();
+        this.lineToMethodIdMap = new HashMap<>();
+        this.id = id;
+        this.relativePath = pRelativePath;
         this.srcFileAst = srcFileAst;
         this.pkgDecl = extractPackageDeclaration(srcFileAst);
         this.impDeclList = extractImportDeclarationList(srcFileAst);
         this.ciDecl = extractClassDeclaration(srcFileAst, name);
         this.nestedTypeMap = extractNestedTypes(srcFileAst);
-        this.fields = new HashSet<>();
         this.methods = extractMethodDeclarations(this.ciDecl);
     }
 
@@ -106,8 +112,8 @@ public class ClassExecutionData extends ExecutionData {
         return result;
     }
 
-    private Map<Integer, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
-        Map<Integer, MethodData> methods = new HashMap<>();
+    private Map<UUID, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
+        Map<UUID, MethodData> methods = new HashMap<>();
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
             JavaParserHelper javaParserHelper = new JavaParserHelper();
             Set<Type> types = new HashSet<>();
@@ -125,8 +131,14 @@ public class ClassExecutionData extends ExecutionData {
             int mAccess = mDecl.getAccessSpecifier().ordinal();
             String mName = mDecl.getName().getIdentifier();
 
-            MethodData mData = new MethodData(mAccess, mName, jvmAsmDesc, mDecl);
-            methods.put(mData.getBeginLine(), mData);
+            UUID id = UUID.randomUUID();
+            MethodData mData = new MethodData(id, mAccess, mName, jvmAsmDesc, mDecl);
+
+            methods.put(id, mData);
+            for(int i = mData.getBeginLine(); i <= mData.getEndLine(); i++) {
+                this.lineToMethodIdMap.put(i, id);
+            }
+            JDFCUtils.logThis(JDFCUtils.prettyPrintMap(lineToMethodIdMap), "lineToMethodIdMap");
         }
 
         return methods;

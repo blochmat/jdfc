@@ -1011,7 +1011,7 @@ public class HTMLFactory {
                                                   final int lNr,
                                                   final String name) {
         List<ProgramVariable> result = new ArrayList<>();
-        for (ProgramVariable element : mData.getVars()) {
+        for (ProgramVariable element : mData.getPVarToUUIDMap().values()) {
             if (element.getLineNumber() == lNr
                     && element.getName().equals(name)
                     && !result.contains(element)) {

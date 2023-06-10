@@ -2,10 +2,9 @@ package data.singleton;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import data.ClassExecutionData;
-import data.ExecutionData;
-import data.ExecutionDataNode;
+import data.*;
 import data.io.CoverageDataExport;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.FileHelper;
@@ -25,10 +24,12 @@ import java.util.stream.Collectors;
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
  * instance represent the project structure of the project under test
  */
+@Data
 public class CoverageDataStore {
     private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
     private static CoverageDataStore instance;
     private final ExecutionDataNode<ExecutionData> root;
+    private final Map<UUID, ClassExecutionData> classExecutionDataMap;
     private final Set<String> testedClassList;
     private final Set<String> untestedClassList;
     private String projectDirStr;
@@ -39,9 +40,9 @@ public class CoverageDataStore {
     private CoverageDataStore() {
         ExecutionData executionData = new ExecutionData("", "");
         this.root = new ExecutionDataNode<>(executionData);
+        this.classExecutionDataMap = new HashMap<>();
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
-
     }
 
     public static CoverageDataStore getInstance() {
@@ -95,14 +96,10 @@ public class CoverageDataStore {
         this.srcDirStrList = srcDirStrList;
     }
 
-    public static void invokeCoverageTracker(final String pClassName,
-                                             final String pInternalMethodName,
-                                             final int pVarIndex,
-                                             final int pInsnIndex,
-                                             final int pLineNumber,
-                                             final int pOpcode) {
-        CoverageTracker.getInstance().addLocalVarCoveredEntry(pClassName, pInternalMethodName, pVarIndex, pInsnIndex,
-                pLineNumber, pOpcode);
+    public static void invokeCoverageTracker(final String cId,
+                                             final String mId,
+                                             final String pId) {
+        CoverageTracker.getInstance().addLocalVarCoveredEntry(cId, mId, pId);
     }
 
     public void exportCoverageData() {
@@ -209,8 +206,10 @@ public class CoverageDataStore {
                             try {
                                 CompilationUnit cu = javaParserHelper.parse(sourceFile);
                                 if (!isOnlyInterface(cu)) {
+                                    UUID id = UUID.randomUUID();
                                     untestedClassList.add(relativePath);
-                                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), relativePath, cu);
+                                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), id, relativePath, cu);
+                                    classExecutionDataMap.put(id, classNodeData);
 
                                     String nameWithoutType = f.getName().split("\\.")[0];
                                     if (pExecutionDataNode.isRoot()) {
