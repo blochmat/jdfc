@@ -18,10 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -32,8 +29,8 @@ public class CoverageDataStore {
     private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
     private static CoverageDataStore instance;
     private final ExecutionDataNode<ExecutionData> root;
-    private final List<String> testedClassList;
-    private final List<String> untestedClassList;
+    private final Set<String> testedClassList;
+    private final Set<String> untestedClassList;
     private String projectDirStr;
     private String buildDirStr;
     private String classesBuildDirStr;
@@ -42,8 +39,8 @@ public class CoverageDataStore {
     private CoverageDataStore() {
         ExecutionData executionData = new ExecutionData("", "");
         this.root = new ExecutionDataNode<>(executionData);
-        this.testedClassList = new ArrayList<>();
-        this.untestedClassList = new ArrayList<>();
+        this.testedClassList = new HashSet<>();
+        this.untestedClassList = new HashSet<>();
 
     }
 
@@ -63,11 +60,11 @@ public class CoverageDataStore {
         return root;
     }
 
-    public List<String> getTestedClassList() {
+    public Set<String> getTestedClassList() {
         return testedClassList;
     }
 
-    public List<String> getUntestedClassList() {
+    public Set<String> getUntestedClassList() {
         return untestedClassList;
     }
 
@@ -122,6 +119,7 @@ public class CoverageDataStore {
         }
 
         // Tested class data export
+        JDFCUtils.logThis(testedClassList.toString(), "tested_classList");
         for(String className : testedClassList) {
             logger.debug("TESTED: " + className);
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
@@ -134,6 +132,7 @@ public class CoverageDataStore {
 
         // TODO: could be removed
         // Untested class data export
+        JDFCUtils.logThis(untestedClassList.toString(), "untested_classList");
         for(String className : untestedClassList) {
             logger.debug("UNTESTED: " + className);
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();

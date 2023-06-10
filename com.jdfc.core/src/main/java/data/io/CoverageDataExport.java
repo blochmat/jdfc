@@ -22,8 +22,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -194,10 +192,11 @@ public class CoverageDataExport {
 
     private static void analyseUntestedClasses() {
         logger.debug("analyseUntestedClasses");
-        List<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
+        Set<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
         logger.debug(classList.toString());
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
+        JDFCUtils.logThis(classList.toString(), "classList");
         for (String relPath : classList) {
             // pClassesDir = target/classes
             String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesBuildDirStr(), relPath, ".class");
@@ -244,23 +243,5 @@ public class CoverageDataExport {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static void logThis(String str) {
-        String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
-        String filePath = String.format("%s/custom.log", outPath);
-
-        try (FileWriter writer = new FileWriter(filePath, true)) {
-            writer.write(getFormattedTimestamp() + " - " + str);
-            writer.write("\n");
-        } catch (IOException ioException) {
-            ioException.printStackTrace();  // print to console as a last resort
-        }
-    }
-
-    public static String getFormattedTimestamp() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
-        return now.format(formatter);
     }
 }

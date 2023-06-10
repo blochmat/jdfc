@@ -9,6 +9,10 @@ import data.ProgramVariable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -376,5 +380,28 @@ public class JDFCUtils {
         } else {
             return fqn;
         }
+    }
+
+    public static void logThis(String str, String fileName) {
+        String outPath = String.format("%s%starget%sjdfc%slog", System.getProperty("user.dir"), File.separator, File.separator, File.separator);
+        String filePath = String.format("%s/%s.log", outPath, fileName);
+        Thread thread = Thread.currentThread();
+        File JDFCDir = new File(outPath);
+        if (!JDFCDir.exists()) {
+            JDFCDir.mkdirs();
+        }
+        try (FileWriter writer = new FileWriter(filePath, true)) {
+            writer.write(String.format("ThreadName: %s, ThreadId: %d", thread.getName(), thread.getId()));
+            writer.write(getFormattedTimestamp() + " - " + str);
+            writer.write("\n");
+        } catch (IOException ioException) {
+            ioException.printStackTrace();  // print to console as a last resort
+        }
+    }
+
+    public static String getFormattedTimestamp() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        return now.format(formatter);
     }
 }
