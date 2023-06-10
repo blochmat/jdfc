@@ -137,22 +137,20 @@ public class CoverageDataExport {
                         Element pairs = doc.createElement("pairs");
                         method.appendChild(pairs);
 
-                        CoverageDataStore store = CoverageDataStore.getInstance();
                         for(DefUsePair pData : mData.getPairs()) {
-                            ProgramVariable d = store.getUuidProgramVariableMap().get(pData.getDefID());
-                            ProgramVariable u = store.getUuidProgramVariableMap().get(pData.getUseID());
-
                             Element pair = doc.createElement("pair");
-                            pair.setAttribute("type", d.getDesc());
+                            pair.setAttribute("type", pData.getType());
                             pair.setAttribute("covered", String.valueOf(pData.isCovered()));
                             pairs.appendChild(pair);
 
+                            ProgramVariable d = pData.getDefinition();
                             Element def = doc.createElement("def");
                             def.setAttribute("name", d.getName());
                             def.setAttribute("line", String.valueOf(d.getLineNr()));
                             def.setAttribute("idx", String.valueOf(d.getInsnIdx()));
                             pair.appendChild(def);
 
+                            ProgramVariable u = pData.getUsage();
                             Element use = doc.createElement("use");
                             use.setAttribute("name", u.getName());
                             use.setAttribute("line", String.valueOf(u.getLineNr()));

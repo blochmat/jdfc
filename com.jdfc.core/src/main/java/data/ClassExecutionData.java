@@ -162,7 +162,6 @@ public class ClassExecutionData extends ExecutionData {
 
     public void computeCoverage() {
         logger.debug(String.format("%s.computeCoverageForClass", this.getName()));
-        CoverageDataStore store = CoverageDataStore.getInstance();
         for (MethodData mData : this.getMethods().values()) {
             logger.debug(mData.buildInternalMethodName());
             String internalMethodName = mData.buildInternalMethodName();
@@ -171,8 +170,8 @@ public class ClassExecutionData extends ExecutionData {
             }
             logger.debug("Pairs present.");
             for (DefUsePair pair : mData.getPairs()) {
-                ProgramVariable def = store.getUuidProgramVariableMap().get(pair.getDefID());
-                ProgramVariable use = store.getUuidProgramVariableMap().get(pair.getUseID());
+                ProgramVariable def = pair.getDefinition();
+                ProgramVariable use = pair.getUsage();
 
                 if (def.isCov() && use.isCov()) {
                     if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {

@@ -169,7 +169,7 @@ public class MethodData {
 
     public DefUsePair findDefUsePair(DefUsePair pair) {
         for(DefUsePair p : pairs) {
-            if (p.getDefID().equals(pair.getDefID()) && p.getUseID().equals(pair.getUseID())) {
+            if (p.getDefinition().equals(pair.getDefinition()) && p.getUsage().equals(pair.getUsage())) {
                 return p;
             }
         }
@@ -191,10 +191,8 @@ public class MethodData {
                 for (UUID useID : node.getUses()) {
                     ProgramVariable def = store.getUuidProgramVariableMap().get(defID);
                     ProgramVariable use = store.getUuidProgramVariableMap().get(useID);
-                    if (def.getName().equals(use.getName())
-                            && def.getDesc().equals(use.getDesc())
-                            && !def.getDesc().equals("UNKNOWN")) {
-                        this.pairs.add(new DefUsePair(defID, useID));
+                    if (def.getName().equals(use.getName()) && !def.getDesc().equals("UNKNOWN")) {
+                        this.pairs.add(new DefUsePair(def, use));
                     }
                     if (def.getInsnIdx() == Integer.MIN_VALUE) {
                         def.setCov(true);
@@ -207,17 +205,14 @@ public class MethodData {
 
     /**
      * Checks, if a pair exists having a def or use with the specified name and line number
-     * @param name
-     * @param lineNr
+     * @param pName
+     * @param pLineNumber
      * @return
      */
-    public boolean isAnalyzedVariable(String name, int lineNr) {
-        CoverageDataStore store = CoverageDataStore.getInstance();
+    public boolean isAnalyzedVariable(String pName, int pLineNumber) {
         for (DefUsePair pair : pairs) {
-            ProgramVariable def = store.getUuidProgramVariableMap().get(pair.getDefID());
-            ProgramVariable use = store.getUuidProgramVariableMap().get(pair.getDefID());
-            if ((def.getName().equals(name) && def.getLineNr() == lineNr)
-                    || use.getName().equals(name) && use.getLineNr() == lineNr) {
+            if ((pair.getDefinition().getName().equals(pName) && pair.getDefinition().getLineNr() == pLineNumber)
+                    || pair.getUsage().getName().equals(pName) && pair.getUsage().getLineNr() == pLineNumber) {
                 return true;
             }
         }
