@@ -35,8 +35,8 @@ public class CoverageTracker {
         store.getUntestedClassList().remove(cData.getRelativePath());
 
         ProgramVariable pVar = store.getUuidProgramVariableMap().get(UUID.fromString(varIdStr));
-        if (pVar != null && !pVar.isCov()) {
-            pVar.setCov(true);
+        if (pVar != null && !pVar.isCovered()) {
+            pVar.setCovered(true);
         }
     }
 

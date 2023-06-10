@@ -1,8 +1,6 @@
 package report.html;
 
 import data.*;
-import data.singleton.CoverageDataStore;
-import data.tree.ExecutionDataNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -350,7 +348,7 @@ public class HTMLFactory {
 
                         // check if associated uses or defs are covered and highlight
                         Set<DefUsePair> pairSet = getDefUsePairsCoveredForVar(mData, programVariable);
-                        String backgroundColor = getVariableBackgroundColor(programVariable.isCov(), pairSet);
+                        String backgroundColor = getVariableBackgroundColor(programVariable.isCovered(), pairSet);
                         divTagLine.getContent().add(
                                 createVariableInformation(pClassFile, pClassName, pairSet, programVariable, backgroundColor));
                     }
@@ -752,24 +750,24 @@ public class HTMLFactory {
 
         if (isDefTab) {
             String defTab = String.format("class=\"%s%s%sDefTab margin10\"", var.getName(),
-                    var.getLineNr(), var.getInsnIdx());
+                    var.getLineNumber(), var.getInstructionIndex());
             div.getAttributes().add(defTab);
             Set<ProgramVariable> useList = pairs.stream().map(DefUsePair::getUsage).collect(Collectors.toSet());
             for (ProgramVariable use : useList) {
                 try {
-                    table.getContent().add(createDataRow(cFile, cName, use.getLineNr(), use.isCov()));
+                    table.getContent().add(createDataRow(cFile, cName, use.getLineNumber(), use.isCovered()));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
             }
         } else {
             String useTab = String.format("class=\"%s%s%sUseTab margin10\"", var.getName(),
-                    var.getLineNr(), var.getInsnIdx());
+                    var.getLineNumber(), var.getInstructionIndex());
             div.getAttributes().add(useTab);
             Set<ProgramVariable> defList = pairs.stream().map(DefUsePair::getDefinition).collect(Collectors.toSet());
             for (ProgramVariable def : defList) {
                 try {
-                    table.getContent().add(createDataRow(cFile, cName, def.getLineNr(), def.isCov()));
+                    table.getContent().add(createDataRow(cFile, cName, def.getLineNumber(), def.isCovered()));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -847,7 +845,7 @@ public class HTMLFactory {
         HTMLElement definitionButton = null;
         if (isDefinition) {
             definitionButton = HTMLElement.button("Definition");
-            String id = String.format("id=\"%s%s%sDefTabButton\"", pVariable.getName(), pVariable.getLineNr(), pVariable.getInsnIdx());
+            String id = String.format("id=\"%s%s%sDefTabButton\"", pVariable.getName(), pVariable.getLineNumber(), pVariable.getInstructionIndex());
             definitionButton.getAttributes().add(id);
             definitionButton.getAttributes().add("onclick=\"openTab(this)\"");
             definitionButton.getAttributes().add("class=\"defaultOpen light-gray\"");
@@ -857,7 +855,7 @@ public class HTMLFactory {
         HTMLElement usageButton;
         if (isUsage) {
             usageButton = HTMLElement.button("Usage");
-            String id = String.format("id=\"%s%s%sUseTabButton\"", pVariable.getName(), pVariable.getLineNr(), pVariable.getInsnIdx());
+            String id = String.format("id=\"%s%s%sUseTabButton\"", pVariable.getName(), pVariable.getLineNumber(), pVariable.getInstructionIndex());
             usageButton.getAttributes().add(id);
             usageButton.getAttributes().add("onclick=\"openTab(this)\"");
             if (definitionButton == null) {
@@ -888,7 +886,7 @@ public class HTMLFactory {
 
         HTMLElement div = HTMLElement.div();
         String defTab = String.format("class=\"%s%s%sDefTab\"", pVariable.getName(),
-                pVariable.getLineNr(), pVariable.getInsnIdx());
+                pVariable.getLineNumber(), pVariable.getInstructionIndex());
         div.getAttributes().add(defTab);
         cell.getContent().add(div);
 
@@ -900,7 +898,7 @@ public class HTMLFactory {
 
     private HTMLElement createUsagesSpan(final ProgramVariable pVariable) {
         String defTab = String.format("class=\"%s%s%sDefTab\"", pVariable.getName(),
-                pVariable.getLineNr(), pVariable.getInsnIdx());
+                pVariable.getLineNumber(), pVariable.getInstructionIndex());
         HTMLElement span = HTMLElement.span("Usages:");
         span.getAttributes().add("class=\"margin10 nowrap\"");
         return createRowStructure(defTab, span);
@@ -908,7 +906,7 @@ public class HTMLFactory {
 
     private HTMLElement createDefinitionsSpan(final ProgramVariable pVariable) {
         String defTab = String.format("class=\"%s%s%sUseTab\"", pVariable.getName(),
-                pVariable.getLineNr(), pVariable.getInsnIdx());
+                pVariable.getLineNumber(), pVariable.getInstructionIndex());
         HTMLElement span = HTMLElement.span("Definitions:");
         span.getAttributes().add("class=\"margin10 nowrap\"");
         return createRowStructure(defTab, span);
@@ -919,14 +917,14 @@ public class HTMLFactory {
                                                        final ProgramVariable var,
                                                        final Set<ProgramVariable> associateList) {
         String defTab = String.format("class=\"%s%s%sDefTab\"", var.getName(),
-                var.getLineNr(), var.getInsnIdx());
+                var.getLineNumber(), var.getInstructionIndex());
 
         HTMLElement table = HTMLElement.table();
         table.getAttributes().add("class=\"margin10 gray rounded-corners\"");
         table.getContent().add(createHeaderRow());
         for (ProgramVariable v : associateList) {
             try {
-                table.getContent().add(createDataRow(cFile, cName, v.getLineNr(), v.isCov()));
+                table.getContent().add(createDataRow(cFile, cName, v.getLineNumber(), v.isCovered()));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -988,14 +986,12 @@ public class HTMLFactory {
                                                 final String name,
                                                 final boolean isDef) {
         // TODO: Check possible vars
-        CoverageDataStore store = CoverageDataStore.getInstance();
-        Set<UUID> possibleVarIds = getPossibleVarIds(mData, lNr, name);
-        if (!possibleVarIds.isEmpty()) {
+        List<ProgramVariable> possibleVariables = getPossibleVars(mData, lNr, name);
+        if (!possibleVariables.isEmpty()) {
             if (isDef) {
-                List<ProgramVariable> defs = possibleVarIds.stream()
-                        .map(id -> store.getUuidProgramVariableMap().get(id))
-                        .filter(x -> x.isDef() && x.getName().equals(name))
-                        .sorted(Comparator.comparing(ProgramVariable::getInsnIdx))
+                List<ProgramVariable> defs = possibleVariables.stream()
+                        .filter(x -> x.isDefinition() && x.getName().equals(name))
+                        .sorted(Comparator.comparing(ProgramVariable::getInstructionIndex))
                         .collect(Collectors.toList());
                 if (defs.isEmpty()) {
                     return null;
@@ -1003,25 +999,27 @@ public class HTMLFactory {
 
                 // TODO: This seems weird
                 return defs.get(0);
-            } else {
-                List<ProgramVariable> uses = possibleVarIds.stream()
-                        .map(id -> store.getUuidProgramVariableMap().get(id))
-                        .sorted(Comparator.comparing(ProgramVariable::getInsnIdx))
-                        .collect(Collectors.toList());
-                // TODO: This seems weird
-                return uses.get(0);
             }
+            possibleVariables.sort(Comparator.comparing(ProgramVariable::getInstructionIndex));
+            // TODO: This seems weird
+            return possibleVariables.get(0);
         }
         return null;
     }
 
-    private Set<UUID> getPossibleVarIds(final MethodData mData,
-                                        final int lNr,
-                                        final String name) {
-        CoverageDataStore store = CoverageDataStore.getInstance();
-        return mData.getProgramVarLineToUUID().get(lNr).stream()
-                .filter(id -> store.getUuidProgramVariableMap().get(id).getName().equals(name))
-                .collect(Collectors.toSet());
+    private List<ProgramVariable> getPossibleVars(final MethodData mData,
+                                                  final int lNr,
+                                                  final String name) {
+        List<ProgramVariable> result = new ArrayList<>();
+        for (ProgramVariable element : mData.getVars()) {
+            if (element.getLineNumber() == lNr
+                    && element.getName().equals(name)
+                    && !result.contains(element)) {
+                result.add(element);
+            }
+        }
+
+        return result;
     }
 
     private boolean isRedefined(MethodData mData, int pLineNumber, String pName) {
@@ -1029,7 +1027,7 @@ public class HTMLFactory {
             ProgramVariable def = pair.getDefinition();
             // if another definition with the same name, but greater line number exists and
             // the current variable is not part of an active pair we know, that it must have been redefined
-            if (def.getLineNr() > pLineNumber && def.getName().equals(pName)
+            if (def.getLineNumber() > pLineNumber && def.getName().equals(pName)
                     && !mData.isAnalyzedVariable(pName, pLineNumber)) {
                 return true;
             }

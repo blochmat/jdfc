@@ -232,20 +232,19 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private UUID getProgramVariableFromLocalVar(final int localVarIdx,
-                                                           final int opcode,
-                                                           final int insnIdx,
-                                                           final int lineNr) {
-        logger.debug(String.format("getProgramVariableFromLocalVar(%d, %d, %d, %d)", localVarIdx, opcode, insnIdx, lineNr));
-        final String varName = getLocalVarName(localVarIdx);
-        final String varType = getLocalVarType(localVarIdx);
-
+    private ProgramVariable getProgramVariableFromLocalVar(final int varNumber,
+                                                           final int pOpcode,
+                                                           final int pIndex,
+                                                           final int pLineNumber) {
+        logger.debug(String.format("getProgramVariableFromLocalVar(%d, %d, %d, %d)", varNumber, pOpcode, pIndex, pLineNumber));
+        final String varName = getLocalVarName(varNumber);
+        final String varType = getLocalVarType(varNumber);
+        final boolean isDefinition = isDefinition(pOpcode);
         UUID pId = UUID.randomUUID();
-        ProgramVariable pVar = new ProgramVariable(null, varName, varType, insnIdx, lineNr, isDef(opcode), false);
-
-        mData.getProgramVarLineToUUID().put(lineNr, pId);
+        ProgramVariable pVar = new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition, false);
+        mData.getVars().add(pVar);
         CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
-        return pId;
+        return pVar;
     }
 
     private String getLocalVarName(final int localVarIdx) {
@@ -270,43 +269,39 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private void createCFGNodeForVarInsnNode(final int opcode, final int localVarIdx, final int insnIdx, final int lineNr) {
+    private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {
         logger.debug("createCFGNodeForVarInsnNode");
         final CFGNode node;
-        final UUID pId;
+        final ProgramVariable programVariable;
         switch (opcode) {
             case ISTORE:
             case LSTORE:
             case FSTORE:
             case DSTORE:
             case ASTORE:
-                pId = getProgramVariableFromLocalVar(localVarIdx, opcode, insnIdx, lineNr);
-                Set<UUID> definitions = Sets.newLinkedHashSet();
-                definitions.add(pId);
-                node = new CFGNode(definitions, Sets.newLinkedHashSet(), insnIdx, opcode);
+                programVariable = getProgramVariableFromLocalVar(varNumber, opcode, pIndex, lineNumber);
+                node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex, opcode);
                 break;
             case ILOAD:
             case LLOAD:
             case FLOAD:
             case DLOAD:
             case ALOAD:
-                pId = getProgramVariableFromLocalVar(localVarIdx, opcode, insnIdx, lineNr);
-                Set<UUID> uses = Sets.newLinkedHashSet();
-                uses.add(pId);
-                node = new CFGNode(Sets.newLinkedHashSet(), uses, insnIdx, opcode);
+                programVariable = getProgramVariableFromLocalVar(varNumber, opcode, pIndex, lineNumber);
+                node = new CFGNode(Sets.newLinkedHashSet(), Sets.newHashSet(programVariable), pIndex, opcode);
                 break;
             default:
-                node = new CFGNode(insnIdx, opcode);
+                node = new CFGNode(pIndex, opcode);
                 break;
         }
-        nodes.put((double) insnIdx, node);
+        nodes.put((double) pIndex, node);
     }
 
     private void createCFGNodeForIincInsnNode(final int varNumber, final int pIndex, final int pLineNumber) {
         logger.debug("createCFGNodeForIincInsnNode");
-        final UUID pId = getProgramVariableFromLocalVar(varNumber, ISTORE, pIndex, pLineNumber);
+        final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, ISTORE, pIndex, pLineNumber);
         final CFGNode node =
-                new CFGNode(Sets.newHashSet(pId), Sets.newHashSet(pId), pIndex, IINC);
+                new CFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex, IINC);
         nodes.put((double) pIndex, node);
     }
 
@@ -330,13 +325,13 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private void addEntryAndExitNode() {
         logger.debug("addEntryAndExitNode");
-        Set<UUID> parameters = createParamVars();
+        Set<ProgramVariable> parameters = createParamVars();
 
         final CFGNode entryNode =
                 new CFGEntryNode(parameters, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
         nodes.put((double) Integer.MIN_VALUE, entryNode);
         final CFGNode exitNode =
-                new CFGExitNode(Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+                new CFGExitNode(Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newHashSet(), Sets.newLinkedHashSet());
         nodes.put((double) Integer.MAX_VALUE, exitNode);
 
         if(nodes.size() == 2) {
@@ -359,8 +354,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private Set<UUID> createParamVars() {
-        final Set<UUID> parameters = Sets.newLinkedHashSet();
+    private Set<ProgramVariable> createParamVars() {
+        final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (UUID uuid : mData.getLocalVarIdxToUUID().values()) {
             LocalVariable localVariable = CoverageDataStore.getInstance().getUuidLocalVariableMap().get(uuid);
             UUID pId = UUID.randomUUID();
@@ -372,7 +367,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                             Integer.MIN_VALUE,
                             true,
                             false);
-            parameters.add(pId);
+            parameters.add(pVar);
             CoverageDataStore.getInstance().getUuidProgramVariableMap().put(pId, pVar);
         }
        return parameters;

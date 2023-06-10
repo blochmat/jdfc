@@ -14,11 +14,11 @@ public class ProgramVariable implements Comparable<Object> {
 
     private String owner;
     private String name;
-    private String desc;
-    private int insnIdx;
-    private int lineNr;
-    private boolean isDef;
-    private boolean isCov;
+    private String descriptor;
+    private int instructionIndex;
+    private int lineNumber;
+    private boolean isDefinition;
+    private boolean isCovered;
 
 //    public ProgramVariable clone() throws CloneNotSupportedException {
 //        return (ProgramVariable) super.clone();
@@ -34,14 +34,14 @@ public class ProgramVariable implements Comparable<Object> {
         if (this.equals(that)) {
             return 0;
         }
-        if (this.getLineNr() == that.getLineNr()) {
-            if (this.getInsnIdx() < that.getInsnIdx()) {
+        if (this.getLineNumber() == that.getLineNumber()) {
+            if (this.getInstructionIndex() < that.getInstructionIndex()) {
                 return -1;
             } else {
                 return 1;
             }
         } else {
-            if (this.getLineNr() < that.getLineNr()) {
+            if (this.getLineNumber() < that.getLineNumber()) {
                 return -1;
             } else {
                 return 1;

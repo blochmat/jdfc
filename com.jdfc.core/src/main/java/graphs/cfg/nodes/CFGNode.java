@@ -2,53 +2,52 @@ package graphs.cfg.nodes;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import data.singleton.CoverageDataStore;
+import data.ProgramVariable;
 import graphs.cfg.CFG;
 import utils.JDFCUtils;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * A node in the {@link CFG}.
  */
 public class CFGNode {
-    private final Set<UUID> definitions;
-    private final Set<UUID> uses;
-    private final int insnIdx;
+    private final Set<ProgramVariable> definitions;
+    private final Set<ProgramVariable> uses;
+    private final int index;
     private final int opcode;
     private final Set<CFGNode> predecessors;
     private final Set<CFGNode> successors;
-    private final Set<UUID> reachOut;
-    private final Set<UUID> reach;
+    private final Set<ProgramVariable> reachOut;
+    private final Set<ProgramVariable> reach;
 
-    public CFGNode(final int insnIdx, final int opcode) {
+    public CFGNode(final int pIndex, final int pOpcode) {
         this(
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
-                insnIdx,
-                opcode,
+                pIndex,
+                pOpcode,
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet());
     }
 
     public CFGNode(
-            final Set<UUID> definitions, final Set<UUID> uses, final int insnIdx, final int opcode) {
-        this(definitions, uses, insnIdx, opcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+            final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex, final int pOpcode) {
+        this(pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
     }
 
     public CFGNode(
-            final Set<UUID> pDefinitions,
-            final Set<UUID> pUses,
+            final Set<ProgramVariable> pDefinitions,
+            final Set<ProgramVariable> pUses,
             final int pIndex,
             final int pOpcode,
             final Set<CFGNode> pPredecessors,
             final Set<CFGNode> pSuccessors) {
         definitions = pDefinitions;
         uses = pUses;
-        insnIdx = pIndex;
+        index = pIndex;
         opcode = pOpcode;
         predecessors = pPredecessors;
         successors = pSuccessors;
@@ -72,15 +71,13 @@ public class CFGNode {
                 reachOut.stream().filter(this::isRedefinedVariable).collect(Collectors.toList()));
     }
 
-    public boolean isRedefinedVariable(UUID varId) {
-        CoverageDataStore store = CoverageDataStore.getInstance();
+    public boolean isRedefinedVariable(ProgramVariable variable) {
         return definitions
                 .stream()
-                .map(id -> store.getUuidProgramVariableMap().get(id))
                 .anyMatch(
                         programVariable ->
-                                programVariable.getName().equals(store.getUuidProgramVariableMap().get(varId).getName())
-                                        && programVariable.getInsnIdx() != store.getUuidProgramVariableMap().get(varId).getInsnIdx());
+                                programVariable.getName().equals(variable.getName())
+                                        && programVariable.getInstructionIndex() != variable.getInstructionIndex());
     }
 
     public void addSuccessor(final CFGNode pNode) {
@@ -91,7 +88,12 @@ public class CFGNode {
         predecessors.add(pNode);
     }
 
-    public Set<UUID> getReachOut() {
+    /**
+     * Returns the set of {@link ProgramVariable}s in the ReachOut set.
+     *
+     * @return The set of {@link ProgramVariable}s in the ReachOut set
+     */
+    public Set<ProgramVariable> getReachOut() {
         return ImmutableSet.copyOf(reachOut);
     }
 
@@ -104,7 +106,7 @@ public class CFGNode {
         return Collections.unmodifiableSet(successors);
     }
 
-    public Set<UUID> getReach() {
+    public Set<ProgramVariable> getReach() {
         return Collections.unmodifiableSet(reach);
     }
 
@@ -113,8 +115,8 @@ public class CFGNode {
      *
      * @return The index number of this node
      */
-    public int getInsnIdx() {
-        return insnIdx;
+    public int getIndex() {
+        return index;
     }
 
     /**
@@ -126,15 +128,25 @@ public class CFGNode {
         return Collections.unmodifiableSet(predecessors);
     }
 
-    public void addDefinition(UUID pDefinition) {
+    public void addDefinition(ProgramVariable pDefinition) {
         definitions.add(pDefinition);
     }
 
-    public Set<UUID> getDefinitions() {
+    /**
+     * Returns the set of {@link ProgramVariable}s that get defined at this {@link CFGNode}.
+     *
+     * @return The set of {@link ProgramVariable}s that get defined
+     */
+    public Set<ProgramVariable> getDefinitions() {
         return Collections.unmodifiableSet(definitions);
     }
 
-    public Set<UUID> getUses() {
+    /**
+     * Returns the set of {@link ProgramVariable}s that get used at this {@link CFGNode}.
+     *
+     * @return The set of {@link ProgramVariable}s that get used
+     */
+    public Set<ProgramVariable> getUses() {
         return Collections.unmodifiableSet(uses);
     }
 
@@ -146,6 +158,6 @@ public class CFGNode {
     public String toString() {
         return String.format(
                 "CFGNode: %d %s (%d predecessors, %d successors) | definitions %s | uses %s",
-                insnIdx, JDFCUtils.getOpcode(opcode), predecessors.size(), successors.size(), definitions, uses);
+                index, JDFCUtils.getOpcode(opcode), predecessors.size(), successors.size(), definitions, uses);
     }
 }

@@ -2,7 +2,7 @@ package report;
 
 import data.singleton.CoverageDataStore;
 import data.ExecutionData;
-import data.tree.ExecutionDataNode;
+import data.ExecutionDataNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import report.html.HTMLFactory;
