@@ -1,10 +1,11 @@
 package data;
 
+import graphs.cfg.CFG;
+import graphs.cfg.LocalVariable;
+import graphs.cfg.nodes.CFGNode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import graphs.cfg.CFG;
-import graphs.cfg.nodes.CFGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -58,7 +59,7 @@ public class MethodData {
     /**
      * Local variables in class
      */
-    private Map<Integer, UUID> localVariableTable;
+    private Map<Integer, LocalVariable> localVariableTable;
 
     /**
      * AST of method source code

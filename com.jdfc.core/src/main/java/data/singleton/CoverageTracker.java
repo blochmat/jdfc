@@ -28,13 +28,12 @@ public class CoverageTracker {
     public synchronized void addLocalVarCoveredEntry(final String varIdStr, final String cIdStr) {
         // TODO: test if this can be put into CoverageDataStore
         logger.debug("addLocalVarCoveredEntry");
-        CoverageDataStore store = CoverageDataStore.getInstance();
 
-        ClassExecutionData cData = store.getClassExecutionDataBiMap().get(UUID.fromString(cIdStr));
-        store.getTestedClassList().add(cData.getRelativePath());
-        store.getUntestedClassList().remove(cData.getRelativePath());
+        ClassExecutionData cData = CoverageDataStore.getInstance().getClassExecutionDataBiMap().get(UUID.fromString(cIdStr));
+        CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
+        CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
 
-        ProgramVariable pVar = store.getUuidProgramVariableMap().get(UUID.fromString(varIdStr));
+        ProgramVariable pVar = CoverageDataStore.getInstance().getUuidProgramVariableMap().get(UUID.fromString(varIdStr));
         if (pVar != null && !pVar.isCovered()) {
             pVar.setCovered(true);
         }
