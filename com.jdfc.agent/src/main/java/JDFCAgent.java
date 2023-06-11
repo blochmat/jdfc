@@ -67,7 +67,7 @@ public final class JDFCAgent {
             } catch (Exception e) {
                 File jdfcDir = CoverageDataStore.getInstance().getJdfcDir();
                 if (jdfcDir.exists() || jdfcDir.mkdirs()) {
-                    try (FileWriter writer = new FileWriter(JDFCUtils.createFileInJDFCDir("shutdown_error.txt"), false)) {
+                    try (FileWriter writer = new FileWriter(JDFCUtils.createFileInJDFCDir("shutdown_error.txt", false), false)) {
                         String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
                         writer.write("Exception during shutdown: " + e.getMessage() + "\n");
                         writer.write(stackTrace);

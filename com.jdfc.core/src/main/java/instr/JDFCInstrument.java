@@ -36,18 +36,18 @@ public class JDFCInstrument {
                 // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
                 // Byte code is written to two files BEFORE.txt and AFTER.txt.
                 // Visitor chain is built from back to front
-                File instrLogDir = JDFCUtils.createFileStrInstrDir(classNode.name.replace(File.separator, "."));
+                File instrLogDir = JDFCUtils.createFileInInstrDir(classNode.name.replace(File.separator, "."), true);
                     // afterTcv -> cw
-                String afterFilePathStr = String.format("%s%s%s.txt", instrLogDir, File.separator, "AFTER");
-                try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFilePathStr, true))) {
+                File afterFile = JDFCUtils.createFileIn(instrLogDir, "AFTER", false);
+                try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFile, true))) {
                     TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
 
                     // cv -> afterTcv -> cw
                     ClassVisitor cv = new InstrumentationClassVisitor(afterTcv, classNode, classExecutionData);
 
                     // beforeTcv -> cv -> afterTcv -> cw
-                    String beforeFilePath = String.format("%s%s%s.txt", instrLogDir, File.separator, "BEFORE");
-                    try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFilePath, true))) {
+                    File beforeFile = JDFCUtils.createFileIn(instrLogDir, "BEFORE", false);
+                    try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFile, true))) {
                         TraceClassVisitor beforeTcv = new TraceClassVisitor(cv, beforeWriter);
                         // cr -> beforeTcv -> cv -> afterTcv -> cw
                         classReader.accept(beforeTcv, 0);

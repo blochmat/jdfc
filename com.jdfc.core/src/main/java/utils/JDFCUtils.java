@@ -406,30 +406,39 @@ public class JDFCUtils {
         return now.format(formatter);
     }
 
-    public static File createFileInJDFCDir(String fileName) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDir(), fileName);
+    public static File createFileInJDFCDir(String fileName, boolean isDir) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDir(), fileName, isDir);
     }
 
-    public static File createFileStrDebugDir(String fileName) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugDir(), fileName);
+    public static File createFileInDebugDir(String fileName, boolean isDir) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugDir(), fileName, isDir);
     }
 
-    public static File createFileStrInstrDir(String fileName) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugInstrDir(), fileName);
+    public static File createFileInInstrDir(String fileName, boolean isDir) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugInstrDir(), fileName, isDir);
     }
 
-    public static File createFileIn(String dir, String fileName) {
-        return JDFCUtils.createFileIn(new File(dir), fileName);
+    public static File createFileIn(String dir, String fileName, boolean isDir) {
+        return JDFCUtils.createFileIn(new File(dir), fileName, isDir);
     }
 
-    public static File createFileIn(File dir, String fileName) {
+    public static File createFileIn(File dir, String fileName, boolean isDir) {
         String fileStr = String.format("%s%s%s", dir, File.separator, fileName);
         File file = new File(fileStr);
-        if (file.exists() || file.mkdirs()) {
-            return file;
+        if(isDir) {
+            if (file.exists() || file.mkdirs()) {
+                return file;
+            } else {
+                String message = String.format("File could not be created: %s", fileStr);
+                throw new RuntimeException(message);
+            }
         } else {
-            String message = String.format("File could not be created: %s", fileStr);
-            throw new RuntimeException(message);
+            if (dir.exists() || dir.mkdirs()) {
+                return file;
+            } else {
+                String message = String.format("File could not be created: %s", fileStr);
+                throw new RuntimeException(message);
+            }
         }
     }
 }
