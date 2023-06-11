@@ -76,7 +76,7 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public String toString() {
-        return String.format("ParentFqn: %s%nFqn: %s%nRelPath: %s%nMethods: %d%nTotal: %d%nCovered: %d%nRate: %f%n", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
+        return String.format("ParentFqn: %s Fqn: %s RelPath: %s Methods: %d Total: %d Covered: %d Rate: %f", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
     }
 
     private PackageDeclaration extractPackageDeclaration(CompilationUnit cu){

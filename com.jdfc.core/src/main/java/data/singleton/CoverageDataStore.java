@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.TypeDeclaration;
 import data.*;
 import data.io.CoverageDataExport;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.FileHelper;
@@ -15,6 +16,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
@@ -24,9 +27,9 @@ import java.util.stream.Collectors;
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
  * instance represent the project structure of the project under test
  */
+@Slf4j
 @Data
 public class CoverageDataStore {
-    private final Logger logger = LoggerFactory.getLogger(CoverageDataStore.class);
     private static CoverageDataStore instance;
     private final ExecutionDataNode<ExecutionData> root;
     private final Map<UUID, ClassExecutionData> classExecutionDataMap;
@@ -64,7 +67,7 @@ public class CoverageDataStore {
                                 String buildDirStr,
                                 String classesBuildDirStr,
                                 List<String> srcDirStrList) {
-        logger.debug("saveProjectInfo");
+        log.debug("saveProjectInfo");
         this.projectDir = new File(projectDirStr);
         this.buildDir = new File(buildDirStr);
         this.classesBuildDir = new File(classesBuildDirStr);
@@ -135,7 +138,7 @@ public class CoverageDataStore {
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
-        logger.debug("findClassDataNode");
+        log.debug("findClassDataNode");
         ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.replace(File.separator, "/").split("/")));
 
         // root path
@@ -145,7 +148,7 @@ public class CoverageDataStore {
 
         ExecutionDataNode<ExecutionData> node = root.getChildDataRecursive(nodePath);
         if (node == null) {
-            logger.debug("Return NULL");
+            log.debug("Return NULL");
         }
         return node;
     }
@@ -154,7 +157,6 @@ public class CoverageDataStore {
                                          ExecutionDataNode<ExecutionData> pExecutionDataNode,
                                          Path pBaseDir,
                                          String suffix) {
-        logger.debug("addNodesFromDirRecursive");
         JavaParserHelper javaParserHelper = new JavaParserHelper();
         FileHelper fileHelper = new FileHelper();
 
@@ -203,13 +205,45 @@ public class CoverageDataStore {
                     }
                 }
             }
+        }
 
-
+        if (log.isDebugEnabled()) {
+            File file = JDFCUtils.createFileInDebugDir("1_addNodesFromDirRecursive.txt", false);
+            try (FileWriter writer = new FileWriter(file, true)) {
+                writer.write("ExecutionData\n");
+                writer.write("Name: ");
+                writer.write(pExecutionDataNode.getData().getName());
+                writer.write("\n");
+                writer.write("Fqn: ");
+                writer.write(pExecutionDataNode.getData().getFqn());
+                writer.write("\n");
+                writer.write("Parent Fqn: ");
+                writer.write(pExecutionDataNode.getData().getParentFqn());
+                writer.write("\n");
+                writer.write("Children: ");
+                writer.write(JDFCUtils.prettyPrintArray(pExecutionDataNode.getChildren().keySet().toArray()));
+                writer.write("\n");
+                writer.write("=========================================");
+                writer.write("\n");
+                writer.write("CoverageDataStorage.untestedClasses");
+                writer.write(JDFCUtils.prettyPrintArray(untestedClassList.toArray(new String[0])));
+                writer.write("-----------------------------------------");
+                writer.write("\n");
+                writer.write("-----------------------------------------");
+                writer.write("\n");
+                writer.write("CoverageDataStorage.classExecutionDataMap: ");
+                writer.write(JDFCUtils.prettyPrintMap(classExecutionDataMap));
+                writer.write("=========================================");
+                writer.write("\n");
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 
     private String createFqn(ExecutionDataNode<ExecutionData> node, String childName) {
-        logger.debug("createFqn");
+        log.debug("createFqn");
         if (node.isRoot()) {
             return childName;
         } else {
