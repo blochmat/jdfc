@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
+import data.singleton.CoverageDataStore;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -403,5 +404,32 @@ public class JDFCUtils {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
         return now.format(formatter);
+    }
+
+    public static File createFileInJDFCDir(String fileName) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDir(), fileName);
+    }
+
+    public static File createFileStrDebugDir(String fileName) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugDir(), fileName);
+    }
+
+    public static File createFileStrInstrDir(String fileName) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugInstrDir(), fileName);
+    }
+
+    public static File createFileIn(String dir, String fileName) {
+        return JDFCUtils.createFileIn(new File(dir), fileName);
+    }
+
+    public static File createFileIn(File dir, String fileName) {
+        String fileStr = String.format("%s%s%s", dir, File.separator, fileName);
+        File file = new File(fileStr);
+        if (file.exists() || file.mkdirs()) {
+            return file;
+        } else {
+            String message = String.format("File could not be created: %s", fileStr);
+            throw new RuntimeException(message);
+        }
     }
 }

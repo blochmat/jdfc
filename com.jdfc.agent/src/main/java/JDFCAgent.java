@@ -3,6 +3,7 @@ import data.singleton.CoverageDataStore;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -37,7 +38,7 @@ public final class JDFCAgent {
         CoverageDataStore.getInstance().saveProjectInfo(args.get(0), args.get(1), args.get(2), args.subList(3, args.size()));
 
         // setup package/class tree data structure
-        File dir = new File(CoverageDataStore.getInstance().getClassesBuildDirStr());
+        File dir = CoverageDataStore.getInstance().getClassesBuildDir();
         Path classesBuildDir = dir.toPath();
         String fileEnding = ".class";
         CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), classesBuildDir, fileEnding);
@@ -64,13 +65,16 @@ public final class JDFCAgent {
                 logger.info(String.format("Instrumentation and Testing finished. Time: %s", time));
                 CoverageDataStore.getInstance().exportCoverageData();
             } catch (Exception e) {
-                try (FileWriter writer = new FileWriter(String.format("%s/jdfc/shutdown_error.log", args.get(1)), false)) {
-                    String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
-                    writer.write("Exception during shutdown: " + e.getMessage() + "\n");
-                    writer.write(stackTrace);
-                    writer.write("\n");
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();  // print to console as a last resort
+                File jdfcDir = CoverageDataStore.getInstance().getJdfcDir();
+                if (jdfcDir.exists() || jdfcDir.mkdirs()) {
+                    try (FileWriter writer = new FileWriter(JDFCUtils.createFileInJDFCDir("shutdown_error.txt"), false)) {
+                        String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+                        writer.write("Exception during shutdown: " + e.getMessage() + "\n");
+                        writer.write(stackTrace);
+                        writer.write("\n");
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();  // print to console as a last resort
+                    }
                 }
             }
         }));

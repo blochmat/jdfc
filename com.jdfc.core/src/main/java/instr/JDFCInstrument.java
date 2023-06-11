@@ -10,6 +10,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.util.TraceClassVisitor;
+import utils.JDFCUtils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -35,32 +36,27 @@ public class JDFCInstrument {
                 // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
                 // Byte code is written to two files BEFORE.txt and AFTER.txt.
                 // Visitor chain is built from back to front
-                String instrLogDirStr = String.format("%s%starget%sjdfc%slog%sinstrumentation%s%s",
-                        System.getProperty("user.dir"), File.separator, File.separator, File.separator, File.separator,
-                        File.separator, classNode.name.replace(File.separator, "."));
-                File instrLogDir = new File(instrLogDirStr);
-                if(instrLogDir.exists() || instrLogDir.mkdirs()) {
+                File instrLogDir = JDFCUtils.createFileStrInstrDir(classNode.name.replace(File.separator, "."));
                     // afterTcv -> cw
-                    String afterFilePathStr = String.format("%s%s%s.txt", instrLogDirStr, File.separator, "AFTER");
-                    try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFilePathStr, true))) {
-                        TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
+                String afterFilePathStr = String.format("%s%s%s.txt", instrLogDir, File.separator, "AFTER");
+                try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFilePathStr, true))) {
+                    TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
 
-                        // cv -> afterTcv -> cw
-                        ClassVisitor cv = new InstrumentationClassVisitor(afterTcv, classNode, classExecutionData);
+                    // cv -> afterTcv -> cw
+                    ClassVisitor cv = new InstrumentationClassVisitor(afterTcv, classNode, classExecutionData);
 
-                        // beforeTcv -> cv -> afterTcv -> cw
-                        String beforeFilePath = String.format("%s%s%s.txt", instrLogDirStr, File.separator, "BEFORE");
-                        try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFilePath, true))) {
-                            TraceClassVisitor beforeTcv = new TraceClassVisitor(cv, beforeWriter);
-                            // cr -> beforeTcv -> cv -> afterTcv -> cw
-                            classReader.accept(beforeTcv, 0);
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-
+                    // beforeTcv -> cv -> afterTcv -> cw
+                    String beforeFilePath = String.format("%s%s%s.txt", instrLogDir, File.separator, "BEFORE");
+                    try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFilePath, true))) {
+                        TraceClassVisitor beforeTcv = new TraceClassVisitor(cv, beforeWriter);
+                        // cr -> beforeTcv -> cv -> afterTcv -> cw
+                        classReader.accept(beforeTcv, 0);
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
+
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
                 }
             } else {
                 // Normal visitor chain: cr -> cv -> cw

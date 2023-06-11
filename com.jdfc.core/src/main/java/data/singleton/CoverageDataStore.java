@@ -32,9 +32,12 @@ public class CoverageDataStore {
     private final Map<UUID, ClassExecutionData> classExecutionDataMap;
     private final Set<String> testedClassList;
     private final Set<String> untestedClassList;
-    private String projectDirStr;
-    private String buildDirStr;
-    private String classesBuildDirStr;
+    private File projectDir;
+    private File buildDir;
+    private File classesBuildDir;
+    private File jdfcDir;
+    private File jdfcDebugDir;
+    private File jdfcDebugInstrDir;
     private List<String> srcDirStrList;
 
     private CoverageDataStore() {
@@ -57,43 +60,18 @@ public class CoverageDataStore {
         instance = mock;
     }
 
-    public ExecutionDataNode<ExecutionData> getRoot() {
-        return root;
-    }
-
-    public Set<String> getTestedClassList() {
-        return testedClassList;
-    }
-
-    public Set<String> getUntestedClassList() {
-        return untestedClassList;
-    }
-
-    public String getProjectDirStr() {
-        return projectDirStr;
-    }
-
-    public String getBuildDirStr() {
-        return buildDirStr;
-    }
-
-    public String getClassesBuildDirStr() {
-        return classesBuildDirStr;
-    }
-
-    public List<String> getSrcDirStrList() {
-        return srcDirStrList;
-    }
-
     public void saveProjectInfo(String projectDirStr,
                                 String buildDirStr,
                                 String classesBuildDirStr,
                                 List<String> srcDirStrList) {
         logger.debug("saveProjectInfo");
-        this.projectDirStr = projectDirStr;
-        this.buildDirStr = buildDirStr;
-        this.classesBuildDirStr = classesBuildDirStr;
+        this.projectDir = new File(projectDirStr);
+        this.buildDir = new File(buildDirStr);
+        this.classesBuildDir = new File(classesBuildDirStr);
         this.srcDirStrList = srcDirStrList;
+        this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDir, File.separator));
+        this.jdfcDebugDir = new File(String.format("%s%sdebug", this.jdfcDir, File.separator));
+        this.jdfcDebugInstrDir = new File(String.format("%s%sinstrumentation", this.jdfcDebugDir, File.separator));
     }
 
     public static void invokeCoverageTracker(final String cId,
@@ -225,6 +203,8 @@ public class CoverageDataStore {
                     }
                 }
             }
+
+
         }
     }
 
