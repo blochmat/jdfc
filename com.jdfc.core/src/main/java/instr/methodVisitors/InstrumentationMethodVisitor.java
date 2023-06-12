@@ -56,7 +56,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     try (FileWriter writer = new FileWriter(file, true)) {
                         writer.write("Error: LocalVariable is null.\n");
                         writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
-                        writer.write(String.format("  Method: %s\n", mData.getName()));
+                        writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                         writer.write(String.format("  localVarIdx: %d\n", localVarIdx));
                         writer.write("==============================\n");
                         writer.write("Local Variable Table:\n");
@@ -77,7 +77,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: ProgramVariableId is null.\n");
                             writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
-                            writer.write(String.format("  Method: %s\n", mData.getName()));
+                            writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                             writer.write(String.format("  ProgramVariable: %s\n", localPVar));
                             writer.write("==============================\n");
                             writer.write("Program Variables:\n");
