@@ -82,12 +82,7 @@ public class MethodData {
     /**
      * All program variables
      */
-    private Map<UUID, ProgramVariable> pVarToUUIDMap;
-
-    /**
-     * All method params as {@link ProgramVariable}
-     */
-    private Set<ProgramVariable> params;
+    private Map<UUID, ProgramVariable> programVariables;
 
     /**
      * Line of method declaration in source code
@@ -100,8 +95,8 @@ public class MethodData {
     private int endLine;
 
     public String toString() {
-        return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nParams: %s%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
-                access, name, desc, beginLine, endLine, JDFCUtils.prettyPrintSet(params), total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
+        return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
+                access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
     }
 
     public MethodData(UUID id, int access, String name, String desc, MethodDeclaration srcAst) {
@@ -113,10 +108,9 @@ public class MethodData {
         this.srcAst = srcAst;
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.params = new HashSet<>();
         this.pairs = new HashSet<>();
         this.localVariableTable = new HashMap<>();
-        this.pVarToUUIDMap = new HashMap<>();
+        this.programVariables = new HashMap<>();
     }
 
     private int extractBegin(MethodDeclaration srcAst) {
@@ -150,7 +144,7 @@ public class MethodData {
     }
 
     public UUID findVarId(ProgramVariable var) {
-        for (Map.Entry<UUID,ProgramVariable> entry : pVarToUUIDMap.entrySet()) {
+        for (Map.Entry<UUID,ProgramVariable> entry : programVariables.entrySet()) {
             ProgramVariable v = entry.getValue();
             if (Objects.equals(v.getOwner(), var.getOwner())
                     && Objects.equals(v.getName(), var.getName())

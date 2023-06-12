@@ -218,7 +218,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
         if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
-            mData.setParams(cfg.getNodes().get((double) Integer.MIN_VALUE).getDefinitions());
             mData.setCfg(cfg);
             mData.getCfg().calculateReachingDefinitions();
             mData.calculateDefUsePairs();
@@ -237,7 +236,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final boolean isDefinition = isDefinition(pOpcode);
         ProgramVariable var = new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition, false);
         UUID id = UUID.randomUUID();
-        mData.getPVarToUUIDMap().put(id, var);
+        mData.getProgramVariables().put(id, var);
         return var;
     }
 
@@ -318,6 +317,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private void addEntryAndExitNode() {
 //        logger.debug("addEntryAndExitNode");
         Set<ProgramVariable> parameters = createParamVars();
+        for(ProgramVariable param : parameters) {
+            UUID id = UUID.randomUUID();
+            mData.getProgramVariables().put(id, param);
+        }
 
         final CFGNode entryNode =
                 new CFGEntryNode(parameters, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
@@ -347,7 +350,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private Set<ProgramVariable> createParamVars() {
-        // TODO: What makes it necessary to store those in a separate list?
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
             final ProgramVariable variable =

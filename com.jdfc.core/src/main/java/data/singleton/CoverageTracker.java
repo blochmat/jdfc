@@ -32,7 +32,7 @@ public class CoverageTracker {
         try {
             cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
             mData = cData.getMethods().get(UUID.fromString(mId));
-            pVar = mData.getPVarToUUIDMap().get(UUID.fromString(pId));
+            pVar = mData.getProgramVariables().get(UUID.fromString(pId));
             if (!pVar.isCovered()) {
                 pVar.setCovered(true);
             }
