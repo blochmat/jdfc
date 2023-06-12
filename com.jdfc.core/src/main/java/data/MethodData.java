@@ -9,17 +9,16 @@ import graphs.cfg.nodes.CFGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
 import java.util.*;
+
+@Slf4j
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class MethodData {
-    @JsonIgnore
-    private Logger logger = LoggerFactory.getLogger(MethodData.class);
 
     private UUID id;
 
@@ -139,9 +138,7 @@ public class MethodData {
     }
 
     public String buildInternalMethodName() {
-        String internalName = String.format("%s: %s", name, desc);
-        logger.debug(String.format("buildInternalMethodName = %s", internalName));
-        return internalName;
+        return String.format("%s: %s", name, desc);
     }
 
     public void computeCoverage() {
@@ -153,7 +150,6 @@ public class MethodData {
     }
 
     public UUID findVarId(ProgramVariable var) {
-        logger.debug(String.format("findVar(%s)", var));
         for (Map.Entry<UUID,ProgramVariable> entry : pVarToUUIDMap.entrySet()) {
             ProgramVariable v = entry.getValue();
             if (Objects.equals(v.getOwner(), var.getOwner())
@@ -162,11 +158,9 @@ public class MethodData {
                     && Objects.equals(v.getLineNumber(), var.getLineNumber())
                     && Objects.equals(v.getInstructionIndex(), var.getInstructionIndex())
                     && Objects.equals(v.isDefinition(), var.isDefinition())) {
-                logger.debug(String.format("- %s", v));
                 return entry.getKey();
             }
         }
-        logger.debug("Return NULL");
         return null;
     }
 
@@ -183,11 +177,9 @@ public class MethodData {
      * Calculates all possible Def-Use-Pairs.
      */
     public void calculateDefUsePairs() {
-        logger.debug("calculateDefUsePairs");
         for (Map.Entry<Double, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
 
-            logger.debug(JDFCUtils.prettyPrintSet(node.getReach()));
             for (ProgramVariable def : node.getReach()) {
                 for (ProgramVariable use : node.getUses()) {
                     if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
@@ -199,7 +191,6 @@ public class MethodData {
                 }
             }
         }
-        logger.debug(JDFCUtils.prettyPrintSet(this.pairs));
     }
 
     /**

@@ -1,6 +1,5 @@
 package data;
 
-import graphs.cfg.LocalVariable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
@@ -12,15 +11,18 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
+import graphs.cfg.LocalVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 import utils.JavaParserHelper;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,14 +30,12 @@ import java.util.stream.Collectors;
  * Coverage data container of a single class. It contains information about all methods including CFG's, Def-Use pairs,
  * inter-procedural matches, covered and uncovered variables.
  */
+@Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClassExecutionData extends ExecutionData {
-
-    @JsonIgnore
-    private Logger logger = LoggerFactory.getLogger(ClassExecutionData.class);
 
     @JsonIgnore
     private CompilationUnit srcFileAst;
@@ -146,13 +146,24 @@ public class ClassExecutionData extends ExecutionData {
 
     // New Code
     public MethodData getMethodByInternalName(String internalName) {
-        logger.debug(String.format("getMethodByInternalName(%s)", internalName));
         for(MethodData mData : methods.values()) {
             if (mData.buildInternalMethodName().equals(internalName)) {
                 return mData;
             }
         }
-        logger.debug("Return NULL");
+
+        if(log.isDebugEnabled()) {
+            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByInternalName.txt", false);
+            try (FileWriter writer = new FileWriter(transformFile, true)) {
+                writer.write(String.format("Search param: %s", internalName));
+                writer.write(JDFCUtils.prettyPrintArray(
+                        methods.values().stream().map(MethodData::buildInternalMethodName).toArray()));
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+
+            }
+        }
         return null;
     }
 
@@ -166,14 +177,11 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void computeCoverage() {
-        logger.debug(String.format("%s.computeCoverageForClass", this.getName()));
         for (MethodData mData : this.getMethods().values()) {
-            logger.debug(mData.buildInternalMethodName());
             String internalMethodName = mData.buildInternalMethodName();
             if (mData.getPairs().size() == 0) {
                 continue;
             }
-            logger.debug("Pairs present.");
             for (DefUsePair pair : mData.getPairs()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
@@ -181,14 +189,12 @@ public class ClassExecutionData extends ExecutionData {
                 if (def.isCovered() && use.isCovered()) {
                     if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
-                        logger.debug("COVERED");
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
                 } else {
                     if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(false);
-                        logger.debug("NOT COVERED");
                     } else {
                         // TODO: "<init>: ()V" is not in methods
                     }
@@ -209,22 +215,18 @@ public class ClassExecutionData extends ExecutionData {
 
 
     public void calculateMethodCount() {
-        logger.debug("calculateMethodCount");
         this.setMethodCount(this.methods.size());
     }
 
     public void calculateTotal() {
-        logger.debug("calculateTotal");
         this.setTotal(methods.values().stream().mapToInt(MethodData::getTotal).sum());
     }
 
     public void calculateCovered() {
-        logger.debug("calculateCovered");
         this.setCovered(methods.values().stream().mapToInt(MethodData::getCovered).sum());
     }
 
     public void calculateRate() {
-        logger.debug("calculateRate");
         if (getTotal() != 0.0) {
             this.setRate((double) getCovered() / getTotal());
         } else {
