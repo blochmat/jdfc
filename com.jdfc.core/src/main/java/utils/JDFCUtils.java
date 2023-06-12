@@ -428,6 +428,10 @@ public class JDFCUtils {
         return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugInstrDir(), fileName, isDir);
     }
 
+    public static File createFileInErrorDir(String fileName, boolean isDir) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugErrorDir(), fileName, isDir);
+    }
+
     public static File createFileIn(String dir, String fileName, boolean isDir) {
         return JDFCUtils.createFileIn(new File(dir), fileName, isDir);
     }

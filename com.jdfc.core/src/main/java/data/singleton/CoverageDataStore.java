@@ -39,9 +39,10 @@ public class CoverageDataStore {
     private File buildDir;
     private File classesBuildDir;
     private File jdfcDir;
+    private List<String> srcDirStrList;
     private File jdfcDebugDir;
     private File jdfcDebugInstrDir;
-    private List<String> srcDirStrList;
+    private File jdfcDebugErrorDir;
 
     private CoverageDataStore() {
         ExecutionData executionData = new ExecutionData("", "");
@@ -75,6 +76,7 @@ public class CoverageDataStore {
         this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDir, File.separator));
         this.jdfcDebugDir = new File(String.format("%s%sdebug", this.jdfcDir, File.separator));
         this.jdfcDebugInstrDir = new File(String.format("%s%sinstrumentation", this.jdfcDebugDir, File.separator));
+        this.jdfcDebugErrorDir = new File(String.format("%s%serror", this.jdfcDebugDir, File.separator));
     }
 
     public static void invokeCoverageTracker(final String cId,
