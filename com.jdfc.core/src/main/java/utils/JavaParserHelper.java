@@ -177,12 +177,10 @@ public class JavaParserHelper {
                     toAdd.add(rt);
                     toRemove.add(resolvedType);
                 } else {
-                    logger.debug("Primitive");
                     toRemove.add(resolvedType);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                logger.debug("Exception");
             }
         }
 

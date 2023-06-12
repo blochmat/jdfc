@@ -296,11 +296,12 @@ public class HTMLFactory {
                 MethodData mData = pData.getMethodByLineNumber(pLineNumber);
                 String methodName = null;
                 ProgramVariable programVariable = null;
-                if (mData == null) {
-                    System.err.println(pLineNumber);
-                } else {
+                if (mData != null) {
                     methodName = mData.buildInternalMethodName();
-                    boolean isInlineDefinition = this.isDefinition(workList.get(0));
+                    boolean isInlineDefinition = false;
+                    if (!workList.isEmpty()) {
+                        isInlineDefinition = this.isDefinition(workList.get(0));
+                    }
                     boolean isMethodParam = isMethodParam(mData, pLineString);
                     boolean isDefinition = isInlineDefinition || isMethodParam;
 

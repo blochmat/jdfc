@@ -68,7 +68,6 @@ public class CoverageDataStore {
                                 String buildDirStr,
                                 String classesBuildDirStr,
                                 List<String> srcDirStrList) {
-        log.debug("saveProjectInfo");
         this.projectDir = new File(projectDirStr);
         this.buildDir = new File(buildDirStr);
         this.classesBuildDir = new File(classesBuildDirStr);
@@ -238,7 +237,6 @@ public class CoverageDataStore {
     }
 
     private String createFqn(ExecutionDataNode<ExecutionData> node, String childName) {
-        log.debug("createFqn");
         if (node.isRoot()) {
             return childName;
         } else {

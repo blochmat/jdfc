@@ -28,7 +28,6 @@ public class ReportGenerator {
     }
 
     public void createReport() {
-        logger.debug("createReport");
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         if (reportDir.exists() || reportDir.mkdir()) {
             try {
@@ -77,7 +76,6 @@ public class ReportGenerator {
     private void createInitialIndexFile(final HTMLFactory pFactory,
                                         final ExecutionDataNode<ExecutionData> pRoot,
                                         final File pReportDir) throws IOException {
-        logger.debug("createInitialIndexFile");
         Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataNodeMap =
                 getClassContainingPackagesRecursive(pRoot, "");
         pFactory.createIndex(packageExecutionDataNodeMap, pReportDir);
@@ -86,7 +84,6 @@ public class ReportGenerator {
     private Map<String, ExecutionDataNode<ExecutionData>> getClassContainingPackagesRecursive(
             final ExecutionDataNode<ExecutionData> pNode,
             final String pPackageName) {
-        logger.debug("getClassContainingPackagesRecursive");
         Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = pNode.getChildren();
         Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataNodeMap = new HashMap<>();
 
@@ -109,7 +106,6 @@ public class ReportGenerator {
 
     private Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1,
                                                                     Map<String, ExecutionDataNode<ExecutionData>> map2) {
-        logger.debug("mergeMaps");
         return Stream.of(map1, map2)
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(
