@@ -3,21 +3,18 @@ package data.singleton;
 import data.ClassExecutionData;
 import data.MethodData;
 import data.ProgramVariable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import utils.JDFCUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.UUID;
 
-import static org.objectweb.asm.Opcodes.*;
-
+@Slf4j
 public class CoverageTracker {
 
-    private static final Logger logger = LoggerFactory.getLogger(CoverageTracker.class);
     private static CoverageTracker singleton;
-    private ClassExecutionData currentClassExecutionData = null;
-    private final Map<String, ClassExecutionData> classExecutionDataMap = new HashMap<>();
 
     public static synchronized CoverageTracker getInstance() {
         if (singleton == null) {
@@ -29,40 +26,58 @@ public class CoverageTracker {
     public synchronized void addLocalVarCoveredEntry(final String cId,
                                                      final String mId,
                                                      final String pId) {
-        logger.debug("addLocalVarCoveredEntry");
-        ClassExecutionData cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
-        MethodData mData = cData.getMethods().get(UUID.fromString(mId));
-        ProgramVariable pVar = mData.getPVarToUUIDMap().get(UUID.fromString(pId));
-        if (pVar != null && !pVar.isCovered()) {
-            pVar.setCovered(true);
-        }
-        CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
-        CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
-    }
-
-    private void updateClassExecutionData(final String pClassName) {
-        logger.debug("updateClassExecutionData");
-        if (currentClassExecutionData == null || !currentClassExecutionData.getRelativePath().equals(pClassName)) {
-            if(classExecutionDataMap.containsKey(pClassName)) {
-                currentClassExecutionData = classExecutionDataMap.get(pClassName);
-            } else {
-                currentClassExecutionData = (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(pClassName).getData();
-                classExecutionDataMap.put(currentClassExecutionData.getRelativePath(), currentClassExecutionData);
+        ClassExecutionData cData = null;
+        MethodData mData = null;
+        ProgramVariable pVar = null;
+        try {
+            cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
+            mData = cData.getMethods().get(UUID.fromString(mId));
+            pVar = mData.getPVarToUUIDMap().get(UUID.fromString(pId));
+            if (!pVar.isCovered()) {
+                pVar.setCovered(true);
             }
-        }
-    }
-
-    private boolean isDefinition(final int pOpcode) {
-        logger.debug("isDefinition");
-        switch (pOpcode) {
-            case ISTORE:
-            case LSTORE:
-            case FSTORE:
-            case DSTORE:
-            case ASTORE:
-                return true;
-            default:
-                return false;
+            CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
+            CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
+        } catch (NullPointerException e) {
+            if (log.isDebugEnabled()) {
+                File file = JDFCUtils.createFileInDebugDir("5_addLocalVarCoveredEntry.txt", false);
+                try (FileWriter writer = new FileWriter(file, true)) {
+                    writer.write("NullPointerException: ");
+                    if (cData == null) {
+                        writer.write(String.format("    cId: %s\n", cId));
+                        writer.write("==============================\n");
+                        writer.write("ClassExecutionDataMap:\n");
+                        writer.write(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getClassExecutionDataMap()));
+                        writer.write("==============================\n");
+                    } else if (mData == null){
+                        writer.write(String.format("    cData: %s\n", cData));
+                        writer.write(String.format("    mId: %s\n", mId));
+                        writer.write("==============================\n");
+                        writer.write("Methods:\n");
+                        writer.write(JDFCUtils.prettyPrintMap(cData.getMethods()));
+                        writer.write("==============================\n");
+                    } else if (pVar == null){
+                        writer.write(String.format("    cData: %s\n", cData));
+                        writer.write(String.format("    mData: %s\n", mData));
+                        writer.write(String.format("    pId: %s\n", pId));
+                        writer.write("==============================\n");
+                        writer.write("ClassExecutionDataMap:\n");
+                        writer.write(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getClassExecutionDataMap()));
+                        writer.write("==============================\n");
+                    } else {
+                        writer.write(String.format("    cData.getRelativePath: %s", cData.getRelativePath()));
+                        writer.write("==============================\n");
+                        writer.write("UntestedClassList:\n");
+                        writer.write(JDFCUtils.prettyPrintArray(CoverageDataStore.getInstance().getUntestedClassList().toArray(new String[0])));
+                        writer.write("TestedClassList:\n");
+                        writer.write(JDFCUtils.prettyPrintArray(CoverageDataStore.getInstance().getTestedClassList().toArray(new String[0])));
+                        writer.write("==============================\n");
+                    }
+                    writer.write("\n");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
         }
     }
 }

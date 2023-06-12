@@ -52,7 +52,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
             if(localVariable == null) {
                 if(log.isDebugEnabled()) {
-                    File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
+                    File file = JDFCUtils.createFileInDebugDir("4_insertLocalVariableEntryCreation.txt", false);
                     try (FileWriter writer = new FileWriter(file, true)) {
                         writer.write("Error: LocalVariable is null.\n");
                         writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
