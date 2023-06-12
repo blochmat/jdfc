@@ -3,20 +3,18 @@ package graphs.cfg.visitors.methodVisitors;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
+import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
+@Slf4j
 public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
-
-    private final Logger logger = LoggerFactory.getLogger(CFGLocalVariableMethodVisitor.class);
 
     private final Map<Integer, LocalVariable> localVariableTable = new HashMap<>();
 
@@ -39,7 +37,6 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
             final Label pStart,
             final Label pEnd,
             final int pIndex) {
-        logger.debug("visitLocalVariable");
         super.visitLocalVariable(pName, pDescriptor, pSignature, pStart, pEnd, pIndex);
         final LocalVariable variable = new LocalVariable(pName, pDescriptor, pSignature, pIndex);
         localVariableTable.put(pIndex, variable);
@@ -50,7 +47,6 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
      */
     @Override
     public void visitEnd() {
-        logger.debug("visitEnd");
         classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
                 .setLocalVariableTable(localVariableTable);
     }

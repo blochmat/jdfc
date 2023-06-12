@@ -1,21 +1,15 @@
 package graphs.cfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
-import data.ProgramVariable;
 import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
+import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import utils.ASMHelper;
-import utils.JDFCUtils;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -25,17 +19,13 @@ import static org.objectweb.asm.Opcodes.ASM5;
  *
  * @see ClassVisitor
  */
+@Slf4j
 public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
-
-    private final Logger logger = LoggerFactory.getLogger(CFGLocalVariableClassVisitor.class);
 
     private final ASMHelper asmHelper = new ASMHelper();
 
-    private final Set<ProgramVariable> fields;
-
     public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassNode, pClassExecutionData);
-        fields = new HashSet<>();
     }
 
     /**
@@ -52,12 +42,10 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
             final String descriptor,
             final String signature,
             final Object value) {
-        logger.debug("visitField");
         final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
-        this.fields.add(
-                new ProgramVariable(this.getClassNode().name,
-                        name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false, false));
-        logger.debug(String.format("Field: %s %s %s = %s%n", JDFCUtils.getASMAccessStr(access), descriptor, name, value));
+//        this.fields.add(
+//                new ProgramVariable(this.getClassNode().name,
+//                        name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false, false));
         return fv;
     }
 
@@ -70,7 +58,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
                                      final String pDescriptor,
                                      final String pSignature,
                                      final String[] pExceptions) {
-        logger.debug("visitMethod");
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
@@ -88,13 +75,11 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     @Override
     public void visitEnd() {
-        logger.debug("visitEnd");
         if (cv != null) {
             cv.visitEnd();
         } else {
             super.visitEnd();
         }
         // TODO: Add fields to classExecutionData
-        logger.debug(fields.toString());
     }
 }
