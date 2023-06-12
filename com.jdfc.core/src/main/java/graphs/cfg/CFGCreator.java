@@ -1,20 +1,24 @@
 package graphs.cfg;
 
-import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
-import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import com.google.common.base.Preconditions;
 import data.ClassExecutionData;
+import data.MethodData;
+import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
+import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
+import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import utils.JDFCUtils;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Creates {@link CFG}s for each method of a class file.
  */
+@Slf4j
 public class CFGCreator {
-
-    private static final Logger logger = LoggerFactory.getLogger(CFGCreator.class);
 
     private CFGCreator() {
     }
@@ -44,7 +48,6 @@ public class CFGCreator {
     public static void createCFGsForClass(final ClassReader pClassReader,
                                           final ClassNode pClassNode,
                                           final ClassExecutionData pClassExecutionData) {
-        logger.debug("createCFGsForClass");
         Preconditions.checkNotNull(pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
         Preconditions.checkNotNull(pClassExecutionData,
@@ -60,6 +63,20 @@ public class CFGCreator {
                 new CFGNodeClassVisitor(pClassNode, pClassExecutionData);
         pClassReader.accept(CFGNodeClassVisitor, 0);
 
-        logger.debug("CFG CREATION DONE");
+        if(log.isDebugEnabled()) {
+            // Log all relative paths of files in the classpath
+            File transformFile = JDFCUtils.createFileInDebugDir("3_createCFGsForClass.txt", false);
+            try (FileWriter writer = new FileWriter(transformFile, true)) {
+                for(MethodData mData : pClassExecutionData.getMethods().values()) {
+                    writer.write("Method: " + mData.buildInternalMethodName());
+                    writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
+                    writer.write(JDFCUtils.prettyPrintMap(mData.getCfg().getNodes()));
+                    writer.write(JDFCUtils.prettyPrintMultimap(mData.getCfg().getEdges()));
+                    writer.write("\n");
+                }
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
     }
 }

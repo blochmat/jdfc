@@ -27,7 +27,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
 
         if(log.isDebugEnabled()) {
             // Log all relative paths of files in the classpath
-            File transformFile = JDFCUtils.createFileInDebugDir("X_transform.txt", false);
+            File transformFile = JDFCUtils.createFileInDebugDir("2_transform.txt", false);
             try (FileWriter writer = new FileWriter(transformFile, true)) {
                 writer.write(className);
                 writer.write("\n");
