@@ -21,14 +21,12 @@ public class CFGEdgeAnalysisVisitor extends MethodVisitor {
 
     CFGEdgeAnalysisVisitor(final MethodNode pMethodNode) {
         super(ASM5);
-        logger.debug(String.format("Visit %s", pMethodNode.name));
         methodNode = pMethodNode;
         edges = ArrayListMultimap.create();
     }
 
     @Override
     public void visitEnd() {
-        logger.debug("visitEnd");
         try {
             CFGEdgeAnalyzer cfgEdgeAnalyzer = new CFGEdgeAnalyzer();
             cfgEdgeAnalyzer.analyze(methodNode.name, methodNode);
@@ -59,7 +57,6 @@ public class CFGEdgeAnalysisVisitor extends MethodVisitor {
 
         @Override
         protected void newControlFlowEdge(int insnIndex, int successorIndex) {
-            logger.debug("newControlFlowEdge");
             if (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) successorIndex)) {
                 // Normal nodes
                 edges.put((double) insnIndex, (double) successorIndex);
@@ -70,7 +67,6 @@ public class CFGEdgeAnalysisVisitor extends MethodVisitor {
 
         @Override
         protected boolean newControlFlowExceptionEdge(int insnIndex, int successorIndex) {
-            logger.debug("newControlFlowExceptionEdge");
             if (!edges.containsKey((double) insnIndex) || !edges.containsValue((double) successorIndex)) {
                 edges.put((double) insnIndex, (double) successorIndex);
             }

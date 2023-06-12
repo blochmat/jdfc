@@ -73,8 +73,6 @@ public class CFGImpl implements CFG {
      */
     @Override
     public void calculateReachingDefinitions() {
-        logger.debug("calculateReachingDefinitions");
-        logger.debug(JDFCUtils.prettyPrintMap(nodes));
         LinkedList<CFGNode> workList = new LinkedList<>();
         for (Map.Entry<Double, CFGNode> node : nodes.entrySet()) {
             node.getValue().resetReachOut();
@@ -90,7 +88,6 @@ public class CFGImpl implements CFG {
             }
         }
 
-        logger.debug(JDFCUtils.prettyPrintMap(nodes));
     }
 
     /**

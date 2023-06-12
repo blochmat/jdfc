@@ -112,13 +112,10 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     public void computeClassCoverage() {
-        logger.debug("computeCoverage");
-
         for(ExecutionDataNode<T> node : this.children.values()) {
             ExecutionData data = node.getData();
             if (data instanceof ClassExecutionData) {
                 ClassExecutionData cData = (ClassExecutionData) data;
-                logger.debug(String.format("computeCoverage: %s", cData.getName()));
                 cData.computeCoverage();
             } else {
                 node.computeClassCoverage();
@@ -131,7 +128,6 @@ public class ExecutionDataNode<T extends ExecutionData> {
      *
      */
     public void aggregateDataToRootRecursive() {
-        logger.debug("aggregateDataToRootRecursive");
         if (this.isRoot()) {
             this.getData().setMethodCount(this.aggregateMethodCount());
             this.getData().setTotal(this.aggregateTotal());
@@ -141,7 +137,6 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private int aggregateMethodCount() {
-        logger.debug(String.format("aggregateMethodCount %s", this.getData().getName()));
         if (this.getData() instanceof ClassExecutionData) {
             return this.getData().getMethodCount();
         }
@@ -156,7 +151,6 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private int aggregateTotal() {
-        logger.debug(String.format("aggregateTotal %s", this.getData().getName()));
         if (this.getData() instanceof ClassExecutionData) {
             return this.getData().getTotal();
         }
@@ -171,7 +165,6 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private int aggregateCovered() {
-        logger.debug(String.format("aggregateCovered %s", this.getData().getName()));
         if (this.getData() instanceof ClassExecutionData) {
             return this.getData().getCovered();
         }
@@ -185,7 +178,6 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private double aggregateRate() {
-        logger.debug(String.format("aggregateRate %s", this.getData().getName()));
         if (this.getData() instanceof ClassExecutionData) {
             return this.getData().getRate();
         }

@@ -101,7 +101,6 @@ public class CoverageDataStore {
         // Tested class data export
         JDFCUtils.logThis(testedClassList.toString(), "tested_classList");
         for(String className : testedClassList) {
-            logger.debug("TESTED: " + className);
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
@@ -114,7 +113,6 @@ public class CoverageDataStore {
         // Untested class data export
         JDFCUtils.logThis(untestedClassList.toString(), "untested_classList");
         for(String className : untestedClassList) {
-            logger.debug("UNTESTED: " + className);
             ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
             try {
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
@@ -140,7 +138,6 @@ public class CoverageDataStore {
     }
 
     public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
-        log.debug("findClassDataNode");
         ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.replace(File.separator, "/").split("/")));
 
         // root path
@@ -148,11 +145,7 @@ public class CoverageDataStore {
             nodePath.add(0, "default");
         }
 
-        ExecutionDataNode<ExecutionData> node = root.getChildDataRecursive(nodePath);
-        if (node == null) {
-            log.debug("Return NULL");
-        }
-        return node;
+        return root.getChildDataRecursive(nodePath);
     }
 
     public void addNodesFromDirRecursive(File pFile,

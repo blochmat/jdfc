@@ -24,7 +24,6 @@ public class ASMHelper {
             final String pDescriptor,
             final String pSignature,
             final String[] pExceptions) {
-        this.logger.debug("computeInternalMethodName");
         final StringBuilder result = new StringBuilder();
         result.append(pMethodName);
         result.append(": ");

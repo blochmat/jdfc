@@ -34,7 +34,6 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
 
     public MethodNode getMethodNode(final String pName,
                                     final String pDescriptor) {
-        logger.debug("getMethodNode");
         for (MethodNode node : classNode.methods) {
             if (node.name.equals(pName) && node.desc.equals(pDescriptor)) {
                 return node;
@@ -44,7 +43,6 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
     }
 
     protected boolean isInstrumentationRequired(MethodNode methodNode) {
-        logger.debug("isInstrumentationRequired");
         return !methodNode.name.contains("$jacoco") // no jacoco method
                 && !methodNode.name.contains("$lambda") // no lambda expression
                 && ((methodNode.access & Opcodes.ACC_SYNTHETIC) == 0) // no synthetic method
@@ -52,7 +50,6 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
     }
 
     public ClassNode getClassNode() {
-        logger.debug("getClassNode");
         return classNode;
     }
 
