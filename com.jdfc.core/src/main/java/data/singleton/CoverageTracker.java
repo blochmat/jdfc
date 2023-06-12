@@ -38,11 +38,12 @@ public class CoverageTracker {
             }
             CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
             CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             if (log.isDebugEnabled()) {
                 File file = JDFCUtils.createFileInDebugDir("5_addLocalVarCoveredEntry.txt", false);
                 try (FileWriter writer = new FileWriter(file, true)) {
-                    writer.write("NullPointerException: ");
+                    writer.write(String.format("Exception: %s ", e.getClass()));
+                    writer.write(String.format("Message: %s ", e.getMessage()));
                     if (cData == null) {
                         writer.write(String.format("    cId: %s\n", cId));
                         writer.write("==============================\n");

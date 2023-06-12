@@ -67,6 +67,7 @@ public class CFGCreator {
             // Log all relative paths of files in the classpath
             File transformFile = JDFCUtils.createFileInDebugDir("3_createCFGsForClass.txt", false);
             try (FileWriter writer = new FileWriter(transformFile, true)) {
+                writer.write("Class: " + pClassExecutionData.getRelativePath());
                 for(MethodData mData : pClassExecutionData.getMethods().values()) {
                     writer.write("Method: " + mData.buildInternalMethodName());
                     writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
@@ -74,6 +75,7 @@ public class CFGCreator {
                     writer.write(JDFCUtils.prettyPrintMultimap(mData.getCfg().getEdges()));
                     writer.write("\n");
                 }
+                writer.write("\n");
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }

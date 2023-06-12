@@ -14,13 +14,11 @@ import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
 import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
+import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import utils.JDFCUtils;
 
 import java.util.Map;
 import java.util.NavigableMap;
@@ -29,8 +27,8 @@ import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.*;
 
+@Slf4j
 public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
-    private final Logger logger = LoggerFactory.getLogger(CFGNodeMethodVisitor.class);
     private final Multimap<Double, Double> edges;
     private final NavigableMap<Double, CFGNode> nodes;
     private final MethodData mData;
@@ -40,23 +38,21 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                                 final MethodNode pMethodNode,
                                 final String pInternalMethodName) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
-        logger.debug(String.format("Visiting %s", pInternalMethodName));
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
         mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
-        logger.debug(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
     }
 
     @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
-        logger.debug("visitFrame");
+//        logger.debug("visitFrame");
         super.visitFrame(type, numLocal, local, numStack, stack);
         final CFGNode node = new CFGNode(currentInstructionIndex, getFrameOpcode(type));
         nodes.put((double) currentInstructionIndex, node);
     }
 
     private int getFrameOpcode(int type) {
-        logger.debug("getFrameOpcode");
+//        logger.debug("getFrameOpcode");
         switch (type) {
             case -1:
                 return F_NEW;
@@ -77,8 +73,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitInsn(int opcode) {
-        String debug = String.format("visitInsn %s", JDFCUtils.getOpcode(opcode));
-        logger.debug(debug);
+//        String debug = String.format("visitInsn %s", JDFCUtils.getOpcode(opcode));
+//        logger.debug(debug);
         super.visitInsn(opcode);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -87,7 +83,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitFrameNew() {
-        logger.debug("visitFrameNew");
+//        logger.debug("visitFrameNew");
         if (currentNode.getOpcode() == F_NEW) {
             final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
             nodes.put((double) currentInstructionIndex, node);
@@ -97,8 +93,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitIntInsn(int opcode, int operand) {
-        String debug = String.format("visitIntInsn %s", JDFCUtils.getOpcode(opcode));
-        logger.debug(debug);
+//        String debug = String.format("visitIntInsn %s", JDFCUtils.getOpcode(opcode));
+//        logger.debug(debug);
         super.visitIntInsn(opcode, operand);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -107,8 +103,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitVarInsn(int opcode, int var) {
-        String debug = String.format("visitVarInsn %s", JDFCUtils.getOpcode(opcode));
-        logger.debug(debug);
+//        String debug = String.format("visitVarInsn %s", JDFCUtils.getOpcode(opcode));
+//        logger.debug(debug);
         super.visitVarInsn(opcode, var);
         visitFrameNew();
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
@@ -116,8 +112,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
-        String debug = String.format("visitTypeInsn %s", JDFCUtils.getOpcode(opcode));
-        logger.debug(debug);
+//        String debug = String.format("visitTypeInsn %s", JDFCUtils.getOpcode(opcode));
+//        logger.debug(debug);
         super.visitTypeInsn(opcode, type);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -126,8 +122,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        String debug = String.format("visitFieldInsn %s", JDFCUtils.getOpcode(opcode));
-        logger.debug(debug);
+//        String debug = String.format("visitFieldInsn %s", JDFCUtils.getOpcode(opcode));
+//        logger.debug(debug);
         super.visitFieldInsn(opcode, owner, name, descriptor);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -136,8 +132,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-        String debug = String.format("visitMethodInsn %s", JDFCUtils.getOpcode(opcode));
-        logger.debug(debug);
+//        String debug = String.format("visitMethodInsn %s", JDFCUtils.getOpcode(opcode));
+//        logger.debug(debug);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -146,7 +142,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-        logger.debug("visitInvokeDynamicInsn");
+//        logger.debug("visitInvokeDynamicInsn");
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, INVOKEDYNAMIC);
@@ -155,8 +151,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
-        String debug = String.format("visitJumpInsn %s %s", JDFCUtils.getOpcode(opcode), label);
-        logger.debug(debug);
+//        String debug = String.format("visitJumpInsn %s %s", JDFCUtils.getOpcode(opcode), label);
+//        logger.debug(debug);
         super.visitJumpInsn(opcode, label);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -165,7 +161,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitLdcInsn(Object value) {
-        logger.debug("visitLdcInsn");
+//        logger.debug("visitLdcInsn");
         super.visitLdcInsn(value);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, LDC);
@@ -174,7 +170,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitIincInsn(int var, int increment) {
-        logger.debug("visitIincInsn");
+//        logger.debug("visitIincInsn");
         super.visitIincInsn(var, increment);
         visitFrameNew();
         createCFGNodeForIincInsnNode(var, currentInstructionIndex, currentLineNumber);
@@ -182,7 +178,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
-        logger.debug("visitTableSwitchInsn");
+//        logger.debug("visitTableSwitchInsn");
         super.visitTableSwitchInsn(min, max, dflt, labels);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, TABLESWITCH);
@@ -191,7 +187,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-        logger.debug("visitLookupSwitchInsn");
+//        logger.debug("visitLookupSwitchInsn");
         super.visitLookupSwitchInsn(dflt, keys, labels);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, LOOKUPSWITCH);
@@ -200,7 +196,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
-        logger.debug("visitMultiANewArrayInsn");
+//        logger.debug("visitMultiANewArrayInsn");
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, MULTIANEWARRAY);
@@ -209,7 +205,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitEnd() {
-        logger.debug("visitEnd");
+//        logger.debug("visitEnd");
         super.visitEnd();
 
         edges.putAll(createEdges());
@@ -217,8 +213,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         this.setPredecessorSuccessorRelation();
         CFG cfg = new CFGImpl(internalMethodName, nodes, edges);
 
-        logger.debug(internalMethodName);
-        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
+//        logger.debug(internalMethodName);
+//        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
 
         if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
@@ -235,7 +231,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                                                            final int pOpcode,
                                                            final int pIndex,
                                                            final int pLineNumber) {
-        logger.debug(String.format("getProgramVariableFromLocalVar(%d, %d, %d, %d)", varNumber, pOpcode, pIndex, pLineNumber));
+//        logger.debug(String.format("getProgramVariableFromLocalVar(%d, %d, %d, %d)", varNumber, pOpcode, pIndex, pLineNumber));
         final String varName = getLocalVarName(varNumber);
         final String varType = getLocalVarType(varNumber);
         final boolean isDefinition = isDefinition(pOpcode);
@@ -246,7 +242,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private String getLocalVarName(final int pVarNumber) {
-        logger.debug(String.format("getLocalVarName(%d)", pVarNumber));
+//        logger.debug(String.format("getLocalVarName(%d)", pVarNumber));
         final LocalVariable localVariable = mData.getLocalVariableTable().get(pVarNumber);
         if (localVariable != null) {
             return localVariable.getName();
@@ -256,7 +252,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private String getLocalVarType(final int pVarNumber) {
-        logger.debug(String.format("getLocalVarType(%d)", pVarNumber));
+//        logger.debug(String.format("getLocalVarType(%d)", pVarNumber));
         final LocalVariable localVariable = mData.getLocalVariableTable().get(pVarNumber);
         if (localVariable != null) {
             return localVariable.getDescriptor();
@@ -266,7 +262,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int varNumber, final int pIndex, final int lineNumber) {
-        logger.debug("createCFGNodeForVarInsnNode");
+//        logger.debug("createCFGNodeForVarInsnNode");
         final CFGNode node;
         final ProgramVariable programVariable;
         switch (opcode) {
@@ -294,7 +290,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void createCFGNodeForIincInsnNode(final int varNumber, final int pIndex, final int pLineNumber) {
-        logger.debug("createCFGNodeForIincInsnNode");
+//        logger.debug("createCFGNodeForIincInsnNode");
         final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, ISTORE, pIndex, pLineNumber);
         final CFGNode node =
                 new CFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex, IINC);
@@ -302,7 +298,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private Multimap<Double, Double> createEdges() {
-        logger.debug("createEdges");
+//        logger.debug("createEdges");
         CFGEdgeAnalysisVisitor cfgEdgeAnalysisVisitor =
                 new CFGEdgeAnalysisVisitor(methodNode);
         methodNode.accept(cfgEdgeAnalysisVisitor);
@@ -310,7 +306,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void setPredecessorSuccessorRelation() {
-        logger.debug("setPredecessorSuccessorRelation");
+//        logger.debug("setPredecessorSuccessorRelation");
         for (Map.Entry<Double, Double> edge : edges.entries()) {
             final CFGNode first = nodes.get(edge.getKey());
             final CFGNode second = nodes.get(edge.getValue());
@@ -320,7 +316,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void addEntryAndExitNode() {
-        logger.debug("addEntryAndExitNode");
+//        logger.debug("addEntryAndExitNode");
         Set<ProgramVariable> parameters = createParamVars();
 
         final CFGNode entryNode =
@@ -351,6 +347,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     private Set<ProgramVariable> createParamVars() {
+        // TODO: What makes it necessary to store those in a separate list?
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
             final ProgramVariable variable =

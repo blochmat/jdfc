@@ -1,20 +1,18 @@
 package graphs.cfg.visitors.classVisitors;
 
-import graphs.cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
 import data.ClassExecutionData;
+import graphs.cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
+import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import utils.ASMHelper;
 import utils.JDFCUtils;
 
+@Slf4j
 public class CFGNodeClassVisitor extends JDFCClassVisitor {
-
-    private final Logger logger = LoggerFactory.getLogger(CFGNodeClassVisitor.class);
 
     private final ASMHelper asmHelper = new ASMHelper();
 
@@ -30,7 +28,6 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
                                      final String pSignature,  // more detailed desc
                                      final String[] pExceptions) // [ExcA, ExcB,.. ]
     {
-        logger.debug("visitMethod");
         final MethodVisitor mv;
         if (cv != null) {
             mv = cv.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
@@ -47,6 +44,7 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
                     && isInstrumentationRequired(methodNode)
                     && !internalMethodName.contains("<init>")
                     && !internalMethodName.contains("<clinit>")) {
+
                 return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName);
             }
         }
