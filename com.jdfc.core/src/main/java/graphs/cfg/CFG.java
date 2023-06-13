@@ -29,9 +29,9 @@ public interface CFG {
      *
      * @return A map between node ID and {@link CFGNode}
      */
-    NavigableMap<Double, CFGNode> getNodes();
+    NavigableMap<Integer, CFGNode> getNodes();
 
-    Multimap<Double, Double> getEdges();
+    Multimap<Integer, Integer> getEdges();
 
     CFGNode getEntryNode();
 

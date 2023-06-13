@@ -171,7 +171,7 @@ public class MethodData {
      * Calculates all possible Def-Use-Pairs.
      */
     public void calculateDefUsePairs() {
-        for (Map.Entry<Double, CFGNode> entry : this.cfg.getNodes().entrySet()) {
+        for (Map.Entry<Integer, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
 
             for (ProgramVariable def : node.getReach()) {

@@ -29,8 +29,8 @@ import static org.objectweb.asm.Opcodes.*;
 
 @Slf4j
 public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
-    private final Multimap<Double, Double> edges;
-    private final NavigableMap<Double, CFGNode> nodes;
+    private final Multimap<Integer, Integer> edges;
+    private final NavigableMap<Integer, CFGNode> nodes;
     private final MethodData mData;
 
     public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
@@ -48,7 +48,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        logger.debug("visitFrame");
         super.visitFrame(type, numLocal, local, numStack, stack);
         final CFGNode node = new CFGNode(currentInstructionIndex, getFrameOpcode(type));
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     private int getFrameOpcode(int type) {
@@ -78,7 +78,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitInsn(opcode);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        logger.debug("visitFrameNew");
         if (currentNode.getOpcode() == F_NEW) {
             final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
-            nodes.put((double) currentInstructionIndex, node);
+            nodes.put(currentInstructionIndex, node);
             updateCurrentNode();
         }
     }
@@ -98,7 +98,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitIntInsn(opcode, operand);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitTypeInsn(opcode, type);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -127,7 +127,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitFieldInsn(opcode, owner, name, descriptor);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -146,7 +146,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, INVOKEDYNAMIC);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -156,7 +156,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitJumpInsn(opcode, label);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -165,7 +165,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitLdcInsn(value);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, LDC);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -182,7 +182,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitTableSwitchInsn(min, max, dflt, labels);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, TABLESWITCH);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -191,7 +191,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitLookupSwitchInsn(dflt, keys, labels);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, LOOKUPSWITCH);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -200,7 +200,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, MULTIANEWARRAY);
-        nodes.put((double) currentInstructionIndex, node);
+        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -285,7 +285,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(pIndex, opcode);
                 break;
         }
-        nodes.put((double) pIndex, node);
+        nodes.put(pIndex, node);
     }
 
     private void createCFGNodeForIincInsnNode(final int varNumber, final int pIndex, final int pLineNumber) {
@@ -293,10 +293,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final ProgramVariable programVariable = getProgramVariableFromLocalVar(varNumber, ISTORE, pIndex, pLineNumber);
         final CFGNode node =
                 new CFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex, IINC);
-        nodes.put((double) pIndex, node);
+        nodes.put(pIndex, node);
     }
 
-    private Multimap<Double, Double> createEdges() {
+    private Multimap<Integer, Integer> createEdges() {
 //        logger.debug("createEdges");
         CFGEdgeAnalysisVisitor cfgEdgeAnalysisVisitor =
                 new CFGEdgeAnalysisVisitor(methodNode);
@@ -306,7 +306,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private void setPredecessorSuccessorRelation() {
 //        logger.debug("setPredecessorSuccessorRelation");
-        for (Map.Entry<Double, Double> edge : edges.entries()) {
+        for (Map.Entry<Integer, Integer> edge : edges.entries()) {
             final CFGNode first = nodes.get(edge.getKey());
             final CFGNode second = nodes.get(edge.getValue());
             first.addSuccessor(second);
@@ -322,28 +322,50 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             mData.getProgramVariables().put(id, param);
         }
 
+        // Copy nodes
+        NavigableMap<Integer, CFGNode> tempNodes = Maps.newTreeMap();
+        tempNodes.putAll(this.nodes);
+
+        // Put entry node
         final CFGNode entryNode =
                 new CFGEntryNode(parameters, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
-        nodes.put((double) Integer.MIN_VALUE, entryNode);
+        nodes.put(0, entryNode);
+
+        // Put all other nodes
+        for(Map.Entry<Integer, CFGNode> entry : tempNodes.entrySet()) {
+            nodes.put(entry.getKey()+1, entry.getValue());
+        }
+
+        // Put exit node
         final CFGNode exitNode =
                 new CFGExitNode(Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newHashSet(), Sets.newLinkedHashSet());
-        nodes.put((double) Integer.MAX_VALUE, exitNode);
+        nodes.put(nodes.size(), exitNode);
 
+        // Copy edges
+        Multimap<Integer, Integer> tempEdges = ArrayListMultimap.create();
+        tempEdges.putAll(this.edges);
+
+        // Put edges
+        for(Map.Entry<Integer, Integer> entry : tempEdges.entries()) {
+            edges.put(entry.getKey()+1, entry.getValue());
+        }
+
+        // Put edges for entry and exit node
         if(nodes.size() == 2) {
             // only contains entry and exit nodes
-            edges.put((double) Integer.MIN_VALUE, (double) Integer.MAX_VALUE);
+            edges.put(0, 1);
         } else {
             // Add edge from entry node
-            final CFGNode firstNode = nodes.get(0.0);
+            final CFGNode firstNode = nodes.get(0);
             if(firstNode == null) {
                 throw new RuntimeException("Add entry node failed, because first node was null.");
             }
-            edges.put((double) Integer.MIN_VALUE, 0.0);
+            edges.put(0, 1);
 
             // Add edges to exit node
-            for (Map.Entry<Double, CFGNode> nodeEntry : nodes.entrySet()) {
+            for (Map.Entry<Integer, CFGNode> nodeEntry : nodes.entrySet()) {
                 if (172 <= nodeEntry.getValue().getOpcode() && nodeEntry.getValue().getOpcode() <= 177) {
-                    edges.put(nodeEntry.getKey(), (double) Integer.MAX_VALUE);
+                    edges.put(nodeEntry.getKey(), nodes.size()-1);
                 }
             }
         }

@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 public class CFGNode {
     private final Set<ProgramVariable> definitions;
     private final Set<ProgramVariable> uses;
-    private final int index;
+    private final int insnIndex;
     private final int opcode;
-    private final Set<CFGNode> predecessors;
-    private final Set<CFGNode> successors;
+    private final Set<CFGNode> pred;
+    private final Set<CFGNode> succ;
     private final Set<ProgramVariable> reachOut;
     private final Set<ProgramVariable> reach;
 
@@ -47,10 +47,10 @@ public class CFGNode {
             final Set<CFGNode> pSuccessors) {
         definitions = pDefinitions;
         uses = pUses;
-        index = pIndex;
+        insnIndex = pIndex;
         opcode = pOpcode;
-        predecessors = pPredecessors;
-        successors = pSuccessors;
+        pred = pPredecessors;
+        succ = pSuccessors;
 
         reachOut = Sets.newLinkedHashSet();
         reach = Sets.newLinkedHashSet();
@@ -61,7 +61,7 @@ public class CFGNode {
     }
 
     public void update() {
-        for (CFGNode node : predecessors) {
+        for (CFGNode node : pred) {
             reach.addAll(node.getReachOut());
         }
         reachOut.clear();
@@ -81,11 +81,11 @@ public class CFGNode {
     }
 
     public void addSuccessor(final CFGNode pNode) {
-        successors.add(pNode);
+        succ.add(pNode);
     }
 
     public void addPredecessor(final CFGNode pNode) {
-        predecessors.add(pNode);
+        pred.add(pNode);
     }
 
     /**
@@ -102,8 +102,8 @@ public class CFGNode {
      *
      * @return The set of {@link CFGNode}s that are successors
      */
-    public Set<CFGNode> getSuccessors() {
-        return Collections.unmodifiableSet(successors);
+    public Set<CFGNode> getSucc() {
+        return Collections.unmodifiableSet(succ);
     }
 
     public Set<ProgramVariable> getReach() {
@@ -115,8 +115,8 @@ public class CFGNode {
      *
      * @return The index number of this node
      */
-    public int getIndex() {
-        return index;
+    public int getInsnIndex() {
+        return insnIndex;
     }
 
     /**
@@ -124,8 +124,8 @@ public class CFGNode {
      *
      * @return The set of {@link CFGNode}s that are predecessors
      */
-    public Set<CFGNode> getPredecessors() {
-        return Collections.unmodifiableSet(predecessors);
+    public Set<CFGNode> getPred() {
+        return Collections.unmodifiableSet(pred);
     }
 
     public void addDefinition(ProgramVariable pDefinition) {
@@ -157,7 +157,7 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGNode: %d %s (%d predecessors, %d successors) | definitions %s | uses %s",
-                index, JDFCUtils.getOpcode(opcode), predecessors.size(), successors.size(), definitions, uses);
+                "CFGNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
+                insnIndex, JDFCUtils.getOpcode(opcode), pred.size(), succ.size(), definitions, uses);
     }
 }
