@@ -347,7 +347,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
         // Put edges
         for(Map.Entry<Integer, Integer> entry : tempEdges.entries()) {
-            edges.put(entry.getKey()+1, entry.getValue());
+            edges.remove(entry.getKey(), entry.getValue());
+            edges.put(entry.getKey()+1, entry.getValue()+1);
         }
 
         // Put edges for entry and exit node
