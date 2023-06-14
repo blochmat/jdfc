@@ -1,10 +1,16 @@
 package graphs.cfg.nodes;
 
 import data.ProgramVariable;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import utils.JDFCUtils;
 
 import java.util.Set;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class CFGCallNode extends CFGNode {
 
     String owner;

@@ -8,7 +8,7 @@ import java.util.Set;
 public class CFGExitNode extends CFGNode {
 
     public CFGExitNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, Set<CFGNode> pPredecessors, Set<CFGNode> pSuccessors) {
-        super(pDefinitions, pUses, Integer.MAX_VALUE, Integer.MAX_VALUE, pPredecessors, pSuccessors);
+        super(pDefinitions, pUses, Integer.MIN_VALUE, Integer.MIN_VALUE, pPredecessors, pSuccessors);
     }
 
     @Override

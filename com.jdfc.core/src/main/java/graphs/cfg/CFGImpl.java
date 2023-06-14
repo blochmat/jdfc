@@ -90,6 +90,6 @@ public class CFGImpl implements CFG {
      */
     @Override
     public String toString() {
-        return String.format("ICFGImpl for method %s (containing %d nodes)%n %s", methodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
+        return String.format("CFGImpl for method %s (containing %d nodes)%n %s", methodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
     }
 }

@@ -8,8 +8,8 @@ import java.util.Set;
 
 public class SGCallNode extends SGNode {
 
-    public SGCallNode(CFGNode node) {
-        super(node);
+    public SGCallNode(String internalMethodName, CFGNode node) {
+        super(internalMethodName, node);
     }
 
     public SGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, Set<CFGNode> pPredecessors, Set<CFGNode> pSuccessors) {
@@ -19,7 +19,7 @@ public class SGCallNode extends SGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGEntryNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
+                "SGCallNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
                 this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(), this.getSucc().size(), this.getDefinitions(), this.getUses());
     }
 }

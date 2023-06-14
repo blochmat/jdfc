@@ -1,17 +1,12 @@
 package graphs.sg;
 
 import com.google.common.collect.Multimap;
-import graphs.cfg.CFG;
 import graphs.sg.nodes.SGNode;
 
 import java.util.NavigableMap;
 import java.util.Set;
 
 public interface SG {
-
-    public Set<CFG> getCFGs();
-
-    public CFG getMainCFG();
 
     public SGNode getEntryNode();
 
@@ -20,7 +15,7 @@ public interface SG {
      *
      * @return
      */
-    NavigableMap<Double, SGNode> getNodes();
+    NavigableMap<Integer, SGNode> getNodes();
 
     /**
      * Get all edges of the combined super graph.
@@ -30,4 +25,7 @@ public interface SG {
     Multimap<Integer, Integer> getEdges();
 
     Set<InterVariable> getDomain();
+
+    @Override
+    public String toString();
 }

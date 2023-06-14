@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SGNode {
+    
+    private String internalMethodName;
     private final Set<ProgramVariable> definitions;
     private final Set<ProgramVariable> uses;
     private final int insnIndex;
@@ -20,7 +22,7 @@ public class SGNode {
     private final Set<ProgramVariable> reachOut;
     private final Set<ProgramVariable> reach;
 
-    public SGNode(CFGNode node) {
+    public SGNode(String internalMethodName, CFGNode node) {
         this.definitions = node.getDefinitions();
         this.uses = node.getUses();
         this.insnIndex = node.getInsnIndex();
@@ -165,7 +167,7 @@ public class SGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
+                "SGNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
                 insnIndex, JDFCUtils.getOpcode(opcode), pred.size(), succ.size(), definitions, uses);
     }
 }

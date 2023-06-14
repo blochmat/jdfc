@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
+import lombok.NoArgsConstructor;
 import utils.JDFCUtils;
 
 import java.util.Collections;
@@ -13,15 +14,16 @@ import java.util.stream.Collectors;
 /**
  * A node in the {@link CFG}.
  */
+@NoArgsConstructor
 public class CFGNode {
-    private final Set<ProgramVariable> definitions;
-    private final Set<ProgramVariable> uses;
-    private final int insnIndex;
-    private final int opcode;
-    private final Set<CFGNode> pred;
-    private final Set<CFGNode> succ;
-    private final Set<ProgramVariable> reachOut;
-    private final Set<ProgramVariable> reach;
+    private Set<ProgramVariable> definitions;
+    private Set<ProgramVariable> uses;
+    private int insnIndex;
+    private int opcode;
+    private Set<CFGNode> pred;
+    private Set<CFGNode> succ;
+    private Set<ProgramVariable> reachOut;
+    private Set<ProgramVariable> reach;
 
     public CFGNode(final int pIndex, final int pOpcode) {
         this(
