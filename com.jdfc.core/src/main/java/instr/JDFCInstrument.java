@@ -3,6 +3,7 @@ package instr;
 import data.ClassExecutionData;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
+import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassReader;
@@ -31,6 +32,8 @@ public class JDFCInstrument {
 
         if (classExecutionData != null) {
             CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
+
+            SGCreator.createSGsForClass(classExecutionData);
 
             if (log.isDebugEnabled()) {
                 // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw

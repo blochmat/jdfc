@@ -354,10 +354,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         // Copy edges
         Multimap<Integer, Integer> tempEdges = ArrayListMultimap.create();
         tempEdges.putAll(this.edges);
+        this.edges.clear();
 
         // Put edges
         for(Map.Entry<Integer, Integer> entry : tempEdges.entries()) {
-            edges.remove(entry.getKey(), entry.getValue());
             edges.put(entry.getKey()+1, entry.getValue()+1);
         }
 
