@@ -9,6 +9,7 @@ import data.ProgramVariable;
 import graphs.cfg.CFG;
 import graphs.cfg.CFGImpl;
 import graphs.cfg.LocalVariable;
+import graphs.cfg.nodes.CFGCallNode;
 import graphs.cfg.nodes.CFGEntryNode;
 import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
@@ -19,11 +20,10 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
+import utils.ASMHelper;
+import utils.JDFCUtils;
 
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -132,12 +132,21 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+        // opcode, name of called class, name of called method, desc of called method
 //        String debug = String.format("visitMethodInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         visitFrameNew();
-        final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
-        nodes.put(currentInstructionIndex, node);
+        if (owner.equals(classVisitor.classNode.name)) {
+            ASMHelper asmHelper = new ASMHelper();
+            String shortInternalName = asmHelper.computeInternalMethodName(name, descriptor, null, null);
+            CFGCallNode node = new CFGCallNode(currentInstructionIndex, opcode, owner, shortInternalName, isInterface);
+            nodes.put(currentInstructionIndex, node);
+            JDFCUtils.logThis(node.toString(), "method_insn");
+        } else {
+            final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
+            nodes.put(currentInstructionIndex, node);
+        }
     }
 
     @Override
@@ -146,6 +155,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
         visitFrameNew();
         final CFGNode node = new CFGNode(currentInstructionIndex, INVOKEDYNAMIC);
+        JDFCUtils.logThis(String.format("%s %s %s %s %s", "invokedynamic", name, descriptor, bootstrapMethodHandle, Arrays.toString(bootstrapMethodArguments)), "dynamic_insn");
         nodes.put(currentInstructionIndex, node);
     }
 

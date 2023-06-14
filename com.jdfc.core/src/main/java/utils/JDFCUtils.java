@@ -394,19 +394,14 @@ public class JDFCUtils {
     }
 
     public static void logThis(String str, String fileName) {
-        String outPath = String.format("%s%starget%sjdfc%slog", System.getProperty("user.dir"), File.separator, File.separator, File.separator);
-        String filePath = String.format("%s/%s.log", outPath, fileName);
         Thread thread = Thread.currentThread();
-        File JDFCDir = new File(outPath);
-        if (!JDFCDir.exists()) {
-            JDFCDir.mkdirs();
-        }
-        try (FileWriter writer = new FileWriter(filePath, true)) {
+        File log = createFileInDebugDevLogDir(fileName, false);
+        try (FileWriter writer = new FileWriter(log, true)) {
             writer.write(String.format("ThreadName: %s, ThreadId: %d", thread.getName(), thread.getId()));
             writer.write(getFormattedTimestamp() + " - " + str);
             writer.write("\n");
         } catch (IOException ioException) {
-            ioException.printStackTrace();  // print to console as a last resort
+            ioException.printStackTrace();
         }
     }
 
@@ -430,6 +425,10 @@ public class JDFCUtils {
 
     public static File createFileInErrorDir(String fileName, boolean isDir) {
         return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugErrorDir(), fileName, isDir);
+    }
+
+    public static File createFileInDebugDevLogDir(String fileName, boolean isDir) {
+        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugDevLogDir(), fileName, isDir);
     }
 
     public static File createFileIn(String dir, String fileName, boolean isDir) {

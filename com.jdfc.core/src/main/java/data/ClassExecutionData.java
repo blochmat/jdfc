@@ -144,7 +144,6 @@ public class ClassExecutionData extends ExecutionData {
         return methods;
     }
 
-    // New Code
     public MethodData getMethodByInternalName(String internalName) {
         for(MethodData mData : methods.values()) {
             if (mData.buildInternalMethodName().equals(internalName)) {
@@ -156,6 +155,29 @@ public class ClassExecutionData extends ExecutionData {
             File transformFile = JDFCUtils.createFileInDebugDir("getMethodByInternalName.txt", false);
             try (FileWriter writer = new FileWriter(transformFile, true)) {
                 writer.write(String.format("Search param: %s", internalName));
+                writer.write(JDFCUtils.prettyPrintArray(
+                        methods.values().stream().map(MethodData::buildInternalMethodName).toArray()));
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+
+            }
+        }
+        return null;
+    }
+
+    public MethodData getMethodByShortInternalName(String shortInternalName) {
+        for(MethodData mData : methods.values()) {
+            if (mData.buildInternalMethodName().contains(shortInternalName)) {
+                return mData;
+            }
+        }
+
+        if(log.isDebugEnabled()) {
+            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByShortInternalName.txt", false);
+            try (FileWriter writer = new FileWriter(transformFile, true)) {
+                writer.write(String.format("Search param: %s", shortInternalName));
+                writer.write("\n");
                 writer.write(JDFCUtils.prettyPrintArray(
                         methods.values().stream().map(MethodData::buildInternalMethodName).toArray()));
                 writer.write("\n");

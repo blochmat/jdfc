@@ -22,13 +22,13 @@ public class SGCreator {
     public static Map<UUID, SG> createSGsForClass(ClassExecutionData cData) {
         Map<UUID, SG> sgs = new HashMap<>();
         for(MethodData mData : cData.getMethods().values()) {
-            sgs.put(mData.getId(), SGCreator.createSGForMethod(mData));
+            sgs.put(mData.getId(), SGCreator.createSGForMethod(mData, 0));
         }
 
         return sgs;
     }
 
-    public static SG createSGForMethod(MethodData mData) {
+    public static SG createSGForMethod(MethodData mData, int depth) {
         NavigableMap<Integer, SGNode> nodes = Maps.newTreeMap();
         Multimap<Integer, Integer> edges = ArrayListMultimap.create();
         int index = 0;
