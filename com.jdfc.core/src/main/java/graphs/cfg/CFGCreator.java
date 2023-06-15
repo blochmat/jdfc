@@ -56,12 +56,12 @@ public class CFGCreator {
         // Get local variable information for all methods in the class
         final CFGLocalVariableClassVisitor localVariableVisitor =
                 new CFGLocalVariableClassVisitor(pClassNode, pClassExecutionData);
-        pClassReader.accept(localVariableVisitor, 0);
+        pClassReader.accept(localVariableVisitor, ClassReader.EXPAND_FRAMES);
 
         // Build CFG for all methods in the class
         final CFGNodeClassVisitor CFGNodeClassVisitor =
                 new CFGNodeClassVisitor(pClassNode, pClassExecutionData);
-        pClassReader.accept(CFGNodeClassVisitor, 0);
+        pClassReader.accept(CFGNodeClassVisitor, ClassReader.EXPAND_FRAMES);
 
         if(log.isDebugEnabled()) {
             // Log all relative paths of files in the classpath
