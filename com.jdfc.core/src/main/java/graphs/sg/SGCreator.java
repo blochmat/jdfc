@@ -101,7 +101,7 @@ public class SGCreator {
 
                 // Create sg for called procedure
                 SG calledSG;
-                if(mData.getId().equals(calledMethodData.getId()) && depth < 3) {
+                if(mData.getId().equals(calledMethodData.getId()) && depth < 2) {
                     sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
                     calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, depth++);
                 } else {
