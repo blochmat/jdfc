@@ -54,33 +54,37 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         super.visitLineNumber(line, start);
     }
 
-//    @Override
-//    public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
-//        updateCurrentNode();
-//        super.visitFrame(type, numLocal, local, numStack, stack);
-//    }
+    @Override
+    public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
+        updateCurrentNode();
+        super.visitFrame(type, numLocal, local, numStack, stack);
+    }
 
     @Override
     public void visitInsn(int opcode) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitInsn(opcode);
     }
 
     @Override
     public void visitIntInsn(int opcode, int operand) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitIntInsn(opcode, operand);
     }
 
     @Override
     public void visitVarInsn(int opcode, int var) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitVarInsn(opcode, var);
     }
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitTypeInsn(opcode, type);
     }
 
@@ -93,48 +97,56 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
 
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     }
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitJumpInsn(opcode, label);
     }
 
     @Override
     public void visitLdcInsn(Object value) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitLdcInsn(value);
     }
 
     @Override
     public void visitIincInsn(int var, int increment) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitIincInsn(var, increment);
     }
 
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitTableSwitchInsn(min, max, dflt, labels);
     }
 
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitLookupSwitchInsn(dflt, keys, labels);
     }
 
     @Override
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
         updateCurrentNode();
+        visitFrameNew();
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
     }
 
@@ -157,6 +169,12 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
             }
         }
         currentInstructionIndex = methodNode.instructions.indexOf(currentNode);
+    }
+
+    public void visitFrameNew() {
+        if (currentNode.getOpcode() == F_NEW) {
+            updateCurrentNode();
+        }
     }
 
     protected boolean isDefinition(final int pOpcode) {

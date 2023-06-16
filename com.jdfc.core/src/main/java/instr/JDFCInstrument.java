@@ -2,7 +2,6 @@ package instr;
 
 import data.ClassExecutionData;
 import data.singleton.CoverageDataStore;
-import graphs.cfg.CFGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassReader;
@@ -22,9 +21,7 @@ public class JDFCInstrument {
 
     public byte[] instrument(final ClassReader classReader) {
         final ClassNode classNode = new ClassNode();
-        classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-
-        JDFCUtils.logThis(classNode.methods.toString(), "classnode");
+        classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
 
         // cw
         final ClassWriter cw = new ClassWriter(classReader, 0);
@@ -32,7 +29,7 @@ public class JDFCInstrument {
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
         if (classExecutionData != null) {
-            CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
+//            CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
 //
 //            SGCreator.createSGsForClass(classExecutionData);
 
