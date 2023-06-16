@@ -179,7 +179,7 @@ public class JDFCUtils {
             case 197: return "MULTIANEWARRAY";
             case 198: return "IFNULL";
             case 199: return "IFNONNULL";
-            default: return "UNKNOWN_OPCODE";
+            default: return String.valueOf(value);
         }
     }
 
