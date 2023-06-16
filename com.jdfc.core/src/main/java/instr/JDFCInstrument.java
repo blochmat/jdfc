@@ -2,6 +2,8 @@ package instr;
 
 import data.ClassExecutionData;
 import data.singleton.CoverageDataStore;
+import graphs.cfg.CFGCreator;
+import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassReader;
@@ -21,7 +23,7 @@ public class JDFCInstrument {
 
     public byte[] instrument(final ClassReader classReader) {
         final ClassNode classNode = new ClassNode();
-        classReader.accept(classNode, ClassReader.EXPAND_FRAMES);
+        classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
         // cw
         final ClassWriter cw = new ClassWriter(classReader, 0);
@@ -29,9 +31,9 @@ public class JDFCInstrument {
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
         if (classExecutionData != null) {
-//            CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
-//
-//            SGCreator.createSGsForClass(classExecutionData);
+            CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
+
+            SGCreator.createSGsForClass(classExecutionData);
 
             if (log.isDebugEnabled()) {
                 // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
@@ -51,7 +53,7 @@ public class JDFCInstrument {
                     try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFile, true))) {
                         TraceClassVisitor beforeTcv = new TraceClassVisitor(cv, beforeWriter);
                         // cr -> beforeTcv -> cv -> afterTcv -> cw
-                        classReader.accept(beforeTcv, ClassReader.EXPAND_FRAMES);
+                        classReader.accept(beforeTcv, 0);
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }

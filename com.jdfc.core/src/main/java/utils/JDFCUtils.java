@@ -287,11 +287,7 @@ public class JDFCUtils {
         StringBuilder sb = new StringBuilder();
         sb.append("[\n");
         for (T element : array) {
-            if(element == null) {
-                sb.append("null").append(",\n");
-            } else {
-                sb.append(element.toString()).append(",\n");
-            }
+            sb.append(element.toString()).append(",\n");
         }
         sb.append("]\n");
         return sb.toString();
@@ -307,20 +303,6 @@ public class JDFCUtils {
         }
 
         return splitPoints;
-    }
-
-    public static String prettyPrintStack(Stack<ProgramVariable> stack) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n");
-        for (Object o : stack) {
-            if(o == null) {
-                sb.append("| ").append("null").append(" |\n");
-            } else {
-                sb.append("| ").append(o.toString()).append(" |\n");
-            }
-        }
-        sb.append(" -----");
-        return sb.toString();
     }
 
     /**

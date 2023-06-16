@@ -1,14 +1,11 @@
 package instr.methodVisitors;
 
-import data.ProgramVariable;
 import instr.classVisitors.JDFCClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-
-import java.util.Stack;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -22,17 +19,15 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     public int currentLineNumber = -1;
     public int firstLine = -1;
 
-    public Stack<ProgramVariable> operandStack;
-
     public JDFCMethodVisitor(final int pApi,
                              final JDFCClassVisitor pClassVisitor,
                              final MethodVisitor pMethodVisitor,
                              final MethodNode pMethodNode,
                              final String pInternalMethodName) {
         super(pApi, pMethodVisitor);
-        this.classVisitor = pClassVisitor;
-        this.methodNode = pMethodNode;
-        this.internalMethodName = pInternalMethodName;
+        classVisitor = pClassVisitor;
+        methodNode = pMethodNode;
+        internalMethodName = pInternalMethodName;
     }
 
     @Override
@@ -189,6 +184,4 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
                 return false;
         }
     }
-
-
 }
