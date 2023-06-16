@@ -69,8 +69,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     // This method is required, because in the instruction of the method node many unvisited FRAME_NEW nodes are
     // included, and we have to update the instruction index or our resulting cfg accordingly
-    @Override
-    public void checkForFrameNew() {
+    private void checkForFrameNew() {
         while (currentNode.getOpcode() == F_NEW) {
             final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
             nodes.put(currentInstructionIndex, node);
