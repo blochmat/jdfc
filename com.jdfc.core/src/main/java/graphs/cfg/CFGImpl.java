@@ -3,6 +3,8 @@ package graphs.cfg;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
+import graphs.cfg.nodes.CFGEntryNode;
+import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -49,12 +51,12 @@ public class CFGImpl implements CFG {
     public Multimap<Integer, Integer> getEdges() { return edges; }
 
     @Override
-    public CFGNode getEntryNode() {
-        throw new UnsupportedOperationException("Please implement CFGImpl.getEntryNode");
+    public CFGEntryNode getEntryNode() {
+        return (CFGEntryNode) this.nodes.get(0);
     }
 
     @Override
-    public CFGNode getExitNode() {
+    public CFGExitNode getExitNode() {
         throw new UnsupportedOperationException("Please implement CFGImpl.getExitNode");
     }
 

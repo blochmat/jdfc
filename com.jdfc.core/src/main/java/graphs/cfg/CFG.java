@@ -1,6 +1,8 @@
 package graphs.cfg;
 
 import com.google.common.collect.Multimap;
+import graphs.cfg.nodes.CFGEntryNode;
+import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
 
 import java.util.NavigableMap;
@@ -33,9 +35,9 @@ public interface CFG {
 
     Multimap<Integer, Integer> getEdges();
 
-    CFGNode getEntryNode();
+    CFGEntryNode getEntryNode();
 
-    CFGNode getExitNode();
+    CFGExitNode getExitNode();
 
     Set<LocalVariable> getDomain();
 }
