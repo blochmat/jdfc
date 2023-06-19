@@ -42,10 +42,6 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
 
     private ProgramVariable pVar;
 
-    public void setPVar(ProgramVariable pVar) {
-        this.pVar = pVar;
-    }
-
     private List<Object> popList;
 
     public CFGAnalyzerAdapter(
@@ -167,7 +163,6 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
                         || opcode == Opcodes.DSTORE;
         maxLocals = Math.max(maxLocals, var + (isLongOrDouble ? 2 : 1));
         execute(opcode, var, null, pVar);
-        pVar = null;
     }
 
     @Override
@@ -319,7 +314,6 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
         super.visitIincInsn(var, increment);
         maxLocals = Math.max(maxLocals, var + 1);
         execute(Opcodes.IINC, var, null, pVar);
-        pVar = null;
     }
 
     @Override
@@ -827,6 +821,24 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
                 throw new IllegalArgumentException("Invalid opcode " + opcode);
         }
         labels = null;
+        pVar = null;
+    }
+    // ------------------------------------------------ Helper Methods ------------------------------------------------
+
+
+    public ProgramVariable getPVar() {
+        return pVar;
     }
 
+    public void setPVar(ProgramVariable pVar) {
+        this.pVar = pVar;
+    }
+
+    public List<Object> getPopList() {
+        return popList;
+    }
+
+    public void setPopList(List<Object> popList) {
+        this.popList = popList;
+    }
 }

@@ -83,9 +83,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitVarInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitVarInsn(opcode, var);
-        aa.visitVarInsn(opcode, var);
-//        checkForF_NEW();
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
+        aa.visitVarInsn(opcode, var);
     }
 
     @Override
@@ -121,7 +120,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         if (owner.equals(classVisitor.classNode.name)) {
             ASMHelper asmHelper = new ASMHelper();
             String shortInternalName = asmHelper.computeInternalMethodName(name, descriptor, null, null);
-            JDFCUtils.logThis(aa.stack.toString(), "method_insn");
+            JDFCUtils.logThis(JDFCUtils.prettyPrintArray(aa.getPopList().toArray()), "popped");
+            JDFCUtils.logThis(JDFCUtils.prettyPrintArray(aa.stack.toArray()), "stack");
             CFGCallNode node = new CFGCallNode(currentInstructionIndex, opcode, owner, shortInternalName, isInterface);
             nodes.put(currentInstructionIndex, node);
         } else {
@@ -166,9 +166,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitIincInsn(int var, int increment) {
 //        logger.debug("visitIincInsn");
         super.visitIincInsn(var, increment);
-        aa.visitIincInsn(var, increment);
-//        checkForF_NEW();
         createCFGNodeForIincInsnNode(var, currentInstructionIndex, currentLineNumber);
+        aa.visitIincInsn(var, increment);
     }
 
     @Override
@@ -267,6 +266,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         ProgramVariable var = new ProgramVariable(null, varName, varType, pIndex, pLineNumber, isDefinition, false);
         UUID id = UUID.randomUUID();
         mData.getProgramVariables().put(id, var);
+        aa.setPVar(var);
         return var;
     }
 
