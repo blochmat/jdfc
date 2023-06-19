@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import utils.JDFCUtils;
 
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -16,12 +17,14 @@ public class CFGCallNode extends CFGNode {
     String owner;
     String shortInternalMethodName;
     boolean isInterface;
+    Map<Integer, ProgramVariable> pVarArgs;
 
-    public CFGCallNode(int index, int opcode, String owner, String shortInternalMethodName, boolean isInterface) {
+    public CFGCallNode(int index, int opcode, String owner, String shortInternalMethodName, boolean isInterface, Map<Integer, ProgramVariable> pVarArgs) {
        super(index, opcode);
        this.owner = owner;
        this.shortInternalMethodName = shortInternalMethodName;
        this.isInterface = isInterface;
+       this.pVarArgs = pVarArgs;
     }
 
     public CFGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, Set<CFGNode> pPredecessors,

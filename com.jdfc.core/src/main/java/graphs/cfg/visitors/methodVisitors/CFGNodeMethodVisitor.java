@@ -120,9 +120,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         if (owner.equals(classVisitor.classNode.name)) {
             ASMHelper asmHelper = new ASMHelper();
             String shortInternalName = asmHelper.computeInternalMethodName(name, descriptor, null, null);
-            JDFCUtils.logThis(JDFCUtils.prettyPrintArray(aa.getPopList().toArray()), "popped");
-            JDFCUtils.logThis(JDFCUtils.prettyPrintArray(aa.stack.toArray()), "stack");
-            CFGCallNode node = new CFGCallNode(currentInstructionIndex, opcode, owner, shortInternalName, isInterface);
+            CFGCallNode node = new CFGCallNode(currentInstructionIndex, opcode, owner, shortInternalName, isInterface,
+                    this.createPVarArgs(aa.getPopList()));
             nodes.put(currentInstructionIndex, node);
         } else {
             final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -324,6 +323,20 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node =
                 new CFGNode(Sets.newHashSet(programVariable), Sets.newHashSet(programVariable), pIndex, IINC);
         nodes.put(pIndex, node);
+    }
+
+    private Map<Integer, ProgramVariable> createPVarArgs(List<Object> popList) {
+        Map<Integer, ProgramVariable> result = new HashMap<>();
+        // Reverse list is necessary, because arguments are popped from the stack in reverse order
+        Collections.reverse(popList);
+
+        for (Object o : popList) {
+            if (o instanceof ProgramVariable) {
+                result.put(popList.indexOf(o), (ProgramVariable) o);
+            }
+        }
+
+        return result;
     }
 
     private Multimap<Integer, Integer> createEdges() {
