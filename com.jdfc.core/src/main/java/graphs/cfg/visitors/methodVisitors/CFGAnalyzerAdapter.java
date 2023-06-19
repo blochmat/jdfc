@@ -48,7 +48,7 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
 
     private List<Object> popList;
 
-    protected CFGAnalyzerAdapter(
+    public CFGAnalyzerAdapter(
             final int api,
             final String owner,
             final int access,

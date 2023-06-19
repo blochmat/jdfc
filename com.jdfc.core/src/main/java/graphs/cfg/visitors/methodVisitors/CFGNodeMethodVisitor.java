@@ -32,15 +32,18 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, CFGNode> nodes;
     private final MethodData mData;
+    private CFGAnalyzerAdapter aa;
 
     public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
                                 final MethodVisitor pMethodVisitor,
                                 final MethodNode pMethodNode,
-                                final String pInternalMethodName) {
+                                final String pInternalMethodName,
+                                final CFGAnalyzerAdapter aa) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
         edges = ArrayListMultimap.create();
         nodes = Maps.newTreeMap();
         mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
+        this.aa = aa;
     }
 
     @Override

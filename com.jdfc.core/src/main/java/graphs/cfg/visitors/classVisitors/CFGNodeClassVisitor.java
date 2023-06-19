@@ -1,6 +1,7 @@
 package graphs.cfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
+import graphs.cfg.visitors.methodVisitors.CFGAnalyzerAdapter;
 import graphs.cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +17,17 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
+    private String owner;
+
     public CFGNodeClassVisitor(final ClassNode pClassNode,
                                final ClassExecutionData pClassExecutionData) {
         super(Opcodes.ASM5, pClassNode, pClassExecutionData);
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        this.owner = name;
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 
     @Override
@@ -44,8 +53,9 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
                     && isInstrumentationRequired(methodNode)
                     && !internalMethodName.contains("<init>")
                     && !internalMethodName.contains("<clinit>")) {
+                CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, owner, pAccess, pName, pDescriptor, mv);
 
-                return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName);
+                return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName, aa);
             }
         }
 
