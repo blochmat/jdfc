@@ -52,27 +52,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitFrame(type, numLocal, local, numStack, stack);
         final CFGNode node = new CFGNode(currentInstructionIndex, getFrameOpcode(type));
         nodes.put(currentInstructionIndex, node);
+        aa.visitFrame(type, numLocal, local, numStack, stack);
     }
 
-    private int getFrameOpcode(int type) {
-//        logger.debug("getFrameOpcode");
-        switch (type) {
-            case -1:
-                return F_NEW;
-            case 0:
-                return F_FULL;
-            case 1:
-                return F_APPEND;
-            case 2:
-                return F_CHOP;
-            case 3:
-                return F_SAME;
-            case 4:
-                return F_SAME1;
-            default:
-                return Integer.MIN_VALUE;
-        }
-    }
 
     @Override
     public void visitInsn(int opcode) {
@@ -82,16 +64,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
-    }
-
-    @Override
-    public void checkForF_NEW() {
-//        logger.debug("checkForF_NEW");
-        if (currentNode.getOpcode() == F_NEW) {
-            final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
-            nodes.put(currentInstructionIndex, node);
-            updateCurrentNode();
-        }
+        aa.visitInsn(opcode);
     }
 
     @Override
@@ -102,6 +75,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
+        aa.visitIntInsn(opcode, operand);
     }
 
     @Override
@@ -111,6 +85,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitVarInsn(opcode, var);
 //        checkForF_NEW();
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
+        aa.visitVarInsn(opcode, var);
     }
 
     @Override
@@ -121,6 +96,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
+        aa.visitTypeInsn(opcode, type);
     }
 
     @Override
@@ -131,6 +107,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
+        aa.visitFieldInsn(opcode, owner, name, descriptor);
     }
 
     @Override
@@ -150,6 +127,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
             nodes.put(currentInstructionIndex, node);
         }
+        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
 
     @Override
@@ -160,6 +138,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(currentInstructionIndex, INVOKEDYNAMIC);
         JDFCUtils.logThis(String.format("%s %s %s %s %s", "invokedynamic", name, descriptor, bootstrapMethodHandle, Arrays.toString(bootstrapMethodArguments)), "dynamic_insn");
         nodes.put(currentInstructionIndex, node);
+        aa.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     }
 
     @Override
@@ -170,6 +149,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
+        aa.visitJumpInsn(opcode, label);
     }
 
     @Override
@@ -179,6 +159,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, LDC);
         nodes.put(currentInstructionIndex, node);
+        aa.visitLdcInsn(value);
     }
 
     @Override
@@ -187,6 +168,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitIincInsn(var, increment);
 //        checkForF_NEW();
         createCFGNodeForIincInsnNode(var, currentInstructionIndex, currentLineNumber);
+        aa.visitIincInsn(var, increment);
     }
 
     @Override
@@ -196,6 +178,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, TABLESWITCH);
         nodes.put(currentInstructionIndex, node);
+        aa.visitTableSwitchInsn(min, max, dflt, labels);
     }
 
     @Override
@@ -205,6 +188,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, LOOKUPSWITCH);
         nodes.put(currentInstructionIndex, node);
+        aa.visitLookupSwitchInsn(dflt, keys, labels);
     }
 
     @Override
@@ -214,6 +198,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, MULTIANEWARRAY);
         nodes.put(currentInstructionIndex, node);
+        aa.visitMultiANewArrayInsn(descriptor, numDimensions);
     }
 
     @Override
@@ -236,6 +221,38 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             mData.calculateDefUsePairs();
         } else {
             // TODO: <init>: ()V is not in methods
+        }
+    }
+
+    // ---------------------------------------------- Helper Methods ---------------------------------------------------
+
+    private int getFrameOpcode(int type) {
+//        logger.debug("getFrameOpcode");
+        switch (type) {
+            case -1:
+                return F_NEW;
+            case 0:
+                return F_FULL;
+            case 1:
+                return F_APPEND;
+            case 2:
+                return F_CHOP;
+            case 3:
+                return F_SAME;
+            case 4:
+                return F_SAME1;
+            default:
+                return Integer.MIN_VALUE;
+        }
+    }
+
+    @Override
+    public void checkForF_NEW() {
+//        logger.debug("checkForF_NEW");
+        if (currentNode.getOpcode() == F_NEW) {
+            final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
+            nodes.put(currentInstructionIndex, node);
+            updateCurrentNode();
         }
     }
 
