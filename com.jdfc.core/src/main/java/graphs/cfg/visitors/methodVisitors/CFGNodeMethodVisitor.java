@@ -76,14 +76,14 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitInsn(opcode);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
 
     @Override
-    public void visitFrameNew() {
-//        logger.debug("visitFrameNew");
+    public void checkForF_NEW() {
+//        logger.debug("checkForF_NEW");
         if (currentNode.getOpcode() == F_NEW) {
             final CFGNode node = new CFGNode(currentInstructionIndex, F_NEW);
             nodes.put(currentInstructionIndex, node);
@@ -96,7 +96,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitIntInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitIntInsn(opcode, operand);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
@@ -106,7 +106,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitVarInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitVarInsn(opcode, var);
-        visitFrameNew();
+//        checkForF_NEW();
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
     }
 
@@ -115,7 +115,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitTypeInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitTypeInsn(opcode, type);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
@@ -125,7 +125,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitFieldInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitFieldInsn(opcode, owner, name, descriptor);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
@@ -136,7 +136,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitMethodInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-        visitFrameNew();
+//        checkForF_NEW();
         if (owner.equals(classVisitor.classNode.name)) {
             ASMHelper asmHelper = new ASMHelper();
             String shortInternalName = asmHelper.computeInternalMethodName(name, descriptor, null, null);
@@ -153,7 +153,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
 //        logger.debug("visitInvokeDynamicInsn");
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, INVOKEDYNAMIC);
         JDFCUtils.logThis(String.format("%s %s %s %s %s", "invokedynamic", name, descriptor, bootstrapMethodHandle, Arrays.toString(bootstrapMethodArguments)), "dynamic_insn");
         nodes.put(currentInstructionIndex, node);
@@ -164,7 +164,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitJumpInsn %s %s", JDFCUtils.getOpcode(opcode), label);
 //        logger.debug(debug);
         super.visitJumpInsn(opcode, label);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
         nodes.put(currentInstructionIndex, node);
     }
@@ -173,7 +173,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitLdcInsn(Object value) {
 //        logger.debug("visitLdcInsn");
         super.visitLdcInsn(value);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, LDC);
         nodes.put(currentInstructionIndex, node);
     }
@@ -182,7 +182,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitIincInsn(int var, int increment) {
 //        logger.debug("visitIincInsn");
         super.visitIincInsn(var, increment);
-        visitFrameNew();
+//        checkForF_NEW();
         createCFGNodeForIincInsnNode(var, currentInstructionIndex, currentLineNumber);
     }
 
@@ -190,7 +190,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
 //        logger.debug("visitTableSwitchInsn");
         super.visitTableSwitchInsn(min, max, dflt, labels);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, TABLESWITCH);
         nodes.put(currentInstructionIndex, node);
     }
@@ -199,7 +199,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
 //        logger.debug("visitLookupSwitchInsn");
         super.visitLookupSwitchInsn(dflt, keys, labels);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, LOOKUPSWITCH);
         nodes.put(currentInstructionIndex, node);
     }
@@ -208,7 +208,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
 //        logger.debug("visitMultiANewArrayInsn");
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
-        visitFrameNew();
+//        checkForF_NEW();
         final CFGNode node = new CFGNode(currentInstructionIndex, MULTIANEWARRAY);
         nodes.put(currentInstructionIndex, node);
     }

@@ -61,7 +61,7 @@ public class CFGCreator {
         // Build CFG for all methods in the class
         final CFGNodeClassVisitor CFGNodeClassVisitor =
                 new CFGNodeClassVisitor(pClassNode, pClassExecutionData);
-        pClassReader.accept(CFGNodeClassVisitor, 0);
+        pClassReader.accept(CFGNodeClassVisitor, ClassReader.EXPAND_FRAMES);
 
         if(log.isDebugEnabled()) {
             // Log all relative paths of files in the classpath

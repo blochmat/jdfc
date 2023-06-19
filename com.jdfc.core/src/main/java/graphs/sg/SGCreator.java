@@ -101,13 +101,13 @@ public class SGCreator {
 
                 // Create sg for called procedure
                 SG calledSG;
-                if(mData.getId().equals(calledMethodData.getId()) && depth < 2) {
+//                if(mData.getId().equals(calledMethodData.getId()) && depth < 2) {
                     sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
                     calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, depth++);
-                } else {
-                    sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
-                    calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, 0);
-                }
+//                } else {
+//                    sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+//                    calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, 0);
+//                }
 
                 // Add all nodes, edges
                 sgNodes.putAll(calledSG.getNodes());
