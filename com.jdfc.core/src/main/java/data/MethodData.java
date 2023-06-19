@@ -113,23 +113,6 @@ public class MethodData {
         this.programVariables = new HashMap<>();
     }
 
-    private int extractBegin(MethodDeclaration srcAst) {
-        Optional<Position> posOpt = srcAst.getBegin();
-        if(posOpt.isPresent()) {
-            return posOpt.get().line;
-        } else {
-            throw new IllegalArgumentException("Method begin is undefined.");
-        }
-    }
-
-    private int extractEnd(MethodDeclaration srcAst) {
-        Optional<Position> posOpt = srcAst.getEnd();
-        if(posOpt.isPresent()) {
-            return posOpt.get().line;
-        } else {
-            throw new IllegalArgumentException("Method end is undefined.");
-        }
-    }
 
     public String buildInternalMethodName() {
         return String.format("%s: %s", name, desc);
@@ -201,5 +184,25 @@ public class MethodData {
             }
         }
         return false;
+    }
+
+
+    // --- Private Methods ---------------------------------------------------------------------------------------------
+    private int extractBegin(MethodDeclaration srcAst) {
+        Optional<Position> posOpt = srcAst.getBegin();
+        if(posOpt.isPresent()) {
+            return posOpt.get().line;
+        } else {
+            throw new IllegalArgumentException("Method begin is undefined.");
+        }
+    }
+
+    private int extractEnd(MethodDeclaration srcAst) {
+        Optional<Position> posOpt = srcAst.getEnd();
+        if(posOpt.isPresent()) {
+            return posOpt.get().line;
+        } else {
+            throw new IllegalArgumentException("Method end is undefined.");
+        }
     }
 }
