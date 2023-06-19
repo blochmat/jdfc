@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.ClassExecutionData;
 import data.MethodData;
+import data.ProgramVariable;
 import graphs.cfg.CFG;
 import graphs.cfg.nodes.CFGCallNode;
 import graphs.cfg.nodes.CFGEntryNode;
@@ -84,10 +85,19 @@ public class SGCreator {
                 sgEdges.putAll(index + shift, edges);
                 index++;
             } else if (cfgNode instanceof CFGCallNode) {
-                // Add call node
                 CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
                 MethodData calledMethodData = cData.getMethodByShortInternalName(cfgCallNode.getShortInternalMethodName());
-                SGCallNode sgCallNode = new SGCallNode(calledMethodData.buildInternalMethodName(), cfgNode);
+
+                // Map program variables
+                Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarArgs();
+                Map<Integer, ProgramVariable> pVarsEntry = calledMethodData.getCfg().getEntryNode().getPVarArgs();
+                Map<ProgramVariable, ProgramVariable> pVarMap = new HashMap<>();
+                for(Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
+                    pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
+                }
+
+                // Add call node
+                SGCallNode sgCallNode = new SGCallNode(calledMethodData.buildInternalMethodName(), cfgNode, pVarMap);
                 sgNodes.put(index + shift, sgCallNode);
 
                 // Save callNode index
@@ -120,17 +130,15 @@ public class SGCreator {
                 sgEdges.put(index + shift - 1, index + shift);
 
                 // Add return node
-                SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(internalMethodName, new CFGNode(Integer.MIN_VALUE, Integer.MIN_VALUE));
+                SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(internalMethodName,
+                        new CFGNode(Integer.MIN_VALUE, Integer.MIN_VALUE),
+                        pVarMap);
                 sgNodes.put(index + shift, sgReturnSiteNode);
                 sgCallReturnNodeMap.put(sgCallNode, sgReturnSiteNode);
                 sgCallReturnIndexMap.put(sgCallNodeIdx, index + shift);
                 // Connect return site node with next node
                 sgEdges.put(index + shift, index + shift + 1);
                 shift++;
-
-                // Todo: match parameters
-
-
             } else {
                 sgNodes.put(index + shift, new SGNode(internalMethodName, cfgNode));
                 int finalShift = shift;
