@@ -31,6 +31,11 @@ public class SGCreator {
 
     public static SG createSGForMethod(ClassExecutionData cData, MethodData mData, int startIndex, int depth) {
         String internalMethodName = mData.buildInternalMethodName();
+        if (mData.getCfg() == null) {
+            String debug = String.format("%s - %s", cData.getRelativePath(), internalMethodName);
+            JDFCUtils.logThis(debug, "CFG_null");
+            return null;
+        }
         NavigableMap<Integer, CFGNode> localCfgNodes = Maps.newTreeMap(mData.getCfg().getNodes());
         Multimap<Integer, Integer> localCfgEdges = ArrayListMultimap.create(mData.getCfg().getEdges());
 
@@ -86,10 +91,9 @@ public class SGCreator {
             } else if (cfgNode instanceof CFGCallNode) {
                 CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
 
+                MethodData calledMethodData = cData.getMethodByShortInternalName(cfgCallNode.getShortInternalMethodName());
                 // Is called method defined in another class?
-                if (cfgCallNode.getOwner().equals(cData.getRelativePath())) {
-                    MethodData calledMethodData = cData.getMethodByShortInternalName(cfgCallNode.getShortInternalMethodName());
-
+                if (calledMethodData != null) {
                     // Map program variables
                     Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarArgs();
                     if (pVarsCall == null) {
@@ -121,35 +125,37 @@ public class SGCreator {
                         index++;
 
                         // Create sg for called procedure
-                        SG calledSG;
-//                if(mData.getId().equals(calledMethodData.getId()) && depth < 2) {
-                        sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
-                        calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, depth++);
-//                } else {
-//                    sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
-//                    calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, 0);
-//                }
+                        SG calledSG = null;
+                        if(depth < 2) {
+                            sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+                            calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, ++depth);
+                        }
+//                        else {
+//                            sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+//                            calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, 0);
+//                        }
+                        if (calledSG != null) {
+                            // Add all nodes, edges
+                            sgNodes.putAll(calledSG.getNodes());
+                            sgEdges.putAll(calledSG.getEdges());
 
-                        // Add all nodes, edges
-                        sgNodes.putAll(calledSG.getNodes());
-                        sgEdges.putAll(calledSG.getEdges());
+                            // Update index shift
+                            shift = calledSG.getNodes().size();
 
-                        // Update index shift
-                        shift = calledSG.getNodes().size();
+                            // Connect exit and return site node
+                            sgEdges.put(index + shift - 1, index + shift);
 
-                        // Connect exit and return site node
-                        sgEdges.put(index + shift - 1, index + shift);
-
-                        // Add return node
-                        SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(internalMethodName,
-                                new CFGNode(Integer.MIN_VALUE, Integer.MIN_VALUE),
-                                pVarMap);
-                        sgNodes.put(index + shift, sgReturnSiteNode);
-                        sgCallReturnNodeMap.put(sgCallNode, sgReturnSiteNode);
-                        sgCallReturnIndexMap.put(sgCallNodeIdx, index + shift);
-                        // Connect return site node with next node
-                        sgEdges.put(index + shift, index + shift + 1);
-                        shift++;
+                            // Add return node
+                            SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(internalMethodName,
+                                    new CFGNode(Integer.MIN_VALUE, Integer.MIN_VALUE),
+                                    pVarMap);
+                            sgNodes.put(index + shift, sgReturnSiteNode);
+                            sgCallReturnNodeMap.put(sgCallNode, sgReturnSiteNode);
+                            sgCallReturnIndexMap.put(sgCallNodeIdx, index + shift);
+                            // Connect return site node with next node
+                            sgEdges.put(index + shift, index + shift + 1);
+                            shift++;
+                        }
                     }
                 }
             } else {

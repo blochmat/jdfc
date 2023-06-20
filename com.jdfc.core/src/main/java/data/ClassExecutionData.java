@@ -115,20 +115,39 @@ public class ClassExecutionData extends ExecutionData {
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
             JavaParserHelper javaParserHelper = new JavaParserHelper();
             // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
-            String jvmDesc = javaParserHelper.toJvmDescriptor(mDecl);
+            String jvmTypeDesc = javaParserHelper.toJvmTypeDescriptor(mDecl);
+            String jvmExcDesc = javaParserHelper.toJvmExcDescriptor(mDecl);
 
+            // Return and param types
             Set<Type> types = new HashSet<>();
-            // Add return, param and exception types
             types.add(mDecl.getType());
             types.addAll(mDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet()));
-            types.addAll(mDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet()));
-            // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
             Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
-            String jvmAsmDesc = javaParserHelper.buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc, new HashSet<>(),
-                    new HashSet<>());
+
+            // Exception types
+            Set<Type> excTypes = mDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet());
+            Set<ResolvedType> resolvedExcTypes = excTypes.stream().map(Type::resolve).collect(Collectors.toSet());
+
+            // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
+            String jvmAsmTypeDesc = javaParserHelper.buildJvmAsmTypeDesc(
+                    resolvedTypes,
+                    nestedTypeMap,
+                    jvmTypeDesc,
+                    new HashSet<>(),
+                    new HashSet<>()
+            );
+
+            String jvmAsmExcDesc = javaParserHelper.buildJvmAsmExcDesc(
+                    resolvedExcTypes,
+                    nestedTypeMap,
+                    jvmExcDesc,
+                    new HashSet<>(),
+                    new HashSet<>()
+            );
 
             int mAccess = mDecl.getAccessSpecifier().ordinal();
             String mName = mDecl.getName().getIdentifier();
+            String jvmAsmDesc = jvmAsmExcDesc.equals("") ? jvmAsmTypeDesc : String.format("%s %s", jvmAsmTypeDesc, jvmAsmExcDesc);
 
             UUID id = UUID.randomUUID();
             MethodData mData = new MethodData(id, mAccess, mName, jvmAsmDesc, mDecl);
@@ -143,18 +162,38 @@ public class ClassExecutionData extends ExecutionData {
         for(ConstructorDeclaration cDecl : ciAst.getConstructors()) {
             JavaParserHelper javaParserHelper = new JavaParserHelper();
             // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
-            String jvmDesc = javaParserHelper.toJvmDescriptor(cDecl);
+            String jvmTypeDesc = javaParserHelper.toJvmTypeDescriptor(cDecl);
+            String jvmExcDesc = javaParserHelper.toJvmExcDescriptor(cDecl);
 
-            Set<Type> types = new HashSet<>();
-            types.addAll(cDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet()));
-            types.addAll(cDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet()));
+            // Return and param types
+            Set<Type> types = cDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet());
+            Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
+
+            // Exception types
+            Set<Type> excTypes = cDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet());
+            Set<ResolvedType> resolvedExcTypes = excTypes.stream().map(Type::resolve).collect(Collectors.toSet());
 
             // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
-            Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
-            String jvmAsmDesc = javaParserHelper.buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc, new HashSet<>(),
-                    new HashSet<>());
+            String jvmAsmTypeDesc = javaParserHelper.buildJvmAsmTypeDesc(
+                    resolvedTypes,
+                    nestedTypeMap,
+                    jvmTypeDesc,
+                    new HashSet<>(),
+                    new HashSet<>()
+            );
+
+            String jvmAsmExcDesc = javaParserHelper.buildJvmAsmExcDesc(
+                    resolvedExcTypes,
+                    nestedTypeMap,
+                    jvmExcDesc,
+                    new HashSet<>(),
+                    new HashSet<>()
+            );
+
             int mAccess = cDecl.getAccessSpecifier().ordinal();
             String mName = "<init>";
+            String jvmAsmDesc = jvmAsmExcDesc.equals("") ? jvmAsmTypeDesc : String.format("%s %s", jvmAsmTypeDesc, jvmAsmExcDesc);
+
             UUID id = UUID.randomUUID();
             MethodData mData = new MethodData(id, mAccess, mName, jvmAsmDesc, cDecl);
             methods.put(id, mData);
@@ -166,7 +205,7 @@ public class ClassExecutionData extends ExecutionData {
         }
 
         // Add default constructor
-        if (methods.values().stream().noneMatch(x -> x.getName().equals("<init>") && x.getDesc().equals("()V;"))) {
+        if (methods.values().stream().noneMatch(x -> x.getName().equals("<init>"))) {
             UUID id = UUID.randomUUID();
             MethodData mData = new MethodData(id, AccessSpecifier.PUBLIC.ordinal(), "<init>", "()V;");
 
