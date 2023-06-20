@@ -7,7 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
+import utils.JDFCUtils;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,5 +53,20 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
     public void visitEnd() {
         classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
                 .setLocalVariableTable(localVariableTable);
+        if(log.isDebugEnabled()) {
+            File file = JDFCUtils.createFileInDebugDir("3_localVariableTables.txt", false);
+            try (FileWriter writer = new FileWriter(file, true)) {
+                writer.write(String.format("Class: %s\n", classVisitor.classExecutionData.getName()));
+                writer.write(String.format("Method: %s\n", internalMethodName));
+                writer.write("==============================\n");
+                writer.write("Local Variables:\n");
+                writer.write(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
+                                .getLocalVariableTable()));
+                writer.write("==============================\n");
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
     }
 }

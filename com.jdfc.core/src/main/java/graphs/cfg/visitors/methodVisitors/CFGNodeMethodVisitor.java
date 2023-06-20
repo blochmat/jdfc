@@ -212,7 +212,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        logger.debug(internalMethodName);
 //        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
 
-        if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+        if (!internalMethodName.contains("<clinit>")) {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
             mData.getCfg().calculateReachingDefinitions();

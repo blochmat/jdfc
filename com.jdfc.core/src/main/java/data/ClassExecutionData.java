@@ -1,11 +1,9 @@
 package data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.ImportDeclaration;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ReferenceType;
@@ -116,13 +114,14 @@ public class ClassExecutionData extends ExecutionData {
         Map<UUID, MethodData> methods = new HashMap<>();
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
             JavaParserHelper javaParserHelper = new JavaParserHelper();
+            // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
+            String jvmDesc = javaParserHelper.toJvmDescriptor(mDecl);
+
             Set<Type> types = new HashSet<>();
             // Add return, param and exception types
             types.add(mDecl.getType());
             types.addAll(mDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet()));
             types.addAll(mDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet()));
-            // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
-            String jvmDesc = javaParserHelper.toJvmDescriptor(mDecl);
             // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
             Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
             String jvmAsmDesc = javaParserHelper.buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc, new HashSet<>(),
@@ -139,6 +138,39 @@ public class ClassExecutionData extends ExecutionData {
                 this.lineToMethodIdMap.put(i, id);
             }
             JDFCUtils.logThis(JDFCUtils.prettyPrintMap(lineToMethodIdMap), "lineToMethodIdMap");
+        }
+
+        for(ConstructorDeclaration cDecl : ciAst.getConstructors()) {
+            JavaParserHelper javaParserHelper = new JavaParserHelper();
+            // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
+            String jvmDesc = javaParserHelper.toJvmDescriptor(cDecl);
+
+            Set<Type> types = new HashSet<>();
+            types.addAll(cDecl.getParameters().stream().map(Parameter::getType).collect(Collectors.toSet()));
+            types.addAll(cDecl.getThrownExceptions().stream().map(ReferenceType::asReferenceType).collect(Collectors.toSet()));
+
+            // add full relative paths: (I)Lcom/jdfc/Option$Builder; [java/lang/IndexOutOfBoundsException]
+            Set<ResolvedType> resolvedTypes = types.stream().map(Type::resolve).collect(Collectors.toSet());
+            String jvmAsmDesc = javaParserHelper.buildJvmAsmDesc(resolvedTypes, nestedTypeMap, jvmDesc, new HashSet<>(),
+                    new HashSet<>());
+            int mAccess = cDecl.getAccessSpecifier().ordinal();
+            String mName = "<init>";
+            UUID id = UUID.randomUUID();
+            MethodData mData = new MethodData(id, mAccess, mName, jvmAsmDesc, cDecl);
+            methods.put(id, mData);
+
+            for(int i = mData.getBeginLine(); i <= mData.getEndLine(); i++) {
+                this.lineToMethodIdMap.put(i, id);
+            }
+            JDFCUtils.logThis(JDFCUtils.prettyPrintMap(lineToMethodIdMap), "lineToMethodIdMap");
+        }
+
+        // Add default constructor
+        if (methods.values().stream().noneMatch(x -> x.getName().equals("<init>") && x.getDesc().equals("()V;"))) {
+            UUID id = UUID.randomUUID();
+            MethodData mData = new MethodData(id, AccessSpecifier.PUBLIC.ordinal(), "<init>", "()V;");
+
+            methods.put(id, mData);
         }
 
         return methods;
@@ -259,7 +291,7 @@ public class ClassExecutionData extends ExecutionData {
     public LocalVariable findLocalVariable(final String internalMethodName,
                                            final int pVarIndex) {
         // TODO
-        if(!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+        if(!internalMethodName.contains("<clinit>")) {
             Map<Integer, LocalVariable> localVariableTable = this.getMethodByInternalName(internalMethodName)
                     .getLocalVariableTable();
             return localVariableTable.get(pVarIndex);

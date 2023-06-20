@@ -2,6 +2,7 @@ package data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
@@ -58,12 +59,6 @@ public class MethodData {
     private String declarationStr;
 
     /**
-     * AST of method source code
-     */
-    @JsonIgnore
-    private MethodDeclaration srcAst;
-
-    /**
      * CFG of compiled method
      */
     @JsonIgnore
@@ -99,13 +94,25 @@ public class MethodData {
                 access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
     }
 
+    public MethodData(UUID id, int access, String name, String desc) {
+        this.id = id;
+        this.access = access;
+        this.name = name;
+        this.desc = desc;
+        this.declarationStr = "";
+        this.beginLine = Integer.MIN_VALUE;
+        this.endLine = Integer.MIN_VALUE;
+        this.pairs = new HashSet<>();
+        this.localVariableTable = new HashMap<>();
+        this.programVariables = new HashMap<>();
+    }
+
     public MethodData(UUID id, int access, String name, String desc, MethodDeclaration srcAst) {
         this.id = id;
         this.access = access;
         this.name = name;
         this.desc = desc;
         this.declarationStr = srcAst.getDeclarationAsString();
-        this.srcAst = srcAst;
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
         this.pairs = new HashSet<>();
@@ -113,6 +120,18 @@ public class MethodData {
         this.programVariables = new HashMap<>();
     }
 
+    public MethodData(UUID id, int access, String name, String desc, ConstructorDeclaration srcAst) {
+        this.id = id;
+        this.access = access;
+        this.name = name;
+        this.desc = desc;
+        this.declarationStr = srcAst.getDeclarationAsString();
+        this.beginLine = extractBegin(srcAst);
+        this.endLine = extractEnd(srcAst);
+        this.pairs = new HashSet<>();
+        this.localVariableTable = new HashMap<>();
+        this.programVariables = new HashMap<>();
+    }
 
     public String buildInternalMethodName() {
         return String.format("%s: %s", name, desc);
@@ -197,7 +216,25 @@ public class MethodData {
         }
     }
 
+    private int extractBegin(ConstructorDeclaration srcAst) {
+        Optional<Position> posOpt = srcAst.getBegin();
+        if(posOpt.isPresent()) {
+            return posOpt.get().line;
+        } else {
+            throw new IllegalArgumentException("Method begin is undefined.");
+        }
+    }
+
     private int extractEnd(MethodDeclaration srcAst) {
+        Optional<Position> posOpt = srcAst.getEnd();
+        if(posOpt.isPresent()) {
+            return posOpt.get().line;
+        } else {
+            throw new IllegalArgumentException("Method end is undefined.");
+        }
+    }
+
+    private int extractEnd(ConstructorDeclaration srcAst) {
         Optional<Position> posOpt = srcAst.getEnd();
         if(posOpt.isPresent()) {
             return posOpt.get().line;

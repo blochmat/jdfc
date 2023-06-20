@@ -65,7 +65,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
         if (methodNode != null
                 && isInstrumentationRequired(methodNode)
-                && !internalMethodName.contains("<init>")
                 && !internalMethodName.contains("<clinit>")) {
             return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);

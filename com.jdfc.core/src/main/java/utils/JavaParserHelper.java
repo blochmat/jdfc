@@ -2,11 +2,13 @@ package utils;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ArrayType;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedArrayType;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
@@ -215,6 +217,38 @@ public class JavaParserHelper {
         // Exception Types
         List<String> exceptionDescriptors = new ArrayList<>();
         for (ReferenceType exception : method.getThrownExceptions()) {
+            exceptionDescriptors.add(toJvmType(exception));
+        }
+
+        if (!exceptionDescriptors.isEmpty()) {
+            descriptor.append(" ");
+            descriptor.append(exceptionDescriptors);
+        }
+
+        return this.finalizeComponentTypes(descriptor.toString());
+    }
+
+    public String toJvmDescriptor(ConstructorDeclaration constructor) {
+        StringBuilder descriptor = new StringBuilder();
+
+        // Param Types
+        descriptor.append('(');
+        for (Parameter parameter : constructor.getParameters()) {
+            descriptor.append(toJvmType(parameter.getType()));
+        }
+        descriptor.append(')');
+
+        // Return Type
+        String returnType = toJvmType(new VoidType());
+        descriptor.append(returnType);
+
+        if (!returnType.endsWith(";")) {
+            descriptor.append(";");
+        }
+
+        // Exception Types
+        List<String> exceptionDescriptors = new ArrayList<>();
+        for (ReferenceType exception : constructor.getThrownExceptions()) {
             exceptionDescriptors.add(toJvmType(exception));
         }
 

@@ -45,43 +45,28 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
     private void insertLocalVariableEntryCreation(final int opcode,
                                                   final int localVarIdx) {
-        if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+        if (!internalMethodName.contains("<clinit>")) {
             UUID cId = classVisitor.classExecutionData.getId();
             UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
-            MethodData mData = classVisitor.classExecutionData.getMethods().get(mId);
-            LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
-            if(localVariable == null) {
-                if(log.isDebugEnabled()) {
-                    File file = JDFCUtils.createFileInDebugDir("4_insertLocalVariableEntryCreation.txt", false);
-                    try (FileWriter writer = new FileWriter(file, true)) {
-                        writer.write("Error: LocalVariable is null.\n");
-                        writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
-                        writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
-                        writer.write(String.format("  localVarIdx: %d\n", localVarIdx));
-                        writer.write("==============================\n");
-                        writer.write("Local Variable Table:\n");
-                        writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
-                        writer.write("==============================\n");
-                        writer.write("\n");
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                    }
-                }
-            } else {
-                ProgramVariable localPVar = new ProgramVariable(null, localVariable.getName(),
-                        localVariable.getDescriptor(), currentInstructionIndex, currentLineNumber, this.isDefinition(opcode), false);
-                UUID pId = mData.findVarId(localPVar);
-                if (pId == null) {
+            if(mId == null && internalMethodName.equals("<init>: ()V;")) {
+                // Default constructor
+                mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+            }
+
+            if(mId != null) {
+                MethodData mData = classVisitor.classExecutionData.getMethods().get(mId);
+                LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
+                if(localVariable == null) {
                     if(log.isDebugEnabled()) {
-                        File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
+                        File file = JDFCUtils.createFileInDebugDir("4_insertLocalVariableEntryCreation.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
-                            writer.write("Error: ProgramVariableId is null.\n");
+                            writer.write("Error: LocalVariable is null.\n");
                             writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
                             writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
-                            writer.write(String.format("  ProgramVariable: %s\n", localPVar));
+                            writer.write(String.format("  localVarIdx: %d\n", localVarIdx));
                             writer.write("==============================\n");
-                            writer.write("Program Variables:\n");
-                            writer.write(JDFCUtils.prettyPrintMap(mData.getProgramVariables()));
+                            writer.write("Local Variable Table:\n");
+                            writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
                             writer.write("==============================\n");
                             writer.write("\n");
                         } catch (IOException ioException) {
@@ -89,15 +74,37 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         }
                     }
                 } else {
-                    mv.visitLdcInsn(cId.toString());
-                    mv.visitLdcInsn(mId.toString());
-                    mv.visitLdcInsn(pId.toString());
-                    mv.visitMethodInsn(
-                            Opcodes.INVOKESTATIC,
-                            Type.getInternalName(CoverageDataStore.class),
-                            "invokeCoverageTracker",
-                            "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-                            false);
+                    ProgramVariable localPVar = new ProgramVariable(null, localVariable.getName(),
+                            localVariable.getDescriptor(), currentInstructionIndex, currentLineNumber, this.isDefinition(opcode), false);
+                    UUID pId = mData.findVarId(localPVar);
+                    if (pId == null) {
+                        if(log.isDebugEnabled()) {
+                            File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
+                            try (FileWriter writer = new FileWriter(file, true)) {
+                                writer.write("Error: ProgramVariableId is null.\n");
+                                writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
+                                writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
+                                writer.write(String.format("  ProgramVariable: %s\n", localPVar));
+                                writer.write("==============================\n");
+                                writer.write("Program Variables:\n");
+                                writer.write(JDFCUtils.prettyPrintMap(mData.getProgramVariables()));
+                                writer.write("==============================\n");
+                                writer.write("\n");
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
+                        }
+                    } else {
+                        mv.visitLdcInsn(cId.toString());
+                        mv.visitLdcInsn(mId.toString());
+                        mv.visitLdcInsn(pId.toString());
+                        mv.visitMethodInsn(
+                                Opcodes.INVOKESTATIC,
+                                Type.getInternalName(CoverageDataStore.class),
+                                "invokeCoverageTracker",
+                                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                                false);
+                    }
                 }
             }
         }
