@@ -117,7 +117,6 @@ public class CoverageDataExport {
                     clazz.appendChild(methods);
 
                     for(MethodData mData : cData.getMethods().values()) {
-
                         ObjectMapper objectMapper = new ObjectMapper();
                         try {
                             objectMapper.writeValue(new File(String.format("/tmp/%s.json", mData.getName())), mData);

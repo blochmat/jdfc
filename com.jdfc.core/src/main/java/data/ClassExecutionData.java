@@ -232,31 +232,27 @@ public class ClassExecutionData extends ExecutionData {
 
     public void computeCoverage() {
         for (MethodData mData : this.getMethods().values()) {
+            JDFCUtils.logThis(mData.getName() + "\n" + JDFCUtils.prettyPrintMap(mData.getProgramVariables()), "programVariables");
             String internalMethodName = mData.buildInternalMethodName();
             if (mData.getPairs().size() == 0) {
                 continue;
             }
+
             for (DefUsePair pair : mData.getPairs()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
 
                 if (def.isCovered() && use.isCovered()) {
-                    if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+                    if (!internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
-                    } else {
-                        // TODO: "<init>: ()V" is not in methods
                     }
                 } else {
-                    if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+                    if (!internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(false);
-                    } else {
-                        // TODO: "<init>: ()V" is not in methods
                     }
                 }
-                if (!internalMethodName.contains("<init>") && !internalMethodName.contains("<clinit>")) {
+                if (!internalMethodName.contains("<clinit>")) {
                     mData.computeCoverage();
-                } else {
-                    // TODO: "<init>: ()V" is not in methods
                 }
             }
 
