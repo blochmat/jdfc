@@ -8,6 +8,8 @@ import java.util.Set;
 
 public interface SG {
 
+    void calculateReachingDefinitions();
+
     public SGNode getEntryNode();
 
     /**

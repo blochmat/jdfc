@@ -7,6 +7,8 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
+import graphs.sg.SG;
+import graphs.sg.nodes.SGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -63,6 +65,12 @@ public class MethodData {
      */
     @JsonIgnore
     private CFG cfg;
+
+    /**
+     * Inter-procedural SG of compiled method
+     */
+    @JsonIgnore
+    private SG sg;
 
     /**
      * Local variables in class
@@ -170,11 +178,31 @@ public class MethodData {
     }
 
     /**
-     * Calculates all possible Def-Use-Pairs.
+     * Calculates intra Def-Use-Pairs.
      */
-    public void calculateDefUsePairs() {
+    public void calculateIntraDefUsePairs() {
         for (Map.Entry<Integer, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
+
+            for (ProgramVariable def : node.getReach()) {
+                for (ProgramVariable use : node.getUses()) {
+                    if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
+                        this.pairs.add(new DefUsePair(def, use));
+                    }
+                    if (def.getInstructionIndex() == Integer.MIN_VALUE) {
+                        def.setCovered(true);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Calculates inter Def-Use-Pairs.
+     */
+    public void calculateInterDefUsePairs() {
+        for (Map.Entry<Integer, SGNode> entry : this.sg.getNodes().entrySet()) {
+            SGNode node = entry.getValue();
 
             for (ProgramVariable def : node.getReach()) {
                 for (ProgramVariable use : node.getUses()) {

@@ -20,13 +20,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SGCreator {
 
-    public static Map<UUID, SG> createSGsForClass(ClassExecutionData cData) {
-        Map<UUID, SG> sgs = new HashMap<>();
+    public static void createSGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
-            sgs.put(mData.getId(), SGCreator.createSGForMethod(cData, mData, 0, 0));
+            mData.setSg(SGCreator.createSGForMethod(cData, mData, 0, 0));
+            mData.getSg().calculateReachingDefinitions();
+            mData.calculateInterDefUsePairs();
         }
-
-        return sgs;
     }
 
     public static SG createSGForMethod(ClassExecutionData cData, MethodData mData, int startIndex, int depth) {
@@ -170,6 +169,17 @@ public class SGCreator {
         JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintMap(sgNodes), "nodes");
         JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintMultimap(sgEdges), "edges");
 
+        SGCreator.addPredSuccRelation(sgNodes, sgEdges);
         return new SGImpl(internalMethodName, sgNodes, sgEdges);
     }
+
+    public static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
+        for (Map.Entry<Integer, Integer> edge : edges.entries()) {
+            final SGNode first = nodes.get(edge.getKey());
+            final SGNode second = nodes.get(edge.getValue());
+            first.addSuccessor(second);
+            second.addPredecessor(first);
+        }
+    }
+
 }

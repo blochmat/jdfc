@@ -17,8 +17,8 @@ public class SGNode {
     private final Set<ProgramVariable> uses;
     private final int insnIndex;
     private final int opcode;
-    private final Set<CFGNode> pred;
-    private final Set<CFGNode> succ;
+    private final Set<SGNode> pred;
+    private final Set<SGNode> succ;
     private final Set<ProgramVariable> reachOut;
     private final Set<ProgramVariable> reach;
 
@@ -27,8 +27,8 @@ public class SGNode {
         this.uses = node.getUses();
         this.insnIndex = node.getInsnIndex();
         this.opcode = node.getOpcode();
-        this.pred = node.getPred();
-        this.succ = node.getSucc();
+        this.pred = Sets.newLinkedHashSet();
+        this.succ = Sets.newLinkedHashSet();
         this.reachOut = node.getReachOut();
         this.reach = node.getReach();
     }
@@ -53,8 +53,8 @@ public class SGNode {
             final Set<ProgramVariable> pUses,
             final int pIndex,
             final int pOpcode,
-            final Set<CFGNode> pPredecessors,
-            final Set<CFGNode> pSuccessors) {
+            final Set<SGNode> pPredecessors,
+            final Set<SGNode> pSuccessors) {
         definitions = pDefinitions;
         uses = pUses;
         insnIndex = pIndex;
@@ -71,7 +71,7 @@ public class SGNode {
     }
 
     public void update() {
-        for (CFGNode node : pred) {
+        for (SGNode node : pred) {
             reach.addAll(node.getReachOut());
         }
         reachOut.clear();
@@ -90,11 +90,11 @@ public class SGNode {
                                         && programVariable.getInstructionIndex() != variable.getInstructionIndex());
     }
 
-    public void addSuccessor(final CFGNode pNode) {
+    public void addSuccessor(final SGNode pNode) {
         succ.add(pNode);
     }
 
-    public void addPredecessor(final CFGNode pNode) {
+    public void addPredecessor(final SGNode pNode) {
         pred.add(pNode);
     }
 
@@ -112,7 +112,7 @@ public class SGNode {
      *
      * @return The set of {@link CFGNode}s that are successors
      */
-    public Set<CFGNode> getSucc() {
+    public Set<SGNode> getSucc() {
         return Collections.unmodifiableSet(succ);
     }
 
@@ -134,7 +134,7 @@ public class SGNode {
      *
      * @return The set of {@link CFGNode}s that are predecessors
      */
-    public Set<CFGNode> getPred() {
+    public Set<SGNode> getPred() {
         return Collections.unmodifiableSet(pred);
     }
 

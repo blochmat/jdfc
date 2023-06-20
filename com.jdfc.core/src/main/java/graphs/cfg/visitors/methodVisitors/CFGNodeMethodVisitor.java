@@ -216,7 +216,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
             mData.getCfg().calculateReachingDefinitions();
-            mData.calculateDefUsePairs();
+            mData.calculateIntraDefUsePairs();
         } else {
             // TODO: <init>: ()V is not in methods
         }

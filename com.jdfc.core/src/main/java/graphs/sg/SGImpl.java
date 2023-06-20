@@ -1,12 +1,15 @@
 package graphs.sg;
 
 import com.google.common.collect.Multimap;
+import data.ProgramVariable;
 import graphs.sg.nodes.SGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import utils.JDFCUtils;
 
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 
@@ -18,6 +21,24 @@ public class SGImpl implements SG {
     private String internalMethodName;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
+
+    @Override
+    public void calculateReachingDefinitions() {
+        LinkedList<SGNode> workList = new LinkedList<>();
+        for (Map.Entry<Integer, SGNode> node : nodes.entrySet()) {
+            node.getValue().resetReachOut();
+            workList.add(node.getValue());
+        }
+
+        while (!workList.isEmpty()) {
+            SGNode node = workList.poll();
+            Set<ProgramVariable> oldValue = node.getReachOut();
+            node.update();
+            if (!node.getReachOut().equals(oldValue)) {
+                workList.addAll(node.getPred());
+            }
+        }
+    }
 
     @Override
     public SGNode getEntryNode() {
