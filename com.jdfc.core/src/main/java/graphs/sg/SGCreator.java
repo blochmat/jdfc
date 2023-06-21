@@ -14,7 +14,13 @@ import graphs.sg.nodes.*;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
-import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -123,7 +129,7 @@ public class SGCreator {
                         SG calledSG = null;
                         if(depth < 2) {
                             sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
-                            calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, ++depth);
+                            calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index + shift, ++depth);
                         }
 //                        else {
 //                            sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
@@ -135,7 +141,7 @@ public class SGCreator {
                             sgEdges.putAll(calledSG.getEdges());
 
                             // Update index shift
-                            shift = calledSG.getNodes().size();
+                            shift = shift + calledSG.getNodes().size();
 
                             // Connect exit and return site node
                             sgEdges.put(index + shift - 1, index + shift);
@@ -162,16 +168,30 @@ public class SGCreator {
             }
         }
 
-        JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintMap(sgNodes), "nodes");
-        JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintMultimap(sgEdges), "edges");
+        if(log.isDebugEnabled()) {
+            // Log all relative paths of files in the classpath
+            File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
+            try (FileWriter writer = new FileWriter(transformFile, true)) {
+                writer.write("Class: " + cData.getRelativePath());
+                writer.write("Method: " + mData.buildInternalMethodName());
+                writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
+                if(mData.getCfg() != null) {
+                    writer.write(JDFCUtils.prettyPrintMap(sgNodes));
+                    writer.write(JDFCUtils.prettyPrintMultimap(sgEdges));
+                }
+                writer.write("\n");
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
 
-        SGCreator.addPredSuccRelation(sgNodes, sgEdges);
+        SGCreator.addPredSuccRelation(cData.getRelativePath(), mData.buildInternalMethodName(), sgNodes, sgEdges);
         return new SGImpl(internalMethodName, sgNodes, sgEdges);
     }
 
-    public static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
-        JDFCUtils.logThis(JDFCUtils.prettyPrintMap(nodes), "predSucc_nodes");
-        JDFCUtils.logThis(JDFCUtils.prettyPrintMultimap(edges), "predSucc_edges");
+    public static void addPredSuccRelation(String className, String methodName, NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
+        JDFCUtils.logThis(className+ " " + methodName+ "\n", "predSucc_edges");
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
             JDFCUtils.logThis(edge.getKey() + " " + edge.getValue() + "\n", "predSucc_edges");
             final SGNode first = nodes.get(edge.getKey());
