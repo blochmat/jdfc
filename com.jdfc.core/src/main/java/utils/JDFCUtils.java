@@ -7,6 +7,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
 import data.singleton.CoverageDataStore;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class JDFCUtils {
 
     public static String getOpcode(int value) {
@@ -394,14 +396,16 @@ public class JDFCUtils {
     }
 
     public static void logThis(String str, String fileName) {
-        Thread thread = Thread.currentThread();
-        File log = createFileInDebugDevLogDir(fileName, false);
-        try (FileWriter writer = new FileWriter(log, true)) {
-            writer.write(String.format("ThreadName: %s, ThreadId: %d", thread.getName(), thread.getId()));
-            writer.write(getFormattedTimestamp() + " - " + str);
-            writer.write("\n");
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
+        if(log.isDebugEnabled()) {
+            Thread thread = Thread.currentThread();
+            File log = createFileInDebugDevLogDir(fileName, false);
+            try (FileWriter writer = new FileWriter(log, true)) {
+                writer.write(String.format("ThreadName: %s, ThreadId: %d", thread.getName(), thread.getId()));
+                writer.write(getFormattedTimestamp() + " - " + str);
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 

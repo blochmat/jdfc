@@ -212,7 +212,9 @@ public class MethodData {
 
             for (ProgramVariable def : node.getReach()) {
                 for (ProgramVariable use : node.getUses()) {
-                    if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
+                    if (Objects.equals(def.getName(), use.getName())
+                            && Objects.equals(def.getDescriptor(), use.getDescriptor())
+                            && !Objects.equals(def.getDescriptor(), "UNKNOWN")) {
                         this.pairs.add(new DefUsePair(def, use));
                     }
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {

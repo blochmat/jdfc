@@ -170,7 +170,10 @@ public class SGCreator {
     }
 
     public static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
+        JDFCUtils.logThis(JDFCUtils.prettyPrintMap(nodes), "predSucc_nodes");
+        JDFCUtils.logThis(JDFCUtils.prettyPrintMultimap(edges), "predSucc_edges");
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
+            JDFCUtils.logThis(edge.getKey() + " " + edge.getValue() + "\n", "predSucc_edges");
             final SGNode first = nodes.get(edge.getKey());
             final SGNode second = nodes.get(edge.getValue());
             first.addSuccessor(second);
