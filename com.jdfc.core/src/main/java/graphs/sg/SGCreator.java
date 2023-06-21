@@ -92,6 +92,9 @@ public class SGCreator {
             } else if (cfgNode instanceof CFGCallNode) {
                 CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
 
+                // called method is in class -> insert cfg
+                // called method is not in class -> insert only call node
+
                 MethodData calledMethodData = cData.getMethodByShortInternalName(cfgCallNode.getShortInternalMethodName());
                 // Is called method defined in another class?
                 if (calledMethodData != null) {
@@ -158,6 +161,14 @@ public class SGCreator {
                             shift++;
                         }
                     }
+                } else {
+                    // Add call node
+                    SGCallNode sgCallNode = new SGCallNode(cfgCallNode.getShortInternalMethodName(), cfgNode);
+                    sgNodes.put(index + shift, sgCallNode);
+                    int finalShift = shift;
+                    List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
+                    sgEdges.putAll(index + shift, edges);
+                    index++;
                 }
             } else {
                 sgNodes.put(index + shift, new SGNode(internalMethodName, cfgNode));

@@ -4,11 +4,17 @@ import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import utils.JDFCUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class SGCallNode extends SGNode {
 
     private Map<ProgramVariable, ProgramVariable> pVarMap;
+
+    public SGCallNode(String internalMethodName, CFGNode node) {
+        super(internalMethodName, node);
+        this.pVarMap = new HashMap<>();
+    }
 
     public SGCallNode(String internalMethodName, CFGNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
         super(internalMethodName, node);
