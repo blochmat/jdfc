@@ -5,7 +5,6 @@ import graphs.cfg.nodes.CFGNode;
 import utils.JDFCUtils;
 
 import java.util.Map;
-import java.util.Set;
 
 public class SGCallNode extends SGNode {
 
@@ -14,10 +13,6 @@ public class SGCallNode extends SGNode {
     public SGCallNode(String internalMethodName, CFGNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
         super(internalMethodName, node);
         this.pVarMap = pVarMap;
-    }
-
-    public SGCallNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, Set<CFGNode> pPredecessors, Set<CFGNode> pSuccessors) {
-        super(pDefinitions, pUses, Integer.MIN_VALUE, Integer.MIN_VALUE, pPredecessors, pSuccessors);
     }
 
     @Override

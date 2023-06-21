@@ -1,19 +1,12 @@
 package graphs.sg.nodes;
 
-import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import utils.JDFCUtils;
-
-import java.util.Set;
 
 public class SGEntryNode extends SGNode {
 
     public SGEntryNode(String internalMethodName, CFGNode node) {
         super(internalMethodName, node);
-    }
-
-    public SGEntryNode(Set<ProgramVariable> pDefinitions, Set<ProgramVariable> pUses, Set<CFGNode> pPredecessors, Set<CFGNode> pSuccessors) {
-        super(pDefinitions, pUses, Integer.MIN_VALUE, Integer.MIN_VALUE, pPredecessors, pSuccessors);
     }
 
     @Override
