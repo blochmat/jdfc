@@ -25,6 +25,15 @@ public class CFGEntryNode extends CFGNode {
 
     // --- Helper Methods ----------------------------------------------------------------------------------------------
 
+
+    /**
+     * Get all definitions with corresponding position in the method's definition despite from "this".
+     * <br>
+     * The key is the position of the method param.
+     * The value is the program variable of the method param.
+     *
+     * @return Mapping of position and program variable
+     */
     public Map<Integer, ProgramVariable> getPVarArgs() {
         Map<Integer, ProgramVariable> pVarArgs = new HashMap<>();
 

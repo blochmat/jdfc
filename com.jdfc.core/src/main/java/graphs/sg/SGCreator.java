@@ -17,10 +17,7 @@ import utils.JDFCUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,6 +38,8 @@ public class SGCreator {
 
         NavigableMap<Integer, SGNode> sgNodes = Maps.newTreeMap();
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
+        Set<InterVariable> sgDomain = new HashSet<>();
+        sgDomain.add(new ZeroVariable());
         Map<SGCallNode, SGReturnSiteNode> sgCallReturnNodeMap = new HashMap<>();
         Map<Integer, Integer> sgCallReturnIndexMap = new HashMap<>();
         Multimap<String, SGCallNode> sgMethodCallNodesMap = ArrayListMultimap.create();
@@ -75,6 +74,10 @@ public class SGCreator {
         for(Map.Entry<Integer, CFGNode> nodeEntry : localCfgNodes.entrySet()) {
             Integer cfgNodeIdx = nodeEntry.getKey();
             CFGNode cfgNode = nodeEntry.getValue();
+
+            for(ProgramVariable d : cfgNode.getDefinitions()) {
+                sgDomain.add(new InterVariable(d.getOwner(), internalMethodName, d.getName(), d.getDescriptor()));
+            }
 
             if (cfgNode instanceof CFGEntryNode) {
                 sgNodes.put(index + shift, new SGEntryNode(internalMethodName, cfgNode));
@@ -111,6 +114,11 @@ public class SGCreator {
                         Map<Integer, ProgramVariable> pVarsEntry = entryNode.getPVarArgs();
                         Map<ProgramVariable, ProgramVariable> pVarMap = new HashMap<>();
                         for(Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
+                            // pVarsCall is a map of passed program variables at the call node, where the key is the
+                            // param position. This map can contain viewer elements, if some passed params are constants
+
+                            // pVarsEntry is a map of all definitions at the entry node, where the key is the
+                            // param position
                             pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
                         }
 
@@ -133,6 +141,7 @@ public class SGCreator {
                             sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
                             calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index + shift, ++depth);
                         }
+                        // TODO: method sequences and recursion distinction
 //                        else {
 //                            sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
 //                            calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, 0);
@@ -200,7 +209,7 @@ public class SGCreator {
         return new SGImpl(internalMethodName, sgNodes, sgEdges, sgCallReturnNodeMap, sgCallReturnIndexMap);
     }
 
-    public static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
+    private static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
             final SGNode first = nodes.get(edge.getKey());
             final SGNode second = nodes.get(edge.getValue());
