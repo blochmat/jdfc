@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Data
@@ -110,7 +111,7 @@ public class MethodData {
         this.declarationStr = "";
         this.beginLine = Integer.MIN_VALUE;
         this.endLine = Integer.MIN_VALUE;
-        this.pairs = new HashSet<>();
+        this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
     }
@@ -123,7 +124,7 @@ public class MethodData {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = new HashSet<>();
+        this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
     }
@@ -136,7 +137,7 @@ public class MethodData {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = new HashSet<>();
+        this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
     }
@@ -194,13 +195,18 @@ public class MethodData {
                     }
                 }
             }
+
         }
+        JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintSet(this.pairs), "intra_pairs");
     }
 
     /**
      * Calculates inter Def-Use-Pairs.
      */
     public void calculateInterDefUsePairs() {
+        // TODO: Workaround, because set contains duplicates due to currently unknown reasons
+        this.pairs.clear();
+
         for (Map.Entry<Integer, SGNode> entry : this.sg.getNodes().entrySet()) {
             SGNode node = entry.getValue();
 
@@ -214,7 +220,9 @@ public class MethodData {
                     }
                 }
             }
+
         }
+        JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintSet(this.pairs), "inter_pairs");
     }
 
     /**

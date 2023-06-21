@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 /**
  * Represents a program variable that is identified by its name and type.
  */
@@ -20,10 +22,6 @@ public class ProgramVariable implements Comparable<Object> {
     private boolean isDefinition;
     private boolean isCovered;
 
-//    public ProgramVariable clone() throws CloneNotSupportedException {
-//        return (ProgramVariable) super.clone();
-//    }
-//
     @Override
     public int compareTo(Object pOther) {
         if (pOther == null) {
@@ -47,5 +45,18 @@ public class ProgramVariable implements Comparable<Object> {
                 return 1;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProgramVariable that = (ProgramVariable) o;
+        return getInstructionIndex() == that.getInstructionIndex() && getLineNumber() == that.getLineNumber() && isDefinition() == that.isDefinition() && isCovered() == that.isCovered() && Objects.equals(getOwner(), that.getOwner()) && Objects.equals(getName(), that.getName()) && Objects.equals(getDescriptor(), that.getDescriptor());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getOwner(), getName(), getDescriptor(), getInstructionIndex(), getLineNumber(), isDefinition(), isCovered());
     }
 }
