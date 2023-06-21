@@ -1,13 +1,12 @@
 package graphs.cfg;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
+import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGEntryNode;
-import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
@@ -21,48 +20,30 @@ import java.util.Set;
  */
 @Slf4j
 @Data
-@NoArgsConstructor
 public class CFGImpl implements CFG {
 
+    private String owner;
     private String methodName;
     private NavigableMap<Integer, CFGNode> nodes;
     private Multimap<Integer, Integer> edges;
+    private Set<DomainVariable> domain;
 
     public CFGImpl(
-            final String methodName,
-            final NavigableMap<Integer, CFGNode> nodes,
-            final Multimap<Integer, Integer> edges) {
-        Preconditions.checkNotNull(methodName);
-        Preconditions.checkNotNull(nodes);
+            @NonNull final String owner,
+            @NonNull final String methodName,
+            @NonNull final NavigableMap<Integer, CFGNode> nodes,
+            @NonNull final Multimap<Integer, Integer> edges,
+            @NonNull final Set<DomainVariable> domain) {
+        this.owner = owner;
         this.methodName = methodName;
         this.nodes = nodes;
         this.edges = edges;
+        this.domain = domain;
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public NavigableMap<Integer, CFGNode> getNodes() {
-        return nodes;
-    }
-
-    @Override
-    public Multimap<Integer, Integer> getEdges() { return edges; }
 
     @Override
     public CFGEntryNode getEntryNode() {
         return (CFGEntryNode) this.nodes.get(0);
-    }
-
-    @Override
-    public CFGExitNode getExitNode() {
-        throw new UnsupportedOperationException("Please implement CFGImpl.getExitNode");
-    }
-
-    @Override
-    public Set<LocalVariable> getDomain() {
-        throw new UnsupportedOperationException("Please implement CFGImpl.getDomain()");
     }
 
     /**

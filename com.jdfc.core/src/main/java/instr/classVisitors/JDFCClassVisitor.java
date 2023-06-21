@@ -5,12 +5,9 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class JDFCClassVisitor extends ClassVisitor {
 
-    private final Logger logger = LoggerFactory.getLogger(JDFCClassVisitor.class);
     public final ClassNode classNode;
 
     public final ClassExecutionData classExecutionData;

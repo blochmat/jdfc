@@ -17,7 +17,7 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
-    private String owner;
+    public String className;
 
     public CFGNodeClassVisitor(final ClassNode pClassNode,
                                final ClassExecutionData pClassExecutionData) {
@@ -26,7 +26,7 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        this.owner = name;
+        this.className = name;
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
@@ -52,7 +52,7 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
             if (methodNode != null
                     && isInstrumentationRequired(methodNode)
                     && !internalMethodName.contains("<clinit>")) {
-                CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, owner, pAccess, pName, pDescriptor, mv);
+                CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, mv);
 
                 return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName, aa);
             }

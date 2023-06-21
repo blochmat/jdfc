@@ -2,11 +2,9 @@ package graphs.cfg;
 
 import com.google.common.collect.Multimap;
 import graphs.cfg.nodes.CFGEntryNode;
-import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
 
 import java.util.NavigableMap;
-import java.util.Set;
 
 /**
  * The Control-Flow Graph (CFG) for one method of the original program.
@@ -33,11 +31,17 @@ public interface CFG {
      */
     NavigableMap<Integer, CFGNode> getNodes();
 
+    /**
+     * Returns a map between node ID and connected node IDs.
+     *
+     * @return A map between node ID and connected node IDs
+     */
     Multimap<Integer, Integer> getEdges();
 
+    /**
+     * Returns a {@link CFGEntryNode} representing the entry node of the CFG.
+     *
+     * @return A {@link CFGEntryNode} representing the entry node of the CFG
+     */
     CFGEntryNode getEntryNode();
-
-    CFGExitNode getExitNode();
-
-    Set<LocalVariable> getDomain();
 }

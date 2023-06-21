@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import data.DomainVariable;
 import data.MethodData;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
@@ -31,6 +32,7 @@ import static org.objectweb.asm.Opcodes.*;
 public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, CFGNode> nodes;
+    private final Set<DomainVariable> domain;
     private final MethodData mData;
     private CFGAnalyzerAdapter aa;
 
@@ -40,10 +42,13 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                                 final String pInternalMethodName,
                                 final CFGAnalyzerAdapter aa) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
-        edges = ArrayListMultimap.create();
-        nodes = Maps.newTreeMap();
-        mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
+        this.edges = ArrayListMultimap.create();
+        this.nodes = Maps.newTreeMap();
+
+        this.mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
         this.aa = aa;
+        // TODO: Add fields to domain
+        this.domain = Sets.newHashSet(createDomainVarsFromLocal());
     }
 
     @Override
@@ -207,7 +212,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         edges.putAll(createEdges());
         this.addEntryAndExitNode();
         this.setPredecessorSuccessorRelation();
-        CFG cfg = new CFGImpl(internalMethodName, nodes, edges);
+        CFG cfg = new CFGImpl(classVisitor.classNode.name, internalMethodName, nodes, edges, domain);
+
+        JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintSet(domain), "domain");
 
 //        logger.debug(internalMethodName);
 //        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
@@ -224,6 +231,16 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     // ---------------------------------------------- Helper Methods ---------------------------------------------------
 
+    private Set<DomainVariable> createDomainVarsFromLocal() {
+        Set<DomainVariable> domain = new HashSet<>();
+        for(LocalVariable localVar : mData.getLocalVariableTable().values()) {
+            if(!Objects.equals(localVar.getName(), "this")) {
+                domain.add(new DomainVariable(classVisitor.classNode.name, internalMethodName, localVar.getName(), localVar.getDescriptor()));
+            }
+        }
+
+        return domain;
+    }
     private int getFrameOpcode(int type) {
 //        logger.debug("getFrameOpcode");
         switch (type) {
@@ -281,6 +298,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private String getLocalVarType(final int pVarNumber) {
 //        logger.debug(String.format("getLocalVarType(%d)", pVarNumber));
+        // TODO: Check the difference between descriptor and signature
         final LocalVariable localVariable = mData.getLocalVariableTable().get(pVarNumber);
         if (localVariable != null) {
             return localVariable.getDescriptor();
@@ -300,6 +318,11 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             case DSTORE:
             case ASTORE:
                 programVariable = getProgramVariableFromLocalVar(varNumber, opcode, pIndex, lineNumber);
+                domain.add(new DomainVariable(
+                        classVisitor.classNode.name,
+                        internalMethodName,
+                        programVariable.getName(),
+                        programVariable.getDescriptor()));
                 node = new CFGNode(Sets.newHashSet(programVariable), Sets.newLinkedHashSet(), pIndex, opcode);
                 break;
             case ILOAD:
