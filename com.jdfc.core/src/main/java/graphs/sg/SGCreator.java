@@ -43,7 +43,6 @@ public class SGCreator {
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
         Map<SGCallNode, SGReturnSiteNode> sgCallReturnNodeMap = new HashMap<>();
         Map<Integer, Integer> sgCallReturnIndexMap = new HashMap<>();
-        Map<SGCallNode, String> sgCallNodeMethodMap = new HashMap<>();
         Multimap<String, SGCallNode> sgMethodCallNodesMap = ArrayListMultimap.create();
 
         int index = startIndex; // increase for node from own cfg
@@ -108,7 +107,7 @@ public class SGCreator {
                         JDFCUtils.logThis("Nodes " + calledMethodData.buildInternalMethodName(), "test");
                     }
 
-                    if (entryNode != null) {
+                    if (entryNode != null && pVarsCall != null) {
                         Map<Integer, ProgramVariable> pVarsEntry = entryNode.getPVarArgs();
                         Map<ProgramVariable, ProgramVariable> pVarMap = new HashMap<>();
                         for(Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
@@ -197,14 +196,12 @@ public class SGCreator {
             }
         }
 
-        SGCreator.addPredSuccRelation(cData.getRelativePath(), mData.buildInternalMethodName(), sgNodes, sgEdges);
-        return new SGImpl(internalMethodName, sgNodes, sgEdges);
+        SGCreator.addPredSuccRelation(sgNodes, sgEdges);
+        return new SGImpl(internalMethodName, sgNodes, sgEdges, sgCallReturnNodeMap, sgCallReturnIndexMap);
     }
 
-    public static void addPredSuccRelation(String className, String methodName, NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
-        JDFCUtils.logThis(className+ " " + methodName+ "\n", "predSucc_edges");
+    public static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
-            JDFCUtils.logThis(edge.getKey() + " " + edge.getValue() + "\n", "predSucc_edges");
             final SGNode first = nodes.get(edge.getKey());
             final SGNode second = nodes.get(edge.getValue());
             first.addSuccessor(second);

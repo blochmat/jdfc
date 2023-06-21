@@ -2,7 +2,9 @@ package graphs.sg;
 
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
+import graphs.sg.nodes.SGCallNode;
 import graphs.sg.nodes.SGNode;
+import graphs.sg.nodes.SGReturnSiteNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +23,8 @@ public class SGImpl implements SG {
     private String internalMethodName;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
+    private Map<SGCallNode, SGReturnSiteNode> callReturnNodeMap;
+    private Map<Integer, Integer> callReturnIdxMap;
 
     @Override
     public void calculateReachingDefinitions() {
