@@ -30,11 +30,6 @@ public class SGCreator {
 
     public static SG createSGForMethod(ClassExecutionData cData, MethodData mData, int startIndex, int depth) {
         String internalMethodName = mData.buildInternalMethodName();
-        if (mData.getCfg() == null) {
-            String debug = String.format("%s - %s", cData.getRelativePath(), internalMethodName);
-            JDFCUtils.logThis(debug, "CFG_null");
-            return null;
-        }
         NavigableMap<Integer, CFGNode> localCfgNodes = Maps.newTreeMap(mData.getCfg().getNodes());
         Multimap<Integer, Integer> localCfgEdges = ArrayListMultimap.create(mData.getCfg().getEdges());
 
@@ -75,6 +70,7 @@ public class SGCreator {
         for(Map.Entry<Integer, CFGNode> nodeEntry : localCfgNodes.entrySet()) {
             Integer cfgNodeIdx = nodeEntry.getKey();
             CFGNode cfgNode = nodeEntry.getValue();
+
             if (cfgNode instanceof CFGEntryNode) {
                 sgNodes.put(index + shift, new SGEntryNode(internalMethodName, cfgNode));
                 int finalShift = shift;
@@ -181,5 +177,4 @@ public class SGCreator {
             second.addPredecessor(first);
         }
     }
-
 }

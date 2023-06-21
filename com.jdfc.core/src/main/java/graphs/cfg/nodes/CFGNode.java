@@ -1,6 +1,5 @@
 package graphs.cfg.nodes;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
@@ -96,7 +95,7 @@ public class CFGNode {
      * @return The set of {@link ProgramVariable}s in the ReachOut set
      */
     public Set<ProgramVariable> getReachOut() {
-        return ImmutableSet.copyOf(reachOut);
+        return reachOut;
     }
 
     /**
@@ -109,7 +108,7 @@ public class CFGNode {
     }
 
     public Set<ProgramVariable> getReach() {
-        return Collections.unmodifiableSet(reach);
+        return reach;
     }
 
     /**

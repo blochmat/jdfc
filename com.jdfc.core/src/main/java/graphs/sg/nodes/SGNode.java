@@ -13,16 +13,17 @@ import java.util.stream.Collectors;
 public class SGNode {
     
     private String internalMethodName;
-    private final Set<ProgramVariable> definitions;
-    private final Set<ProgramVariable> uses;
-    private final int insnIndex;
-    private final int opcode;
-    private final Set<SGNode> pred;
-    private final Set<SGNode> succ;
-    private final Set<ProgramVariable> reachOut;
-    private final Set<ProgramVariable> reach;
+    private Set<ProgramVariable> definitions;
+    private Set<ProgramVariable> uses;
+    private int insnIndex;
+    private int opcode;
+    private Set<SGNode> pred;
+    private Set<SGNode> succ;
+    private Set<ProgramVariable> reachOut;
+    private Set<ProgramVariable> reach;
 
     public SGNode(String internalMethodName, CFGNode node) {
+        this.internalMethodName = internalMethodName;
         this.definitions = node.getDefinitions();
         this.uses = node.getUses();
         this.insnIndex = node.getInsnIndex();
@@ -31,39 +32,6 @@ public class SGNode {
         this.succ = Sets.newLinkedHashSet();
         this.reachOut = node.getReachOut();
         this.reach = node.getReach();
-    }
-
-    public SGNode(final int pIndex, final int pOpcode) {
-        this(
-                Sets.newLinkedHashSet(),
-                Sets.newLinkedHashSet(),
-                pIndex,
-                pOpcode,
-                Sets.newLinkedHashSet(),
-                Sets.newLinkedHashSet());
-    }
-
-    public SGNode(
-            final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex, final int pOpcode) {
-        this(pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
-    }
-
-    public SGNode(
-            final Set<ProgramVariable> pDefinitions,
-            final Set<ProgramVariable> pUses,
-            final int pIndex,
-            final int pOpcode,
-            final Set<SGNode> pPredecessors,
-            final Set<SGNode> pSuccessors) {
-        definitions = pDefinitions;
-        uses = pUses;
-        insnIndex = pIndex;
-        opcode = pOpcode;
-        pred = pPredecessors;
-        succ = pSuccessors;
-
-        reachOut = Sets.newLinkedHashSet();
-        reach = Sets.newLinkedHashSet();
     }
 
     public void resetReachOut() {
