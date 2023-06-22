@@ -35,7 +35,7 @@ public class SGCreator {
     public static SG createSGForMethod(ClassExecutionData cData,
                                        MethodData mData,
                                        Set<DomainVariable> domain,
-                                       Map<DomainVariable, DomainVariable> dVarMap,
+                                       Map<DomainVariable, DomainVariable> domainVarMap,
                                        int startIndex,
                                        int depth) {
         String internalMethodName = mData.buildInternalMethodName();
@@ -45,8 +45,12 @@ public class SGCreator {
 
         NavigableMap<Integer, SGNode> sgNodes = Maps.newTreeMap();
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
+
+        // returnSite
         Map<SGCallNode, SGReturnSiteNode> sgCallReturnNodeMap = new HashMap<>();
         Map<Integer, Integer> sgCallReturnIndexMap = new HashMap<>();
+
+        // callers
         Multimap<String, SGCallNode> sgMethodCallNodesMap = ArrayListMultimap.create();
 
         int index = startIndex; // increase for node from own cfg
@@ -115,7 +119,7 @@ public class SGCreator {
                             Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
                             Map<Integer, DomainVariable> dVarsEntry = cfgEntryNode.getDVarMap();
                             for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
-                                dVarMap.put(cEntry.getValue(), dVarsEntry.get(cEntry.getKey()));
+                                domainVarMap.put(cEntry.getValue(), dVarsEntry.get(cEntry.getKey()));
                             }
 
                             // Add call node
@@ -139,7 +143,7 @@ public class SGCreator {
                                         cData,
                                         calledMethodData,
                                         domain,
-                                        dVarMap,
+                                        domainVarMap,
                                         index + shift,
                                         ++depth);
                             }
@@ -209,7 +213,7 @@ public class SGCreator {
         }
 
         SGCreator.addPredSuccRelation(sgNodes, sgEdges);
-        return new SGImpl(internalMethodName, sgNodes, sgEdges, sgCallReturnNodeMap, sgCallReturnIndexMap);
+        return new SGImpl(internalMethodName, domain, domainVarMap, sgNodes, sgEdges, sgCallReturnNodeMap, sgCallReturnIndexMap);
     }
 
     private static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {

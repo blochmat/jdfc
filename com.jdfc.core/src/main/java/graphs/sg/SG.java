@@ -1,8 +1,10 @@
 package graphs.sg;
 
 import com.google.common.collect.Multimap;
+import data.DomainVariable;
 import graphs.sg.nodes.SGNode;
 
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 
@@ -26,7 +28,9 @@ public interface SG {
      */
     Multimap<Integer, Integer> getEdges();
 
-    Set<InterVariable> getDomain();
+    Set<DomainVariable> getDomain();
+
+    Map<DomainVariable, DomainVariable> getDomainVarMap();
 
     @Override
     public String toString();

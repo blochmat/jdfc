@@ -1,6 +1,7 @@
 package graphs.sg;
 
 import com.google.common.collect.Multimap;
+import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.sg.nodes.SGCallNode;
 import graphs.sg.nodes.SGNode;
@@ -21,6 +22,8 @@ import java.util.Set;
 public class SGImpl implements SG {
 
     private String internalMethodName;
+    private Set<DomainVariable> domain;
+    private Map<DomainVariable, DomainVariable> domainVarMap;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
     private Map<SGCallNode, SGReturnSiteNode> callReturnNodeMap;
@@ -46,22 +49,7 @@ public class SGImpl implements SG {
 
     @Override
     public SGNode getEntryNode() {
-        return null;
-    }
-
-    @Override
-    public NavigableMap<Integer, SGNode> getNodes() {
-        return this.nodes;
-    }
-
-    @Override
-    public Multimap<Integer, Integer> getEdges() {
-        return this.edges;
-    }
-
-    @Override
-    public Set<InterVariable> getDomain() {
-        return null;
+        return this.nodes.get(0);
     }
 
     @Override
