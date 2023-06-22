@@ -1,6 +1,7 @@
 package data;
 
 import lombok.Data;
+import lombok.NonNull;
 
 @Data
 public class DomainVariable {
@@ -32,10 +33,26 @@ public class DomainVariable {
      * @param name name of the variable
      * @param descriptor  type descriptor of the variable (ASM)
      */
-    public DomainVariable(String owner, String method, String name, String descriptor) {
+    public DomainVariable(@NonNull String owner,
+                          @NonNull String method,
+                          @NonNull String name,
+                          @NonNull String descriptor) {
         this.owner = owner;
         this.method = method;
         this.name = name;
         this.descriptor = descriptor;
+    }
+
+    private DomainVariable() {
+        this.owner = null;
+        this.method = null;
+        this.name = null;
+        this.descriptor = null;
+    }
+
+    public static class ZeroVariable extends DomainVariable{
+        public ZeroVariable() {
+            super();
+        }
     }
 }

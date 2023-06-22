@@ -21,7 +21,6 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
-import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.*;
@@ -60,6 +59,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         nodes.put(currentInstructionIndex, node);
     }
 
+    @Override
+    public void visitParameter(String name, int access) {
+        // TODO: Investigate as option to add entry node
+    }
 
     @Override
     public void visitInsn(int opcode) {
@@ -123,10 +126,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 //        checkForF_NEW();
         if (owner.equals(classVisitor.classNode.name)) {
-            ASMHelper asmHelper = new ASMHelper();
-            String shortInternalName = asmHelper.computeInternalMethodName(name, descriptor, null, null);
-            CFGCallNode node = new CFGCallNode(currentInstructionIndex, opcode, owner, shortInternalName, isInterface,
-                    this.createPVarArgs(aa.getPopList()));
+            CFGCallNode node = new CFGCallNode(currentInstructionIndex, opcode, owner, internalMethodName, isInterface,
+                    this.createPVarMap(aa.getPopList()), this.createDVarMap(aa.getPopList()));
             nodes.put(currentInstructionIndex, node);
         } else {
             final CFGNode node = new CFGNode(currentInstructionIndex, opcode);
@@ -346,7 +347,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         nodes.put(pIndex, node);
     }
 
-    private Map<Integer, ProgramVariable> createPVarArgs(List<Object> popList) {
+    private Map<Integer, ProgramVariable> createPVarMap(List<Object> popList) {
         Map<Integer, ProgramVariable> result = new HashMap<>();
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
         Collections.reverse(popList);
@@ -354,6 +355,24 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         for (Object o : popList) {
             if (o instanceof ProgramVariable) {
                 result.put(popList.indexOf(o), (ProgramVariable) o);
+            }
+        }
+
+        return result;
+    }
+
+    private Map<Integer, DomainVariable> createDVarMap(List<Object> popList) {
+        Map<Integer, DomainVariable> result = new HashMap<>();
+        // Reverse list is necessary, because arguments are popped from the stack in reverse order
+        Collections.reverse(popList);
+
+        for (Object o : popList) {
+            if (o instanceof ProgramVariable) {
+                result.put(popList.indexOf(o), new DomainVariable(
+                        classVisitor.classNode.name,
+                        internalMethodName,
+                        ((ProgramVariable) o).getName(),
+                        ((ProgramVariable) o).getDescriptor()));
             }
         }
 
@@ -378,12 +397,25 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
+
     private void addEntryAndExitNode() {
 //        logger.debug("addEntryAndExitNode");
-        Set<ProgramVariable> parameters = createParamVars();
-        for(ProgramVariable param : parameters) {
+        Set<ProgramVariable> definitions = createDefinitionsFromLocalVars();
+        Map<Integer, ProgramVariable> pVarMap = new HashMap<>();
+        Map<Integer, DomainVariable> dVarMap = new HashMap<>();
+        int idx = 0;
+        for(ProgramVariable def : definitions) {
             UUID id = UUID.randomUUID();
-            mData.getProgramVariables().put(id, param);
+            mData.getProgramVariables().put(id, def);
+
+            if(!Objects.equals(def.getName(), "this")) {
+                pVarMap.put(idx, def);
+                dVarMap.put(idx, new DomainVariable(
+                        classVisitor.classNode.name,
+                        internalMethodName,
+                        def.getName(),
+                        def.getDescriptor()));
+            }
         }
 
         // Copy nodes
@@ -391,8 +423,15 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         tempNodes.putAll(this.nodes);
 
         // Put entry node
-        final CFGNode entryNode =
-                new CFGEntryNode(parameters, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+        final CFGNode entryNode = new CFGEntryNode(
+                classVisitor.classNode.name,
+                internalMethodName,
+                definitions,
+                Sets.newLinkedHashSet(),
+                Sets.newLinkedHashSet(),
+                Sets.newLinkedHashSet(),
+                pVarMap,
+                dVarMap);
         nodes.put(0, entryNode);
 
         // Put all other nodes
@@ -436,7 +475,14 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private Set<ProgramVariable> createParamVars() {
+    /**
+     * Creates a program variable from every variable in the local variable table.<br>
+     * This includes "this" (the current object reference) and all variables that are defined locally
+     * throughout method execution.
+     *
+     * @return A set of program variables containing all variables from the local variable table.
+     */
+    private Set<ProgramVariable> createDefinitionsFromLocalVars() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
             final ProgramVariable variable =
