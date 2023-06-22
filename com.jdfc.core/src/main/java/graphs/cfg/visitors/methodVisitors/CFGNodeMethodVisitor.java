@@ -224,8 +224,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             mData.setCfg(cfg);
             mData.getCfg().calculateReachingDefinitions();
             mData.calculateIntraDefUsePairs();
-        } else {
-            // TODO: <init>: ()V is not in methods
         }
     }
 
