@@ -21,6 +21,7 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.*;
@@ -124,10 +125,26 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        logger.debug(debug);
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-//        checkForF_NEW();
-        if (owner.equals(classVisitor.classNode.name)) {
-            CFGCallNode node = new CFGCallNode(currentInstructionIndex, opcode, owner, internalMethodName, isInterface,
-                    this.createPVarMap(aa.getPopList()), this.createDVarMap(aa.getPopList()));
+
+        ASMHelper asmHelper = new ASMHelper();
+        String shortInternalMethodName = asmHelper.computeInternalMethodName(
+                name,
+                descriptor,
+                null,
+                null);
+        MethodData cmData = classVisitor.classExecutionData.getMethodByShortInternalName(shortInternalMethodName);
+
+        if (owner.equals(classVisitor.classNode.name) && cmData != null) {
+            CFGCallNode node = new CFGCallNode(
+                    currentInstructionIndex,
+                    opcode,
+                    classVisitor.classNode.name,
+                    internalMethodName,
+                    owner,
+                    cmData.buildInternalMethodName(),
+                    isInterface,
+                    this.createPVarMap(aa.getPopList()),
+                    this.createDVarMap(aa.getPopList()));
             nodes.put(currentInstructionIndex, node);
         } else {
             final CFGNode node = new CFGNode(currentInstructionIndex, opcode);

@@ -237,6 +237,28 @@ public class ClassExecutionData extends ExecutionData {
         return null;
     }
 
+    public MethodData getMethodByShortInternalName(String internalName) {
+        for(MethodData mData : methods.values()) {
+            if (mData.buildInternalMethodName().contains(internalName)) {
+                return mData;
+            }
+        }
+
+        if(log.isDebugEnabled()) {
+            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByShortInternalName.txt", false);
+            try (FileWriter writer = new FileWriter(transformFile, true)) {
+                writer.write(String.format("Search param: %s", internalName));
+                writer.write(JDFCUtils.prettyPrintArray(
+                        methods.values().stream().map(MethodData::buildInternalMethodName).toArray()));
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+
+            }
+        }
+        return null;
+    }
+
     public MethodData getMethodByLineNumber(int lNr) {
         for(MethodData mData : methods.values()) {
             if (mData.getBeginLine() <= lNr && lNr <= mData.getEndLine()) {

@@ -13,14 +13,24 @@ import java.util.Map;
 public class CFGCallNode extends CFGNode {
 
     /**
-     * Name of the called method's owner class (relative path).
+     * Name of the method's owner class (relative path).
      */
     private final String className;
 
     /**
-     * Name of the called method (ASM descriptor without exceptions).
+     * Name of the enclosing method (ASM descriptor without exceptions).
      */
     private final String methodName;
+
+    /**
+     * Name of the called method's owner class (relative path).
+     */
+    private final String calledClassName;
+
+    /**
+     * Name of the called method (ASM descriptor without exceptions).
+     */
+    private final String calledMethodName;
 
     /**
      * If the methods owner class is an interface
@@ -43,8 +53,10 @@ public class CFGCallNode extends CFGNode {
      *
      * @param index index in the control flow graph
      * @param opcode opcode of the instruction
-     * @param className name of the called methods owner class
-     * @param methodName name of the called method (ASM descriptor without exceptions)
+     * @param className name of the enclosing method's owner class (relative path)
+     * @param methodName name of the enclosing method (ASM internal name)
+     * @param calledClassName name of the called method's owner class (relative path)
+     * @param calledMethodName name of the called method (ASM internal name)
      * @param isInterface if the methods owner class is an interface
      * @param pVarMap mapping of passed program variables (value) with position in method call (key)
      * @param dVarMap mapping of passed domain variables (value) with position in method call (key)
@@ -54,12 +66,16 @@ public class CFGCallNode extends CFGNode {
             int opcode,
             String className,
             String methodName,
+            String calledClassName,
+            String calledMethodName,
             boolean isInterface,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
        super(index, opcode);
        this.className = className;
        this.methodName = methodName;
+       this.calledClassName = calledClassName;
+       this.calledMethodName = calledMethodName;
        this.isInterface = isInterface;
        this.pVarMap = pVarMap;
        this.dVarMap = dVarMap;
@@ -68,8 +84,16 @@ public class CFGCallNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGCallNode: %d %s %s %s (%d preds, %d succs) | definitions %s | uses %s",
-                this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.className, this.methodName,
-                this.getPred().size(), this.getSucc().size(), this.getDefinitions(), this.getUses());
+                "CFGCallNode: %d %s %s %s %s %s (%d preds, %d succs) | definitions %s | uses %s",
+                this.getInsnIndex(),
+                JDFCUtils.getOpcode(this.getOpcode()),
+                this.className,
+                this.methodName,
+                this.calledClassName,
+                this.calledMethodName,
+                this.getPred().size(),
+                this.getSucc().size(),
+                this.getDefinitions(),
+                this.getUses());
     }
 }
