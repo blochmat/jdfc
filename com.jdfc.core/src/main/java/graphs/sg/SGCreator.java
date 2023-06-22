@@ -47,11 +47,11 @@ public class SGCreator {
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
 
         // returnSite
-        Map<SGCallNode, SGReturnSiteNode> sgCallReturnNodeMap = new HashMap<>();
-        Map<Integer, Integer> sgCallReturnIndexMap = new HashMap<>();
+        Map<SGCallNode, SGReturnSiteNode> sgReturnSiteNodeMap = new HashMap<>();
+        Map<Integer, Integer> sgReturnSiteIndexMap = new HashMap<>();
 
         // callers
-        Multimap<String, SGCallNode> sgMethodCallNodesMap = ArrayListMultimap.create();
+        Multimap<String, SGCallNode> sgCallersMap = ArrayListMultimap.create();
 
         int index = startIndex; // increase for node from own cfg
         int shift = 0; // increase for node from other cfg
@@ -138,7 +138,7 @@ public class SGCreator {
                             // Create sg for called procedure
                             SG calledSG = null;
                             if(depth < 2) {
-                                sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+                                sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
                                 calledSG = SGCreator.createSGForMethod(
                                         cData,
                                         calledMethodData,
@@ -149,7 +149,7 @@ public class SGCreator {
                             }
                             // TODO: method sequences and recursion distinction
 //                        else {
-//                            sgMethodCallNodesMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+//                            sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
 //                            calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, 0);
 //                        }
                             if (calledSG != null) {
@@ -164,7 +164,7 @@ public class SGCreator {
                                 sgEdges.put(index + shift - 1, index + shift);
 
                                 // Add return node
-                                SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
+                                SGReturnSiteNode returnSiteNode = new SGReturnSiteNode(
                                         internalMethodName,
                                         new CFGNode(
                                                 // TODO: check
@@ -174,9 +174,9 @@ public class SGCreator {
                                                 Integer.MIN_VALUE,
                                                 Integer.MIN_VALUE),
                                         pVarMap);
-                                sgNodes.put(index + shift, sgReturnSiteNode);
-                                sgCallReturnNodeMap.put(sgCallNode, sgReturnSiteNode);
-                                sgCallReturnIndexMap.put(sgCallNodeIdx, index + shift);
+                                sgNodes.put(index + shift, returnSiteNode);
+                                sgReturnSiteNodeMap.put(sgCallNode, returnSiteNode);
+                                sgReturnSiteIndexMap.put(sgCallNodeIdx, index + shift);
                                 // Connect return site node with next node
                                 sgEdges.put(index + shift, index + shift + 1);
                                 shift++;
@@ -220,7 +220,16 @@ public class SGCreator {
         }
 
         SGCreator.addPredSuccRelation(sgNodes, sgEdges);
-        return new SGImpl(internalMethodName, domain, domainVarMap, sgNodes, sgEdges, sgCallReturnNodeMap, sgCallReturnIndexMap);
+        return new SGImpl(
+                cData.getRelativePath(),
+                internalMethodName,
+                domain,
+                domainVarMap,
+                sgNodes,
+                sgEdges,
+                sgReturnSiteNodeMap,
+                sgReturnSiteIndexMap,
+                sgCallersMap);
     }
 
     private static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {

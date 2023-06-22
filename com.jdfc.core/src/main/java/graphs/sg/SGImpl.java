@@ -21,13 +21,15 @@ import java.util.Set;
 @AllArgsConstructor
 public class SGImpl implements SG {
 
+    private String className;
     private String internalMethodName;
     private Set<DomainVariable> domain;
     private Map<DomainVariable, DomainVariable> domainVarMap;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
-    private Map<SGCallNode, SGReturnSiteNode> callReturnNodeMap;
-    private Map<Integer, Integer> callReturnIdxMap;
+    private Map<SGCallNode, SGReturnSiteNode> returnSiteNodeMap;
+    private Map<Integer, Integer> returnSiteIndexMap;
+    private Multimap<String, SGCallNode> callersMap;
 
     @Override
     public void calculateReachingDefinitions() {
