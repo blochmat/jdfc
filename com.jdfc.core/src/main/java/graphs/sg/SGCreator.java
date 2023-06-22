@@ -164,8 +164,15 @@ public class SGCreator {
                                 sgEdges.put(index + shift - 1, index + shift);
 
                                 // Add return node
-                                SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(internalMethodName,
-                                        new CFGNode(Integer.MIN_VALUE, Integer.MIN_VALUE),
+                                SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
+                                        internalMethodName,
+                                        new CFGNode(
+                                                // TODO: check
+                                                "class",
+                                                // TODO: check
+                                                "method",
+                                                Integer.MIN_VALUE,
+                                                Integer.MIN_VALUE),
                                         pVarMap);
                                 sgNodes.put(index + shift, sgReturnSiteNode);
                                 sgCallReturnNodeMap.put(sgCallNode, sgReturnSiteNode);

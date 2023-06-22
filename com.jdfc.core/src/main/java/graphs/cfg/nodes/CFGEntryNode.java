@@ -6,20 +6,11 @@ import lombok.Data;
 import utils.JDFCUtils;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Data
 public class CFGEntryNode extends CFGNode {
-
-    /**
-     * Name of the called method's owner class (relative path).
-     */
-    private final String className;
-
-    /**
-     * Name of the called method (ASM descriptor without exceptions).
-     */
-    private final String methodName;
 
     /**
      * Mapping of all program variables (value) with position of appearance in the method call (key). <br>
@@ -43,9 +34,7 @@ public class CFGEntryNode extends CFGNode {
             Set<CFGNode> pSuccessors,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
-        super(pDefinitions, pUses, Integer.MIN_VALUE, Integer.MIN_VALUE, pPredecessors, pSuccessors);
-        this.className = className;
-        this.methodName = methodName;
+        super(className, methodName, pDefinitions, pUses, Integer.MIN_VALUE, Integer.MIN_VALUE, pPredecessors, pSuccessors);
         this.pVarMap = pVarMap;
         this.dVarMap = dVarMap;
     }
@@ -56,6 +45,21 @@ public class CFGEntryNode extends CFGNode {
                 "CFGEntryNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
                 this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(),
                 this.getSucc().size(), this.getDefinitions(), this.getUses());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CFGEntryNode that = (CFGEntryNode) o;
+        return getInsnIndex() == that.getInsnIndex()
+                && getOpcode() == that.getOpcode()
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName());
+    }
+
+    public int hashCode() {
+        return super.hashCode();
     }
 
     // --- Getters, Setters --------------------------------------------------------------------------------------------

@@ -3,18 +3,32 @@ package graphs.cfg.nodes;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import utils.JDFCUtils;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * A node in the {@link CFG}.
  */
+
+@Data
 @NoArgsConstructor
 public class CFGNode {
+
+    /**
+     * Name of the method's owner class (relative path).
+     */
+    private String className;
+
+    /**
+     * Name of the enclosing method (ASM descriptor without exceptions).
+     */
+    private String methodName;
     private Set<ProgramVariable> definitions;
     private Set<ProgramVariable> uses;
     private int insnIndex;
@@ -24,8 +38,14 @@ public class CFGNode {
     private Set<ProgramVariable> reachOut;
     private Set<ProgramVariable> reach;
 
-    public CFGNode(final int pIndex, final int pOpcode) {
+    public CFGNode(
+            final String className,
+            final String methodName,
+            final int pIndex,
+            final int pOpcode) {
         this(
+                className,
+                methodName,
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
                 pIndex,
@@ -35,17 +55,26 @@ public class CFGNode {
     }
 
     public CFGNode(
-            final Set<ProgramVariable> pDefinitions, final Set<ProgramVariable> pUses, final int pIndex, final int pOpcode) {
-        this(pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+            final String className,
+            final String methodName,
+            final Set<ProgramVariable> pDefinitions,
+            final Set<ProgramVariable> pUses,
+            final int pIndex,
+            final int pOpcode) {
+        this(className, methodName, pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
     }
 
     public CFGNode(
+            final String className,
+            final String methodName,
             final Set<ProgramVariable> pDefinitions,
             final Set<ProgramVariable> pUses,
             final int pIndex,
             final int pOpcode,
             final Set<CFGNode> pPredecessors,
             final Set<CFGNode> pSuccessors) {
+        this.className = className;
+        this.methodName = methodName;
         definitions = pDefinitions;
         uses = pUses;
         insnIndex = pIndex;
@@ -158,7 +187,34 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
-                insnIndex, JDFCUtils.getOpcode(opcode), pred.size(), succ.size(), definitions, uses);
+                "CFGNode: %d %s %s %s (%d preds, %d succs) | definitions %s | uses %s",
+                insnIndex,
+                JDFCUtils.getOpcode(opcode),
+                className,
+                methodName,
+                pred.size(),
+                succ.size(),
+                definitions,
+                uses);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CFGNode that = (CFGNode) o;
+        return getInsnIndex() == that.getInsnIndex()
+                && getOpcode() == that.getOpcode()
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                getInsnIndex(),
+                getOpcode(),
+                getClassName(),
+                getMethodName());
     }
 }

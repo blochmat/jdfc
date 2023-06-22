@@ -3,24 +3,13 @@ package graphs.cfg.nodes;
 import data.DomainVariable;
 import data.ProgramVariable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import utils.JDFCUtils;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 public class CFGCallNode extends CFGNode {
-
-    /**
-     * Name of the method's owner class (relative path).
-     */
-    private final String className;
-
-    /**
-     * Name of the enclosing method (ASM descriptor without exceptions).
-     */
-    private final String methodName;
 
     /**
      * Name of the called method's owner class (relative path).
@@ -71,9 +60,7 @@ public class CFGCallNode extends CFGNode {
             boolean isInterface,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
-       super(index, opcode);
-       this.className = className;
-       this.methodName = methodName;
+       super(className, methodName, index, opcode);
        this.calledClassName = calledClassName;
        this.calledMethodName = calledMethodName;
        this.isInterface = isInterface;
@@ -87,13 +74,40 @@ public class CFGCallNode extends CFGNode {
                 "CFGCallNode: %d %s %s %s %s %s (%d preds, %d succs) | definitions %s | uses %s",
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),
-                this.className,
-                this.methodName,
+                this.getClassName(),
+                this.getMethodName(),
                 this.calledClassName,
                 this.calledMethodName,
                 this.getPred().size(),
                 this.getSucc().size(),
                 this.getDefinitions(),
                 this.getUses());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        CFGCallNode that = (CFGCallNode) o;
+        return getInsnIndex() == that.getInsnIndex()
+                && getOpcode() == that.getOpcode()
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(isInterface(), that.isInterface())
+                && Objects.equals(getCalledClassName(), that.getCalledClassName())
+                && Objects.equals(getCalledMethodName(), that.getCalledMethodName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                getInsnIndex(),
+                getOpcode(),
+                getClassName(),
+                getMethodName(),
+                isInterface(),
+                getCalledClassName(),
+                getCalledMethodName());
     }
 }
