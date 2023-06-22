@@ -98,7 +98,7 @@ public class SGCreator {
                 index++;
             } else if (cfgNode instanceof CFGCallNode) {
                 CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
-                MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getMethodName());
+                MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getCalledMethodName());
 
                 if (calledMethodData != null) {
                     // method is defined in same class
