@@ -297,7 +297,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private Set<DomainVariable> createDomainVarsFromLocal() {
         Set<DomainVariable> domain = new HashSet<>();
         for(LocalVariable localVar : mData.getLocalVariableTable().values()) {
-            domain.add(new DomainVariable(classVisitor.classNode.name, internalMethodName, localVar.getName(), localVar.getDescriptor()));
+            domain.add(new DomainVariable(localVar.getIndex(), classVisitor.classNode.name, internalMethodName, localVar.getName(), localVar.getDescriptor()));
         }
 
         return domain;
@@ -344,7 +344,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varName = getLocalVarName(localVarIdx);
         final String varType = getLocalVarType(localVarIdx);
         final boolean isDefinition = isDefinition(opcode);
-        ProgramVariable var = new ProgramVariable(null, varName, varType, insnIdx, lineNumber, isDefinition, false);
+        ProgramVariable var = new ProgramVariable(localVarIdx, null, varName, varType, insnIdx, lineNumber, isDefinition, false);
         UUID id = UUID.randomUUID();
         mData.getProgramVariables().put(id, var);
         aa.setPVar(var);
@@ -384,6 +384,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             case ASTORE:
                 programVariable = getProgramVariableFromLocalVar(localVarIdx, opcode, insnIdx, lineNumber);
                 domain.add(new DomainVariable(
+                        localVarIdx,
                         classVisitor.classNode.name,
                         internalMethodName,
                         programVariable.getName(),
@@ -461,6 +462,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         for (Object o : popList) {
             if (o instanceof ProgramVariable) {
                 result.put(popList.indexOf(o) + 1, new DomainVariable(
+                        ((ProgramVariable) o).getLocalVarIdx(),
                         classVisitor.classNode.name,
                         internalMethodName,
                         ((ProgramVariable) o).getName(),
@@ -502,6 +504,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
             pVarMap.put(idx, def);
             dVarMap.put(idx, new DomainVariable(
+                    def.getLocalVarIdx(),
                     classVisitor.classNode.name,
                     internalMethodName,
                     def.getName(),
@@ -575,6 +578,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private ProgramVariable createProgramVariableFromLocalVar(int index) {
         LocalVariable localVariable = mData.getLocalVariableTable().get(index);
         return new ProgramVariable(
+                index,
                 null,
                 localVariable.getName(),
                 localVariable.getDescriptor(),
@@ -587,6 +591,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private DomainVariable createDomainVariableFromLocalVar(int index) {
         LocalVariable localVariable = mData.getLocalVariableTable().get(index);
         return new DomainVariable(
+                index,
                 classVisitor.classNode.name,
                 internalMethodName,
                 localVariable.getName(),
@@ -604,7 +609,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
         for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
             final ProgramVariable variable =
-                    new ProgramVariable(null,
+                    new ProgramVariable(
+                            localVariable.getIndex(),
+                            null,
                             localVariable.getName(),
                             localVariable.getDescriptor(),
                             Integer.MIN_VALUE,

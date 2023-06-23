@@ -14,6 +14,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class ProgramVariable implements Comparable<Object> {
 
+    private int localVarIdx;
     private String owner;
     private String name;
     private String descriptor;

@@ -9,6 +9,11 @@ import java.util.Objects;
 public class DomainVariable {
 
     /**
+     * Local variable index of domain variable.
+     */
+    private int index;
+
+    /**
      * Name of the methods owner class (relative path).
      */
     private String className;
@@ -37,10 +42,12 @@ public class DomainVariable {
      * @param descriptor  type descriptor of the variable (ASM)
      */
     public DomainVariable(
+            int index,
             @NonNull String className,
             @NonNull String methodName,
             @NonNull String name,
             @NonNull String descriptor) {
+        this.index = index;
         this.className = className;
         this.methodName = methodName;
         this.name = name;
@@ -48,6 +55,7 @@ public class DomainVariable {
     }
 
     private DomainVariable() {
+        this.index = -1;
         this.className = null;
         this.methodName = null;
         this.name = "0";
