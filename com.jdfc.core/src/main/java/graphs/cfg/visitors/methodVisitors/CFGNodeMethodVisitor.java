@@ -297,9 +297,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private Set<DomainVariable> createDomainVarsFromLocal() {
         Set<DomainVariable> domain = new HashSet<>();
         for(LocalVariable localVar : mData.getLocalVariableTable().values()) {
-            if(!Objects.equals(localVar.getName(), "this")) {
-                domain.add(new DomainVariable(classVisitor.classNode.name, internalMethodName, localVar.getName(), localVar.getDescriptor()));
-            }
+            domain.add(new DomainVariable(classVisitor.classNode.name, internalMethodName, localVar.getName(), localVar.getDescriptor()));
         }
 
         return domain;
