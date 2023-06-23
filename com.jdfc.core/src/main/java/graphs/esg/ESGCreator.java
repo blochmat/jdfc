@@ -1,13 +1,20 @@
 package graphs.esg;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.ClassExecutionData;
 import data.DomainVariable;
 import data.MethodData;
 import graphs.esg.nodes.ESGNode;
+import graphs.sg.SG;
+import graphs.sg.nodes.SGNode;
 import lombok.extern.slf4j.Slf4j;
+import utils.JDFCUtils;
 
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ESGCreator {
@@ -24,33 +31,46 @@ public class ESGCreator {
     }
 
     public static ESG createESGForMethod(ClassExecutionData cData, MethodData mData) {
-//        SGImpl sg = mData.getSg();
-//        Set<DomainVariable> domain = mData.getSg().getDomain();
-//        Map<DomainVariable, DomainVariable> domainVarMap = mData.getSg().getDomainVarMap();
-//        Map<Integer, ESGNode> nodes = Maps.newTreeMap();
-//        Multimap<Integer, Integer> edges = ArrayListMultimap.create();
-//
-//        ESGNode zero = new ESGNode(new DomainVariable.ZeroVariable());
-//        nodes.put(ESG_NODE_INDEX, zero);
-//
-//        Set<DomainVariable> initialDVars = domain.stream()
-//                .filter(var ->
-//                        Objects.equals(var.getMethodName(), mData.buildInternalMethodName())).collect(Collectors.toSet());
-//
-//        for(SGNode sgNode : sg.getNodes().values()) {
-//            for(DomainVariable initial : initialDVars) {
-//                DomainVariable dVar = initial;
-//                while(Objects.equals(dVar.getClassName(), sgNode.get) )
-//                if (sgNode instanceof SGCallNode) {
-//                   // replace dVar by matched var
-//                } else {
-//
-//                }
-//                nodes.put(ESG_NODE_INDEX, new ESGNode(dVar));
-//                ESG_NODE_INDEX++;
-//            }
-//        }
+        SG sg = mData.getSg();
+        Set<DomainVariable> domain = mData.getSg().getDomain();
+        DomainVariable zero = new DomainVariable.ZeroVariable();
 
+        Map<Integer, ESGNode> nodes = Maps.newTreeMap();
+        Map<DomainVariable, DomainVariable> domainVarMap = mData.getSg().getDomainVarMap();
+        Set<DomainVariable> initialDVars = domain.stream()
+                .filter(var ->
+                        Objects.equals(var.getMethodName(), mData.buildInternalMethodName())).collect(Collectors.toSet());
+        initialDVars.add(zero);
+
+        for(Map.Entry<Integer, SGNode> sgNodeEntry : sg.getNodes().entrySet()) {
+            int idx = sgNodeEntry.getKey();
+            SGNode sgNode = sgNodeEntry.getValue();
+            for(DomainVariable initial : initialDVars) {
+                DomainVariable dVar = initial;
+                while(!(Objects.equals(dVar, zero) || Objects.equals(dVar.getClassName(), sgNode.getClassName()))) {
+                    dVar = domainVarMap.get(dVar);
+                }
+
+                nodes.put(ESG_NODE_INDEX, new ESGNode(dVar));
+                ESG_NODE_INDEX++;
+            }
+
+            if(log.isDebugEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < initialDVars.size(); i++) {
+                    int esgIdx = idx * initialDVars.size() + i;
+                    if (i == initialDVars.size() -1) {
+                        sb.append(nodes.get(esgIdx).getVar().getName()).append("\n");
+                    } else {
+                        sb.append(nodes.get(esgIdx).getVar().getName()).append(" ");
+                    }
+                }
+
+                JDFCUtils.logThis(sb.toString(), "exploded");
+            }
+        }
+
+        Multimap<Integer, Integer> edges = ArrayListMultimap.create();
         return null;
     }
 
