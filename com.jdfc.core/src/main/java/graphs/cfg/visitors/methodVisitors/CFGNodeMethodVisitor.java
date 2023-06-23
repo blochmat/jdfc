@@ -7,7 +7,6 @@ import com.google.common.collect.Sets;
 import data.DomainVariable;
 import data.MethodData;
 import data.ProgramVariable;
-import graphs.cfg.CFG;
 import graphs.cfg.CFGImpl;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGCallNode;
@@ -278,7 +277,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         edges.putAll(createEdges());
         this.addEntryAndExitNode();
         this.setPredecessorSuccessorRelation();
-        CFG cfg = new CFGImpl(classVisitor.classNode.name, internalMethodName, nodes, edges, domain);
+        CFGImpl cfg = new CFGImpl(classVisitor.classNode.name, internalMethodName, nodes, edges, domain);
 
         JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintSet(domain), "domain");
 

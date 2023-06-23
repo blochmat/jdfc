@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import graphs.cfg.CFG;
+import graphs.cfg.CFGImpl;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
 import graphs.esg.ESG;
@@ -66,7 +66,7 @@ public class MethodData {
      * CFG of compiled method
      */
     @JsonIgnore
-    private CFG cfg;
+    private CFGImpl cfg;
 
     /**
      * Inter-procedural SG of compiled method

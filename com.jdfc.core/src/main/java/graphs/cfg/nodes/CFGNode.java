@@ -2,7 +2,7 @@ package graphs.cfg.nodes;
 
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
-import graphs.cfg.CFG;
+import graphs.cfg.CFGImpl;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import utils.JDFCUtils;
@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A node in the {@link CFG}.
+ * A node in the {@link CFGImpl}.
  */
 
 @Data

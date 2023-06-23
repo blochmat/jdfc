@@ -16,11 +16,11 @@ import java.util.NavigableMap;
 import java.util.Set;
 
 /**
- * A implementation of a {@link CFG}.
+ * A implementation of a {@link CFGImpl}.
  */
 @Slf4j
 @Data
-public class CFGImpl implements CFG {
+public class CFGImpl {
 
     private String owner;
     private String methodName;
@@ -41,7 +41,6 @@ public class CFGImpl implements CFG {
         this.domain = domain;
     }
 
-    @Override
     public CFGEntryNode getEntryNode() {
         return (CFGEntryNode) this.nodes.get(0);
     }
@@ -49,7 +48,6 @@ public class CFGImpl implements CFG {
     /**
      * {@inheritDoc}
      */
-    @Override
     public void calculateReachingDefinitions() {
         LinkedList<CFGNode> workList = new LinkedList<>();
         for (Map.Entry<Integer, CFGNode> node : nodes.entrySet()) {
