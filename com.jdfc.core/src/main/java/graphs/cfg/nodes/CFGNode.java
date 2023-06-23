@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import utils.JDFCUtils;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,7 +25,7 @@ public class CFGNode {
     private String className;
 
     /**
-     * Name of the enclosing method (ASM descriptor without exceptions).
+     * Name of the enclosing method (ASM internal name).
      */
     private String methodName;
     private Set<ProgramVariable> definitions;
@@ -108,80 +107,6 @@ public class CFGNode {
                         programVariable ->
                                 programVariable.getName().equals(variable.getName())
                                         && programVariable.getInstructionIndex() != variable.getInstructionIndex());
-    }
-
-    public void addSuccessor(final CFGNode pNode) {
-        succ.add(pNode);
-    }
-
-    public void addPredecessor(final CFGNode pNode) {
-        pred.add(pNode);
-    }
-
-    /**
-     * Returns the set of {@link ProgramVariable}s in the ReachOut set.
-     *
-     * @return The set of {@link ProgramVariable}s in the ReachOut set
-     */
-    public Set<ProgramVariable> getReachOut() {
-        return reachOut;
-    }
-
-    /**
-     * Returns the set of {@link CFGNode}s that are successors of this node.
-     *
-     * @return The set of {@link CFGNode}s that are successors
-     */
-    public Set<CFGNode> getSucc() {
-        return Collections.unmodifiableSet(succ);
-    }
-
-    public Set<ProgramVariable> getReach() {
-        return reach;
-    }
-
-    /**
-     * Returns the index number of this node.
-     *
-     * @return The index number of this node
-     */
-    public int getInsnIndex() {
-        return insnIndex;
-    }
-
-    /**
-     * Returns the set of {@link CFGNode}s that are predecessors of this node.
-     *
-     * @return The set of {@link CFGNode}s that are predecessors
-     */
-    public Set<CFGNode> getPred() {
-        return Collections.unmodifiableSet(pred);
-    }
-
-    public void addDefinition(ProgramVariable pDefinition) {
-        definitions.add(pDefinition);
-    }
-
-    /**
-     * Returns the set of {@link ProgramVariable}s that get defined at this {@link CFGNode}.
-     *
-     * @return The set of {@link ProgramVariable}s that get defined
-     */
-    public Set<ProgramVariable> getDefinitions() {
-        return Collections.unmodifiableSet(definitions);
-    }
-
-    /**
-     * Returns the set of {@link ProgramVariable}s that get used at this {@link CFGNode}.
-     *
-     * @return The set of {@link ProgramVariable}s that get used
-     */
-    public Set<ProgramVariable> getUses() {
-        return Collections.unmodifiableSet(uses);
-    }
-
-    public int getOpcode() {
-        return opcode;
     }
 
     @Override

@@ -85,13 +85,13 @@ public class SGCreator {
             CFGNode cfgNode = nodeEntry.getValue();
 
             if (cfgNode instanceof CFGEntryNode) {
-                sgNodes.put(index + shift, new SGEntryNode(internalMethodName, cfgNode));
+                sgNodes.put(index + shift, new SGEntryNode(cfgNode));
                 int finalShift = shift;
                 List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
                 index++;
             } else if (cfgNode instanceof CFGExitNode) {
-                sgNodes.put(index + shift, new SGExitNode(internalMethodName, cfgNode));
+                sgNodes.put(index + shift, new SGExitNode(cfgNode));
                 int finalShift = shift;
                 List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
@@ -123,7 +123,7 @@ public class SGCreator {
                             }
 
                             // Add call node
-                            SGCallNode sgCallNode = new SGCallNode(calledMethodData.buildInternalMethodName(), cfgNode, pVarMap);
+                            SGCallNode sgCallNode = new SGCallNode((CFGCallNode) cfgNode, pVarMap);
                             sgNodes.put(index + shift, sgCallNode);
 
                             // Save callNode index
@@ -165,12 +165,9 @@ public class SGCreator {
 
                                 // Add return node
                                 SGReturnSiteNode returnSiteNode = new SGReturnSiteNode(
-                                        internalMethodName,
                                         new CFGNode(
-                                                // TODO: check
-                                                "class",
-                                                // TODO: check
-                                                "method",
+                                                cData.getRelativePath(),
+                                                internalMethodName,
                                                 Integer.MIN_VALUE,
                                                 Integer.MIN_VALUE),
                                         pVarMap);
@@ -185,7 +182,7 @@ public class SGCreator {
                     }
                 } else {
                     // Add call node
-                    SGCallNode sgCallNode = new SGCallNode(cfgCallNode.getMethodName(), cfgNode);
+                    SGCallNode sgCallNode = new SGCallNode((CFGCallNode) cfgNode);
                     sgNodes.put(index + shift, sgCallNode);
                     int finalShift = shift;
                     List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
@@ -193,7 +190,7 @@ public class SGCreator {
                     index++;
                 }
             } else {
-                sgNodes.put(index + shift, new SGNode(internalMethodName, cfgNode));
+                sgNodes.put(index + shift, new SGNode(cfgNode));
                 int finalShift = shift;
                 List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
@@ -206,7 +203,7 @@ public class SGCreator {
             File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
             try (FileWriter writer = new FileWriter(transformFile, true)) {
                 writer.write("Class: " + cData.getRelativePath());
-                writer.write("Method: " + mData.buildInternalMethodName());
+                writer.write("Method: " + internalMethodName);
                 writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
                 if(mData.getCfg() != null) {
                     writer.write(JDFCUtils.prettyPrintMap(sgNodes));
@@ -236,8 +233,8 @@ public class SGCreator {
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
             final SGNode first = nodes.get(edge.getKey());
             final SGNode second = nodes.get(edge.getValue());
-            first.addSuccessor(second);
-            second.addPredecessor(first);
+            first.getSucc().add(second);
+            second.getPred().add(first);
         }
     }
 }

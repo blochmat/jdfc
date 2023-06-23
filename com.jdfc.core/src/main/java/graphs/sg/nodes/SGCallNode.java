@@ -1,23 +1,35 @@
 package graphs.sg.nodes;
 
 import data.ProgramVariable;
-import graphs.cfg.nodes.CFGNode;
+import graphs.cfg.nodes.CFGCallNode;
+import lombok.Data;
 import utils.JDFCUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+@Data
 public class SGCallNode extends SGNode {
 
+    private String calledClassName;
+    private String calledMethodName;
+    private boolean isInterface;
     private Map<ProgramVariable, ProgramVariable> pVarMap;
 
-    public SGCallNode(String internalMethodName, CFGNode node) {
-        super(internalMethodName, node);
+    public SGCallNode(CFGCallNode node) {
+        super(node);
+        this.calledClassName = node.getCalledClassName();
+        this.calledMethodName = node.getCalledMethodName();
+        this.isInterface = node.isCalledIsInterface();
         this.pVarMap = new HashMap<>();
     }
 
-    public SGCallNode(String internalMethodName, CFGNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
-        super(internalMethodName, node);
+    public SGCallNode(CFGCallNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
+        super(node);
+        this.calledClassName = node.getCalledClassName();
+        this.calledMethodName = node.getCalledMethodName();
+        this.isInterface = node.isCalledIsInterface();
         this.pVarMap = pVarMap;
     }
 
@@ -28,13 +40,30 @@ public class SGCallNode extends SGNode {
                 this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(), this.getSucc().size(), this.getDefinitions(), this.getUses());
     }
 
-    // --- Getters, Setters --------------------------------------------------------------------------------------------
-
-    public Map<ProgramVariable, ProgramVariable> getpVarMap() {
-        return pVarMap;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        SGCallNode that = (SGCallNode) o;
+        return getInsnIndex() == that.getInsnIndex()
+                && getOpcode() == that.getOpcode()
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(isInterface(), that.isInterface())
+                && Objects.equals(getCalledClassName(), that.getCalledClassName())
+                && Objects.equals(getCalledMethodName(), that.getCalledMethodName());
     }
 
-    public void setpVarMap(Map<ProgramVariable, ProgramVariable> pVarMap) {
-        this.pVarMap = pVarMap;
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                getInsnIndex(),
+                getOpcode(),
+                getClassName(),
+                getMethodName(),
+                isInterface(),
+                getCalledClassName(),
+                getCalledMethodName());
     }
 }

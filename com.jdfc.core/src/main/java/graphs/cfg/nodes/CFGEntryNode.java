@@ -58,6 +58,7 @@ public class CFGEntryNode extends CFGNode {
                 && Objects.equals(getMethodName(), that.getMethodName());
     }
 
+    @Override
     public int hashCode() {
         return super.hashCode();
     }

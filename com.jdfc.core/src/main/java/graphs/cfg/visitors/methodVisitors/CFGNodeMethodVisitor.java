@@ -482,8 +482,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
             final CFGNode first = nodes.get(edge.getKey());
             final CFGNode second = nodes.get(edge.getValue());
-            first.addSuccessor(second);
-            second.addPredecessor(first);
+            first.getSucc().add(second);
+            second.getPred().add(first);
         }
     }
 

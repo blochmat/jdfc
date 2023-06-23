@@ -24,7 +24,7 @@ public class CFGCallNode extends CFGNode {
     /**
      * If the methods owner class is an interface
      */
-    private final boolean isInterface;
+    private final boolean calledIsInterface;
 
     /**
      * Mapping of all program variables (value) with position in the method call (key). <br>
@@ -46,7 +46,7 @@ public class CFGCallNode extends CFGNode {
      * @param methodName name of the enclosing method (ASM internal name)
      * @param calledClassName name of the called method's owner class (relative path)
      * @param calledMethodName name of the called method (ASM internal name)
-     * @param isInterface if the methods owner class is an interface
+     * @param calledIsInterface if the called methods owner class is an interface
      * @param pVarMap mapping of passed program variables (value) with position in method call (key)
      * @param dVarMap mapping of passed domain variables (value) with position in method call (key)
      */
@@ -57,13 +57,13 @@ public class CFGCallNode extends CFGNode {
             String methodName,
             String calledClassName,
             String calledMethodName,
-            boolean isInterface,
+            boolean calledIsInterface,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
        super(className, methodName, index, opcode);
        this.calledClassName = calledClassName;
        this.calledMethodName = calledMethodName;
-       this.isInterface = isInterface;
+       this.calledIsInterface = calledIsInterface;
        this.pVarMap = pVarMap;
        this.dVarMap = dVarMap;
     }
@@ -94,7 +94,7 @@ public class CFGCallNode extends CFGNode {
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
-                && Objects.equals(isInterface(), that.isInterface())
+                && Objects.equals(isCalledIsInterface(), that.isCalledIsInterface())
                 && Objects.equals(getCalledClassName(), that.getCalledClassName())
                 && Objects.equals(getCalledMethodName(), that.getCalledMethodName());
     }
@@ -106,7 +106,7 @@ public class CFGCallNode extends CFGNode {
                 getOpcode(),
                 getClassName(),
                 getMethodName(),
-                isInterface(),
+                isCalledIsInterface(),
                 getCalledClassName(),
                 getCalledMethodName());
     }
