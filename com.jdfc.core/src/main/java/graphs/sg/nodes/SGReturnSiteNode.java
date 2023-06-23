@@ -13,8 +13,8 @@ public class SGReturnSiteNode extends SGNode {
 
     Map<ProgramVariable, ProgramVariable> pVarMap;
 
-    public SGReturnSiteNode(CFGNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
-        super(node);
+    public SGReturnSiteNode(int index, CFGNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
+        super(index, node);
         this.pVarMap = pVarMap;
     }
 
@@ -30,7 +30,8 @@ public class SGReturnSiteNode extends SGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SGReturnSiteNode that = (SGReturnSiteNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        return getIndex() == that.getIndex()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName());

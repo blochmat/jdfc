@@ -9,8 +9,8 @@ import java.util.Objects;
 @Data
 public class SGEntryNode extends SGNode {
 
-    public SGEntryNode(CFGNode node) {
-        super(node);
+    public SGEntryNode(int index, CFGNode node) {
+        super(index, node);
     }
 
     @Override
@@ -25,7 +25,8 @@ public class SGEntryNode extends SGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SGEntryNode that = (SGEntryNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        return getIndex() == that.getIndex()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName());

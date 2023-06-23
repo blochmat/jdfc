@@ -24,7 +24,7 @@ public class SG {
     private String className;
     private String internalMethodName;
     private Set<DomainVariable> domain;
-    private Multimap<DomainVariable, DomainVariable> domainVarMap;
+    private Map<Integer, Map<DomainVariable, DomainVariable>> domainVarMap;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
     private Map<SGCallNode, SGReturnSiteNode> returnSiteNodeMap;

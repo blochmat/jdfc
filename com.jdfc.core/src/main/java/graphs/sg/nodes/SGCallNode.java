@@ -17,16 +17,16 @@ public class SGCallNode extends SGNode {
     private boolean isInterface;
     private Map<ProgramVariable, ProgramVariable> pVarMap;
 
-    public SGCallNode(CFGCallNode node) {
-        super(node);
+    public SGCallNode(int index, CFGCallNode node) {
+        super(index, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.pVarMap = new HashMap<>();
     }
 
-    public SGCallNode(CFGCallNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
-        super(node);
+    public SGCallNode(int index, CFGCallNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
+        super(index, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
@@ -46,7 +46,8 @@ public class SGCallNode extends SGNode {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         SGCallNode that = (SGCallNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        return getIndex() == that.getIndex()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
@@ -58,6 +59,7 @@ public class SGCallNode extends SGNode {
     @Override
     public int hashCode() {
         return Objects.hash(
+                getIndex(),
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),

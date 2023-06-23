@@ -26,7 +26,7 @@ public class SGCreator {
 
     public static void createSGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
-            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashSet<>(), ArrayListMultimap.create(), 0, 0));
+            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashSet<>(), new HashMap<>(), 0, 0));
             mData.getSg().calculateReachingDefinitions();
             mData.calculateInterDefUsePairs();
         }
@@ -35,7 +35,7 @@ public class SGCreator {
     public static SG createSGForMethod(ClassExecutionData cData,
                                        MethodData mData,
                                        Set<DomainVariable> domain,
-                                       Multimap<DomainVariable, DomainVariable> domainVarMap,
+                                       Map<Integer, Map<DomainVariable, DomainVariable>> domainVarMap,
                                        int startIndex,
                                        int depth) {
         String internalMethodName = mData.buildInternalMethodName();
@@ -85,13 +85,13 @@ public class SGCreator {
             CFGNode cfgNode = nodeEntry.getValue();
 
             if (cfgNode instanceof CFGEntryNode) {
-                sgNodes.put(index + shift, new SGEntryNode(cfgNode));
+                sgNodes.put(index + shift, new SGEntryNode(index + shift, cfgNode));
                 int finalShift = shift;
                 List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
                 index++;
             } else if (cfgNode instanceof CFGExitNode) {
-                sgNodes.put(index + shift, new SGExitNode(cfgNode));
+                sgNodes.put(index + shift, new SGExitNode(index + shift, cfgNode));
                 int finalShift = shift;
                 List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
@@ -115,19 +115,20 @@ public class SGCreator {
                                 pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
                             }
 
+                            // Add call node
+                            SGCallNode sgCallNode = new SGCallNode(index + shift, (CFGCallNode) cfgNode, pVarMap);
+                            sgNodes.put(index + shift, sgCallNode);
+
                             // Create domain variable mapping
                             Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
                             Map<Integer, DomainVariable> dVarsEntry = cfgEntryNode.getDVarMap();
                             for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
-                                domainVarMap.put(cEntry.getValue(), dVarsEntry.get(cEntry.getKey()));
-                                JDFCUtils.logThis(JDFCUtils.prettyPrintMultimap(domainVarMap), "SGCreator_domainVarMap");
+                                domainVarMap.computeIfAbsent(sgCallNode.getIndex(), k -> new HashMap<>());
+                                domainVarMap.get(sgCallNode.getIndex()).put(cEntry.getValue(), dVarsEntry.get(cEntry.getKey()));
+                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(domainVarMap), "SGCreator_domainVarMap");
                             }
-
-                            // Add call node
-                            SGCallNode sgCallNode = new SGCallNode((CFGCallNode) cfgNode, pVarMap);
-                            sgNodes.put(index + shift, sgCallNode);
 
                             // Save callNode index
                             int sgCallNodeIdx = index + shift;
@@ -168,6 +169,7 @@ public class SGCreator {
 
                                 // Add return node
                                 SGReturnSiteNode returnSiteNode = new SGReturnSiteNode(
+                                        index + shift,
                                         new CFGNode(
                                                 cData.getRelativePath(),
                                                 internalMethodName,
@@ -180,12 +182,13 @@ public class SGCreator {
                                 // Connect return site node with next node
                                 sgEdges.put(index + shift, index + shift + 1);
                                 shift++;
+
                             }
                         }
                     }
                 } else {
                     // Add call node
-                    SGCallNode sgCallNode = new SGCallNode((CFGCallNode) cfgNode);
+                    SGCallNode sgCallNode = new SGCallNode(index + shift, (CFGCallNode) cfgNode);
                     sgNodes.put(index + shift, sgCallNode);
                     int finalShift = shift;
                     List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
@@ -193,7 +196,7 @@ public class SGCreator {
                     index++;
                 }
             } else {
-                sgNodes.put(index + shift, new SGNode(cfgNode));
+                sgNodes.put(index + shift, new SGNode(index + shift, cfgNode));
                 int finalShift = shift;
                 List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);

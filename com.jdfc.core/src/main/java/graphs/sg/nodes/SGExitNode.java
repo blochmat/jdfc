@@ -1,6 +1,5 @@
 package graphs.sg.nodes;
 
-import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
 import utils.JDFCUtils;
@@ -10,8 +9,8 @@ import java.util.Objects;
 @Data
 public class SGExitNode extends SGNode {
 
-    public SGExitNode(CFGNode node) {
-        super(node);
+    public SGExitNode(int index, CFGNode node) {
+        super(index, node);
     }
 
     @Override
@@ -25,8 +24,9 @@ public class SGExitNode extends SGNode {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CFGExitNode that = (CFGExitNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        SGExitNode that = (SGExitNode) o;
+        return getIndex() == that.getIndex()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName());

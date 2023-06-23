@@ -38,7 +38,7 @@ public class ESGCreator {
         DomainVariable zero = new DomainVariable.ZeroVariable();
 
         Map<Integer, ESGNode> nodes = Maps.newTreeMap();
-        Multimap<DomainVariable, DomainVariable> domainVarMap = mData.getSg().getDomainVarMap();
+        Map<Integer, Map<DomainVariable, DomainVariable>> domainVarMap = mData.getSg().getDomainVarMap();
         Set<DomainVariable> initialDVars = domain.stream()
                 .filter(var ->
                         Objects.equals(var.getMethodName(), mData.buildInternalMethodName())).collect(Collectors.toSet());
@@ -49,18 +49,18 @@ public class ESGCreator {
             SGNode sgNode = sgNodeEntry.getValue();
             for(DomainVariable initial : initialDVars) {
                 DomainVariable dVar = initial;
-                JDFCUtils.logThis(JDFCUtils.prettyPrintMultimap(domainVarMap), "ESGCreator_domainVarMap");
-                while(!Objects.equals(dVar, zero)
-                        && !(domainVarMap.containsKey(dVar))
-                        && !Objects.equals(dVar.getMethodName(), sgNode.getMethodName())) {
-                    JDFCUtils.logThis(String.format("%s %s", dVar.getMethodName(), sgNode.getMethodName()), "ESGCreator_methodNames");
-                    for(DomainVariable d : domainVarMap.get(dVar)) {
-                        if(Objects.equals(dVar.getMethodName(), d.getMethodName())) {
-                            dVar = d;
-                            break;
-                        }
-                    }
-                }
+//                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(domainVarMap), "ESGCreator_domainVarMap");
+//                while(!Objects.equals(dVar, zero)
+//                        && !(domainVarMap.containsKey(dVar))
+//                        && !Objects.equals(dVar.getMethodName(), sgNode.getMethodName())) {
+//                    JDFCUtils.logThis(String.format("%s %s", dVar.getMethodName(), sgNode.getMethodName()), "ESGCreator_methodNames");
+//                    for(DomainVariable d : domainVarMap.get(dVar)) {
+//                        if(Objects.equals(dVar.getMethodName(), d.getMethodName())) {
+//                            dVar = d;
+//                            break;
+//                        }
+//                    }
+//                }
 
                 nodes.put(ESG_NODE_INDEX, new ESGNode(dVar));
                 ESG_NODE_INDEX++;

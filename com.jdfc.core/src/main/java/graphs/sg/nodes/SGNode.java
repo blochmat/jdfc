@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class SGNode {
 
+    private int index;
     private int insnIndex;
     private int opcode;
     private String className;
@@ -26,7 +27,8 @@ public class SGNode {
     private Set<ProgramVariable> reachOut;
     private Set<ProgramVariable> reach;
 
-    public SGNode(CFGNode node) {
+    public SGNode(int index, CFGNode node) {
+        this.index = index;
         this.className = node.getClassName();
         this.methodName = node.getMethodName();
         this.definitions = node.getDefinitions();
@@ -76,7 +78,8 @@ public class SGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SGNode that = (SGNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        return getIndex() == that.getIndex()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName());
@@ -85,6 +88,7 @@ public class SGNode {
     @Override
     public int hashCode() {
         return Objects.hash(
+                getIndex(),
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),
