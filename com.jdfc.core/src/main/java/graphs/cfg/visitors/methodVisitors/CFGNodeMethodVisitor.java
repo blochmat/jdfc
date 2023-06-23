@@ -496,14 +496,13 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             UUID id = UUID.randomUUID();
             mData.getProgramVariables().put(id, def);
 
-            if(!Objects.equals(def.getName(), "this")) {
-                pVarMap.put(idx, def);
-                dVarMap.put(idx, new DomainVariable(
-                        classVisitor.classNode.name,
-                        internalMethodName,
-                        def.getName(),
-                        def.getDescriptor()));
-            }
+            pVarMap.put(idx, def);
+            dVarMap.put(idx, new DomainVariable(
+                    classVisitor.classNode.name,
+                    internalMethodName,
+                    def.getName(),
+                    def.getDescriptor()));
+            idx++;
         }
 
         // Copy nodes
