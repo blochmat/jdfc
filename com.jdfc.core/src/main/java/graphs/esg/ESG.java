@@ -2,14 +2,14 @@ package graphs.esg;
 
 import com.google.common.collect.Multimap;
 import graphs.esg.nodes.ESGNode;
-import graphs.sg.SGImpl;
+import graphs.sg.SG;
 
 import java.util.NavigableMap;
 import java.util.Set;
 
 public interface ESG {
 
-    SGImpl getSg();
+    SG getSg();
 
     /**
      * Get all nodes of the combined super graph.

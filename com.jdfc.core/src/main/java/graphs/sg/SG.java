@@ -19,7 +19,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SGImpl {
+public class SG {
 
     private String className;
     private String internalMethodName;
