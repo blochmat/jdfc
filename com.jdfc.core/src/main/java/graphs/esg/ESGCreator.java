@@ -16,7 +16,6 @@ import utils.JDFCUtils;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class ESGCreator {
@@ -34,38 +33,34 @@ public class ESGCreator {
 
     public static ESG createESGForMethod(ClassExecutionData cData, MethodData mData) {
         SG sg = mData.getSg();
-        Set<DomainVariable> domain = mData.getSg().getDomain();
         DomainVariable zero = new DomainVariable.ZeroVariable();
 
         Map<Integer, ESGNode> nodes = Maps.newTreeMap();
-        Map<Integer, Map<DomainVariable, DomainVariable>> domainVarMap = mData.getSg().getDomainVarMap();
-        Set<DomainVariable> initialDVars = domain.stream()
-                .filter(var ->
-                        Objects.equals(var.getMethodName(), mData.buildInternalMethodName())).collect(Collectors.toSet());
-        initialDVars.add(zero);
+        Map<String, Map<DomainVariable, DomainVariable>> domainVarMap = mData.getSg().getDomainVarMap();
 
-        for(Map.Entry<Integer, SGNode> sgNodeEntry : sg.getNodes().entrySet()) {
-            int idx = sgNodeEntry.getKey();
-            SGNode sgNode = sgNodeEntry.getValue();
-            for(DomainVariable initial : initialDVars) {
-                DomainVariable dVar = initial;
-//                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(domainVarMap), "ESGCreator_domainVarMap");
-//                while(!Objects.equals(dVar, zero)
-//                        && !(domainVarMap.containsKey(dVar))
-//                        && !Objects.equals(dVar.getMethodName(), sgNode.getMethodName())) {
-//                    JDFCUtils.logThis(String.format("%s %s", dVar.getMethodName(), sgNode.getMethodName()), "ESGCreator_methodNames");
-//                    for(DomainVariable d : domainVarMap.get(dVar)) {
-//                        if(Objects.equals(dVar.getMethodName(), d.getMethodName())) {
-//                            dVar = d;
-//                            break;
-//                        }
-//                    }
-//                }
+        Map<Integer, DomainVariable> initialDomain = Maps.newTreeMap();
+        initialDomain.put(0, zero);
+        for(DomainVariable d : mData.getCfg().getDomain()) {
+            initialDomain.put(d.getIndex() + 1, d);
+        }
 
+        for(SGNode sgNode : sg.getNodes().values()) {
+            for(DomainVariable  dVar : initialDomain.values()) {
+                JDFCUtils.logThis(dVar.toString(), "ESGCreator_methodNames");
+                JDFCUtils.logThis(String.valueOf(sgNode.getIndex()), "ESGCreator_methodNames");
+                JDFCUtils.logThis(String.format("%s %s", dVar.getMethodName(), sgNode.getMethodName()), "ESGCreator_methodNames");
+
+                while(!Objects.equals(dVar, zero)
+                        && domainVarMap.containsKey(sgNode.getMethodName())
+                        && domainVarMap.get(sgNode.getMethodName()).containsKey(dVar)) {
+                    dVar = domainVarMap.get(sgNode.getMethodName()).get(dVar);
+                    JDFCUtils.logThis("Transfer " + dVar.toString(), "ESGCreator_methodNames");
+                }
                 nodes.put(ESG_NODE_INDEX, new ESGNode(dVar));
                 ESG_NODE_INDEX++;
             }
         }
+
 
         if(log.isDebugEnabled()) {
             StringBuilder sb = new StringBuilder();
@@ -73,8 +68,8 @@ public class ESGCreator {
             sb.append(mData.buildInternalMethodName()).append("\n");
             for(Map.Entry<Integer, SGNode> sgNodeEntry : sg.getNodes().entrySet()) {
                 int idx = sgNodeEntry.getKey();
-                for (int i = 0; i < initialDVars.size(); i++) {
-                    int esgIdx = idx * initialDVars.size() + i;
+                for (int i = 0; i < initialDomain.size(); i++) {
+                    int esgIdx = idx * initialDomain.size() + i;
                     sb.append(nodes.get(esgIdx).getVar().getName()).append(" ");
                 }
                 sb.append("\n");

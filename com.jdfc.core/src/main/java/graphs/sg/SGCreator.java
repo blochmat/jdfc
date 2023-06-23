@@ -7,6 +7,7 @@ import data.ClassExecutionData;
 import data.DomainVariable;
 import data.MethodData;
 import data.ProgramVariable;
+import graphs.cfg.CFG;
 import graphs.cfg.nodes.CFGCallNode;
 import graphs.cfg.nodes.CFGEntryNode;
 import graphs.cfg.nodes.CFGExitNode;
@@ -26,7 +27,7 @@ public class SGCreator {
 
     public static void createSGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
-            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashSet<>(), new HashMap<>(), 0, 0));
+            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashMap<>(), new HashMap<>(), 0, 0));
             mData.getSg().calculateReachingDefinitions();
             mData.calculateInterDefUsePairs();
         }
@@ -34,14 +35,14 @@ public class SGCreator {
 
     public static SG createSGForMethod(ClassExecutionData cData,
                                        MethodData mData,
-                                       Set<DomainVariable> domain,
-                                       Map<Integer, Map<DomainVariable, DomainVariable>> domainVarMap,
+                                       Map<String, CFG> cfgMap,
+                                       Map<String, Map<DomainVariable, DomainVariable>> domainVarMap,
                                        int startIndex,
                                        int depth) {
         String internalMethodName = mData.buildInternalMethodName();
+        cfgMap.put(internalMethodName, mData.getCfg());
         NavigableMap<Integer, CFGNode> localCfgNodes = Maps.newTreeMap(mData.getCfg().getNodes());
         Multimap<Integer, Integer> localCfgEdges = ArrayListMultimap.create(mData.getCfg().getEdges());
-        domain.addAll(mData.getCfg().getDomain());
 
         NavigableMap<Integer, SGNode> sgNodes = Maps.newTreeMap();
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
@@ -125,8 +126,8 @@ public class SGCreator {
                             for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
-                                domainVarMap.computeIfAbsent(sgCallNode.getIndex(), k -> new HashMap<>());
-                                domainVarMap.get(sgCallNode.getIndex()).put(cEntry.getValue(), dVarsEntry.get(cEntry.getKey()));
+                                domainVarMap.computeIfAbsent(sgCallNode.getCalledMethodName(), k -> new HashMap<>());
+                                domainVarMap.get(sgCallNode.getCalledMethodName()).put(cEntry.getValue(), dVarsEntry.get(cEntry.getKey()));
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(domainVarMap), "SGCreator_domainVarMap");
                             }
 
@@ -146,7 +147,7 @@ public class SGCreator {
                                 calledSG = SGCreator.createSGForMethod(
                                         cData,
                                         calledMethodData,
-                                        domain,
+                                        cfgMap,
                                         domainVarMap,
                                         index + shift,
                                         ++depth);
@@ -226,7 +227,7 @@ public class SGCreator {
         return new SG(
                 cData.getRelativePath(),
                 internalMethodName,
-                domain,
+                cfgMap,
                 domainVarMap,
                 sgNodes,
                 sgEdges,
