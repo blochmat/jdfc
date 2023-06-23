@@ -7,7 +7,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
-import graphs.esg.ESG;
+import graphs.esg.ESGImpl;
 import graphs.sg.SG;
 import graphs.sg.nodes.SGNode;
 import lombok.AllArgsConstructor;
@@ -78,7 +78,7 @@ public class MethodData {
      * Inter-procedural ESG of compiled method
      */
     @JsonIgnore
-    private ESG esg;
+    private ESGImpl esg;
 
     /**
      * Local variables in class

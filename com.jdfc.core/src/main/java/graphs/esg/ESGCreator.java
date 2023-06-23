@@ -23,7 +23,7 @@ public class ESGCreator {
         }
     }
 
-    public static ESG createESGForMethod(ClassExecutionData cData, MethodData mData) {
+    public static ESGImpl createESGForMethod(ClassExecutionData cData, MethodData mData) {
 //        SGImpl sg = mData.getSg();
 //        Set<DomainVariable> domain = mData.getSg().getDomain();
 //        Map<DomainVariable, DomainVariable> domainVarMap = mData.getSg().getDomainVarMap();

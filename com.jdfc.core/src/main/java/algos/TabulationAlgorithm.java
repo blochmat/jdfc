@@ -1,14 +1,14 @@
 package algos;
 
-import graphs.esg.ESG;
 import graphs.esg.ESGEdge;
+import graphs.esg.ESGImpl;
 
 import java.util.LinkedList;
 import java.util.Set;
 
 public class TabulationAlgorithm {
 
-    private ESG graph;
+    private ESGImpl graph;
 
     private Set<ESGEdge> pathEdgeSet;
 
@@ -16,7 +16,7 @@ public class TabulationAlgorithm {
 
     private LinkedList<ESGEdge> workList;
 
-    public TabulationAlgorithm(ESG graph) {
+    public TabulationAlgorithm(ESGImpl graph) {
 //        this.graph = graph;
 //        this.pathEdgeSet = new HashSet<>();
 //        this.summaryEdgeSet = new HashSet<>();
