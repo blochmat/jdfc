@@ -32,7 +32,7 @@ public class SGCreator {
         }
     }
 
-    public static SG createSGForMethod(ClassExecutionData cData,
+    public static SGImpl createSGForMethod(ClassExecutionData cData,
                                        MethodData mData,
                                        Set<DomainVariable> domain,
                                        Map<DomainVariable, DomainVariable> domainVarMap,
@@ -136,7 +136,7 @@ public class SGCreator {
                             index++;
 
                             // Create sg for called procedure
-                            SG calledSG = null;
+                            SGImpl calledSG = null;
                             if(depth < 2) {
                                 sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
                                 calledSG = SGCreator.createSGForMethod(

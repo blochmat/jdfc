@@ -8,7 +8,7 @@ import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
 import graphs.esg.ESG;
-import graphs.sg.SG;
+import graphs.sg.SGImpl;
 import graphs.sg.nodes.SGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -72,7 +72,7 @@ public class MethodData {
      * Inter-procedural SG of compiled method
      */
     @JsonIgnore
-    private SG sg;
+    private SGImpl sg;
 
     /**
      * Inter-procedural ESG of compiled method

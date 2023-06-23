@@ -19,7 +19,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SGImpl implements SG {
+public class SGImpl {
 
     private String className;
     private String internalMethodName;
@@ -31,7 +31,6 @@ public class SGImpl implements SG {
     private Map<Integer, Integer> returnSiteIndexMap;
     private Multimap<String, SGCallNode> callersMap;
 
-    @Override
     public void calculateReachingDefinitions() {
         LinkedList<SGNode> workList = new LinkedList<>();
         for (Map.Entry<Integer, SGNode> node : nodes.entrySet()) {
@@ -49,7 +48,6 @@ public class SGImpl implements SG {
         }
     }
 
-    @Override
     public SGNode getEntryNode() {
         return this.nodes.get(0);
     }

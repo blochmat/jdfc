@@ -9,12 +9,12 @@ public class DomainVariable {
     /**
      * Name of the methods owner class (relative path).
      */
-    private String owner;
+    private String className;
 
     /**
      * Name of the method (ASM).
      */
-    private String method;
+    private String methodName;
 
     /**
      * Name of the variable.
@@ -28,24 +28,24 @@ public class DomainVariable {
 
     /**
      *
-     * @param owner name of the variable's owner class (relative path)
-     * @param method name of the variable's owner method (ASM) (null for fields)
+     * @param className name of the variable's owner class (relative path)
+     * @param methodName name of the variable's owner method (ASM) (null for fields)
      * @param name name of the variable
      * @param descriptor  type descriptor of the variable (ASM)
      */
-    public DomainVariable(@NonNull String owner,
-                          @NonNull String method,
+    public DomainVariable(@NonNull String className,
+                          @NonNull String methodName,
                           @NonNull String name,
                           @NonNull String descriptor) {
-        this.owner = owner;
-        this.method = method;
+        this.className = className;
+        this.methodName = methodName;
         this.name = name;
         this.descriptor = descriptor;
     }
 
     private DomainVariable() {
-        this.owner = null;
-        this.method = null;
+        this.className = null;
+        this.methodName = null;
         this.name = null;
         this.descriptor = null;
     }
