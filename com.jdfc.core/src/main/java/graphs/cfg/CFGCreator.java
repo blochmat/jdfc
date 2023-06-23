@@ -15,7 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Creates {@link CFGImpl}s for each method of a class file.
+ * Creates {@link CFG}s for each method of a class file.
  */
 @Slf4j
 public class CFGCreator {
@@ -24,8 +24,8 @@ public class CFGCreator {
     }
 
     /**
-     * Creates the {@link CFGImpl}s for each method of a class and returns a map of method name to {@link
-     * CFGImpl}.
+     * Creates the {@link CFG}s for each method of a class and returns a map of method name to {@link
+     * CFG}.
      *
      * <p>The key of the map is in the format
      *
@@ -37,7 +37,7 @@ public class CFGCreator {
      * "foo" that takes an int and a String and returns a double array will have the key <code> foo:
      * (ILjava/lang/String;)[D</code>.
      *
-     * <p>This method is the only method to start the generation of {@link CFGImpl}s. The full creation
+     * <p>This method is the only method to start the generation of {@link CFG}s. The full creation
      * process of the graphs is then done internally and only the final graphs will be given back to
      * the user.
      *

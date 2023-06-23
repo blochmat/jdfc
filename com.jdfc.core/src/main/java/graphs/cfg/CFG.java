@@ -16,11 +16,11 @@ import java.util.NavigableMap;
 import java.util.Set;
 
 /**
- * A implementation of a {@link CFGImpl}.
+ * A implementation of a {@link CFG}.
  */
 @Slf4j
 @Data
-public class CFGImpl {
+public class CFG {
 
     private String owner;
     private String methodName;
@@ -28,7 +28,7 @@ public class CFGImpl {
     private Multimap<Integer, Integer> edges;
     private Set<DomainVariable> domain;
 
-    public CFGImpl(
+    public CFG(
             @NonNull final String owner,
             @NonNull final String methodName,
             @NonNull final NavigableMap<Integer, CFGNode> nodes,
