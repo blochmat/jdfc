@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.NavigableMap;
 
 @Data
-public class ESGImpl {
+public class ESG {
 
     private SG sg;
     private NavigableMap<Integer, ESGNode> nodes;
