@@ -24,7 +24,7 @@ public class SG {
     private String className;
     private String internalMethodName;
     private Set<DomainVariable> domain;
-    private Map<DomainVariable, DomainVariable> domainVarMap;
+    private Multimap<DomainVariable, DomainVariable> domainVarMap;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
     private Map<SGCallNode, SGReturnSiteNode> returnSiteNodeMap;
@@ -54,6 +54,6 @@ public class SG {
 
     @Override
     public String toString() {
-        return String.format("SGImpl for method %s (containing %d nodes)%n %s", internalMethodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
+        return String.format("SG for method %s (containing %d nodes)%n %s", internalMethodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
     }
 }

@@ -3,6 +3,8 @@ package data;
 import lombok.Data;
 import lombok.NonNull;
 
+import java.util.Objects;
+
 @Data
 public class DomainVariable {
 
@@ -26,6 +28,7 @@ public class DomainVariable {
      */
     private String descriptor;
 
+
     /**
      *
      * @param className name of the variable's owner class (relative path)
@@ -33,10 +36,11 @@ public class DomainVariable {
      * @param name name of the variable
      * @param descriptor  type descriptor of the variable (ASM)
      */
-    public DomainVariable(@NonNull String className,
-                          @NonNull String methodName,
-                          @NonNull String name,
-                          @NonNull String descriptor) {
+    public DomainVariable(
+            @NonNull String className,
+            @NonNull String methodName,
+            @NonNull String name,
+            @NonNull String descriptor) {
         this.className = className;
         this.methodName = methodName;
         this.name = name;
@@ -46,7 +50,7 @@ public class DomainVariable {
     private DomainVariable() {
         this.className = null;
         this.methodName = null;
-        this.name = null;
+        this.name = "0";
         this.descriptor = null;
     }
 
@@ -55,4 +59,18 @@ public class DomainVariable {
             super();
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DomainVariable that = (DomainVariable) o;
+        return Objects.equals(getClassName(), that.getClassName()) && Objects.equals(getMethodName(), that.getMethodName()) && Objects.equals(getName(), that.getName()) && Objects.equals(getDescriptor(), that.getDescriptor());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClassName(), getMethodName(), getName(), getDescriptor());
+    }
+
 }
