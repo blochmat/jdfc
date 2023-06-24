@@ -1,7 +1,6 @@
 package graphs.esg;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.BiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.ClassExecutionData;
@@ -67,8 +66,6 @@ public class ESGCreator {
             JDFCUtils.logThis(sb.toString(), "exploded_nodes");
         }
 
-        Map<Integer, BiMap<Integer, Integer>> domainVarMap = mData.getSg().getDomainVarMap();
-
         Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
         // iterate over sg
         for(SGNode sgNode : sg.getNodes().values()) {
@@ -91,23 +88,24 @@ public class ESGCreator {
                 Map<Integer, ESGNode> esgSourceNodeMap = esgNodes.get(sgNode.getIndex());
 
                 if (sgNode instanceof SGCallNode) {
+                    SGCallNode sgCallNode = (SGCallNode) sgNode;
                     // Iterate over all domain vars in source
                     for(Integer sourceDVarIdx : esgSourceNodeMap.keySet()) {
                         // for all target sg nodes
                         for(Integer sgnTargetIdx: sgnTargetIdxList) {
                             if(sourceDVarIdx == -1) {
                                 // special case zeroVar
-                                esgEdges.put(sgNode.getIndex(), new ESGEdge(
-                                        sgNode.getIndex(),
+                                esgEdges.put(sgCallNode.getIndex(), new ESGEdge(
+                                        sgCallNode.getIndex(),
                                         sourceDVarIdx,
                                         sgnTargetIdx,
                                         sourceDVarIdx));
                             } else {
-                                Integer targetDVarIdx = domainVarMap.get(sgNode.getIndex()).get(sourceDVarIdx);
+                                Integer targetDVarIdx = sgCallNode.getDVarMap().get(sourceDVarIdx);
                                 if(targetDVarIdx != null) {
                                     // green
-                                    esgEdges.put(sgNode.getIndex(), new ESGEdge(
-                                            sgNode.getIndex(),
+                                    esgEdges.put(sgCallNode.getIndex(), new ESGEdge(
+                                            sgCallNode.getIndex(),
                                             sourceDVarIdx,
                                             sgnTargetIdx,
                                             targetDVarIdx));

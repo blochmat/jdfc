@@ -16,6 +16,7 @@ public class SGCallNode extends SGNode {
     private String calledMethodName;
     private boolean isInterface;
     private Map<ProgramVariable, ProgramVariable> pVarMap;
+    private Map<Integer, Integer> dVarMap;
 
     public SGCallNode(int index, CFGCallNode node) {
         super(index, node);
@@ -23,14 +24,19 @@ public class SGCallNode extends SGNode {
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.pVarMap = new HashMap<>();
+        this.dVarMap = new HashMap<>();
     }
 
-    public SGCallNode(int index, CFGCallNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
+    public SGCallNode(int index,
+                      CFGCallNode node,
+                      Map<ProgramVariable, ProgramVariable> pVarMap,
+                      Map<Integer, Integer> dVarMap) {
         super(index, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.pVarMap = pVarMap;
+        this.dVarMap = dVarMap;
     }
 
     @Override

@@ -25,7 +25,7 @@ public class SGCreator {
 
     public static void createSGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
-            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashMap<>(), new HashMap<>(), 0, 0));
+            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashMap<>(), 0, 0));
             mData.getSg().calculateReachingDefinitions();
             mData.calculateInterDefUsePairs();
         }
@@ -34,7 +34,6 @@ public class SGCreator {
     public static SG createSGForMethod(ClassExecutionData cData,
                                        MethodData mData,
                                        Map<String, CFG> cfgMap,
-                                       Map<Integer, BiMap<Integer, Integer>> domainVarMap,
                                        int startIndex,
                                        int depth) {
         String internalMethodName = mData.buildInternalMethodName();
@@ -117,20 +116,20 @@ public class SGCreator {
                                 pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
                             }
 
-                            // Add call node
-                            SGCallNode sgCallNode = new SGCallNode(index + shift, (CFGCallNode) cfgNode, pVarMap);
-                            sgNodes.put(index + shift, sgCallNode);
-
                             // Create domain variable mapping
                             Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
                             Map<Integer, DomainVariable> dVarsEntry = cfgEntryNode.getDVarMap();
+                            BiMap<Integer, Integer> dVarMap = HashBiMap.create();
                             for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
-                                domainVarMap.computeIfAbsent(sgCallNode.getIndex(), k -> HashBiMap.create());
-                                domainVarMap.get(sgCallNode.getIndex()).put(cEntry.getValue().getIndex(), cEntry.getKey());
-                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(domainVarMap), "SGCreator_domainVarMap");
+                                dVarMap.put(cEntry.getValue().getIndex(), cEntry.getKey());
+                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarMap), "SGCreator_domainVarMap");
                             }
+
+                            // Add call node
+                            SGCallNode sgCallNode = new SGCallNode(index + shift, (CFGCallNode) cfgNode, pVarMap, dVarMap);
+                            sgNodes.put(index + shift, sgCallNode);
 
                             // Save callNode index
                             int sgCallNodeIdx = index + shift;
@@ -149,7 +148,6 @@ public class SGCreator {
                                         cData,
                                         calledMethodData,
                                         cfgMap,
-                                        domainVarMap,
                                         index + shift,
                                         ++depth);
                             }
@@ -166,8 +164,11 @@ public class SGCreator {
                                 // Update index shift
                                 shift = shift + calledSG.getNodes().size();
 
-                                // Connect exit and return site node
-                                sgEdges.put(index + shift - 1, index + shift);
+                                // Add pVarMap and dVarMap to exit node
+                                SGExitNode sgExitNode = (SGExitNode) sgNodes.get(index + shift - 1);
+                                sgExitNode.setPVarMap(pVarMap);
+                                sgExitNode.setDVarMap(dVarMap.inverse());
+                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarMap.inverse()), "SGCreator_domainVarMap_exit");
 
                                 // Add returnSite node
                                 SGReturnSiteNode returnSiteNode = new SGReturnSiteNode(
@@ -176,15 +177,17 @@ public class SGCreator {
                                                 cData.getRelativePath(),
                                                 internalMethodName,
                                                 Integer.MIN_VALUE,
-                                                Integer.MIN_VALUE),
-                                        pVarMap);
+                                                Integer.MIN_VALUE));
                                 sgNodes.put(index + shift, returnSiteNode);
                                 sgReturnSiteNodeMap.put(sgCallNode, returnSiteNode);
                                 sgReturnSiteIndexMap.put(sgCallNodeIdx, index + shift);
+
+                                // Connect exit and return site node
+                                sgEdges.put(index + shift - 1, index + shift);
+
                                 // Connect return site node with next node
                                 sgEdges.put(index + shift, index + shift + 1);
                                 shift++;
-
                             }
                         }
                     }
@@ -229,7 +232,6 @@ public class SGCreator {
                 cData.getRelativePath(),
                 internalMethodName,
                 cfgMap,
-                domainVarMap,
                 sgNodes,
                 sgEdges,
                 sgReturnSiteNodeMap,

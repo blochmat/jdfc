@@ -1,21 +1,17 @@
 package graphs.sg.nodes;
 
-import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
 import utils.JDFCUtils;
 
-import java.util.Map;
 import java.util.Objects;
 
 @Data
 public class SGReturnSiteNode extends SGNode {
 
-    Map<ProgramVariable, ProgramVariable> pVarMap;
 
-    public SGReturnSiteNode(int index, CFGNode node, Map<ProgramVariable, ProgramVariable> pVarMap) {
+    public SGReturnSiteNode(int index, CFGNode node) {
         super(index, node);
-        this.pVarMap = pVarMap;
     }
 
     @Override
