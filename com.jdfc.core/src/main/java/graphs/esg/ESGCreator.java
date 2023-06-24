@@ -14,10 +14,7 @@ import graphs.sg.nodes.SGNode;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 public class ESGCreator {
@@ -148,12 +145,17 @@ public class ESGCreator {
                     for(Integer sourceDVarIdx : esgSourceNodeMap.keySet()) {
                         // for all target sg nodes
                         for(Integer sgnTargetIdx: sgnTargetIdxList) {
-                            // green
-                            esgEdges.put(sgNode.getIndex(), new ESGEdge(
-                                    sgNode.getIndex(),
-                                    sgnTargetIdx,
-                                    sourceDVarIdx,
-                                    sourceDVarIdx));
+                            SGNode targetNode = sg.getNodes().get(sgnTargetIdx);
+                            DomainVariable sourceDVar = esgSourceNodeMap.get(sourceDVarIdx).getDVar();
+                            if(targetNode.getDefinitions().stream().noneMatch(pVar ->
+                                    Objects.equals(pVar.getName(), sourceDVar.getName())
+                                            && Objects.equals(pVar.getDescriptor(), sourceDVar.getDescriptor()))) {
+                                esgEdges.put(sgNode.getIndex(), new ESGEdge(
+                                        sgNode.getIndex(),
+                                        sgnTargetIdx,
+                                        sourceDVarIdx,
+                                        sourceDVarIdx));
+                            }
                         }
                     }
                 }
