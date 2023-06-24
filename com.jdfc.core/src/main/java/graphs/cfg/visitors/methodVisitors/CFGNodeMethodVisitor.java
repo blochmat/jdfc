@@ -534,14 +534,15 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
 
         // Put exit node
-        final CFGNode exitNode =
-                new CFGExitNode(
-                        classVisitor.classNode.name,
-                        internalMethodName,
-                        Sets.newLinkedHashSet(),
-                        Sets.newLinkedHashSet(),
-                        Sets.newHashSet(),
-                        Sets.newLinkedHashSet());
+        final CFGNode exitNode = new CFGExitNode(
+                classVisitor.classNode.name,
+                internalMethodName,
+                Sets.newLinkedHashSet(),
+                Sets.newLinkedHashSet(),
+                Sets.newHashSet(),
+                Sets.newLinkedHashSet(),
+                pVarMap,
+                dVarMap);
         nodes.put(nodes.size(), exitNode);
 
         // Copy edges
