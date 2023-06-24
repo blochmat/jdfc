@@ -13,19 +13,35 @@ import java.util.Set;
 @AllArgsConstructor
 public class ESGNode {
 
-    private DomainVariable var;
+    private int sgnIndex;
+    private DomainVariable dVar;
     private boolean isPossiblyNotRedefined;
     Set<ESGNode> pred;
     Set<ESGNode> succ;
 
-    public ESGNode(DomainVariable var) {
-        this.var = var;
+    private ESGNode(int sgnIndex) {
+        this.sgnIndex = sgnIndex;
+        this.dVar = new DomainVariable.ZeroVariable();
         this.isPossiblyNotRedefined = true;
         this.pred = Sets.newLinkedHashSet();
         this.succ = Sets.newLinkedHashSet();
     }
 
+    public ESGNode(int sgnIndex, DomainVariable dVar) {
+        this.sgnIndex = sgnIndex;
+        this.dVar = dVar;
+        this.isPossiblyNotRedefined = true;
+        this.pred = Sets.newLinkedHashSet();
+        this.succ = Sets.newLinkedHashSet();
+    }
+
+    public static class ESGZeroNode extends ESGNode {
+        public ESGZeroNode(int sgIndex) {
+            super(sgIndex);
+        }
+    }
+
     public boolean isZero() {
-        return var instanceof DomainVariable.ZeroVariable;
+        return dVar instanceof DomainVariable.ZeroVariable;
     }
 }

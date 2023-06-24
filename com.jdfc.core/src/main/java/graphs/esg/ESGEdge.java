@@ -1,6 +1,5 @@
 package graphs.esg;
 
-import graphs.esg.nodes.ESGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,8 +8,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ESGEdge {
-    int sourceIdx;
-    ESGNode source;
-    int targetIdx;
-    ESGNode target;
+    /**
+     * Super Graph Source Node Index
+     */
+    private int sgnSourceIdx;
+
+    /**
+     * Super Graph Target Node Index
+     */
+    private int sgnTargetIdx;
+
+    /**
+     * Source Domain Variable Index
+     */
+    private int sourceDVarIdx;
+
+    /**
+     * Target Domain Variable Index
+     */
+    private int targetDVarIdx;
 }

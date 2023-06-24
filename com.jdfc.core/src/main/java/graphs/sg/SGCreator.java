@@ -36,7 +36,7 @@ public class SGCreator {
     public static SG createSGForMethod(ClassExecutionData cData,
                                        MethodData mData,
                                        Map<String, CFG> cfgMap,
-                                       Map<String, Map<DomainVariable, DomainVariable>> domainVarMap,
+                                       Map<Integer, Map<Integer, Integer>> domainVarMap,
                                        int startIndex,
                                        int depth) {
         String internalMethodName = mData.buildInternalMethodName();
@@ -126,8 +126,8 @@ public class SGCreator {
                             for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
-                                domainVarMap.computeIfAbsent(sgCallNode.getCalledMethodName(), k -> new HashMap<>());
-                                domainVarMap.get(sgCallNode.getCalledMethodName()).put(cEntry.getValue(), dVarsEntry.get(cEntry.getKey()));
+                                domainVarMap.computeIfAbsent(sgCallNode.getIndex(), k -> new HashMap<>());
+                                domainVarMap.get(sgCallNode.getIndex()).put(cEntry.getValue().getIndex(), cEntry.getKey());
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(domainVarMap), "SGCreator_domainVarMap");
                             }
 
@@ -168,7 +168,7 @@ public class SGCreator {
                                 // Connect exit and return site node
                                 sgEdges.put(index + shift - 1, index + shift);
 
-                                // Add return node
+                                // Add returnSite node
                                 SGReturnSiteNode returnSiteNode = new SGReturnSiteNode(
                                         index + shift,
                                         new CFGNode(
