@@ -1,5 +1,6 @@
 package graphs.sg;
 
+import com.google.common.collect.BiMap;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
@@ -24,7 +25,7 @@ public class SG {
     private String className;
     private String internalMethodName;
     private Map<String, CFG> cfgMap;
-    private Map<Integer, Map<Integer, Integer>> domainVarMap;
+    private Map<Integer, BiMap<Integer, Integer>> domainVarMap;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
     private Map<SGCallNode, SGReturnSiteNode> returnSiteNodeMap;

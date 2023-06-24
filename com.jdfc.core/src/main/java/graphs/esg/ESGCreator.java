@@ -1,6 +1,7 @@
 package graphs.esg;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.BiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.ClassExecutionData;
@@ -9,7 +10,6 @@ import data.MethodData;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
 import graphs.sg.nodes.SGCallNode;
-import graphs.sg.nodes.SGExitNode;
 import graphs.sg.nodes.SGNode;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
@@ -67,7 +67,7 @@ public class ESGCreator {
             JDFCUtils.logThis(sb.toString(), "exploded_nodes");
         }
 
-        Map<Integer, Map<Integer, Integer>> domainVarMap = mData.getSg().getDomainVarMap();
+        Map<Integer, BiMap<Integer, Integer>> domainVarMap = mData.getSg().getDomainVarMap();
 
         Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
         // iterate over sg
@@ -115,19 +115,31 @@ public class ESGCreator {
                             }
                         }
                     }
-                } else if (sgNode instanceof SGExitNode) {
-                    // Iterate over all domain vars in source
-                    for(Integer sourceDVarIdx : esgSourceNodeMap.keySet()) {
-                        // for all target sg nodes
-                        for(Integer sgnTargetIdx: sgnTargetIdxList) {
-                            // green
-                            esgEdges.put(sgNode.getIndex(), new ESGEdge(
-                                    sgNode.getIndex(),
-                                    Integer.MIN_VALUE,
-                                    sgnTargetIdx,
-                                    Integer.MIN_VALUE));
-                        }
-                    }
+//                } else if (sgNode instanceof SGExitNode) {
+//                    // Iterate over all domain vars in source
+//                    for(Integer sourceDVarIdx : esgSourceNodeMap.keySet()) {
+//                        // for all target sg nodes
+//                        for(Integer sgnTargetIdx: sgnTargetIdxList) {
+//                            if(sourceDVarIdx == -1) {
+//                                // special case zeroVar
+//                                esgEdges.put(sgNode.getIndex(), new ESGEdge(
+//                                        sgNode.getIndex(),
+//                                        sourceDVarIdx,
+//                                        sgnTargetIdx,
+//                                        sourceDVarIdx));
+//                            } else {
+//                                Integer targetDVarIdx = domainVarMap.get(sgNode.getIndex()).inverse().get(sourceDVarIdx);
+//                                if(targetDVarIdx != null) {
+//                                    // green
+//                                    esgEdges.put(sgNode.getIndex(), new ESGEdge(
+//                                            sgNode.getIndex(),
+//                                            sourceDVarIdx,
+//                                            sgnTargetIdx,
+//                                            targetDVarIdx));
+//                                }
+//                            }
+//                        }
+//                    }
                 } else {
                     // Iterate over all domain vars in source
                     for(Integer sourceDVarIdx : esgSourceNodeMap.keySet()) {

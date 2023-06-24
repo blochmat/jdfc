@@ -1,8 +1,6 @@
 package graphs.sg;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import data.ClassExecutionData;
 import data.DomainVariable;
 import data.MethodData;
@@ -36,7 +34,7 @@ public class SGCreator {
     public static SG createSGForMethod(ClassExecutionData cData,
                                        MethodData mData,
                                        Map<String, CFG> cfgMap,
-                                       Map<Integer, Map<Integer, Integer>> domainVarMap,
+                                       Map<Integer, BiMap<Integer, Integer>> domainVarMap,
                                        int startIndex,
                                        int depth) {
         String internalMethodName = mData.buildInternalMethodName();
@@ -92,8 +90,11 @@ public class SGCreator {
                 sgEdges.putAll(index + shift, edges);
                 index++;
             } else if (cfgNode instanceof CFGExitNode) {
-                sgNodes.put(index + shift, new SGExitNode(index + shift, cfgNode));
+                SGExitNode sgExitNode = new SGExitNode(index + shift, cfgNode);
+                sgNodes.put(index + shift, sgExitNode);
                 int finalShift = shift;
+//                domainVarMap.computeIfAbsent(sgExitNode.getIndex(), k -> HashBiMap.create());
+//                domainVarMap.get(sgExitNode.getIndex()).put(cEntry.getValue().getIndex(), cEntry.getKey());
                 List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
                 index++;
@@ -126,7 +127,7 @@ public class SGCreator {
                             for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
-                                domainVarMap.computeIfAbsent(sgCallNode.getIndex(), k -> new HashMap<>());
+                                domainVarMap.computeIfAbsent(sgCallNode.getIndex(), k -> HashBiMap.create());
                                 domainVarMap.get(sgCallNode.getIndex()).put(cEntry.getValue().getIndex(), cEntry.getKey());
                                 JDFCUtils.logThis(JDFCUtils.prettyPrintMap(domainVarMap), "SGCreator_domainVarMap");
                             }
