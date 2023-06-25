@@ -58,7 +58,7 @@ public class DomainVariable {
         this.index = -1;
         this.className = null;
         this.methodName = null;
-        this.name = "0";
+        this.name = "ZERO";
         this.descriptor = null;
     }
 
@@ -73,7 +73,11 @@ public class DomainVariable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DomainVariable that = (DomainVariable) o;
-        return Objects.equals(getClassName(), that.getClassName()) && Objects.equals(getMethodName(), that.getMethodName()) && Objects.equals(getName(), that.getName()) && Objects.equals(getDescriptor(), that.getDescriptor());
+        return Objects.equals(getIndex(), that.getIndex())
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getDescriptor(), that.getDescriptor());
     }
 
     @Override

@@ -209,6 +209,8 @@ public class SGCreator {
             }
         }
 
+        SGCreator.addPredSuccRelation(sgNodes, sgEdges);
+
         if(log.isDebugEnabled()) {
             // Log all relative paths of files in the classpath
             File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
@@ -227,7 +229,6 @@ public class SGCreator {
             }
         }
 
-        SGCreator.addPredSuccRelation(sgNodes, sgEdges);
         return new SG(
                 cData.getRelativePath(),
                 internalMethodName,

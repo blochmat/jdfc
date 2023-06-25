@@ -31,8 +31,8 @@ public class TabulationAlgorithm {
     public void execute() {
         SG sg = this.esg.getSg();
         //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
-        this.pathEdgeSet.add(new ESGEdge(Integer.MIN_VALUE, Integer.MIN_VALUE, -1, -1));
-        this.workList.add(new ESGEdge(Integer.MIN_VALUE, Integer.MIN_VALUE, -1, -1));
+//        this.pathEdgeSet.add(new ESGEdge(Integer.MIN_VALUE, Integer.MIN_VALUE, -1, -1));
+//        this.workList.add(new ESGEdge(Integer.MIN_VALUE, Integer.MIN_VALUE, -1, -1));
 //        while(!this.workList.isEmpty()) {
 //            ESGEdge e = workList.pop();
 //            SGNode sgNode = sg.getNodes().get(e.getSgnTargetIdx());

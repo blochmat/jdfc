@@ -17,6 +17,16 @@ public class ESGEdge {
     private int sgnTargetIdx;
 
     /**
+     * Name of the source node's method
+     */
+    private String sourceDVarMethodName;
+
+    /**
+     * Name of the target node's method
+     */
+    private String targetDVarMethodName;
+
+    /**
      * Source Domain Variable Index
      */
     private int sourceDVarIdx;
@@ -35,12 +45,21 @@ public class ESGEdge {
      */
     public ESGEdge(final int sgnSourceIdx,
                    final int sgnTargetIdx,
+                   final String sourceDVarMethodName,
+                   final String targetDVarMethodName,
                    final int sourceDVarIdx,
                    final int targetDVarIdx) {
         this.sgnSourceIdx = sgnSourceIdx;
         this.sgnTargetIdx = sgnTargetIdx;
+        this.sourceDVarMethodName = sourceDVarMethodName;
+        this.targetDVarMethodName = targetDVarMethodName;
         this.sourceDVarIdx = sourceDVarIdx;
         this.targetDVarIdx = targetDVarIdx;
 
+    }
+
+    @Override
+    public String toString() {
+        return "ESGEdge{" + sgnSourceIdx + ", " + sourceDVarMethodName + ", " + sourceDVarIdx + ", " + sgnTargetIdx + ", " + targetDVarMethodName + ", " + targetDVarIdx + '}';
     }
 }

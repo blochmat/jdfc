@@ -48,7 +48,8 @@ public class ESGNode {
 
     @Override
     public String toString() {
-        return String.format("(%d, %s, %d, %d)", sgnIndex, dVar.getName(), pred.size(), succ.size());
+        String redefined = isPossiblyNotRedefined ? "T" : "F";
+        return String.format("(%d, %s, %s, %d, %d, %s)", sgnIndex, dVar.getIndex(), dVar.getName(), pred.size(), succ.size(), redefined);
     }
 
     @Override

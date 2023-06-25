@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
 import java.util.NavigableMap;
 
 @Data
@@ -14,6 +15,6 @@ import java.util.NavigableMap;
 @AllArgsConstructor
 public class ESG {
     private SG sg;
-    private NavigableMap<Integer, NavigableMap<Integer, ESGNode>> nodes;
+    private NavigableMap<Integer, Map<String, NavigableMap<Integer, ESGNode>>> nodes;
     private Multimap<Integer, ESGEdge> edges;
 }
