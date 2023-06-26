@@ -127,10 +127,12 @@ public class ESGCreator {
 
             Map<String, NavigableMap<Integer, DomainVariable>> activeDomain = new HashMap<>();
             activeDomain.computeIfAbsent(methodName, k -> domain.get(methodName));
-            activeDomain.computeIfAbsent(sgNodeMethodName, k -> domain.get(sgNodeMethodName));
             if(sgNode instanceof SGCallNode) {
                 String calledMethodName = ((SGCallNode) sgNode).getCalledMethodName();
                 activeDomain.computeIfAbsent(calledMethodName, k -> domain.get(calledMethodName));
+            }
+            if(!(sgNode instanceof SGExitNode)) {
+                activeDomain.computeIfAbsent(sgNodeMethodName, k -> domain.get(sgNodeMethodName));
             }
 
             if(log.isDebugEnabled()) {
