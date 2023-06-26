@@ -31,7 +31,7 @@ import static org.objectweb.asm.Opcodes.*;
 public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, CFGNode> nodes;
-    private final Set<DomainVariable> domain;
+    private final NavigableMap<Integer, DomainVariable> domain;
     private final MethodData mData;
     private CFGAnalyzerAdapter aa;
 
@@ -47,7 +47,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         this.mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
         this.aa = aa;
         // TODO: Add fields to domain
-        this.domain = Sets.newHashSet(createDomainVarsFromLocal());
+        this.domain = new TreeMap<>();
+        this.domain.putAll(createDomainVarsFromLocal());
     }
 
     @Override
@@ -279,7 +280,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         this.setPredecessorSuccessorRelation();
         CFG cfg = new CFG(classVisitor.classNode.name, internalMethodName, nodes, edges, domain);
 
-        JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintSet(domain), "domain");
+        JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintMap(domain), "domain");
 
 //        logger.debug(internalMethodName);
 //        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
@@ -294,10 +295,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     // ---------------------------------------------- Helper Methods ---------------------------------------------------
 
-    private Set<DomainVariable> createDomainVarsFromLocal() {
-        Set<DomainVariable> domain = new HashSet<>();
-        for(LocalVariable localVar : mData.getLocalVariableTable().values()) {
-            domain.add(new DomainVariable(localVar.getIndex(), classVisitor.classNode.name, internalMethodName, localVar.getName(), localVar.getDescriptor()));
+    private Map<Integer, DomainVariable> createDomainVarsFromLocal() {
+        Map<Integer, DomainVariable> domain = new TreeMap<>();
+        for(Map.Entry<Integer, LocalVariable> localVarEntry : mData.getLocalVariableTable().entrySet()) {
+            domain.put(localVarEntry.getKey(), new DomainVariable(localVarEntry.getKey(), classVisitor.classNode.name, internalMethodName, localVarEntry.getValue().getName(), localVarEntry.getValue().getDescriptor()));
         }
 
         return domain;
@@ -383,7 +384,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             case DSTORE:
             case ASTORE:
                 programVariable = getProgramVariableFromLocalVar(localVarIdx, opcode, insnIdx, lineNumber);
-                domain.add(new DomainVariable(
+                domain.put(localVarIdx, new DomainVariable(
                         localVarIdx,
                         classVisitor.classNode.name,
                         internalMethodName,

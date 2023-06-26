@@ -1,5 +1,6 @@
 package graphs.sg.nodes;
 
+import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGCallNode;
 import lombok.Data;
@@ -16,7 +17,7 @@ public class SGCallNode extends SGNode {
     private String calledMethodName;
     private boolean isInterface;
     private Map<ProgramVariable, ProgramVariable> pVarMap;
-    private Map<Integer, Integer> dVarMap;
+    private Map<DomainVariable, DomainVariable> dVarMap;
 
     public SGCallNode(int index, CFGCallNode node) {
         super(index, node);
@@ -30,7 +31,7 @@ public class SGCallNode extends SGNode {
     public SGCallNode(int index,
                       CFGCallNode node,
                       Map<ProgramVariable, ProgramVariable> pVarMap,
-                      Map<Integer, Integer> dVarMap) {
+                      Map<DomainVariable, DomainVariable> dVarMap) {
         super(index, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();

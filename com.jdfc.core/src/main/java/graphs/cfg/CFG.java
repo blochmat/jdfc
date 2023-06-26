@@ -26,14 +26,14 @@ public class CFG {
     private String methodName;
     private NavigableMap<Integer, CFGNode> nodes;
     private Multimap<Integer, Integer> edges;
-    private Set<DomainVariable> domain;
+    private NavigableMap<Integer, DomainVariable> domain;
 
     public CFG(
             @NonNull final String owner,
             @NonNull final String methodName,
             @NonNull final NavigableMap<Integer, CFGNode> nodes,
             @NonNull final Multimap<Integer, Integer> edges,
-            @NonNull final Set<DomainVariable> domain) {
+            @NonNull final NavigableMap<Integer, DomainVariable> domain) {
         this.owner = owner;
         this.methodName = methodName;
         this.nodes = nodes;

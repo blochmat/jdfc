@@ -1,5 +1,6 @@
 package graphs.sg.nodes;
 
+import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
@@ -14,7 +15,7 @@ public class SGExitNode extends SGNode {
 
     private Map<ProgramVariable, ProgramVariable> pVarMap;
 
-    private Map<Integer, Integer> dVarMap;
+    private Map<DomainVariable, DomainVariable> dVarMap;
 
     public SGExitNode(int index, CFGNode node) {
         super(index, node);
