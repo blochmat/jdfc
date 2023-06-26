@@ -54,17 +54,17 @@ public class DomainVariable {
         this.descriptor = descriptor;
     }
 
-    private DomainVariable() {
+    private DomainVariable(String className, String methodName) {
         this.index = -1;
-        this.className = null;
-        this.methodName = null;
+        this.className = className;
+        this.methodName = methodName;
         this.name = "ZERO";
         this.descriptor = null;
     }
 
     public static class ZeroVariable extends DomainVariable{
-        public ZeroVariable() {
-            super();
+        public ZeroVariable(String className, String methodName) {
+            super(className, methodName);
         }
     }
 

@@ -121,10 +121,12 @@ public class SGCreator {
                             Map<Integer, DomainVariable> dVarsEntry = cfgEntryNode.getDVarMap();
                             BiMap<DomainVariable, DomainVariable> dVarMap = HashBiMap.create();
                             for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
-                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
-                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
-                                dVarMap.put(cEntry.getValue(), calledMethodData.getCfg().getDomain().get(cEntry.getKey()));
-                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarMap), "SGCreator_domainVarMap");
+                                if(cEntry.getValue().getIndex() != 0) {
+                                    JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
+                                    JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
+                                    dVarMap.put(cEntry.getValue(), calledMethodData.getCfg().getDomain().get(cEntry.getKey()));
+                                    JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarMap), "SGCreator_domainVarMap");
+                                }
                             }
 
                             // Add call node

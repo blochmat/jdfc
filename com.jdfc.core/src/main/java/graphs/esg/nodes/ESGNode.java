@@ -20,9 +20,9 @@ public class ESGNode {
     Set<ESGNode> pred;
     Set<ESGNode> succ;
 
-    private ESGNode(int sgnIndex) {
+    private ESGNode(int sgnIndex, String className, String methodName) {
         this.sgnIndex = sgnIndex;
-        this.dVar = new DomainVariable.ZeroVariable();
+        this.dVar = new DomainVariable.ZeroVariable(className, methodName);
         this.isPossiblyNotRedefined = true;
         this.pred = Sets.newLinkedHashSet();
         this.succ = Sets.newLinkedHashSet();
@@ -37,8 +37,8 @@ public class ESGNode {
     }
 
     public static class ESGZeroNode extends ESGNode {
-        public ESGZeroNode(int sgIndex) {
-            super(sgIndex);
+        public ESGZeroNode(int sgIndex, String className, String methodName) {
+            super(sgIndex, className, methodName);
         }
     }
 
