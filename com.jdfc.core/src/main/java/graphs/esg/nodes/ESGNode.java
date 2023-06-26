@@ -31,7 +31,7 @@ public class ESGNode {
     public ESGNode(int sgnIndex, DomainVariable dVar) {
         this.sgnIndex = sgnIndex;
         this.dVar = dVar;
-        this.isPossiblyNotRedefined = true;
+        this.isPossiblyNotRedefined = false;
         this.pred = Sets.newLinkedHashSet();
         this.succ = Sets.newLinkedHashSet();
     }

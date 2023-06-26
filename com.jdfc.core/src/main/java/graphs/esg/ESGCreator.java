@@ -76,7 +76,6 @@ public class ESGCreator {
 
         for(SGNode sgNode : sg.getNodes().values()) {
             int sgNodeIdx = sgNode.getIndex();
-            String sgNodeMethodName = sgNode.getMethodName();
 
             esgNodes.computeIfAbsent(sgNodeIdx, k -> Maps.newTreeMap());
             esgNodes.get(sgNodeIdx).computeIfAbsent(methodName, k -> Maps.newTreeMap());
@@ -95,22 +94,22 @@ public class ESGCreator {
         }
 
         // --- DEBUG NODES ---------------------------------------------------------------------------------------------
-        if(log.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(className).append(" ");
-            sb.append(methodName).append("\n");
-
-            for(Map.Entry<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
-                for(Map.Entry<String, NavigableMap<Integer, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
-                    for(Map.Entry<Integer, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
-                        sb.append(esgNodeEntry.getValue()).append("  ");
-                    }
-                }
-                sb.append("\n");
-            }
-
-            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
-        }
+//        if(log.isDebugEnabled()) {
+//            StringBuilder sb = new StringBuilder();
+//            sb.append(className).append(" ");
+//            sb.append(methodName).append("\n");
+//
+//            for(Map.Entry<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
+//                for(Map.Entry<String, NavigableMap<Integer, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
+//                    for(Map.Entry<Integer, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
+//                        sb.append(esgNodeEntry.getValue()).append("  ");
+//                    }
+//                }
+//                sb.append("\n");
+//            }
+//
+//            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
+//        }
 
         //--- CREATE EDGES ---------------------------------------------------------------------------------------------
         Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
@@ -275,13 +274,13 @@ public class ESGCreator {
         }
 
         //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
-        if(log.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(cData.getRelativePath()).append(" ");
-            sb.append(mData.buildInternalMethodName()).append("\n");
-            sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
-            JDFCUtils.logThis(sb.toString(), "exploded_edges");
-        }
+//        if(log.isDebugEnabled()) {
+//            StringBuilder sb = new StringBuilder();
+//            sb.append(cData.getRelativePath()).append(" ");
+//            sb.append(mData.buildInternalMethodName()).append("\n");
+//            sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
+//            JDFCUtils.logThis(sb.toString(), "exploded_edges");
+//        }
 
         //--- PRED & SUCC
         for(ESGEdge esgEdge : esgEdges.values()) {
@@ -300,34 +299,36 @@ public class ESGCreator {
             ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVarIdx);
             first.getSucc().add(second);
             second.getPred().add(first);
+
+            second.setPossiblyNotRedefined(true);
         }
 
-//        // --- DEBUG NODES ---------------------------------------------------------------------------------------------
-//        if(log.isDebugEnabled()) {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append(className).append(" ");
-//            sb.append(methodName).append("\n");
-//
-//            for(Map.Entry<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
-//                for(Map.Entry<String, NavigableMap<Integer, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
-//                    for(Map.Entry<Integer, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
-//                        sb.append(esgNodeEntry.getValue()).append("  ");
-//                    }
-//                }
-//                sb.append("\n");
-//            }
-//
-//            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
-//        }
+        // --- DEBUG NODES ---------------------------------------------------------------------------------------------
+        if(log.isDebugEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(className).append(" ");
+            sb.append(methodName).append("\n");
 
-//        //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
-//        if(log.isDebugEnabled()) {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append(cData.getRelativePath()).append(" ");
-//            sb.append(mData.buildInternalMethodName()).append("\n");
-//            sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
-//            JDFCUtils.logThis(sb.toString(), "exploded_edges");
-//        }
+            for(Map.Entry<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
+                for(Map.Entry<String, NavigableMap<Integer, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
+                    for(Map.Entry<Integer, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
+                        sb.append(esgNodeEntry.getValue()).append("  ");
+                    }
+                }
+                sb.append("\n");
+            }
+
+            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
+        }
+
+        //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
+        if(log.isDebugEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(cData.getRelativePath()).append(" ");
+            sb.append(mData.buildInternalMethodName()).append("\n");
+            sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
+            JDFCUtils.logThis(sb.toString(), "exploded_edges");
+        }
 
         //--- CREATE ESG -----------------------------------------------------------------------------------------------
         return new ESG(sg, esgNodes, esgEdges);
