@@ -32,21 +32,26 @@ public class ESGCreator {
         SG sg = mData.getSg();
         String className = cData.getRelativePath();
         String methodName = mData.buildInternalMethodName();
+        String mainMethodKey = String.format("%s :: %s", className, methodName);
+
 
         //--- CREATE DOMAIN --------------------------------------------------------------------------------------------
         Map<String, NavigableMap<Integer, DomainVariable>> domain = new HashMap<>();
         for(SGNode sgNode : sg.getNodes().values()) {
+            String sgNodeClassName = sgNode.getClassName();
             String sgNodeMethodName = sgNode.getMethodName();
-            if(!domain.containsKey(sgNodeMethodName)) {
-                domain.put(sgNodeMethodName, Maps.newTreeMap());
+            String sgNodeMethodKey = ESGCreator.buildMethodIdentifier(sgNodeClassName, sgNodeMethodName);
+            if(!domain.containsKey(sgNodeMethodKey)) {
+                domain.put(sgNodeMethodKey, Maps.newTreeMap());
                 for(Map.Entry<Integer, DomainVariable> dVarEntry : cData.getMethodByInternalName(sgNodeMethodName).getCfg().getDomain().entrySet()) {
-                    if(dVarEntry.getValue().getName().equals("this") && !sgNodeMethodName.equals(methodName)) {
+                    String dVarQualifier = ESGCreator.buildMethodIdentifier(dVarEntry.getValue().getClassName(), dVarEntry.getValue().getMethodName());
+                    if(dVarEntry.getValue().getName().equals("this") && !dVarQualifier.equals(mainMethodKey)) {
                         continue;
                     }
-                    if(Objects.equals(methodName, sgNodeMethodName)) {
-                        domain.get(sgNodeMethodName).put(-1, new DomainVariable.ZeroVariable(className, methodName));
+                    if(Objects.equals(sgNodeMethodKey, mainMethodKey)) {
+                        domain.get(sgNodeMethodKey).put(-1, new DomainVariable.ZeroVariable(className, methodName));
                     }
-                    domain.get(sgNodeMethodName).put(dVarEntry.getKey(), dVarEntry.getValue());
+                    domain.get(sgNodeMethodKey).put(dVarEntry.getKey(), dVarEntry.getValue());
                 }
             }
         }
@@ -54,8 +59,7 @@ public class ESGCreator {
         //--- DEBUG DOMAIN ---------------------------------------------------------------------------------------------
         if(log.isDebugEnabled()) {
             StringBuilder sb = new StringBuilder();
-            sb.append(className).append(" ");
-            sb.append(methodName).append("\n");
+            sb.append(mainMethodKey).append("\n");
 
             for(Map.Entry<String, NavigableMap<Integer, DomainVariable>> domainMethodEntry : domain.entrySet()) {
                 sb.append(domainMethodEntry.getKey()).append("\n");
@@ -69,18 +73,18 @@ public class ESGCreator {
         //--- CREATE NODES ---------------------------------------------------------------------------------------------
         NavigableMap<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgNodes = Maps.newTreeMap();
         esgNodes.computeIfAbsent(Integer.MIN_VALUE, k -> Maps.newTreeMap());
-        esgNodes.get(Integer.MIN_VALUE).computeIfAbsent(methodName, k -> Maps.newTreeMap());
+        esgNodes.get(Integer.MIN_VALUE).computeIfAbsent(mainMethodKey, k -> Maps.newTreeMap());
         esgNodes.get(Integer.MIN_VALUE)
-                .get(methodName)
+                .get(mainMethodKey)
                 .put(-1, new ESGNode.ESGZeroNode(Integer.MIN_VALUE, className, methodName));
 
         for(SGNode sgNode : sg.getNodes().values()) {
             int sgNodeIdx = sgNode.getIndex();
 
             esgNodes.computeIfAbsent(sgNodeIdx, k -> Maps.newTreeMap());
-            esgNodes.get(sgNodeIdx).computeIfAbsent(methodName, k -> Maps.newTreeMap());
+            esgNodes.get(sgNodeIdx).computeIfAbsent(mainMethodKey, k -> Maps.newTreeMap());
             esgNodes.get(sgNodeIdx)
-                    .get(methodName)
+                    .get(mainMethodKey)
                     .put(-1, new ESGNode.ESGZeroNode(sgNodeIdx, className, methodName));
 
             for(Map.Entry<String, NavigableMap<Integer, DomainVariable>> domainMethodEntry : domain.entrySet()) {
@@ -121,23 +125,26 @@ public class ESGCreator {
             }
             SGNode sgNode = sg.getNodes().get(esgSGNodeEntry.getKey());
             int sgNodeIdx = sgNode.getIndex();
+            String sgNodeClassName = sgNode.getClassName();
             String sgNodeMethodName = sgNode.getMethodName();
+            String sgNodeMethodKey = ESGCreator.buildMethodIdentifier(sgNodeClassName, sgNodeMethodName);
             Collection<Integer> sgnTargetIdxList = sg.getEdges().get(sgNodeIdx);
 
             Map<String, NavigableMap<Integer, DomainVariable>> activeDomain = new HashMap<>();
-            activeDomain.computeIfAbsent(methodName, k -> domain.get(methodName));
+            activeDomain.computeIfAbsent(mainMethodKey, k -> domain.get(mainMethodKey));
             if(sgNode instanceof SGCallNode) {
+                String calledClassName = ((SGCallNode) sgNode).getCalledClassName();
                 String calledMethodName = ((SGCallNode) sgNode).getCalledMethodName();
-                activeDomain.computeIfAbsent(calledMethodName, k -> domain.get(calledMethodName));
+                String subroutineKey = ESGCreator.buildMethodIdentifier(calledClassName, calledMethodName);
+                activeDomain.computeIfAbsent(subroutineKey, k -> domain.get(subroutineKey));
             }
             if(!(sgNode instanceof SGExitNode)) {
-                activeDomain.computeIfAbsent(sgNodeMethodName, k -> domain.get(sgNodeMethodName));
+                activeDomain.computeIfAbsent(sgNodeMethodKey, k -> domain.get(sgNodeMethodKey));
             }
 
             if(log.isDebugEnabled()) {
                 StringBuilder sb = new StringBuilder();
-                sb.append(className).append(" ");
-                sb.append(methodName).append("\n");
+                sb.append(mainMethodKey).append("\n");
 
                 for(Map.Entry<String, NavigableMap<Integer, DomainVariable>> domainMethodEntry : activeDomain.entrySet()) {
                     sb.append(domainMethodEntry.getKey()).append("\n");
@@ -164,8 +171,8 @@ public class ESGCreator {
                                 esgEdges.put(Integer.MIN_VALUE, new ESGEdge(
                                         Integer.MIN_VALUE,
                                         0,
-                                        sgNodeMethodName,
-                                        sgNodeMethodName,
+                                        mainMethodKey,
+                                        sgNodeMethodKey,
                                         -1,
                                         dVarIdx));
                             }
@@ -178,39 +185,53 @@ public class ESGCreator {
                                     //                          -> insert 0 to var edge for initialization
                                     // varibales are passed -> draw matching edge
 
-                                    // determine target node
-                                    DomainVariable targetDVar = sgCallNode.getDVarMap().get(dVar);
-                                    // look at variables at main domain
-                                    if(dVar.getMethodName().equals(sgNodeMethodName)) {
-                                        // if target exists
-                                        if(targetDVar != null) {
-                                            // Match parameters
-                                            esgEdges.put(sgNodeIdx, new ESGEdge(
-                                                    sgNodeIdx,
-                                                    sgnTargetIdx,
-                                                    esgNodesMethodEntry.getKey(),
-                                                    sgCallNode.getCalledMethodName(),
-                                                    dVarIdx,
-                                                    targetDVar.getIndex()));
+                                    if(dVar.getClassName().equals(className)) {
+                                        // determine target node
+                                        DomainVariable targetDVar = sgCallNode.getDVarMap().get(dVar);
+                                        String calledMethodKey = buildMethodIdentifier(sgCallNode.getCalledClassName(), sgCallNode.getCalledMethodName());
+                                        // look at variables at main domain
+                                        if(dVar.getMethodName().equals(sgNodeMethodName)) {
+                                            // if target exists
+                                            if(targetDVar != null) {
+                                                // Match parameters
+                                                esgEdges.put(sgNodeIdx, new ESGEdge(
+                                                        sgNodeIdx,
+                                                        sgnTargetIdx,
+                                                        esgNodesMethodEntry.getKey(),
+                                                        calledMethodKey,
+                                                        dVarIdx,
+                                                        targetDVar.getIndex()));
+                                            } else {
+                                                //  No matching -> draw straight line for own variables
+                                                esgEdges.put(sgNodeIdx, new ESGEdge(
+                                                        sgNodeIdx,
+                                                        sgnTargetIdx,
+                                                        esgNodesMethodEntry.getKey(),
+                                                        esgNodesMethodEntry.getKey(),
+                                                        dVarIdx,
+                                                        dVarIdx));
+                                            }
                                         } else {
-                                            //  No matching -> draw straight line for own variables
-                                            esgEdges.put(sgNodeIdx, new ESGEdge(
-                                                    sgNodeIdx,
-                                                    sgnTargetIdx,
-                                                    esgNodesMethodEntry.getKey(),
-                                                    esgNodesMethodEntry.getKey(),
-                                                    dVarIdx,
-                                                    dVarIdx));
+                                            if(dVarIdx == -1 || dVarIdx == 0) {
+                                                // initialize other variables from new domain
+                                                esgEdges.put(sgNodeIdx, new ESGEdge(
+                                                        sgNodeIdx,
+                                                        sgnTargetIdx,
+                                                        mainMethodKey,
+                                                        mainMethodKey,
+                                                        dVarIdx,
+                                                        dVarIdx));
+                                            } else {
+                                                // initialize other variables from new domain
+                                                esgEdges.put(sgNodeIdx, new ESGEdge(
+                                                        sgNodeIdx,
+                                                        sgnTargetIdx,
+                                                        mainMethodKey,
+                                                        calledMethodKey,
+                                                        -1,
+                                                        dVarIdx));
+                                            }
                                         }
-                                    } else {
-                                        // initialize other variables from new domain
-                                        esgEdges.put(sgNodeIdx, new ESGEdge(
-                                                sgNodeIdx,
-                                                sgnTargetIdx,
-                                                sgNodeMethodName,
-                                                sgCallNode.getCalledMethodName(),
-                                                -1,
-                                                dVarIdx));
                                     }
                                 }
                                 // Iterate over all domain vars in source
@@ -332,5 +353,10 @@ public class ESGCreator {
 
         //--- CREATE ESG -----------------------------------------------------------------------------------------------
         return new ESG(sg, esgNodes, esgEdges);
+    }
+
+
+    private static String buildMethodIdentifier(String className, String methodName) {
+        return String.format("%s :: %s", className, methodName);
     }
 }
