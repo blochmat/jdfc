@@ -191,9 +191,10 @@ public class CoverageDataExport {
         Set<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
-        JDFCUtils.logThis(classList.toString(), "classList");
+        JDFCUtils.logThis(JDFCUtils.prettyPrintArray(classList.toArray()), "classList");
         for (String relPath : classList) {
             // pClassesDir = target/classes
+            JDFCUtils.logThis(relPath, "relPaths");
             String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesBuildDir(), relPath, ".class");
             File classFile = new File(classFilePath);
             try {

@@ -156,7 +156,7 @@ public class SGCreator {
                                         index + shift,
                                         callSequence);
                             } else {
-                                sgCallNode.setSGPresent(false);
+                                sgCallNode.setCalledSGPresent(false);
                             }
 
                             if (calledSG != null) {

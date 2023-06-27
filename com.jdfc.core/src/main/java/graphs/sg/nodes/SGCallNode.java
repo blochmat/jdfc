@@ -16,7 +16,7 @@ public class SGCallNode extends SGNode {
     private String calledClassName;
     private String calledMethodName;
     private boolean isInterface;
-    private boolean isSGPresent;
+    private boolean isCalledSGPresent;
     private Map<ProgramVariable, ProgramVariable> pVarMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
 
@@ -25,7 +25,7 @@ public class SGCallNode extends SGNode {
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
-        this.isSGPresent = true;
+        this.isCalledSGPresent = true;
         this.pVarMap = new HashMap<>();
         this.dVarMap = new HashMap<>();
     }
@@ -38,7 +38,7 @@ public class SGCallNode extends SGNode {
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
-        this.isSGPresent = true;
+        this.isCalledSGPresent = true;
         this.pVarMap = pVarMap;
         this.dVarMap = dVarMap;
     }
@@ -62,7 +62,7 @@ public class SGCallNode extends SGNode {
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
                 && Objects.equals(isInterface(), that.isInterface())
-                && Objects.equals(isSGPresent(), that.isSGPresent())
+                && Objects.equals(isCalledSGPresent(), that.isCalledSGPresent())
                 && Objects.equals(getCalledClassName(), that.getCalledClassName())
                 && Objects.equals(getCalledMethodName(), that.getCalledMethodName());
     }
@@ -76,7 +76,7 @@ public class SGCallNode extends SGNode {
                 getClassName(),
                 getMethodName(),
                 isInterface(),
-                isSGPresent(),
+                isCalledSGPresent(),
                 getCalledClassName(),
                 getCalledMethodName());
     }
