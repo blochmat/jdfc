@@ -25,7 +25,7 @@ public class SGCreator {
 
     public static void createSGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
-            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashMap<>(), 0, 0));
+            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashMap<>(), 0, new ArrayList<>()));
             mData.getSg().calculateReachingDefinitions();
             mData.calculateInterDefUsePairs();
         }
@@ -35,7 +35,7 @@ public class SGCreator {
                                        MethodData mData,
                                        Map<String, CFG> cfgMap,
                                        int startIndex,
-                                       int depth) {
+                                       List<String> callSequence) {
         String internalMethodName = mData.buildInternalMethodName();
         cfgMap.put(internalMethodName, mData.getCfg());
         NavigableMap<Integer, CFGNode> localCfgNodes = Maps.newTreeMap(mData.getCfg().getNodes());
@@ -144,20 +144,21 @@ public class SGCreator {
 
                             // Create sg for called procedure
                             SG calledSG = null;
-                            if(depth < 2) {
+                            String calledMethodName = calledMethodData.buildInternalMethodName();
+
+                            if(Collections.frequency(callSequence, calledMethodName) < 3) {
                                 sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+                                callSequence.add(calledMethodName);
                                 calledSG = SGCreator.createSGForMethod(
                                         cData,
                                         calledMethodData,
                                         cfgMap,
                                         index + shift,
-                                        ++depth);
+                                        callSequence);
+                            } else {
+                                sgCallNode.setSGPresent(false);
                             }
-                            // TODO: method sequences and recursion distinction
-//                        else {
-//                            sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
-//                            calledSG = SGCreator.createSGForMethod(cData, calledMethodData, index, 0);
-//                        }
+
                             if (calledSG != null) {
                                 // Add all nodes, edges
                                 sgNodes.putAll(calledSG.getNodes());

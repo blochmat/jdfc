@@ -190,7 +190,7 @@ public class ESGCreator {
                                         DomainVariable targetDVar = sgCallNode.getDVarMap().get(dVar);
                                         String calledMethodKey = buildMethodIdentifier(sgCallNode.getCalledClassName(), sgCallNode.getCalledMethodName());
                                         // look at variables at main domain
-                                        if(dVar.getMethodName().equals(sgNodeMethodName)) {
+                                        if(dVar.getMethodName().equals(sgNodeMethodName) && sgCallNode.isSGPresent()) {
                                             // if target exists
                                             if(targetDVar != null) {
                                                 // Match parameters
