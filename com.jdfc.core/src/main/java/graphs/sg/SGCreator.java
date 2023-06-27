@@ -164,6 +164,11 @@ public class SGCreator {
                                 sgNodes.putAll(calledSG.getNodes());
                                 sgEdges.putAll(calledSG.getEdges());
 
+                                // Add pVarMap and dVarMap to entryNode
+                                SGEntryNode sgEntryNode = (SGEntryNode)  sgNodes.get(index + shift);
+                                sgEntryNode.setPVarMap(pVarMap);
+                                sgEntryNode.setDVarMap(dVarMap.inverse());
+
                                 // Update index shift
                                 shift = shift + calledSG.getNodes().size();
 
@@ -171,7 +176,6 @@ public class SGCreator {
                                 SGExitNode sgExitNode = (SGExitNode) sgNodes.get(index + shift - 1);
                                 sgExitNode.setPVarMap(pVarMap);
                                 sgExitNode.setDVarMap(dVarMap.inverse());
-                                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarMap.inverse()), "SGCreator_domainVarMap_exit");
 
                                 // Add returnSite node
                                 SGReturnSiteNode returnSiteNode = new SGReturnSiteNode(

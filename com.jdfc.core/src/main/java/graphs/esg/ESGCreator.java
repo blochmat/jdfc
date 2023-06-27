@@ -198,7 +198,7 @@ public class ESGCreator {
 
                                 if (currSGCallNode.isCalledSGPresent()) {
                                     DomainVariable targetDVar = currSGCallNode.getDVarMap().get(dVar);
-                                    String calledMethodIdentifier = buildMethodIdentifier(currSGCallNode.getCalledClassName(), currSGCallNode.getCalledMethodName());
+                                    String calledMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGCallNode.getCalledClassName(), currSGCallNode.getCalledMethodName());
 
                                     if (targetDVar != null) {
                                         // Match found
@@ -218,9 +218,7 @@ public class ESGCreator {
                                                 dVarIdx,
                                                 dVarIdx));
                                     } else {
-                                        //  No matching
-
-                                        //  draw straight line for own variables
+                                        //  No matching: draw straight line for own variables
                                         esgEdges.put(currSGNodeIdx, new ESGEdge(
                                                 currSGNodeIdx,
                                                 currSGNodeTargetIdx,
@@ -272,7 +270,7 @@ public class ESGCreator {
 
                                 if (currSGCallNode.isCalledSGPresent()) {
                                     DomainVariable targetDVar = currSGCallNode.getDVarMap().get(dVar);
-                                    String calledMethodIdentifier = buildMethodIdentifier(currSGCallNode.getCalledClassName(), currSGCallNode.getCalledMethodName());
+                                    String calledMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGCallNode.getCalledClassName(), currSGCallNode.getCalledMethodName());
 
                                     if (targetDVar != null) {
                                         // Match found
@@ -284,13 +282,14 @@ public class ESGCreator {
                                                 dVarIdx,
                                                 targetDVar.getIndex()));
                                     } else {
-                                        if(!currSGCallNode.getDVarMap().containsValue(dVar)) {
-                                            // initialize new routine vars if no match exists
+                                        if(currMethodIdentifier.equals(calledMethodIdentifier)
+                                                && !currSGCallNode.getDVarMap().containsValue(dVar)) {
+                                            // initialize variables of called method
                                             esgEdges.put(currSGNodeIdx, new ESGEdge(
                                                     currSGNodeIdx,
                                                     currSGNodeTargetIdx,
                                                     mainMethodIdentifier,
-                                                    calledMethodIdentifier,
+                                                    currMethodIdentifier,
                                                     -1,
                                                     dVarIdx));
                                         }
@@ -308,8 +307,19 @@ public class ESGCreator {
                                 }
                             }
                             else if(currSGNode instanceof SGExitNode) {
-                                // TODO: if a value is returned we need to figure out if it is assigned to a variable in the outer scope
                                 SGExitNode currSGExitNode = (SGExitNode) currSGNode;
+                                DomainVariable targetDVar = currSGExitNode.getDVarMap().get(dVar);
+
+                                if (targetDVar != null) {
+                                    // Match found
+                                    esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                            currSGNodeIdx,
+                                            currSGNodeTargetIdx,
+                                            currMethodIdentifier,
+                                            buildMethodIdentifier(targetDVar.getClassName(), targetDVar.getMethodName()),
+                                            dVarIdx,
+                                            targetDVar.getIndex()));
+                                }
 
                             }
                             else {
