@@ -72,11 +72,11 @@ public class ESGCreator {
 
         //--- CREATE NODES ---------------------------------------------------------------------------------------------
         NavigableMap<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgNodes = Maps.newTreeMap();
-        esgNodes.computeIfAbsent(Integer.MIN_VALUE, k -> Maps.newTreeMap());
-        esgNodes.get(Integer.MIN_VALUE).computeIfAbsent(mainMethodIdentifier, k -> Maps.newTreeMap());
-        esgNodes.get(Integer.MIN_VALUE)
-                .get(mainMethodIdentifier)
-                .put(-1, new ESGNode.ESGZeroNode(Integer.MIN_VALUE, mainMethodClassName, mainMethodName));
+//        esgNodes.computeIfAbsent(Integer.MIN_VALUE, k -> Maps.newTreeMap());
+//        esgNodes.get(Integer.MIN_VALUE).computeIfAbsent(mainMethodIdentifier, k -> Maps.newTreeMap());
+//        esgNodes.get(Integer.MIN_VALUE)
+//                .get(mainMethodIdentifier)
+//                .put(-1, new ESGNode.ESGZeroNode(Integer.MIN_VALUE, mainMethodClassName, mainMethodName));
 
         for(SGNode sgNode : sg.getNodes().values()) {
             int sgNodeIdx = sgNode.getIndex();
@@ -90,9 +90,16 @@ public class ESGCreator {
             for(Map.Entry<String, NavigableMap<Integer, DomainVariable>> domainMethodEntry : domain.entrySet()) {
                 for(Map.Entry<Integer, DomainVariable> dVarEntry : domainMethodEntry.getValue().entrySet()) {
                     esgNodes.get(sgNodeIdx).computeIfAbsent(domainMethodEntry.getKey(), k -> Maps.newTreeMap());
-                    esgNodes.get(sgNodeIdx)
-                            .get(domainMethodEntry.getKey())
-                            .put(dVarEntry.getKey(), new ESGNode(sgNodeIdx, dVarEntry.getValue()));
+
+                    if(dVarEntry.getValue() instanceof DomainVariable.ZeroVariable) {
+                        esgNodes.get(sgNodeIdx)
+                                .get(mainMethodIdentifier)
+                                .put(-1, new ESGNode.ESGZeroNode(sgNodeIdx, mainMethodClassName, mainMethodName));
+                    } else {
+                        esgNodes.get(sgNodeIdx)
+                                .get(domainMethodEntry.getKey())
+                                .put(dVarEntry.getKey(), new ESGNode(sgNodeIdx, dVarEntry.getValue()));
+                    }
                 }
             }
         }
@@ -180,16 +187,16 @@ public class ESGCreator {
                     for (DomainVariable dVar : domainVariables.values()) {
                         int dVarIdx = dVar.getIndex();
 
-                        if (currSGNodeIdx == 0) {
-                            // special case for very first node of the sg
-                            esgEdges.put(Integer.MIN_VALUE, new ESGEdge(
-                                    Integer.MIN_VALUE,
-                                    0,
-                                    currMethodIdentifier,
-                                    currMethodIdentifier,
-                                    -1,
-                                    dVarIdx));
-                        }
+//                        if (currSGNodeIdx == 0) {
+//                            // special case for very first node of the sg
+//                            esgEdges.put(Integer.MIN_VALUE, new ESGEdge(
+//                                    Integer.MIN_VALUE,
+//                                    0,
+//                                    currMethodIdentifier,
+//                                    currMethodIdentifier,
+//                                    -1,
+//                                    dVarIdx));
+//                        }
 
                         Collection<Integer> currSGNodeTargets = sg.getEdges().get(currSGNodeIdx);
                         for (Integer currSGNodeTargetIdx : currSGNodeTargets) {
@@ -239,20 +246,31 @@ public class ESGCreator {
                                             dVarIdx));
                                 }
                             } else {
-                                // create edge if variable is not redefined
-                                SGNode targetNode = sg.getNodes().get(currSGNodeTargetIdx);
-                                if (targetNode.getDefinitions().stream().noneMatch(pVar ->
-                                        Objects.equals(pVar.getName(), dVar.getName())
-                                                && Objects.equals(pVar.getDescriptor(), dVar.getDescriptor()))) {
+                                if(currSGNode.getIndex() == 0) {
+                                    // initialize variables of main domain
                                     esgEdges.put(currSGNodeIdx, new ESGEdge(
                                             currSGNodeIdx,
                                             currSGNodeTargetIdx,
                                             currMethodIdentifier,
                                             currMethodIdentifier,
-                                            dVarIdx,
+                                            -1,
                                             dVarIdx));
                                 } else {
-                                    esgNodes.get(currSGNodeIdx).get(currMethodIdentifier).get(dVarIdx).setPossiblyNotRedefined(false);
+                                    // create edge if variable is not redefined
+                                    SGNode targetNode = sg.getNodes().get(currSGNodeTargetIdx);
+                                    if (targetNode.getDefinitions().stream().noneMatch(pVar ->
+                                            Objects.equals(pVar.getName(), dVar.getName())
+                                                    && Objects.equals(pVar.getDescriptor(), dVar.getDescriptor()))) {
+                                        esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                                currSGNodeIdx,
+                                                currSGNodeTargetIdx,
+                                                currMethodIdentifier,
+                                                currMethodIdentifier,
+                                                dVarIdx,
+                                                dVarIdx));
+                                    } else {
+                                        esgNodes.get(currSGNodeIdx).get(currMethodIdentifier).get(dVarIdx).setPossiblyNotRedefined(false);
+                                    }
                                 }
                             }
                         }

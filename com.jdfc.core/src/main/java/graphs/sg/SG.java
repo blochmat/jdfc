@@ -22,7 +22,7 @@ import java.util.Set;
 public class SG {
 
     private String className;
-    private String internalMethodName;
+    private String methodName;
     private Map<String, CFG> cfgMap;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
@@ -53,6 +53,6 @@ public class SG {
 
     @Override
     public String toString() {
-        return String.format("SG for method %s (containing %d nodes)%n %s", internalMethodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
+        return String.format("SG for method %s (containing %d nodes)%n %s", methodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
     }
 }
