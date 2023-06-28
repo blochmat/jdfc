@@ -306,7 +306,6 @@ public class ESGCreator {
                                                 sgReturnSiteNode.getMethodName()
                                         );
 
-
                                         if(currMethodIdentifier.equals(sgRSNMethodIdentifier)) {
                                             esgEdges.put(currSGNodeIdx, new ESGEdge(
                                                     currSGNodeIdx,

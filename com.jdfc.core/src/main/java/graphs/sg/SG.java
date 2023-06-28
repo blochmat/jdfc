@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
 import graphs.sg.nodes.SGCallNode;
+import graphs.sg.nodes.SGEntryNode;
 import graphs.sg.nodes.SGNode;
 import graphs.sg.nodes.SGReturnSiteNode;
 import lombok.AllArgsConstructor;
@@ -47,8 +48,8 @@ public class SG {
         }
     }
 
-    public SGNode getEntryNode() {
-        return this.nodes.get(0);
+    public SGEntryNode getEntryNode() {
+        return (SGEntryNode) this.nodes.get(0);
     }
 
     public SGNode getExitNode() {
