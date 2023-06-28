@@ -8,9 +8,7 @@ import data.DomainVariable;
 import data.MethodData;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
-import graphs.sg.nodes.SGCallNode;
-import graphs.sg.nodes.SGExitNode;
-import graphs.sg.nodes.SGNode;
+import graphs.sg.nodes.*;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
@@ -72,12 +70,6 @@ public class ESGCreator {
 
         //--- CREATE NODES ---------------------------------------------------------------------------------------------
         NavigableMap<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgNodes = Maps.newTreeMap();
-//        esgNodes.computeIfAbsent(Integer.MIN_VALUE, k -> Maps.newTreeMap());
-//        esgNodes.get(Integer.MIN_VALUE).computeIfAbsent(mainMethodIdentifier, k -> Maps.newTreeMap());
-//        esgNodes.get(Integer.MIN_VALUE)
-//                .get(mainMethodIdentifier)
-//                .put(-1, new ESGNode.ESGZeroNode(Integer.MIN_VALUE, mainMethodClassName, mainMethodName));
-
         for(SGNode sgNode : sg.getNodes().values()) {
             int sgNodeIdx = sgNode.getIndex();
 
@@ -187,17 +179,6 @@ public class ESGCreator {
                     for (DomainVariable dVar : domainVariables.values()) {
                         int dVarIdx = dVar.getIndex();
 
-//                        if (currSGNodeIdx == 0) {
-//                            // special case for very first node of the sg
-//                            esgEdges.put(Integer.MIN_VALUE, new ESGEdge(
-//                                    Integer.MIN_VALUE,
-//                                    0,
-//                                    currMethodIdentifier,
-//                                    currMethodIdentifier,
-//                                    -1,
-//                                    dVarIdx));
-//                        }
-
                         Collection<Integer> currSGNodeTargets = sg.getEdges().get(currSGNodeIdx);
                         for (Integer currSGNodeTargetIdx : currSGNodeTargets) {
                             if (currSGNode instanceof SGCallNode) {
@@ -285,31 +266,56 @@ public class ESGCreator {
                         for (Integer currSGNodeTargetIdx : currSGNodeTargets) {
                             if (currSGNode instanceof SGCallNode) {
                                 SGCallNode currSGCallNode = (SGCallNode) currSGNode;
+                                SGNode currSGTargetNode = sg.getNodes().get(currSGNodeTargetIdx);
 
                                 if (currSGCallNode.isCalledSGPresent()) {
-                                    DomainVariable targetDVar = currSGCallNode.getDVarMap().get(dVar);
-                                    String calledMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGCallNode.getCalledClassName(), currSGCallNode.getCalledMethodName());
+                                    String calledMethodIdentifier = ESGCreator.buildMethodIdentifier(
+                                            currSGCallNode.getCalledClassName(),
+                                            currSGCallNode.getCalledMethodName());
 
-                                    if (targetDVar != null) {
-                                        // Match found
-                                        esgEdges.put(currSGNodeIdx, new ESGEdge(
-                                                currSGNodeIdx,
-                                                currSGNodeTargetIdx,
-                                                currMethodIdentifier,
-                                                calledMethodIdentifier,
-                                                dVarIdx,
-                                                targetDVar.getIndex()));
-                                    } else {
-                                        if(currMethodIdentifier.equals(calledMethodIdentifier)
-                                                && !currSGCallNode.getDVarMap().containsValue(dVar)) {
-                                            // initialize variables of called method
+                                    if(currSGTargetNode instanceof SGEntryNode) {
+                                        DomainVariable targetDVar = currSGCallNode.getDVarMap().get(dVar);
+                                        if (targetDVar != null) {
+                                            // Match found
                                             esgEdges.put(currSGNodeIdx, new ESGEdge(
                                                     currSGNodeIdx,
                                                     currSGNodeTargetIdx,
-                                                    mainMethodIdentifier,
                                                     currMethodIdentifier,
-                                                    -1,
-                                                    dVarIdx));
+                                                    calledMethodIdentifier,
+                                                    dVarIdx,
+                                                    targetDVar.getIndex()));
+                                        } else {
+                                            if(currMethodIdentifier.equals(calledMethodIdentifier)) {
+                                                // initialize variables of called method
+                                                esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                                        currSGNodeIdx,
+                                                        currSGNodeTargetIdx,
+                                                        mainMethodIdentifier,
+                                                        currMethodIdentifier,
+                                                        -1,
+                                                        dVarIdx)
+                                                );
+                                            }
+                                        }
+                                    } else {
+                                        // connect call and return sites
+                                        SGReturnSiteNode sgReturnSiteNode =
+                                                (SGReturnSiteNode) sg.getNodes().get(currSGNodeTargetIdx);
+                                        String sgRSNMethodIdentifier = ESGCreator.buildMethodIdentifier(
+                                                sgReturnSiteNode.getClassName(),
+                                                sgReturnSiteNode.getMethodName()
+                                        );
+
+
+                                        if(currMethodIdentifier.equals(sgRSNMethodIdentifier)) {
+                                            esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                                    currSGNodeIdx,
+                                                    currSGNodeTargetIdx,
+                                                    sgRSNMethodIdentifier,
+                                                    sgRSNMethodIdentifier,
+                                                    dVarIdx,
+                                                    dVarIdx)
+                                            );
                                         }
                                     }
                                 } else {
