@@ -1,6 +1,7 @@
 package graphs.esg;
 
 import com.google.common.collect.Multimap;
+import data.DomainVariable;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
 import lombok.AllArgsConstructor;
@@ -17,4 +18,5 @@ public class ESG {
     private SG sg;
     private NavigableMap<Integer, Map<String, NavigableMap<Integer, ESGNode>>> nodes;
     private Multimap<Integer, ESGEdge> edges;
+    private Map<String, NavigableMap<Integer, DomainVariable>> domain;
 }

@@ -3,7 +3,6 @@ package algos;
 import com.google.common.collect.Sets;
 import graphs.esg.ESG;
 import graphs.esg.ESGEdge;
-import graphs.sg.SG;
 import lombok.Data;
 
 import java.util.HashSet;
@@ -29,26 +28,67 @@ public class TabulationAlgorithm {
     }
 
     public void execute() {
-        SG sg = this.esg.getSg();
-        //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
-//        this.pathEdgeSet.add(new ESGEdge(Integer.MIN_VALUE, Integer.MIN_VALUE, -1, -1));
-//        this.workList.add(new ESGEdge(Integer.MIN_VALUE, Integer.MIN_VALUE, -1, -1));
-//        while(!this.workList.isEmpty()) {
-//            ESGEdge e = workList.pop();
-//            SGNode sgNode = sg.getNodes().get(e.getSgnTargetIdx());
+//        SG sg = this.esg.getSg();
+//        String mainMethodIdentifier = String.format("%s :: %s", sg.getClassName(), sg.getMethodName());
+//        //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
+//        ESGEdge initialEdge = new ESGEdge(0, 0, mainMethodIdentifier, mainMethodIdentifier, -1, -1);
+//        this.pathEdgeSet.add(initialEdge);
+//        this.workList.add(initialEdge);
 //
-//            if (sgNode instanceof SGCallNode) {
-//                SGCallNode n = (SGCallNode) sgNode;
+//        while(!workList.isEmpty()) {
+//            ESGEdge currEdge = workList.pop();
+//            SGNode s = sg.getNodes().get(currEdge.getSgnSourceIdx());
+//            DomainVariable d1 = esg.getDomain().get(currEdge.getSourceDVarMethodName()).get(currEdge.getSourceDVarIdx());
+//            String d1MethodIdentifier = String.format("%s :: %s", d1.getClassName(), d1.getMethodName());
 //
-//                Map<Integer, ESGNode> esgNodeMap = this.esg.getNodes().get(n.getIndex());
+//            SGNode n = sg.getNodes().get(currEdge.getSgnTargetIdx());
+//            DomainVariable d2 = esg.getDomain().get(currEdge.getTargetDVarMethodName()).get(currEdge.getTargetDVarIdx());
+//            String d2MethodIdentifier = String.format("%s :: %s", d2.getClassName(), d2.getMethodName());
 //
-//                for(Map.Entry<Integer, ESGNode> esgNodeEntry : esgNodeMap.entrySet()) {
-//                    Collection<ESGEdge> edges = this.esg.getEdges().get(n.getIndex());
+//            if(n instanceof SGCallNode) {
+//                SGCallNode nCall = (SGCallNode) n;
+//                Collection<ESGEdge> esgEdges = esg.getEdges().get(n.getIndex());
+//                for(ESGEdge esgEdge : esgEdges) {
+//                    if(Objects.equals(n.getIndex(), esgEdge.getSgnSourceIdx())
+//                            && Objects.equals(d1MethodIdentifier, esgEdge.getSourceDVarMethodName())
+//                            && Objects.equals(d1.getIndex(), esgEdge.getSourceDVarIdx())) {
+//                        int sIdx = esgEdge.getSgnTargetIdx();
+//                        String d3MethodIdentifier = esgEdge.getTargetDVarMethodName();
+//                        int d3Idx = esgEdge.getTargetDVarIdx();
 //
+//                        propagate(new ESGEdge(
+//                                sIdx,
+//                                sIdx,
+//                                d3MethodIdentifier,
+//                                d3MethodIdentifier,
+//                                d3Idx,
+//                                d3Idx)
+//                        );
+//                    }
 //                }
 //
-//            } else if (e.getTarget() instanceof ESGExitNode) {
+//            }
+//            else if (n instanceof SGExitNode && !Objects.equals(n, sg.getExitNode())) {
+//
 //            } else {
+//                Collection<ESGEdge> esgEdges = esg.getEdges().get(n.getIndex());
+//                for(ESGEdge esgEdge : esgEdges) {
+//                    if(Objects.equals(n.getIndex(), esgEdge.getSgnSourceIdx())
+//                            && Objects.equals(d2MethodIdentifier, esgEdge.getSourceDVarMethodName())
+//                            && Objects.equals(d2.getIndex(), esgEdge.getSourceDVarIdx())) {
+//                        int mIdx = esgEdge.getSgnTargetIdx();
+//                        String d3MethodIdentifier = esgEdge.getTargetDVarMethodName();
+//                        int d3Idx = esgEdge.getTargetDVarIdx();
+//                        propagate(new ESGEdge(
+//                                s.getIndex(),
+//                                mIdx,
+//                                d1MethodIdentifier,
+//                                d3MethodIdentifier,
+//                                d1.getIndex(),
+//                                d3Idx)
+//                        );
+//                    }
+//                }
 //            }
 //        }
 

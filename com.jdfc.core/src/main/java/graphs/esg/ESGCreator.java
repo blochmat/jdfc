@@ -422,7 +422,7 @@ public class ESGCreator {
         }
 
         //--- CREATE ESG -----------------------------------------------------------------------------------------------
-        return new ESG(sg, esgNodes, esgEdges);
+        return new ESG(sg, esgNodes, esgEdges, domain);
     }
 
 

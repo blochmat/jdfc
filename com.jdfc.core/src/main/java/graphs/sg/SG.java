@@ -51,6 +51,10 @@ public class SG {
         return this.nodes.get(0);
     }
 
+    public SGNode getExitNode() {
+        return this.nodes.get(this.nodes.size() - 1);
+    }
+
     @Override
     public String toString() {
         return String.format("SG for method %s (containing %d nodes)%n %s", methodName, nodes.size(), JDFCUtils.prettyPrintMap(nodes));
