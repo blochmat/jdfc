@@ -38,7 +38,7 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
     private int maxLocals;
 
     /** The owner's class name. */
-    private String owner;
+    private String className;
 
     private ProgramVariable pVar;
 
@@ -46,13 +46,13 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
 
     public CFGAnalyzerAdapter(
             final int api,
-            final String owner,
+            final String className,
             final int access,
             final String name,
             final String descriptor,
             final org.objectweb.asm.MethodVisitor methodVisitor) {
         super(api, methodVisitor);
-        this.owner = owner;
+        this.className = className;
         locals = new ArrayList<>();
         stack = new ArrayList<>();
         uninitializedTypes = new HashMap<>();
@@ -63,7 +63,7 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
             if ("<init>".equals(name)) {
                 locals.add(Opcodes.UNINITIALIZED_THIS);
             } else {
-                locals.add(owner);
+                locals.add(className);
             }
         }
         for (Type argumentType : Type.getArgumentTypes(descriptor)) {
@@ -216,7 +216,7 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
             if (opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
                 Object initializedValue;
                 if (value == Opcodes.UNINITIALIZED_THIS) {
-                    initializedValue = this.owner;
+                    initializedValue = this.className;
                 } else {
                     initializedValue = uninitializedTypes.get(value);
                 }

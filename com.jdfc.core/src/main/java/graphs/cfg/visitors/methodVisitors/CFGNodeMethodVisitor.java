@@ -345,7 +345,18 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varName = getLocalVarName(localVarIdx);
         final String varType = getLocalVarType(localVarIdx);
         final boolean isDefinition = isDefinition(opcode);
-        ProgramVariable var = new ProgramVariable(localVarIdx, null, varName, varType, insnIdx, lineNumber, isDefinition, false);
+        ProgramVariable var = new ProgramVariable(
+                localVarIdx,
+                mData.getClassName(),
+                mData.buildInternalMethodName(),
+                varName,
+                varType,
+                insnIdx,
+                lineNumber,
+                isDefinition,
+                false,
+                false
+        );
         UUID id = UUID.randomUUID();
         mData.getProgramVariables().put(id, var);
         aa.setPVar(var);
@@ -581,12 +592,14 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         LocalVariable localVariable = mData.getLocalVariableTable().get(index);
         return new ProgramVariable(
                 index,
-                null,
+                mData.getClassName(),
+                mData.getName(),
                 localVariable.getName(),
                 localVariable.getDescriptor(),
                 Integer.MIN_VALUE,
                 Integer.MIN_VALUE,
                 true,
+                false,
                 false);
     }
 
@@ -613,12 +626,14 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
             final ProgramVariable variable =
                     new ProgramVariable(
                             localVariable.getIndex(),
-                            null,
+                            mData.getClassName(),
+                            mData.getName(),
                             localVariable.getName(),
                             localVariable.getDescriptor(),
                             Integer.MIN_VALUE,
                             Integer.MIN_VALUE,
                             true,
+                            false,
                             false);
             parameters.add(variable);
         }

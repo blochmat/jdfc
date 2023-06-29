@@ -48,6 +48,11 @@ public class MethodData {
     private int access;
 
     /**
+     * Name of containing class
+     */
+    private String className;
+
+    /**
      * Name of method, e.g. max
      */
     private String name;
@@ -110,8 +115,9 @@ public class MethodData {
                 access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
     }
 
-    public MethodData(UUID id, int access, String name, String desc) {
+    public MethodData(UUID id, String classname, int access, String name, String desc) {
         this.id = id;
+        this.className = classname;
         this.access = access;
         this.name = name;
         this.desc = desc;
@@ -123,8 +129,9 @@ public class MethodData {
         this.programVariables = new HashMap<>();
     }
 
-    public MethodData(UUID id, int access, String name, String desc, MethodDeclaration srcAst) {
+    public MethodData(UUID id, String className, int access, String name, String desc, MethodDeclaration srcAst) {
         this.id = id;
+        this.className = className;
         this.access = access;
         this.name = name;
         this.desc = desc;
@@ -136,8 +143,9 @@ public class MethodData {
         this.programVariables = new HashMap<>();
     }
 
-    public MethodData(UUID id, int access, String name, String desc, ConstructorDeclaration srcAst) {
+    public MethodData(UUID id, String className, int access, String name, String desc, ConstructorDeclaration srcAst) {
         this.id = id;
+        this.className = className;
         this.access = access;
         this.name = name;
         this.desc = desc;
@@ -164,7 +172,8 @@ public class MethodData {
     public UUID findVarId(ProgramVariable var) {
         for (Map.Entry<UUID,ProgramVariable> entry : programVariables.entrySet()) {
             ProgramVariable v = entry.getValue();
-            if (Objects.equals(v.getOwner(), var.getOwner())
+            if (Objects.equals(v.getClassName(), var.getClassName())
+                    && Objects.equals(v.getMethodName(), var.getMethodName())
                     && Objects.equals(v.getName(), var.getName())
                     && Objects.equals(v.getDescriptor(), var.getDescriptor())
                     && Objects.equals(v.getLineNumber(), var.getLineNumber())

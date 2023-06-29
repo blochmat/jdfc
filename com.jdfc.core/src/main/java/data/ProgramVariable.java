@@ -15,13 +15,15 @@ import java.util.Objects;
 public class ProgramVariable implements Comparable<Object> {
 
     private int localVarIdx;
-    private String owner;
+    private String className;
+    private String methodName;
     private String name;
     private String descriptor;
     private int instructionIndex;
     private int lineNumber;
     private boolean isDefinition;
     private boolean isCovered;
+    private boolean isField;
 
     @Override
     public int compareTo(Object pOther) {
@@ -53,11 +55,11 @@ public class ProgramVariable implements Comparable<Object> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProgramVariable that = (ProgramVariable) o;
-        return getInstructionIndex() == that.getInstructionIndex() && getLineNumber() == that.getLineNumber() && isDefinition() == that.isDefinition() && isCovered() == that.isCovered() && Objects.equals(getOwner(), that.getOwner()) && Objects.equals(getName(), that.getName()) && Objects.equals(getDescriptor(), that.getDescriptor());
+        return getLocalVarIdx() == that.getLocalVarIdx() && getInstructionIndex() == that.getInstructionIndex() && getLineNumber() == that.getLineNumber() && isDefinition() == that.isDefinition() && isCovered() == that.isCovered() && isField() == that.isField() && Objects.equals(getClassName(), that.getClassName()) && Objects.equals(getMethodName(), that.getMethodName()) && Objects.equals(getName(), that.getName()) && Objects.equals(getDescriptor(), that.getDescriptor());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getOwner(), getName(), getDescriptor(), getInstructionIndex(), getLineNumber(), isDefinition(), isCovered());
+        return Objects.hash(getLocalVarIdx(), getClassName(), getMethodName(), getName(), getDescriptor(), getInstructionIndex(), getLineNumber(), isDefinition(), isCovered(), isField());
     }
 }

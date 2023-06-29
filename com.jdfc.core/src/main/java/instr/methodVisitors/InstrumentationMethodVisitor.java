@@ -74,8 +74,17 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         }
                     }
                 } else {
-                    ProgramVariable localPVar = new ProgramVariable(localVarIdx, null, localVariable.getName(),
-                            localVariable.getDescriptor(), currentInstructionIndex, currentLineNumber, this.isDefinition(opcode), false);
+                    ProgramVariable localPVar = new ProgramVariable(
+                            localVarIdx,
+                            mData.getClassName(),
+                            mData.buildInternalMethodName(),
+                            localVariable.getName(),
+                            localVariable.getDescriptor(),
+                            currentInstructionIndex,
+                            currentLineNumber,
+                            this.isDefinition(opcode),
+                            false,
+                            false);
                     UUID pId = mData.findVarId(localPVar);
                     if (pId == null) {
                         if(log.isDebugEnabled()) {

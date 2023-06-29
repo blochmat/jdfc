@@ -150,7 +150,7 @@ public class ClassExecutionData extends ExecutionData {
             String jvmAsmDesc = jvmAsmExcDesc.equals("") ? jvmAsmTypeDesc : String.format("%s %s", jvmAsmTypeDesc, jvmAsmExcDesc);
 
             UUID id = UUID.randomUUID();
-            MethodData mData = new MethodData(id, mAccess, mName, jvmAsmDesc, mDecl);
+            MethodData mData = new MethodData(id, this.relativePath, mAccess, mName, jvmAsmDesc, mDecl);
 
             methods.put(id, mData);
             for(int i = mData.getBeginLine(); i <= mData.getEndLine(); i++) {
@@ -195,7 +195,7 @@ public class ClassExecutionData extends ExecutionData {
             String jvmAsmDesc = jvmAsmExcDesc.equals("") ? jvmAsmTypeDesc : String.format("%s %s", jvmAsmTypeDesc, jvmAsmExcDesc);
 
             UUID id = UUID.randomUUID();
-            MethodData mData = new MethodData(id, mAccess, mName, jvmAsmDesc, cDecl);
+            MethodData mData = new MethodData(id, this.relativePath, mAccess, mName, jvmAsmDesc, cDecl);
             methods.put(id, mData);
 
             for(int i = mData.getBeginLine(); i <= mData.getEndLine(); i++) {
@@ -207,7 +207,7 @@ public class ClassExecutionData extends ExecutionData {
         // Add default constructor
         if (methods.values().stream().noneMatch(x -> x.getName().equals("<init>"))) {
             UUID id = UUID.randomUUID();
-            MethodData mData = new MethodData(id, AccessSpecifier.PUBLIC.ordinal(), "<init>", "()V;");
+            MethodData mData = new MethodData(id, this.relativePath, AccessSpecifier.PUBLIC.ordinal(), "<init>", "()V;");
 
             methods.put(id, mData);
         }
