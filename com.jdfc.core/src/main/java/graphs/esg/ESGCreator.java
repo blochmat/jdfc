@@ -24,7 +24,7 @@ public class ESGCreator {
             ESG esg = ESGCreator.createESGForMethod(cData, mData);
             mData.setEsg(esg);
             TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(esg);
-            Multimap<Integer, DomainVariable> MVP = tabulationAlgorithm.execute();
+            Multimap<Integer, DomainVariable> MVP = tabulationAlgorithm.computePossiblyUninitializedVariables();
             String debug = String.format("%s :: %s\n%s",
                     cData.getRelativePath(),
                     mData.buildInternalMethodName(),
