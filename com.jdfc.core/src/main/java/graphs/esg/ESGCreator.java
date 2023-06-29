@@ -1,5 +1,6 @@
 package graphs.esg;
 
+import algos.TabulationAlgorithm;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -20,9 +21,15 @@ public class ESGCreator {
 
     public static void createESGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
-            mData.setEsg(ESGCreator.createESGForMethod(cData, mData));
-//            mData.getSg().calculateReachingDefinitions();
-//            mData.calculateInterDefUsePairs();
+            ESG esg = ESGCreator.createESGForMethod(cData, mData);
+            mData.setEsg(esg);
+            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(esg);
+            Multimap<Integer, DomainVariable> MVP = tabulationAlgorithm.execute();
+            String debug = String.format("%s :: %s\n%s",
+                    cData.getRelativePath(),
+                    mData.buildInternalMethodName(),
+                    JDFCUtils.prettyPrintMultimap(MVP));
+            JDFCUtils.logThis(debug, "MVP");
         }
     }
 

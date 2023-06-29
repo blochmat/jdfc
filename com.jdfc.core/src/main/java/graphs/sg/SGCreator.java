@@ -193,7 +193,7 @@ public class SGCreator {
                                 sgEdges.put(index + shift - 1, index + shift);
 
                                 // Connect call and return site node
-                                sgEdges.put(sgCallNodeIdx, index + shift);
+//                                sgEdges.put(sgCallNodeIdx, index + shift);
 
                                 // Connect return site node with next node
                                 sgEdges.put(index + shift, index + shift + 1);

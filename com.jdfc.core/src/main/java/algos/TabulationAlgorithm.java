@@ -12,6 +12,7 @@ import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
 import graphs.sg.nodes.*;
 import lombok.Data;
+import utils.JDFCUtils;
 
 import java.util.*;
 
@@ -42,16 +43,19 @@ public class TabulationAlgorithm {
         this.workList.add(initialEdge);
 
         while(!workList.isEmpty()) {
-            ESGEdge currEdge = workList.pop();
-            SGNode s = sg.getNodes().get(currEdge.getSgnSourceIdx());
+            ESGEdge currPathEdge = workList.pop();
+
+            // Source
+            SGNode s = sg.getNodes().get(currPathEdge.getSgnSourceIdx());
             int sIdx = s.getIndex();
-            DomainVariable d1 = esg.getDomain().get(currEdge.getSourceDVarMethodName()).get(currEdge.getSourceDVarIdx());
+            DomainVariable d1 = esg.getDomain().get(currPathEdge.getSourceDVarMethodName()).get(currPathEdge.getSourceDVarIdx());
             int d1Idx = d1.getIndex();
             String d1MethodIdentifier = String.format("%s :: %s", d1.getClassName(), d1.getMethodName());
 
-            SGNode n = sg.getNodes().get(currEdge.getSgnTargetIdx());
+            // Target
+            SGNode n = sg.getNodes().get(currPathEdge.getSgnTargetIdx());
             int nIdx = n.getIndex();
-            DomainVariable d2 = esg.getDomain().get(currEdge.getTargetDVarMethodName()).get(currEdge.getTargetDVarIdx());
+            DomainVariable d2 = esg.getDomain().get(currPathEdge.getTargetDVarMethodName()).get(currPathEdge.getTargetDVarIdx());
             int d2Idx = d2.getIndex();
             String d2MethodIdentifier = String.format("%s :: %s", d2.getClassName(), d2.getMethodName());
 
@@ -76,7 +80,6 @@ public class TabulationAlgorithm {
                                     d3Idx)
                             );
                         } else {
-                            assert mSGNode instanceof SGReturnSiteNode;
                             propagate(new ESGEdge(
                                     sIdx,
                                     mIdx,
@@ -172,10 +175,11 @@ public class TabulationAlgorithm {
                         }
                     }
                 }
-            } else {
+            }
+            else {
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(n.getIndex());
                 for(ESGEdge esgEdge : esgEdges) {
-                    if(Objects.equals(n.getIndex(), esgEdge.getSgnSourceIdx())
+                    if(Objects.equals(nIdx, esgEdge.getSgnSourceIdx())
                             && Objects.equals(d2MethodIdentifier, esgEdge.getSourceDVarMethodName())
                             && Objects.equals(d2Idx, esgEdge.getSourceDVarIdx())) {
                         int mIdx = esgEdge.getSgnTargetIdx();
@@ -198,6 +202,9 @@ public class TabulationAlgorithm {
         //--- When finished --------------------------------------------------------------------------------------------
 
         Multimap<Integer, DomainVariable> bigXSet = ArrayListMultimap.create();
+
+        JDFCUtils.logThis(JDFCUtils.prettyPrintSet(pathEdgeSet),"pathEdgeSet");
+
         for(Map.Entry<Integer, Map<String, NavigableMap<Integer, ESGNode>>> esgLineSectionEntry : esg.getNodes().entrySet()) {
             SGNode sgNode = sg.getNodes().get(esgLineSectionEntry.getKey());
             int sgIdx = sgNode.getIndex();
@@ -218,12 +225,16 @@ public class TabulationAlgorithm {
             }
         }
 
+        JDFCUtils.logThis(mainMethodIdentifier + "\n" + JDFCUtils.prettyPrintMultimap(bigXSet), "bigX");
+
         return bigXSet;
     }
 
     private void propagate(ESGEdge e) {
-        this.pathEdgeSet.add(e);
-        this.workList.add(e);
+        if(!this.pathEdgeSet.contains(e)) {
+            this.pathEdgeSet.add(e);
+            this.workList.add(e);
+        }
     }
 
 }
