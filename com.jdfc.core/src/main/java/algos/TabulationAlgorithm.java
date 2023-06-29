@@ -16,6 +16,7 @@ import lombok.Data;
 import utils.JDFCUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 public class TabulationAlgorithm {
@@ -43,8 +44,7 @@ public class TabulationAlgorithm {
         String mainMethodIdentifier = String.format("%s :: %s", sg.getClassName(), sg.getMethodName());
         //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
         ESGEdge initialEdge = new ESGEdge(0, 0, mainMethodIdentifier, mainMethodIdentifier, -1, -1);
-        this.pathEdgeSet.add(initialEdge);
-        this.workList.add(initialEdge);
+        this.propagate(initialEdge);
 
         while(!workList.isEmpty()) {
             ESGEdge currPathEdge = workList.pop();
@@ -63,9 +63,6 @@ public class TabulationAlgorithm {
             int d2Idx = d2.getIndex();
             String d2MethodIdentifier = String.format("%s :: %s", d2.getClassName(), d2.getMethodName());
 
-//            if(containsDefinition(n, d2Idx)) {
-//                liveDefinitions.put(d2, )
-//            }
 
             if(n instanceof SGCallNode) {
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(nIdx);
@@ -191,17 +188,32 @@ public class TabulationAlgorithm {
                             && Objects.equals(d2MethodIdentifier, esgEdge.getSourceDVarMethodName())
                             && Objects.equals(d2Idx, esgEdge.getSourceDVarIdx())) {
                         int mIdx = esgEdge.getSgnTargetIdx();
+                        SGNode m = sg.getNodes().get(mIdx);
                         String d3MethodIdentifier = esgEdge.getTargetDVarMethodName();
                         int d3Idx = esgEdge.getTargetDVarIdx();
+                        DomainVariable d3 = esg.getDomain().get(d3MethodIdentifier).get(d3Idx);
 
-                        propagate(new ESGEdge(
-                                sIdx,
-                                mIdx,
-                                d1MethodIdentifier,
-                                d3MethodIdentifier,
-                                d1Idx,
-                                d3Idx)
-                        );
+                        ProgramVariable definition = getDefinition(m, d3);
+                        if(definition != null) {
+                            // Safe new live definition
+                            liveDefinitions.put(d3, definition);
+                            propagate(new ESGEdge(
+                                    mIdx,
+                                    mIdx,
+                                    d3MethodIdentifier,
+                                    d3MethodIdentifier,
+                                    d3Idx,
+                                    d3Idx));
+                        } else {
+                            propagate(new ESGEdge(
+                                    sIdx,
+                                    mIdx,
+                                    d1MethodIdentifier,
+                                    d3MethodIdentifier,
+                                    d1Idx,
+                                    d3Idx)
+                            );
+                        }
                     }
                 }
             }
@@ -434,12 +446,23 @@ public class TabulationAlgorithm {
         return bigXSet;
     }
 
-    private boolean containsDefinition(SGNode n, DomainVariable dVar) {
-        // TODO: Add method and class name to program variable
-        return n.getDefinitions().stream().anyMatch(d ->
-                Objects.equals(d.getLocalVarIdx(), dVar.getIndex())
-                && Objects.equals(d.getName(), dVar.getName())
-        && Objects.equals(d.getDescriptor(), dVar.getDescriptor()));
+    private ProgramVariable getDefinition(SGNode n, DomainVariable dVar) {
+        // TODO: Always use maps instead of sets. Sets suck.
+        Set<ProgramVariable> candidates = n.getDefinitions().stream()
+                .filter(d -> Objects.equals(d.getLocalVarIdx(), dVar.getIndex())
+                        && Objects.equals(d.getClassName(), dVar.getClassName())
+                        && Objects.equals(d.getMethodName(), dVar.getMethodName())
+                        && Objects.equals(d.getName(), dVar.getName())
+                        && Objects.equals(d.getDescriptor(), dVar.getDescriptor()))
+                .collect(Collectors.toSet());
+        if(candidates.size() == 1) {
+            return (ProgramVariable) candidates.toArray()[0];
+        } else if (candidates.size() == 0) {
+            return null;
+        } else {
+            throw new IllegalStateException("Two definitions of the same variable in the same SGNode: \n" +
+                    JDFCUtils.prettyPrintSet(candidates));
+        }
     }
 
     private void propagate(ESGEdge e) {
