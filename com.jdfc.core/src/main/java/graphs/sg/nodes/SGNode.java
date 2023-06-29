@@ -37,8 +37,8 @@ public class SGNode {
         this.opcode = node.getOpcode();
         this.pred = Sets.newLinkedHashSet();
         this.succ = Sets.newLinkedHashSet();
-        this.reachOut = node.getReachOut();
-        this.reach = node.getReach();
+        this.reachOut = Sets.newLinkedHashSet();
+        this.reach = Sets.newLinkedHashSet();
     }
 
     public void resetReachOut() {
