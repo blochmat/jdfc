@@ -280,7 +280,7 @@ public class ClassExecutionData extends ExecutionData {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
 
-                if (def.isCovered() && use.isCovered()) {
+                if (def.getIsCovered() && use.getIsCovered()) {
                     if (!internalMethodName.contains("<clinit>")) {
                         this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
                     }

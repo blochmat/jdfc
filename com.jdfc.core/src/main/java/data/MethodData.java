@@ -178,7 +178,7 @@ public class MethodData {
                     && Objects.equals(v.getDescriptor(), var.getDescriptor())
                     && Objects.equals(v.getLineNumber(), var.getLineNumber())
                     && Objects.equals(v.getInstructionIndex(), var.getInstructionIndex())
-                    && Objects.equals(v.isDefinition(), var.isDefinition())) {
+                    && Objects.equals(v.getIsDefinition(), var.getIsDefinition())) {
                 return entry.getKey();
             }
         }
@@ -207,7 +207,7 @@ public class MethodData {
                         this.pairs.add(new DefUsePair(def, use));
                     }
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                        def.setCovered(true);
+                        def.setIsCovered(true);
                     }
                 }
             }
@@ -234,7 +234,7 @@ public class MethodData {
                         this.pairs.add(new DefUsePair(def, use));
                     }
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                        def.setCovered(true);
+                        def.setIsCovered(true);
                     }
                 }
             }

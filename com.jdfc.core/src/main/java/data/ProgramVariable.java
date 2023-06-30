@@ -14,16 +14,35 @@ import java.util.Objects;
 @AllArgsConstructor
 public class ProgramVariable implements Comparable<Object> {
 
-    private int localVarIdx;
+    private Integer localVarIdx;
     private String className;
     private String methodName;
     private String name;
     private String descriptor;
-    private int instructionIndex;
-    private int lineNumber;
-    private boolean isDefinition;
-    private boolean isCovered;
-    private boolean isField;
+    private Integer instructionIndex;
+    private Integer lineNumber;
+    private Boolean isDefinition;
+    private Boolean isCovered;
+    private Boolean isField;
+
+    private ProgramVariable(String className, String methodName) {
+        this.localVarIdx = -1;
+        this.className = className;
+        this.methodName = methodName;
+        this.name = "ZERO";
+        this.descriptor = null;
+        this.instructionIndex = null;
+        this.lineNumber = null;
+        this.isDefinition = null;
+        this.isCovered = null;
+        this.isField = null;
+    }
+
+    public static class ZeroVariable extends ProgramVariable {
+       public ZeroVariable(String className, String methodName) {
+           super(className, methodName);
+       }
+    }
 
     @Override
     public int compareTo(Object pOther) {
@@ -35,7 +54,7 @@ public class ProgramVariable implements Comparable<Object> {
         if (this.equals(that)) {
             return 0;
         }
-        if (this.getLineNumber() == that.getLineNumber()) {
+        if (Objects.equals(this.getLineNumber(), that.getLineNumber())) {
             if (this.getInstructionIndex() < that.getInstructionIndex()) {
                 return -1;
             } else {
@@ -55,11 +74,31 @@ public class ProgramVariable implements Comparable<Object> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProgramVariable that = (ProgramVariable) o;
-        return getLocalVarIdx() == that.getLocalVarIdx() && getInstructionIndex() == that.getInstructionIndex() && getLineNumber() == that.getLineNumber() && isDefinition() == that.isDefinition() && isCovered() == that.isCovered() && isField() == that.isField() && Objects.equals(getClassName(), that.getClassName()) && Objects.equals(getMethodName(), that.getMethodName()) && Objects.equals(getName(), that.getName()) && Objects.equals(getDescriptor(), that.getDescriptor());
+        return Objects.equals(getLocalVarIdx(), that.getLocalVarIdx())
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getDescriptor(), that.getDescriptor())
+                && Objects.equals(getInstructionIndex(), that.getInstructionIndex())
+                && Objects.equals(getLineNumber(), that.getLineNumber())
+                && Objects.equals(getIsDefinition(), that.getIsDefinition())
+                && Objects.equals(getIsCovered(), that.getIsCovered())
+                && Objects.equals(getIsField(), that.getIsField());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getLocalVarIdx(), getClassName(), getMethodName(), getName(), getDescriptor(), getInstructionIndex(), getLineNumber(), isDefinition(), isCovered(), isField());
+        return Objects.hash(
+                getLocalVarIdx(),
+                getClassName(),
+                getMethodName(),
+                getName(),
+                getDescriptor(),
+                getInstructionIndex(),
+                getLineNumber(),
+                getIsDefinition(),
+                getIsCovered(),
+                getIsField()
+        );
     }
 }

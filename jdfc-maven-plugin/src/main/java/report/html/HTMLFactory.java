@@ -349,7 +349,7 @@ public class HTMLFactory {
 
                         // check if associated uses or defs are covered and highlight
                         Set<DefUsePair> pairSet = getDefUsePairsCoveredForVar(mData, programVariable);
-                        String backgroundColor = getVariableBackgroundColor(programVariable.isCovered(), pairSet);
+                        String backgroundColor = getVariableBackgroundColor(programVariable.getIsCovered(), pairSet);
                         divTagLine.getContent().add(
                                 createVariableInformation(pClassFile, pClassName, pairSet, programVariable, backgroundColor));
                     }
@@ -756,7 +756,7 @@ public class HTMLFactory {
             Set<ProgramVariable> useList = pairs.stream().map(DefUsePair::getUsage).collect(Collectors.toSet());
             for (ProgramVariable use : useList) {
                 try {
-                    table.getContent().add(createDataRow(cFile, cName, use.getLineNumber(), use.isCovered()));
+                    table.getContent().add(createDataRow(cFile, cName, use.getLineNumber(), use.getIsCovered()));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -768,7 +768,7 @@ public class HTMLFactory {
             Set<ProgramVariable> defList = pairs.stream().map(DefUsePair::getDefinition).collect(Collectors.toSet());
             for (ProgramVariable def : defList) {
                 try {
-                    table.getContent().add(createDataRow(cFile, cName, def.getLineNumber(), def.isCovered()));
+                    table.getContent().add(createDataRow(cFile, cName, def.getLineNumber(), def.getIsCovered()));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -925,7 +925,7 @@ public class HTMLFactory {
         table.getContent().add(createHeaderRow());
         for (ProgramVariable v : associateList) {
             try {
-                table.getContent().add(createDataRow(cFile, cName, v.getLineNumber(), v.isCovered()));
+                table.getContent().add(createDataRow(cFile, cName, v.getLineNumber(), v.getIsCovered()));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -991,7 +991,7 @@ public class HTMLFactory {
         if (!possibleVariables.isEmpty()) {
             if (isDef) {
                 List<ProgramVariable> defs = possibleVariables.stream()
-                        .filter(x -> x.isDefinition() && x.getName().equals(name))
+                        .filter(x -> x.getIsDefinition() && x.getName().equals(name))
                         .sorted(Comparator.comparing(ProgramVariable::getInstructionIndex))
                         .collect(Collectors.toList());
                 if (defs.isEmpty()) {
