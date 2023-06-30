@@ -75,6 +75,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     }
                 } else {
                     ProgramVariable localPVar = new ProgramVariable(
+                            null,
                             localVarIdx,
                             mData.getClassName(),
                             mData.buildInternalMethodName(),

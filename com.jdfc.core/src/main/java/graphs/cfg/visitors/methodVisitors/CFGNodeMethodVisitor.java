@@ -345,7 +345,9 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         final String varName = getLocalVarName(localVarIdx);
         final String varType = getLocalVarType(localVarIdx);
         final boolean isDefinition = isDefinition(opcode);
+        UUID id = UUID.randomUUID();
         ProgramVariable var = new ProgramVariable(
+                id,
                 localVarIdx,
                 mData.getClassName(),
                 mData.buildInternalMethodName(),
@@ -357,7 +359,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                 false,
                 false
         );
-        UUID id = UUID.randomUUID();
         mData.getProgramVariables().put(id, var);
         aa.setPVar(var);
         return var;
@@ -511,10 +512,11 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         Map<Integer, DomainVariable> dVarMap = new HashMap<>();
         int idx = 0;
         for(ProgramVariable def : definitions) {
-            UUID id = UUID.randomUUID();
-            mData.getProgramVariables().put(id, def);
+            mData.getProgramVariables().put(def.getId(), def);
 
             pVarMap.put(idx, def);
+
+            // TODO: delete
             dVarMap.put(idx, new DomainVariable(
                     def.getLocalVarIdx(),
                     classVisitor.classNode.name,
@@ -591,6 +593,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private ProgramVariable createProgramVariableFromLocalVar(int index) {
         LocalVariable localVariable = mData.getLocalVariableTable().get(index);
         return new ProgramVariable(
+                null,
                 index,
                 mData.getClassName(),
                 mData.getName(),
@@ -625,6 +628,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
             final ProgramVariable variable =
                     new ProgramVariable(
+                            UUID.randomUUID(),
                             localVariable.getIndex(),
                             mData.getClassName(),
                             mData.getName(),

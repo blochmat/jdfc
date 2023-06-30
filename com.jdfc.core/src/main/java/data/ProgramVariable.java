@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Represents a program variable that is identified by its name and type.
@@ -14,6 +15,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class ProgramVariable implements Comparable<Object> {
 
+    private UUID id;
     private Integer localVarIdx;
     private String className;
     private String methodName;
