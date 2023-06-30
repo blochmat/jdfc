@@ -1,7 +1,7 @@
 package graphs.esg.nodes;
 
 import com.google.common.collect.Sets;
-import data.DomainVariable;
+import data.ProgramVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,22 +15,22 @@ import java.util.Set;
 public class ESGNode {
 
     private int sgnIndex;
-    private DomainVariable dVar;
+    private ProgramVariable var;
     private boolean isPossiblyNotRedefined;
     Set<ESGNode> pred;
     Set<ESGNode> succ;
 
     private ESGNode(int sgnIndex, String className, String methodName) {
         this.sgnIndex = sgnIndex;
-        this.dVar = new DomainVariable.ZeroVariable(className, methodName);
+        this.var = new ProgramVariable.ZeroVariable(className, methodName);
         this.isPossiblyNotRedefined = true;
         this.pred = Sets.newLinkedHashSet();
         this.succ = Sets.newLinkedHashSet();
     }
 
-    public ESGNode(int sgnIndex, DomainVariable dVar) {
+    public ESGNode(int sgnIndex, ProgramVariable var) {
         this.sgnIndex = sgnIndex;
-        this.dVar = dVar;
+        this.var = var;
         this.isPossiblyNotRedefined = false;
         this.pred = Sets.newLinkedHashSet();
         this.succ = Sets.newLinkedHashSet();
@@ -43,13 +43,18 @@ public class ESGNode {
     }
 
     public boolean isZero() {
-        return dVar instanceof DomainVariable.ZeroVariable;
+        return var instanceof ProgramVariable.ZeroVariable;
     }
 
     @Override
     public String toString() {
         String redefined = isPossiblyNotRedefined ? "T" : "F";
-        return String.format("(%d, %s, %s, %d, %d, %s)", sgnIndex, dVar.getIndex(), dVar.getName(), pred.size(), succ.size(), redefined);
+        return String.format("(%d, %s, %d, %d, %s)",
+                sgnIndex,
+                var.getName(),
+                pred.size(),
+                succ.size(),
+                redefined);
     }
 
     @Override
@@ -57,11 +62,11 @@ public class ESGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ESGNode esgNode = (ESGNode) o;
-        return getSgnIndex() == esgNode.getSgnIndex() && isPossiblyNotRedefined() == esgNode.isPossiblyNotRedefined() && Objects.equals(dVar, esgNode.dVar);
+        return getSgnIndex() == esgNode.getSgnIndex() && isPossiblyNotRedefined() == esgNode.isPossiblyNotRedefined() && Objects.equals(getVar(), esgNode.getVar()) && Objects.equals(getPred(), esgNode.getPred()) && Objects.equals(getSucc(), esgNode.getSucc());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getSgnIndex(), dVar, isPossiblyNotRedefined());
+        return Objects.hash(getSgnIndex(), getVar(), isPossiblyNotRedefined(), getPred(), getSucc());
     }
 }

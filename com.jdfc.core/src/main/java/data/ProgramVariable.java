@@ -28,6 +28,7 @@ public class ProgramVariable implements Comparable<Object> {
     private Boolean isField;
 
     private ProgramVariable(String className, String methodName) {
+        this.id = null;
         this.localVarIdx = -1;
         this.className = className;
         this.methodName = methodName;

@@ -3,6 +3,8 @@ package graphs.esg;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 public class ESGEdge {
@@ -29,37 +31,37 @@ public class ESGEdge {
     /**
      * Source Domain Variable Index
      */
-    private int sourceDVarIdx;
+    private UUID sourcePVarId;
 
     /**
      * Target Domain Variable Index
      */
-    private int targetDVarIdx;
+    private UUID targetPVarId;
 
     /**
      *
      * @param sgnSourceIdx Super Graph Source Node Index
      * @param sgnTargetIdx Super Graph Target Node Index
-     * @param sourceDVarIdx Source Domain Variable Index
-     * @param targetDVarIdx Target Domain Variable Index
+     * @param sourcePVarId Source Domain Variable Index
+     * @param targetPVarId Target Domain Variable Index
      */
     public ESGEdge(final int sgnSourceIdx,
                    final int sgnTargetIdx,
                    final String sourceDVarMethodName,
                    final String targetDVarMethodName,
-                   final int sourceDVarIdx,
-                   final int targetDVarIdx) {
+                   final UUID sourcePVarId,
+                   final UUID targetPVarId) {
         this.sgnSourceIdx = sgnSourceIdx;
         this.sgnTargetIdx = sgnTargetIdx;
         this.sourceDVarMethodName = sourceDVarMethodName;
         this.targetDVarMethodName = targetDVarMethodName;
-        this.sourceDVarIdx = sourceDVarIdx;
-        this.targetDVarIdx = targetDVarIdx;
+        this.sourcePVarId = sourcePVarId;
+        this.targetPVarId = targetPVarId;
 
     }
 
     @Override
     public String toString() {
-        return "ESGEdge{" + sgnSourceIdx + ", " + sourceDVarMethodName + ", " + sourceDVarIdx + ", " + sgnTargetIdx + ", " + targetDVarMethodName + ", " + targetDVarIdx + '}';
+        return "ESGEdge{" + sgnSourceIdx + ", " + sourceDVarMethodName + ", " + sourcePVarId + ", " + sgnTargetIdx + ", " + targetDVarMethodName + ", " + targetPVarId + '}';
     }
 }

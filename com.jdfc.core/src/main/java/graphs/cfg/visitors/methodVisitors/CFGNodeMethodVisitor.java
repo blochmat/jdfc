@@ -631,7 +631,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                             UUID.randomUUID(),
                             localVariable.getIndex(),
                             mData.getClassName(),
-                            mData.getName(),
+                            mData.buildInternalMethodName(),
                             localVariable.getName(),
                             localVariable.getDescriptor(),
                             Integer.MIN_VALUE,
