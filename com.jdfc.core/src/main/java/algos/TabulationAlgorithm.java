@@ -37,14 +37,16 @@ public class TabulationAlgorithm {
     public Multimap<Integer, ProgramVariable> execute() {
         SG sg = this.esg.getSg();
         String mainMethodIdentifier = String.format("%s :: %s", sg.getClassName(), sg.getMethodName());
+        ProgramVariable ZERO = new ProgramVariable.ZeroVariable(sg.getClassName(), sg.getMethodName());
+
         //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
         ESGEdge initialEdge = new ESGEdge(
                 0,
                 0,
                 mainMethodIdentifier,
                 mainMethodIdentifier,
-                UUID.fromString("00000000-0000-0000-0000-000000000000"),
-                UUID.fromString("00000000-0000-0000-0000-000000000000")
+                ZERO,
+                ZERO
         );
         this.pathEdgeSet.add(initialEdge);
         this.workList.add(initialEdge);
@@ -55,15 +57,13 @@ public class TabulationAlgorithm {
             // Source
             SGNode s = sg.getNodes().get(currPathEdge.getSgnSourceIdx());
             int sIdx = s.getIndex();
-            ProgramVariable d1 = esg.getDomain().get(currPathEdge.getSourceDVarMethodName()).get(currPathEdge.getSourcePVarId());
-            UUID d1Id = d1.getId();
+            ProgramVariable d1 = currPathEdge.getSourcePVar();
             String d1MethodIdentifier = String.format("%s :: %s", d1.getClassName(), d1.getMethodName());
 
             // Target
             SGNode n = sg.getNodes().get(currPathEdge.getSgnTargetIdx());
             int nIdx = n.getIndex();
-            ProgramVariable d2 = esg.getDomain().get(currPathEdge.getTargetDVarMethodName()).get(currPathEdge.getTargetPVarId());
-            UUID d2Id = d2.getId();
+            ProgramVariable d2 = currPathEdge.getTargetPVar();
             String d2MethodIdentifier = String.format("%s :: %s", d2.getClassName(), d2.getMethodName());
 
             if(n instanceof SGCallNode) {
@@ -71,10 +71,10 @@ public class TabulationAlgorithm {
                 for(ESGEdge esgEdge : esgEdges) {
                     if(Objects.equals(nIdx, esgEdge.getSgnSourceIdx())
                             && Objects.equals(d1MethodIdentifier, esgEdge.getSourceDVarMethodName())
-                            && Objects.equals(d1Id, esgEdge.getSourcePVarId())) {
+                            && Objects.equals(d1, esgEdge.getSourcePVar())) {
                         int mIdx = esgEdge.getSgnTargetIdx();
                         String d3MethodIdentifier = esgEdge.getTargetDVarMethodName();
-                        UUID d3Id = esgEdge.getTargetPVarId();
+                        ProgramVariable d3 = esgEdge.getTargetPVar();
                         SGNode mSGNode = sg.getNodes().get(mIdx);
 
                         if(mSGNode instanceof SGEntryNode) {
@@ -83,8 +83,8 @@ public class TabulationAlgorithm {
                                     mIdx,
                                     d3MethodIdentifier,
                                     d3MethodIdentifier,
-                                    d3Id,
-                                    d3Id)
+                                    d3,
+                                    d3)
                             );
                         } else {
                             propagate(new ESGEdge(
@@ -92,8 +92,8 @@ public class TabulationAlgorithm {
                                     mIdx,
                                     d1MethodIdentifier,
                                     d3MethodIdentifier,
-                                    d1Id,
-                                    d3Id
+                                    d1,
+                                    d3
                             ));
                         }
                     }
@@ -102,10 +102,10 @@ public class TabulationAlgorithm {
                 for(ESGEdge esgEdge : summaryEdgeSet) {
                     if(Objects.equals(n.getIndex(), esgEdge.getSgnSourceIdx())
                             && Objects.equals(d1MethodIdentifier, esgEdge.getSourceDVarMethodName())
-                            && Objects.equals(d1Id, esgEdge.getSourcePVarId())) {
+                            && Objects.equals(d1, esgEdge.getSourcePVar())) {
                         int mIdx = esgEdge.getSgnTargetIdx();
                         String d3MethodIdentifier = esgEdge.getTargetDVarMethodName();
-                        UUID d3Id = esgEdge.getTargetPVarId();
+                        ProgramVariable d3 = esgEdge.getTargetPVar();
                         SGNode mSGNode = sg.getNodes().get(mIdx);
                         if(mSGNode instanceof SGReturnSiteNode) {
                             propagate(new ESGEdge(
@@ -113,8 +113,8 @@ public class TabulationAlgorithm {
                                     mIdx,
                                     d1MethodIdentifier,
                                     d3MethodIdentifier,
-                                    d1Id,
-                                    d3Id
+                                    d1,
+                                    d3
                             ));
                         }
                     }
@@ -131,19 +131,19 @@ public class TabulationAlgorithm {
                         if(Objects.equals(cIdx, callEdge.getSgnSourceIdx())
                                 && Objects.equals(sIdx, callEdge.getSgnTargetIdx())
                                 && Objects.equals(d1MethodIdentifier, callEdge.getTargetDVarMethodName())
-                                && Objects.equals(d1Id, callEdge.getTargetPVarId())) {
+                                && Objects.equals(d1, callEdge.getTargetPVar())) {
                             String d4MethodIdentifier = callEdge.getSourceDVarMethodName();
-                            UUID d4Id = callEdge.getSourcePVarId();
+                            ProgramVariable d4 = callEdge.getSourcePVar();
 
                             for (ESGEdge exitEdge : exitEdges) {
                                 int rIdx = sg.getReturnSiteIndexMap().get(cIdx);
                                 if(Objects.equals(nIdx, exitEdge.getSgnSourceIdx())
                                         && Objects.equals(d2MethodIdentifier, exitEdge.getSourceDVarMethodName())
-                                        && Objects.equals(d2Id, exitEdge.getSourcePVarId())
+                                        && Objects.equals(d2, exitEdge.getSourcePVar())
                                         && Objects.equals(rIdx, exitEdge.getSgnTargetIdx())) {
                                     String d5MethodIdentifier = exitEdge.getTargetDVarMethodName();
-                                    UUID d5Id = exitEdge.getTargetPVarId();
-                                    ESGEdge e = new ESGEdge(cIdx, rIdx, d4MethodIdentifier, d5MethodIdentifier, d4Id, d5Id);
+                                    ProgramVariable d5 = exitEdge.getTargetPVar();
+                                    ESGEdge e = new ESGEdge(cIdx, rIdx, d4MethodIdentifier, d5MethodIdentifier, d4, d5);
                                     if(!summaryEdgeSet.contains(e)){
                                         summaryEdgeSet.add(e);
 
@@ -157,22 +157,22 @@ public class TabulationAlgorithm {
                                         for(ESGEdge entryEdge: entryEdges) {
                                             int eIdx = entryEdge.getSgnSourceIdx();
                                             String d3MethodIdentifier = entryEdge.getSourceDVarMethodName();
-                                            UUID d3Id = entryEdge.getSourcePVarId();
+                                            ProgramVariable d3 = entryEdge.getSourcePVar();
 
                                             ESGEdge search = new ESGEdge(eIdx,
                                                     cIdx,
                                                     d3MethodIdentifier,
                                                     d4MethodIdentifier,
-                                                    d3Id,
-                                                    d4Id);
+                                                    d3,
+                                                    d4);
                                             if(pathEdgeSet.contains(search)) {
                                                 propagate(new ESGEdge(
                                                         eIdx,
                                                         rIdx,
                                                         d3MethodIdentifier,
                                                         d5MethodIdentifier,
-                                                        d3Id,
-                                                        d5Id
+                                                        d3,
+                                                        d5
                                                 ));
                                             }
                                         }
@@ -188,18 +188,18 @@ public class TabulationAlgorithm {
                 for(ESGEdge esgEdge : esgEdges) {
                     if(Objects.equals(nIdx, esgEdge.getSgnSourceIdx())
                             && Objects.equals(d2MethodIdentifier, esgEdge.getSourceDVarMethodName())
-                            && Objects.equals(d2Id, esgEdge.getSourcePVarId())) {
+                            && Objects.equals(d2, esgEdge.getSourcePVar())) {
                         int mIdx = esgEdge.getSgnTargetIdx();
                         String d3MethodIdentifier = esgEdge.getTargetDVarMethodName();
-                        UUID d3Id = esgEdge.getTargetPVarId();
+                        ProgramVariable d3 = esgEdge.getTargetPVar();
 
                         propagate(new ESGEdge(
                                 sIdx,
                                 mIdx,
                                 d1MethodIdentifier,
                                 d3MethodIdentifier,
-                                d1Id,
-                                d3Id)
+                                d1,
+                                d3)
                         );
                     }
                 }
@@ -224,8 +224,8 @@ public class TabulationAlgorithm {
             for(ESGEdge pathEdge : pathEdgeSet) {
                 if(Objects.equals(sgEntryIdx, pathEdge.getSgnSourceIdx())
                         && Objects.equals(sgIdx, pathEdge.getSgnTargetIdx())
-                        && !Objects.equals(UUID.fromString("00000000-0000-0000-0000-000000000000"), pathEdge.getTargetPVarId())) {
-                    ProgramVariable pVar = esg.getNodes().get(sgIdx).get(pathEdge.getTargetDVarMethodName()).get(pathEdge.getTargetPVarId()).getVar();
+                        && !Objects.equals(ZERO, pathEdge.getTargetPVar())) {
+                    ProgramVariable pVar = pathEdge.getTargetPVar();
                     bigXSet.put(sgIdx, pVar);
                 }
             }

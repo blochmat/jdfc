@@ -49,6 +49,15 @@ public class ESGNode {
     @Override
     public String toString() {
         String redefined = isPossiblyNotRedefined ? "T" : "F";
+        if(var.getInstructionIndex() != Integer.MIN_VALUE) {
+            return String.format("(%d, %s:%d, %d, %d, %s)",
+                    sgnIndex,
+                    var.getName(),
+                    var.getInstructionIndex(),
+                    pred.size(),
+                    succ.size(),
+                    redefined);
+        }
         return String.format("(%d, %s, %d, %d, %s)",
                 sgnIndex,
                 var.getName(),

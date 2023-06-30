@@ -34,7 +34,7 @@ public class ProgramVariable implements Comparable<Object> {
         this.methodName = methodName;
         this.name = "ZERO";
         this.descriptor = null;
-        this.instructionIndex = null;
+        this.instructionIndex = Integer.MIN_VALUE;
         this.lineNumber = null;
         this.isDefinition = null;
         this.isCovered = null;

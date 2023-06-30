@@ -1,9 +1,8 @@
 package graphs.esg;
 
+import data.ProgramVariable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -31,37 +30,56 @@ public class ESGEdge {
     /**
      * Source Domain Variable Index
      */
-    private UUID sourcePVarId;
+    private ProgramVariable sourcePVar;
 
     /**
      * Target Domain Variable Index
      */
-    private UUID targetPVarId;
+    private ProgramVariable targetPVar;
 
     /**
      *
      * @param sgnSourceIdx Super Graph Source Node Index
      * @param sgnTargetIdx Super Graph Target Node Index
-     * @param sourcePVarId Source Domain Variable Index
-     * @param targetPVarId Target Domain Variable Index
+     * @param sourcePVar Source Domain Variable Index
+     * @param targetPVar Target Domain Variable Index
      */
     public ESGEdge(final int sgnSourceIdx,
                    final int sgnTargetIdx,
                    final String sourceDVarMethodName,
                    final String targetDVarMethodName,
-                   final UUID sourcePVarId,
-                   final UUID targetPVarId) {
+                   final ProgramVariable sourcePVar,
+                   final ProgramVariable targetPVar) {
         this.sgnSourceIdx = sgnSourceIdx;
         this.sgnTargetIdx = sgnTargetIdx;
         this.sourceDVarMethodName = sourceDVarMethodName;
         this.targetDVarMethodName = targetDVarMethodName;
-        this.sourcePVarId = sourcePVarId;
-        this.targetPVarId = targetPVarId;
-
+        this.sourcePVar = sourcePVar;
+        this.targetPVar = targetPVar;
     }
 
     @Override
     public String toString() {
-        return "ESGEdge{" + sgnSourceIdx + ", " + sourceDVarMethodName + ", " + sourcePVarId + ", " + sgnTargetIdx + ", " + targetDVarMethodName + ", " + targetPVarId + '}';
+        String sourceVarStr;
+        if(sourcePVar.getInstructionIndex() != Integer.MIN_VALUE) {
+            sourceVarStr = String.format("%s:%s", sourcePVar.getName(), sourcePVar.getInstructionIndex());
+        } else {
+            sourceVarStr = sourcePVar.getName();
+        }
+
+        String targetVarStr;
+        if(targetPVar.getInstructionIndex() != Integer.MIN_VALUE) {
+            targetVarStr = String.format("%s:%s", targetPVar.getName(), targetPVar.getInstructionIndex());
+        } else {
+            targetVarStr = targetPVar.getName();
+        }
+
+        return "ESGEdge{"
+                + sgnSourceIdx + ", "
+                + sgnTargetIdx + ", "
+                + sourceDVarMethodName + ", "
+                + targetDVarMethodName + ", "
+                + sourceVarStr + ", "
+                + targetVarStr + '}';
     }
 }
