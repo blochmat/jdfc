@@ -62,11 +62,11 @@ public class ESGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ESGNode esgNode = (ESGNode) o;
-        return getSgnIndex() == esgNode.getSgnIndex() && isPossiblyNotRedefined() == esgNode.isPossiblyNotRedefined() && Objects.equals(getVar(), esgNode.getVar()) && Objects.equals(getPred(), esgNode.getPred()) && Objects.equals(getSucc(), esgNode.getSucc());
+        return getSgnIndex() == esgNode.getSgnIndex() && isPossiblyNotRedefined() == esgNode.isPossiblyNotRedefined() && Objects.equals(getVar(), esgNode.getVar());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getSgnIndex(), getVar(), isPossiblyNotRedefined(), getPred(), getSucc());
+        return Objects.hash(getSgnIndex(), getVar(), isPossiblyNotRedefined());
     }
 }

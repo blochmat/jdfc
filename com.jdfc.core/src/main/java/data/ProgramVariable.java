@@ -28,7 +28,7 @@ public class ProgramVariable implements Comparable<Object> {
     private Boolean isField;
 
     private ProgramVariable(String className, String methodName) {
-        this.id = null;
+        this.id = UUID.fromString("00000000-0000-0000-0000-000000000000");
         this.localVarIdx = -1;
         this.className = className;
         this.methodName = methodName;
