@@ -237,9 +237,15 @@ public class JDFCUtils {
 
     public static <T> String prettyPrintSet(Set<T> set) {
         StringBuilder stringBuilder = new StringBuilder();
+        if(set.isEmpty()) {
+            stringBuilder.append("[");
+        } else {
+            stringBuilder.append("[\n");
+        }
         for (T element : set) {
             stringBuilder.append(element.toString()).append("\n");
         }
+        stringBuilder.append("]\n");
         return stringBuilder.toString();
     }
 

@@ -1,6 +1,7 @@
 package graphs.cfg;
 
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGEntryNode;
@@ -57,13 +58,12 @@ public class CFG {
 
         while (!workList.isEmpty()) {
             CFGNode node = workList.poll();
-            Set<ProgramVariable> oldValue = node.getReachOut();
+            Set<ProgramVariable> oldValue = Sets.newLinkedHashSet(node.getReachOut());
             node.update();
             if (!node.getReachOut().equals(oldValue)) {
-                workList.addAll(node.getPred());
+                workList.addAll(node.getSucc());
             }
         }
-
     }
 
     /**

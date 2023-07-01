@@ -132,6 +132,18 @@ public class ESGCreator {
             String currSGNodeMethodName = currSGNode.getMethodName();
             String currSGNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGNodeClassName, currSGNodeMethodName);
 
+            String reach = String.format("%s %d\n%s",
+                    currSGNodeMethodIdentifier,
+                    currSGNodeIdx,
+                    JDFCUtils.prettyPrintSet(currSGNode.getCfgReach()));
+            JDFCUtils.logThis(reach, "ESGCreator_reach");
+
+            String reachOut = String.format("%s %d\n%s",
+                    currSGNodeMethodIdentifier,
+                    currSGNodeIdx,
+                    JDFCUtils.prettyPrintSet(currSGNode.getCfgReachOut()));
+            JDFCUtils.logThis(reachOut, "ESGCreator_reachOut");
+
             // all domain variables \ esg nodes possibly reachable from the current sg idx
             Map<String, Map<UUID, ProgramVariable>> reachablePVars = new HashMap<>();
             reachablePVars.computeIfAbsent(mainMethodIdentifier, k -> domain.get(mainMethodIdentifier));

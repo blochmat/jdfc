@@ -96,8 +96,8 @@ public class CFGNode {
         reachOut.clear();
         reachOut.addAll(reach);
         reachOut.addAll(definitions);
-        reachOut.removeAll(
-                reachOut.stream().filter(this::isRedefinedVariable).collect(Collectors.toList()));
+        reachOut.stream().filter(this::isRedefinedVariable).collect(Collectors.toList()).forEach(
+                reachOut::remove);
     }
 
     public boolean isRedefinedVariable(ProgramVariable variable) {
