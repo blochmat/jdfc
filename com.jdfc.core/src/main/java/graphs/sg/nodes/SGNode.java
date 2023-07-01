@@ -9,7 +9,6 @@ import utils.JDFCUtils;
 
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -24,8 +23,8 @@ public class SGNode {
     private Set<ProgramVariable> uses;
     private Set<SGNode> pred;
     private Set<SGNode> succ;
-    private Set<ProgramVariable> reachOut;
-    private Set<ProgramVariable> reach;
+    private Set<ProgramVariable> cfgReachOut;
+    private Set<ProgramVariable> cfgReach;
 
     public SGNode(int index, CFGNode node) {
         this.index = index;
@@ -37,32 +36,8 @@ public class SGNode {
         this.opcode = node.getOpcode();
         this.pred = Sets.newLinkedHashSet();
         this.succ = Sets.newLinkedHashSet();
-        this.reachOut = Sets.newLinkedHashSet();
-        this.reach = Sets.newLinkedHashSet();
-    }
-
-    public void resetReachOut() {
-        reachOut.clear();
-    }
-
-    public void update() {
-        for (SGNode node : pred) {
-            reach.addAll(node.getReachOut());
-        }
-        reachOut.clear();
-        reachOut.addAll(reach);
-        reachOut.addAll(definitions);
-        reachOut.removeAll(
-                reachOut.stream().filter(this::isRedefinedVariable).collect(Collectors.toList()));
-    }
-
-    public boolean isRedefinedVariable(ProgramVariable variable) {
-        return definitions
-                .stream()
-                .anyMatch(
-                        programVariable ->
-                                programVariable.getName().equals(variable.getName())
-                                        && programVariable.getInstructionIndex() != variable.getInstructionIndex());
+        this.cfgReachOut = node.getReachOut();
+        this.cfgReach = node.getReach();
     }
 
     @Override

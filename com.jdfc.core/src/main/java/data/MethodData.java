@@ -9,7 +9,6 @@ import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
 import graphs.esg.ESG;
 import graphs.sg.SG;
-import graphs.sg.nodes.SGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -214,33 +213,6 @@ public class MethodData {
 
         }
         JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintSet(this.pairs), "intra_pairs");
-    }
-
-    /**
-     * Calculates inter Def-Use-Pairs.
-     */
-    public void calculateInterDefUsePairs() {
-        // TODO: Workaround, because set contains duplicates due to currently unknown reasons
-        this.pairs.clear();
-
-        for (Map.Entry<Integer, SGNode> entry : this.sg.getNodes().entrySet()) {
-            SGNode node = entry.getValue();
-
-            for (ProgramVariable def : node.getReach()) {
-                for (ProgramVariable use : node.getUses()) {
-                    if (Objects.equals(def.getName(), use.getName())
-                            && Objects.equals(def.getDescriptor(), use.getDescriptor())
-                            && !Objects.equals(def.getDescriptor(), "UNKNOWN")) {
-                        this.pairs.add(new DefUsePair(def, use));
-                    }
-                    if (def.getInstructionIndex() == Integer.MIN_VALUE) {
-                        def.setIsCovered(true);
-                    }
-                }
-            }
-
-        }
-        JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintSet(this.pairs), "inter_pairs");
     }
 
     /**
