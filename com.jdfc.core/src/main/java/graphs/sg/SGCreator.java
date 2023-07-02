@@ -111,7 +111,7 @@ public class SGCreator {
 
                         if(pVarsCall != null && pVarsEntry != null) {
                             // Create program variable mapping
-                            Map<ProgramVariable, ProgramVariable> pVarMap = new HashMap<>();
+                            BiMap<ProgramVariable, ProgramVariable> pVarMap = HashBiMap.create();
                             for(Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
                                 pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
                             }

@@ -1,5 +1,7 @@
 package graphs.sg.nodes;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGCallNode;
@@ -17,7 +19,7 @@ public class SGCallNode extends SGNode {
     private String calledMethodName;
     private boolean isInterface;
     private boolean isCalledSGPresent;
-    private Map<ProgramVariable, ProgramVariable> pVarMap;
+    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
 
     public SGCallNode(int index, CFGCallNode node) {
@@ -26,13 +28,13 @@ public class SGCallNode extends SGNode {
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.isCalledSGPresent = true;
-        this.pVarMap = new HashMap<>();
+        this.pVarMap = HashBiMap.create();
         this.dVarMap = new HashMap<>();
     }
 
     public SGCallNode(int index,
                       CFGCallNode node,
-                      Map<ProgramVariable, ProgramVariable> pVarMap,
+                      BiMap<ProgramVariable, ProgramVariable> pVarMap,
                       Map<DomainVariable, DomainVariable> dVarMap) {
         super(index, node);
         this.calledClassName = node.getCalledClassName();
