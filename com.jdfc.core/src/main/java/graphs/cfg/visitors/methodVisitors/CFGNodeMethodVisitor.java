@@ -454,7 +454,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
         Collections.reverse(popList);
         // Add "this"
-        result.put(0, createProgramVariableFromLocalVar(0));
+        result.put(0, createProgramVariableFromLocalVar(currentInstructionIndex));
 
         for (Object o : popList) {
             if (o instanceof ProgramVariable) {
@@ -590,20 +590,21 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private ProgramVariable createProgramVariableFromLocalVar(int index) {
-        LocalVariable localVariable = mData.getLocalVariableTable().get(index);
-        return new ProgramVariable(
-                null,
-                index,
-                mData.getClassName(),
-                mData.getName(),
-                localVariable.getName(),
-                localVariable.getDescriptor(),
-                Integer.MIN_VALUE,
-                Integer.MIN_VALUE,
-                true,
-                false,
-                false);
+    private ProgramVariable createProgramVariableFromLocalVar(int insnIndex) {
+        ProgramVariable var = null;
+        for(ProgramVariable p : mData.getProgramVariables().values()) {
+            if(var == null  && p.getName().equals("this")) {
+                var = p;
+            }
+
+            if(p.getName().equals("this")
+                    && p.getInstructionIndex() < insnIndex
+                    && var.getInstructionIndex() < p.getInstructionIndex()) {
+                var = p;
+            }
+
+        }
+        return var;
     }
 
     private DomainVariable createDomainVariableFromLocalVar(int index) {

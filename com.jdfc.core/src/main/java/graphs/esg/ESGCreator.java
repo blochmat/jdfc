@@ -56,10 +56,7 @@ public class ESGCreator {
                 liveVariableMap.add(ZERO);
             }
             for(ProgramVariable def : sgNode.getDefinitions()) {
-                if(!(Objects.equals(def.getName(), "this") && !Objects.equals(sgNodeMethodIdentifier, mainMethodIdentifier))) {
-                    domain.get(sgNodeMethodIdentifier).put(def.getId(), def);
-//                    liveVariableMap.put(def, false);
-                }
+                domain.get(sgNodeMethodIdentifier).put(def.getId(), def);
             }
         }
 
@@ -108,22 +105,22 @@ public class ESGCreator {
         }
 
         // --- DEBUG NODES ---------------------------------------------------------------------------------------------
-//        if(log.isDebugEnabled()) {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append(mainMethodClassName).append(" ");
-//            sb.append(mainMethodName).append("\n");
-//
-//            for(Map.Entry<Integer, Map<String, Map<UUID, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
-//                for(Map.Entry<String, Map<UUID, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
-//                    for(Map.Entry<UUID, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
-//                        sb.append(esgNodeEntry.getValue()).append("  ");
-//                    }
-//                }
-//                sb.append("\n");
-//            }
-//
-//            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
-//        }
+        if(log.isDebugEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(mainMethodClassName).append(" ");
+            sb.append(mainMethodName).append("\n");
+
+            for(Map.Entry<Integer, Map<String, Map<UUID, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
+                for(Map.Entry<String, Map<UUID, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
+                    for(Map.Entry<UUID, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
+                        sb.append(esgNodeEntry.getValue()).append("  ");
+                    }
+                }
+                sb.append("\n");
+            }
+
+            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
+        }
 
         //--- CREATE EDGES ---------------------------------------------------------------------------------------------
         Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
@@ -244,7 +241,6 @@ public class ESGCreator {
                         }
                         else {
                             SGNode currSGTargetNode = sg.getNodes().get(currSGNodeTargetIdx);
-                            ProgramVariable newDef = findMatch(currSGTargetNode.getDefinitions(), pVar);
                             JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + pVar, "ddddddd");
                             JDFCUtils.logThis(JDFCUtils.prettyPrintSet(liveVariableMap), "ddddddd");
                             JDFCUtils.logThis(String.valueOf(!liveVariableMap.contains(pVar)), "ddddddd");
@@ -285,19 +281,31 @@ public class ESGCreator {
                                 // new definitions
                                 else if(currSGTargetNode.getDefinitions().contains(pVar)) {
                                     ProgramVariable match = sgCallNode.getPVarMap().inverse().get(pVar);
-                                    JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + JDFCUtils.prettyPrintMap(sgCallNode.getPVarMap()), "match");
-                                    JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + JDFCUtils.prettyPrintMap(sgCallNode.getPVarMap()), "match");
                                     if(match != null) {
-                                        ProgramVariable def = findMatch(ImmutableSet.copyOf(liveVariableMap), match);
+                                        JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + pVar, "match");
+                                        JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + JDFCUtils.prettyPrintMap(sgCallNode.getPVarMap().inverse()), "match");
                                         String callerMethodIdentifier = ESGCreator.buildMethodIdentifier(sgCallNode.getClassName(), sgCallNode.getMethodName());
-                                        esgEdges.put(currSGNodeIdx, new ESGEdge(
-                                                currSGNodeIdx,
-                                                currSGNodeTargetIdx,
-                                                callerMethodIdentifier,
-                                                currVariableMethodIdentifier,
-                                                def,
-                                                pVar)
-                                        );
+                                        ProgramVariable def = findMatch(ImmutableSet.copyOf(liveVariableMap), match);
+                                        if(def != null) {
+                                            esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                                    currSGNodeIdx,
+                                                    currSGNodeTargetIdx,
+                                                    callerMethodIdentifier,
+                                                    currVariableMethodIdentifier,
+                                                    def,
+                                                    pVar)
+                                            );
+                                        } else {
+                                            JDFCUtils.logThis(match.toString(), "matches_without_def");
+                                            esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                                    currSGNodeIdx,
+                                                    currSGNodeTargetIdx,
+                                                    callerMethodIdentifier,
+                                                    currVariableMethodIdentifier,
+                                                    match,
+                                                    pVar)
+                                            );
+                                        }
                                     } else {
                                         // initialize new definition
                                         esgEdges.put(currSGNodeIdx, new ESGEdge(
@@ -490,6 +498,7 @@ public class ESGCreator {
                 return p;
             }
         }
+
         return null;
     }
 }
