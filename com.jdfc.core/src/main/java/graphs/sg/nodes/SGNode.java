@@ -1,5 +1,6 @@
 package graphs.sg.nodes;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
@@ -47,7 +48,6 @@ public class SGNode {
                 className, methodName, insnIndex, JDFCUtils.getOpcode(opcode), pred.size(), succ.size(), definitions, uses);
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -68,5 +68,13 @@ public class SGNode {
                 getOpcode(),
                 getClassName(),
                 getMethodName());
+    }
+
+    public Set<ProgramVariable> getCfgReach() {
+        return ImmutableSet.copyOf(cfgReach);
+    }
+
+    public Set<ProgramVariable> getCfgReachOut() {
+        return ImmutableSet.copyOf(cfgReachOut);
     }
 }

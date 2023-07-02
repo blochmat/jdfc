@@ -77,7 +77,8 @@ public class ProgramVariable implements Comparable<Object> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProgramVariable that = (ProgramVariable) o;
-        return Objects.equals(getLocalVarIdx(), that.getLocalVarIdx())
+        return Objects.equals(getId(), that.getId())
+                && Objects.equals(getLocalVarIdx(), that.getLocalVarIdx())
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
                 && Objects.equals(getName(), that.getName())
@@ -92,6 +93,7 @@ public class ProgramVariable implements Comparable<Object> {
     @Override
     public int hashCode() {
         return Objects.hash(
+                getId(),
                 getLocalVarIdx(),
                 getClassName(),
                 getMethodName(),
@@ -101,7 +103,6 @@ public class ProgramVariable implements Comparable<Object> {
                 getLineNumber(),
                 getIsDefinition(),
                 getIsCovered(),
-                getIsField()
-        );
+                getIsField());
     }
 }

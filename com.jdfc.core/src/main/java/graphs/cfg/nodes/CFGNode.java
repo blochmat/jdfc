@@ -1,5 +1,6 @@
 package graphs.cfg.nodes;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
@@ -106,7 +107,7 @@ public class CFGNode {
                 .anyMatch(
                         programVariable ->
                                 programVariable.getName().equals(variable.getName())
-                                        && programVariable.getInstructionIndex() != variable.getInstructionIndex());
+                                        && !Objects.equals(programVariable.getInstructionIndex(), variable.getInstructionIndex()));
     }
 
     @Override
@@ -141,5 +142,21 @@ public class CFGNode {
                 getOpcode(),
                 getClassName(),
                 getMethodName());
+    }
+
+    public Set<ProgramVariable> getDefinitions() {
+        return ImmutableSet.copyOf(definitions);
+    }
+
+    public Set<ProgramVariable> getUses() {
+        return ImmutableSet.copyOf(uses);
+    }
+
+    public Set<ProgramVariable> getReach() {
+        return ImmutableSet.copyOf(reach);
+    }
+
+    public Set<ProgramVariable> getReachOut() {
+        return ImmutableSet.copyOf(reachOut);
     }
 }
