@@ -2,6 +2,7 @@ package graphs.esg;
 
 import algos.TabulationAlgorithm;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.ClassExecutionData;
@@ -240,7 +241,8 @@ public class ESGCreator {
                                 );
                                 JDFCUtils.logThis(debug, "test");
                             }
-                        } else {
+                        }
+                        else {
                             if(Objects.equals(pVar, ZERO)) {
                                 // draw edge for ZERO
                                 esgEdges.put(currSGNodeIdx, new ESGEdge(
@@ -254,6 +256,21 @@ public class ESGCreator {
                             }
 
                             SGNode currSGTargetNode = sg.getNodes().get(currSGNodeTargetIdx);
+                            if(!currSGNode.getCfgReachOut().contains(pVar)
+                                    && !currSGTargetNode.getDefinitions().contains(pVar)
+                                    && !Objects.equals(pVar, ZERO)
+                                    && liveVariableMap.contains(pVar)) {
+                                // draw edge for alive variables from outer scope
+                                esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                        currSGNodeIdx,
+                                        currSGNodeTargetIdx,
+                                        currVariableMethodIdentifier,
+                                        currVariableMethodIdentifier,
+                                        pVar,
+                                        pVar)
+                                );
+                            }
+
                             JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + pVar, "ddddddd");
                             JDFCUtils.logThis(JDFCUtils.prettyPrintSet(liveVariableMap), "ddddddd");
                             JDFCUtils.logThis(String.valueOf(!liveVariableMap.contains(pVar)), "ddddddd");
@@ -263,7 +280,6 @@ public class ESGCreator {
 
                             if(currSGTargetNode.getDefinitions().contains(pVar)) {
                                 // initialize new definition
-                                // kill old definition
                                 esgEdges.put(currSGNodeIdx, new ESGEdge(
                                         currSGNodeIdx,
                                         currSGNodeTargetIdx,
@@ -271,13 +287,10 @@ public class ESGCreator {
                                         currVariableMethodIdentifier,
                                         ZERO,
                                         pVar));
-
-                                // Update live variable
                                 liveVariableMap.add(pVar);
-//                            ProgramVariable match = findKey(ImmutableMap.copyOf(liveVariableMap), pVar);
-//                            if(match != null) {
-//                                liveVariableMap.put(pVar, false);
-//                            }
+
+                                // kill old definition
+                                liveVariableMap.remove(findMatch(ImmutableSet.copyOf(liveVariableMap), pVar));
 
                                 String debug = String.format("%s, B %d %s %s",
                                         mainMethodName,
@@ -376,16 +389,15 @@ public class ESGCreator {
         return String.format("%s :: %s", className, methodName);
     }
 
-    private static ProgramVariable findKey(Map<ProgramVariable, ?> map, ProgramVariable pVar) {
-        for(Map.Entry<ProgramVariable, ?> entry : map.entrySet()) {
-            ProgramVariable key = entry.getKey();
-            if(Objects.equals(key.getLocalVarIdx(), pVar.getLocalVarIdx())
-                    && Objects.equals(key.getClassName(), pVar.getClassName())
-                    && Objects.equals(key.getMethodName(), pVar.getMethodName())
-                    && Objects.equals(key.getName(), pVar.getName())
-                    && Objects.equals(key.getDescriptor(), pVar.getDescriptor())
-                    && Objects.equals(key.getIsField(), pVar.getIsField())){
-                return entry.getKey();
+    private static ProgramVariable findMatch(Set<ProgramVariable> set, ProgramVariable pVar) {
+        for(ProgramVariable p : set) {
+            if(Objects.equals(p.getLocalVarIdx(), pVar.getLocalVarIdx())
+                    && Objects.equals(p.getClassName(), pVar.getClassName())
+                    && Objects.equals(p.getMethodName(), pVar.getMethodName())
+                    && Objects.equals(p.getName(), pVar.getName())
+                    && Objects.equals(p.getDescriptor(), pVar.getDescriptor())
+                    && Objects.equals(p.getIsField(), pVar.getIsField())){
+                return p;
             }
         }
         return null;
