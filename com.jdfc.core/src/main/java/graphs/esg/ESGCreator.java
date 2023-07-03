@@ -35,6 +35,26 @@ public class ESGCreator {
         }
     }
 
+    public static Map<String, Map<UUID, ProgramVariable>> createDomain(
+            SG sg,
+            ProgramVariable ZERO,
+            String mainMethodIdentifier) {
+        Map<String, Map<UUID, ProgramVariable>> domain = new HashMap<>();
+        for(SGNode sgNode : sg.getNodes().values()) {
+            String sgNodeClassName = sgNode.getClassName();
+            String sgNodeMethodName = sgNode.getMethodName();
+            String sgNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(sgNodeClassName, sgNodeMethodName);
+            domain.computeIfAbsent(sgNodeMethodIdentifier, k -> new HashMap<>());
+            if(Objects.equals(sgNodeMethodIdentifier, mainMethodIdentifier)) {
+                domain.get(sgNodeMethodIdentifier).put(ZERO.getId(), ZERO);
+            }
+            for(ProgramVariable def : sgNode.getDefinitions()) {
+                domain.get(sgNodeMethodIdentifier).put(def.getId(), def);
+            }
+        }
+        return domain;
+    }
+
     public static ESG createESGForMethod(ClassExecutionData cData, MethodData mData) {
         SG sg = mData.getSg();
         String mainMethodClassName = cData.getRelativePath();
@@ -45,20 +65,8 @@ public class ESGCreator {
 
         //--- CREATE DOMAIN --------------------------------------------------------------------------------------------
         ProgramVariable ZERO = new ProgramVariable.ZeroVariable(mainMethodClassName, mainMethodName);
-        Map<String, Map<UUID, ProgramVariable>> domain = new HashMap<>();
-        for(SGNode sgNode : sg.getNodes().values()) {
-            String sgNodeClassName = sgNode.getClassName();
-            String sgNodeMethodName = sgNode.getMethodName();
-            String sgNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(sgNodeClassName, sgNodeMethodName);
-            domain.computeIfAbsent(sgNodeMethodIdentifier, k -> new HashMap<>());
-            if(Objects.equals(sgNodeMethodIdentifier, mainMethodIdentifier)) {
-                domain.get(sgNodeMethodIdentifier).put(ZERO.getId(), ZERO);
-                liveVariableMap.add(ZERO);
-            }
-            for(ProgramVariable def : sgNode.getDefinitions()) {
-                domain.get(sgNodeMethodIdentifier).put(def.getId(), def);
-            }
-        }
+        Map<String, Map<UUID, ProgramVariable>> domain = createDomain(sg, ZERO, mainMethodIdentifier);
+        liveVariableMap.add(ZERO);
 
         //--- DEBUG DOMAIN ---------------------------------------------------------------------------------------------
         if(log.isDebugEnabled()) {
