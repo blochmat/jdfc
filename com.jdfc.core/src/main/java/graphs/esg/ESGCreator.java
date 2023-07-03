@@ -1,15 +1,12 @@
 package graphs.esg;
 
-import algos.TabulationAlgorithm;
 import com.google.common.collect.*;
 import data.ClassExecutionData;
 import data.MethodData;
 import data.ProgramVariable;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
-import graphs.sg.nodes.SGCallNode;
-import graphs.sg.nodes.SGExitNode;
-import graphs.sg.nodes.SGNode;
+import graphs.sg.nodes.*;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
@@ -18,36 +15,34 @@ import java.util.*;
 @Slf4j
 public class ESGCreator {
 
-    private static List<String> callSequence = new ArrayList<>();
+    private static final List<String> callSequence = new ArrayList<>();
 
     public static void createESGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
             ESG esg = ESGCreator.createESGForMethod(cData, mData);
             mData.setEsg(esg);
-            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(esg);
-            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
-            String debug = String.format("%s :: %s\n%s",
-                    cData.getRelativePath(),
-                    mData.buildInternalMethodName(),
-                    JDFCUtils.prettyPrintMultimap(MVP));
-            JDFCUtils.logThis(debug, "MVP");
+//            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(esg);
+//            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
+//            String debug = String.format("%s :: %s\n%s",
+//                    cData.getRelativePath(),
+//                    mData.buildInternalMethodName(),
+//                    JDFCUtils.prettyPrintMultimap(MVP));
+//            JDFCUtils.logThis(debug, "MVP");
         }
     }
 
    public static Map<String, Map<UUID, ProgramVariable>> updateActiveScope(
-           Map<String, Map<UUID, ProgramVariable>> activeScope,
            Map<String, Map<UUID, ProgramVariable>> domain,
-           SGNode currSGNode,
-           String mainMethodIdentifier
+           SGNode currSGNode
    ) {
-       Map<String, Map<UUID, ProgramVariable>> newActiveScope = new HashMap<>(activeScope);
+       Map<String, Map<UUID, ProgramVariable>> newActiveScope = new HashMap<>();
        String currSGNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGNode.getClassName(), currSGNode.getMethodName());
+       if(currSGNode instanceof SGEntryNode) {
+           callSequence.add(currSGNodeMethodIdentifier);
+       }
 
-       if(currSGNode instanceof SGCallNode) {
-           String calledClassName = ((SGCallNode) currSGNode).getCalledClassName();
-           String calledMethodName = ((SGCallNode) currSGNode).getCalledMethodName();
-           String calledMethodIdentifier = ESGCreator.buildMethodIdentifier(calledClassName, calledMethodName);
-           callSequence.add(calledMethodIdentifier);
+       if(currSGNode instanceof SGReturnSiteNode) {
+           callSequence.remove(callSequence.size() - 1);
        }
 
        for(String methodIdentifier : callSequence) {
@@ -55,6 +50,24 @@ public class ESGCreator {
        }
 
        return newActiveScope;
+   }
+
+   public static void debugActiveScope(
+           Map<String, Map<UUID, ProgramVariable>> activeScope,
+           String mainMethodIdentifier,
+           Integer currSGNodeIdx
+   ){
+       if(log.isDebugEnabled()) {
+           StringBuilder sb = new StringBuilder();
+           sb.append(mainMethodIdentifier).append("\n");
+
+           for(Map.Entry<String, Map<UUID, ProgramVariable>> domainMethodEntry : activeScope.entrySet()) {
+               sb.append(domainMethodEntry.getKey()).append("\n");
+               sb.append(JDFCUtils.prettyPrintMap(domainMethodEntry.getValue()));
+           }
+
+           JDFCUtils.logThis(sb.toString(), String.valueOf(currSGNodeIdx));
+       }
    }
 
     public static ESG createESGForMethod(ClassExecutionData cData, MethodData mData) {
@@ -69,7 +82,6 @@ public class ESGCreator {
         ProgramVariable ZERO = new ProgramVariable.ZeroVariable(mainMethodClassName, mainMethodName);
         Map<String, Map<UUID, ProgramVariable>> domain = createDomain(sg, ZERO, mainMethodIdentifier);
         liveVariableMap.add(ZERO);
-        callSequence.add(mainMethodIdentifier);
 
         //--- DEBUG DOMAIN ---------------------------------------------------------------------------------------------
         debugDomain(ImmutableMap.copyOf(domain), mainMethodIdentifier);
@@ -87,68 +99,16 @@ public class ESGCreator {
 
         //--- CREATE EDGES ---------------------------------------------------------------------------------------------
         Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
-        Map<String, Map<UUID, ProgramVariable>> activeScope = new HashMap<>();
 
         for(SGNode currSGNode : sg.getNodes().values()) {
             int currSGNodeIdx = currSGNode.getIndex();
-            String currSGNodeClassName = currSGNode.getClassName();
             String currSGNodeMethodName = currSGNode.getMethodName();
-            String currSGNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGNodeClassName, currSGNodeMethodName);
-
-            String reach = String.format("%s %d\n%s",
-                    currSGNodeMethodIdentifier,
-                    currSGNodeIdx,
-                    JDFCUtils.prettyPrintSet(currSGNode.getCfgReach()));
-            JDFCUtils.logThis(reach, "ESGCreator_reach");
-
-            String reachOut = String.format("%s %d\n%s",
-                    currSGNodeMethodIdentifier,
-                    currSGNodeIdx,
-                    JDFCUtils.prettyPrintSet(currSGNode.getCfgReachOut()));
-            JDFCUtils.logThis(reachOut, "ESGCreator_reachOut");
 
             //--- CREATE ACTIVE SCOPE ----------------------------------------------------------------------------------
-            activeScope = updateActiveScope(ImmutableMap.copyOf(activeScope), domain, currSGNode, mainMethodIdentifier);
-
-            if(currSGNode instanceof SGExitNode) {
-                callSequence.remove(callSequence.size() - 1);
-            }
+            Map<String, Map<UUID, ProgramVariable>> activeScope = updateActiveScope(domain, currSGNode);
 
             //--- DEBUG ACTIVE DOMAIN ----------------------------------------------------------------------------------
-            if(log.isDebugEnabled()
-//                    && (currSGNodeIdx == 19
-//                        || currSGNodeIdx == 20
-//                        || currSGNodeIdx == 32
-//                        || currSGNodeIdx == 33
-//                        || currSGNodeIdx == 56
-//                        || currSGNodeIdx == 57)
-            ) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(mainMethodIdentifier).append("\n");
-
-                for(Map.Entry<String, Map<UUID, ProgramVariable>> domainMethodEntry : activeScope.entrySet()) {
-                    sb.append(domainMethodEntry.getKey()).append("\n");
-                    sb.append(JDFCUtils.prettyPrintMap(domainMethodEntry.getValue()));
-                    sb.append("DEFINITIONS: \n");
-                    sb.append(JDFCUtils.prettyPrintSet(currSGNode.getDefinitions()));
-                    sb.append("\n");
-                }
-
-                JDFCUtils.logThis(sb.toString(), String.valueOf(currSGNodeIdx));
-            }
-
-//            if(log.isDebugEnabled()) {
-//                StringBuilder sb = new StringBuilder();
-//                sb.append(mainMethodIdentifier).append("\n");
-//
-//                for(Map.Entry<String, NavigableMap<Integer, DomainVariable>> domainMethodEntry : activeScope.entrySet()) {
-//                    sb.append(domainMethodEntry.getKey()).append("\n");
-//                    sb.append(JDFCUtils.prettyPrintMap(domainMethodEntry.getValue()));
-//                    sb.append("\n");
-//                }
-//
-//                JDFCUtils.logThis(sb.toString(), String.valueOf(currSGNodeIdx));
-//            }
+            debugActiveScope(activeScope, mainMethodIdentifier, currSGNodeIdx);
 
             // --- CREATE EDGES ----------------------------------------------------------------------------------------
             // for every reachable domain variable / esg node method section
@@ -438,52 +398,52 @@ public class ESGCreator {
         }
 
         //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
-        if(log.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(cData.getRelativePath()).append(" ");
-            sb.append(mData.buildInternalMethodName()).append("\n");
-            sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
-            JDFCUtils.logThis(sb.toString(), "exploded_edges");
-        }
+//        if(log.isDebugEnabled()) {
+//            StringBuilder sb = new StringBuilder();
+//            sb.append(cData.getRelativePath()).append(" ");
+//            sb.append(mData.buildInternalMethodName()).append("\n");
+//            sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
+//            JDFCUtils.logThis(sb.toString(), "exploded_edges");
+//        }
 
         //--- PRED & SUCC
-        for(ESGEdge esgEdge : esgEdges.values()) {
-            int sgnSourceIdx = esgEdge.getSgnSourceIdx();
-            int sgnTargetIdx = esgEdge.getSgnTargetIdx();
-            String sourceMethodName = esgEdge.getSourceDVarMethodName();
-            String targetMethodName = esgEdge.getTargetDVarMethodName();
-            ProgramVariable sourceDVar = esgEdge.getSourcePVar();
-            ProgramVariable targetDVar = esgEdge.getTargetPVar();
-
-            String debug = String.format("%d %s %s %d %s %s",
-                    sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
-            JDFCUtils.logThis(debug, "debug");
-
-            ESGNode first = esgNodes.get(sgnSourceIdx).get(sourceMethodName).get(sourceDVar.getId());
-            ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVar.getId());
-            first.getSucc().add(second);
-            second.getPred().add(first);
-
-            second.setPossiblyNotRedefined(true);
-        }
+//        for(ESGEdge esgEdge : esgEdges.values()) {
+//            int sgnSourceIdx = esgEdge.getSgnSourceIdx();
+//            int sgnTargetIdx = esgEdge.getSgnTargetIdx();
+//            String sourceMethodName = esgEdge.getSourceDVarMethodName();
+//            String targetMethodName = esgEdge.getTargetDVarMethodName();
+//            ProgramVariable sourceDVar = esgEdge.getSourcePVar();
+//            ProgramVariable targetDVar = esgEdge.getTargetPVar();
+//
+//            String debug = String.format("%d %s %s %d %s %s",
+//                    sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
+//            JDFCUtils.logThis(debug, "debug");
+//
+//            ESGNode first = esgNodes.get(sgnSourceIdx).get(sourceMethodName).get(sourceDVar.getId());
+//            ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVar.getId());
+//            first.getSucc().add(second);
+//            second.getPred().add(first);
+//
+//            second.setPossiblyNotRedefined(true);
+//        }
 
         // --- DEBUG NODES ---------------------------------------------------------------------------------------------
-        if(log.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(mainMethodClassName).append(" ");
-            sb.append(mainMethodName).append("\n");
-
-            for(Map.Entry<Integer, Map<String, Map<UUID, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
-                for(Map.Entry<String, Map<UUID, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
-                    for(Map.Entry<UUID, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
-                        sb.append(esgNodeEntry.getValue()).append("  ");
-                    }
-                }
-                sb.append("\n");
-            }
-
-            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
-        }
+//        if(log.isDebugEnabled()) {
+//            StringBuilder sb = new StringBuilder();
+//            sb.append(mainMethodClassName).append(" ");
+//            sb.append(mainMethodName).append("\n");
+//
+//            for(Map.Entry<Integer, Map<String, Map<UUID, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
+//                for(Map.Entry<String, Map<UUID, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
+//                    for(Map.Entry<UUID, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
+//                        sb.append(esgNodeEntry.getValue()).append("  ");
+//                    }
+//                }
+//                sb.append("\n");
+//            }
+//
+//            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
+//        }
 
 //        //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
 //        if(log.isDebugEnabled()) {
