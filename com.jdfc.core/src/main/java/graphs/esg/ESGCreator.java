@@ -18,6 +18,8 @@ import java.util.*;
 @Slf4j
 public class ESGCreator {
 
+    private static List<String> callSequence = new ArrayList<>();
+
     public static void createESGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
             ESG esg = ESGCreator.createESGForMethod(cData, mData);
@@ -32,6 +34,28 @@ public class ESGCreator {
         }
     }
 
+   public static Map<String, Map<UUID, ProgramVariable>> updateActiveScope(
+           Map<String, Map<UUID, ProgramVariable>> activeScope,
+           Map<String, Map<UUID, ProgramVariable>> domain,
+           SGNode currSGNode,
+           String mainMethodIdentifier
+   ) {
+       Map<String, Map<UUID, ProgramVariable>> newActiveScope = new HashMap<>(activeScope);
+       String currSGNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGNode.getClassName(), currSGNode.getMethodName());
+
+       if(currSGNode instanceof SGCallNode) {
+           String calledClassName = ((SGCallNode) currSGNode).getCalledClassName();
+           String calledMethodName = ((SGCallNode) currSGNode).getCalledMethodName();
+           String calledMethodIdentifier = ESGCreator.buildMethodIdentifier(calledClassName, calledMethodName);
+           callSequence.add(calledMethodIdentifier);
+       }
+
+       for(String methodIdentifier : callSequence) {
+           newActiveScope.computeIfAbsent(methodIdentifier, k -> domain.get(methodIdentifier));
+       }
+
+       return newActiveScope;
+   }
 
     public static ESG createESGForMethod(ClassExecutionData cData, MethodData mData) {
         SG sg = mData.getSg();
@@ -45,6 +69,7 @@ public class ESGCreator {
         ProgramVariable ZERO = new ProgramVariable.ZeroVariable(mainMethodClassName, mainMethodName);
         Map<String, Map<UUID, ProgramVariable>> domain = createDomain(sg, ZERO, mainMethodIdentifier);
         liveVariableMap.add(ZERO);
+        callSequence.add(mainMethodIdentifier);
 
         //--- DEBUG DOMAIN ---------------------------------------------------------------------------------------------
         debugDomain(ImmutableMap.copyOf(domain), mainMethodIdentifier);
@@ -62,6 +87,7 @@ public class ESGCreator {
 
         //--- CREATE EDGES ---------------------------------------------------------------------------------------------
         Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
+        Map<String, Map<UUID, ProgramVariable>> activeScope = new HashMap<>();
 
         for(SGNode currSGNode : sg.getNodes().values()) {
             int currSGNodeIdx = currSGNode.getIndex();
@@ -81,17 +107,11 @@ public class ESGCreator {
                     JDFCUtils.prettyPrintSet(currSGNode.getCfgReachOut()));
             JDFCUtils.logThis(reachOut, "ESGCreator_reachOut");
 
-            // all domain variables \ esg nodes possibly reachable from the current sg idx
-            Map<String, Map<UUID, ProgramVariable>> reachablePVars = new HashMap<>();
-            reachablePVars.computeIfAbsent(mainMethodIdentifier, k -> domain.get(mainMethodIdentifier));
-            if(currSGNode instanceof SGCallNode) {
-                String calledClassName = ((SGCallNode) currSGNode).getCalledClassName();
-                String calledMethodName = ((SGCallNode) currSGNode).getCalledMethodName();
-                String subroutineKey = ESGCreator.buildMethodIdentifier(calledClassName, calledMethodName);
-                reachablePVars.computeIfAbsent(subroutineKey, k -> domain.get(subroutineKey));
-            }
-            if(!(currSGNode instanceof SGExitNode)) {
-                reachablePVars.computeIfAbsent(currSGNodeMethodIdentifier, k -> domain.get(currSGNodeMethodIdentifier));
+            //--- CREATE ACTIVE SCOPE ----------------------------------------------------------------------------------
+            activeScope = updateActiveScope(ImmutableMap.copyOf(activeScope), domain, currSGNode, mainMethodIdentifier);
+
+            if(currSGNode instanceof SGExitNode) {
+                callSequence.remove(callSequence.size() - 1);
             }
 
             //--- DEBUG ACTIVE DOMAIN ----------------------------------------------------------------------------------
@@ -106,7 +126,7 @@ public class ESGCreator {
                 StringBuilder sb = new StringBuilder();
                 sb.append(mainMethodIdentifier).append("\n");
 
-                for(Map.Entry<String, Map<UUID, ProgramVariable>> domainMethodEntry : reachablePVars.entrySet()) {
+                for(Map.Entry<String, Map<UUID, ProgramVariable>> domainMethodEntry : activeScope.entrySet()) {
                     sb.append(domainMethodEntry.getKey()).append("\n");
                     sb.append(JDFCUtils.prettyPrintMap(domainMethodEntry.getValue()));
                     sb.append("DEFINITIONS: \n");
@@ -121,7 +141,7 @@ public class ESGCreator {
 //                StringBuilder sb = new StringBuilder();
 //                sb.append(mainMethodIdentifier).append("\n");
 //
-//                for(Map.Entry<String, NavigableMap<Integer, DomainVariable>> domainMethodEntry : reachablePVars.entrySet()) {
+//                for(Map.Entry<String, NavigableMap<Integer, DomainVariable>> domainMethodEntry : activeScope.entrySet()) {
 //                    sb.append(domainMethodEntry.getKey()).append("\n");
 //                    sb.append(JDFCUtils.prettyPrintMap(domainMethodEntry.getValue()));
 //                    sb.append("\n");
@@ -132,7 +152,7 @@ public class ESGCreator {
 
             // --- CREATE EDGES ----------------------------------------------------------------------------------------
             // for every reachable domain variable / esg node method section
-            for(Map.Entry<String, Map<UUID, ProgramVariable>> reachablePVarMethodEntry : reachablePVars.entrySet()) {
+            for(Map.Entry<String, Map<UUID, ProgramVariable>> reachablePVarMethodEntry : activeScope.entrySet()) {
                 String currVariableMethodIdentifier = reachablePVarMethodEntry.getKey();
                 Map<UUID, ProgramVariable> programVariables = reachablePVarMethodEntry.getValue();
 
