@@ -250,7 +250,6 @@ public class ESGCreator {
 
                             if(currSGNode instanceof SGCallNode) {
                                 SGCallNode sgCallNode = (SGCallNode) currSGNode;
-
                                 // Zero
                                 if(Objects.equals(pVar, ZERO)) {
                                     // draw edge for ZERO
@@ -346,6 +345,64 @@ public class ESGCreator {
                                             JDFCUtils.prettyPrintSet(liveVariableMap)
                                     );
                                     JDFCUtils.logThis(debug, "test");
+                                }
+                            }
+                            else if (currSGNode instanceof SGExitNode){
+                                SGExitNode sgExitNode = (SGExitNode) currSGNode;
+                                // Zero
+                                if(Objects.equals(pVar, ZERO)) {
+                                    // draw edge for ZERO
+                                    esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                            currSGNodeIdx,
+                                            currSGNodeTargetIdx,
+                                            currVariableMethodIdentifier,
+                                            currVariableMethodIdentifier,
+                                            pVar,
+                                            pVar)
+                                    );
+                                }
+                                // live variables in outer scope
+                                else if(!currSGNode.getCfgReachOut().contains(pVar)
+                                        && !currSGTargetNode.getDefinitions().contains(pVar)
+                                        && !Objects.equals(pVar, ZERO)
+                                        && liveVariableMap.contains(pVar)) {
+                                    // draw edge for alive variables from outer scope
+                                    esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                            currSGNodeIdx,
+                                            currSGNodeTargetIdx,
+                                            currVariableMethodIdentifier,
+                                            currVariableMethodIdentifier,
+                                            pVar,
+                                            pVar)
+                                    );
+                                }
+
+                                ProgramVariable match = sgExitNode.getPVarMap().get(pVar);
+                                if(match != null) {
+                                    JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + pVar, "match_exit");
+                                    JDFCUtils.logThis(currSGNodeMethodName + " " + currSGNodeIdx + "\n" + JDFCUtils.prettyPrintMap(sgExitNode.getPVarMap().inverse()), "match_exit");
+                                    String callerMethodIdentifier = ESGCreator.buildMethodIdentifier(match.getClassName(), match.getMethodName());
+                                    ProgramVariable def = findMatch(ImmutableSet.copyOf(liveVariableMap), match);
+                                    if (def != null) {
+                                        esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                                currSGNodeIdx,
+                                                currSGNodeTargetIdx,
+                                                currVariableMethodIdentifier,
+                                                callerMethodIdentifier,
+                                                pVar,
+                                                def)
+                                        );
+                                    } else {
+                                        JDFCUtils.logThis(match.toString(), "matches_exit_without_def");
+                                        esgEdges.put(currSGNodeIdx, new ESGEdge(
+                                                currSGNodeIdx,
+                                                currSGNodeTargetIdx,
+                                                callerMethodIdentifier,
+                                                currVariableMethodIdentifier,
+                                                match,
+                                                pVar)
+                                        );
+                                    }
                                 }
                             } else {
                                 // Zero

@@ -1,5 +1,7 @@
 package graphs.sg.nodes;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
@@ -13,12 +15,12 @@ import java.util.Objects;
 @Data
 public class SGEntryNode extends SGNode {
 
-    private Map<ProgramVariable, ProgramVariable> pVarMap;
+    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
 
     public SGEntryNode(int index, CFGNode node) {
         super(index, node);
-        this.pVarMap = new HashMap<>();
+        this.pVarMap = HashBiMap.create();
         this.dVarMap = new HashMap<>();
     }
 
