@@ -214,7 +214,7 @@ public class ESGCreator {
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
-                        sgTargetNodeMId,
+                        sgNodeMId,
                         pVar,
                         pVar
                 );
@@ -273,13 +273,12 @@ public class ESGCreator {
     }
 
     private static ESGEdge handleLiveOuterScopeLocals(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
-        String sgNodeMId = ESGCreator.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
-        String sgTargetNodeMId = ESGCreator.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
+        String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
         return new ESGEdge(
                 sgNode.getIndex(),
                 sgTargetNode.getIndex(),
-                sgNodeMId,
-                sgTargetNodeMId,
+                pVarMId,
+                pVarMId,
                 pVar,
                 pVar
         );
