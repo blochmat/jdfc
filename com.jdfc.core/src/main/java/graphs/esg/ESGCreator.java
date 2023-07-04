@@ -1,5 +1,6 @@
 package graphs.esg;
 
+import algos.TabulationAlgorithm;
 import com.google.common.collect.*;
 import data.ClassExecutionData;
 import data.DefUsePair;
@@ -47,13 +48,13 @@ public class ESGCreator {
 
             ESG esg = ESGCreator.createESGForMethod();
             mData.setEsg(esg);
-//            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(esg);
-//            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
-//            String debug = String.format("%s :: %s\n%s",
-//                    cData.getRelativePath(),
-//                    mData.buildInternalMethodName(),
-//                    JDFCUtils.prettyPrintMultimap(MVP));
-//            JDFCUtils.logThis(debug, "MVP");
+            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(esg);
+            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
+            String debug = String.format("%s :: %s\n%s",
+                    cData.getRelativePath(),
+                    mData.buildInternalMethodName(),
+                    JDFCUtils.prettyPrintMultimap(MVP));
+            JDFCUtils.logThis(debug, "MVP");
         }
     }
 
@@ -152,7 +153,7 @@ public class ESGCreator {
                 ));
             }
         } else if(sgNode instanceof SGEntryNode) {
-            if(!LIVE_VARIABLES.get(pVar)) {
+            if(!LIVE_VARIABLES.get(pVar) || sgNode.getIndex() == 0) {
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -244,7 +245,7 @@ public class ESGCreator {
                 ));
             }
         } else if(sgNode instanceof SGEntryNode) {
-            if(!LIVE_VARIABLES.get(pVar)) {
+            if(!LIVE_VARIABLES.get(pVar) || sgNode.getIndex() == 0) {
                 if(sgNode.getDefinitions().contains(pVar)) {
                     edges.add(new ESGEdge(
                             sgNode.getIndex(),
@@ -557,25 +558,25 @@ public class ESGCreator {
         }
 
         //--- PRED & SUCC
-//        for(ESGEdge esgEdge : esgEdges.values()) {
-//            int sgnSourceIdx = esgEdge.getSgnSourceIdx();
-//            int sgnTargetIdx = esgEdge.getSgnTargetIdx();
-//            String sourceMethodName = esgEdge.getSourceDVarMethodName();
-//            String targetMethodName = esgEdge.getTargetDVarMethodName();
-//            ProgramVariable sourceDVar = esgEdge.getSourcePVar();
-//            ProgramVariable targetDVar = esgEdge.getTargetPVar();
-//
-//            String debug = String.format("%d %s %s %d %s %s",
-//                    sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
-//            JDFCUtils.logThis(debug, "debug");
-//
-//            ESGNode first = esgNodes.get(sgnSourceIdx).get(sourceMethodName).get(sourceDVar.getId());
-//            ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVar.getId());
-//            first.getSucc().add(second);
-//            second.getPred().add(first);
-//
-//            second.setPossiblyNotRedefined(true);
-//        }
+        for(ESGEdge esgEdge : esgEdges.values()) {
+            int sgnSourceIdx = esgEdge.getSgnSourceIdx();
+            int sgnTargetIdx = esgEdge.getSgnTargetIdx();
+            String sourceMethodName = esgEdge.getSourceDVarMethodName();
+            String targetMethodName = esgEdge.getTargetDVarMethodName();
+            ProgramVariable sourceDVar = esgEdge.getSourcePVar();
+            ProgramVariable targetDVar = esgEdge.getTargetPVar();
+
+            String debug = String.format("%d %s %s %d %s %s",
+                    sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
+            JDFCUtils.logThis(debug, "debug");
+
+            ESGNode first = esgNodes.get(sgnSourceIdx).get(sourceMethodName).get(sourceDVar.getId());
+            ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVar.getId());
+            first.getSucc().add(second);
+            second.getPred().add(first);
+
+            second.setPossiblyNotRedefined(true);
+        }
 
         // --- DEBUG NODES ---------------------------------------------------------------------------------------------
 //        if(log.isDebugEnabled()) {
