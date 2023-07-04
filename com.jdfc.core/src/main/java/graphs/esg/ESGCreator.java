@@ -336,24 +336,25 @@ public class ESGCreator {
                         if(Objects.equals(pVar, ZERO)) {
                             ESGEdge edge = handleZero(currSGNode, sgTargetNode, pVar);
                             esgEdges.put(currSGNodeIdx, edge);
-                        }
-
-                        if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
-                            ESGEdge edge;
-                            if(Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
-                                edge = handleGlobal(currSGNode, sgTargetNode, pVar);
-                            } else {
-                                edge = handleLocal(currSGNode, sgTargetNode, pVar);
-                            }
-                            if(edge != null) {
+                        } else {
+                            if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
+                                ESGEdge edge;
+                                if(Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
+                                    edge = handleGlobal(currSGNode, sgTargetNode, pVar);
+                                } else {
+                                    edge = handleLocal(currSGNode, sgTargetNode, pVar);
+                                }
+                                if(edge != null) {
+                                    esgEdges.put(currSGNodeIdx, edge);
+                                }
+                            } else if (!Objects.equals(pVar.getName(), "this")
+                                    && !pVar.getIsField()
+                                    && LIVE_VARIABLES.get(pVar)){
+                                ESGEdge edge = handleLiveOuterScopeLocals(currSGNode, sgTargetNode, pVar);
                                 esgEdges.put(currSGNodeIdx, edge);
                             }
-                        } else if (!Objects.equals(pVar.getName(), "this")
-                                && !pVar.getIsField()
-                                && LIVE_VARIABLES.get(pVar)){
-                            ESGEdge edge = handleLiveOuterScopeLocals(currSGNode, sgTargetNode, pVar);
-                            esgEdges.put(currSGNodeIdx, edge);
                         }
+
                     }
                 }
             }
