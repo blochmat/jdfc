@@ -256,14 +256,16 @@ public class ESGCreator {
         } else if (!(sgNode instanceof SGReturnSiteNode)) {
             ProgramVariable newDef = findMatch(sgNode.getDefinitions(), pVar);
             if(newDef == null) {
-                return new ESGEdge(
-                        sgNode.getIndex(),
-                        sgTargetNode.getIndex(),
-                        sgNodeMId,
-                        sgTargetNodeMId,
-                        pVar,
-                        pVar
-                );
+                if(LIVE_VARIABLES.get(pVar)) {
+                    return new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            sgNodeMId,
+                            sgTargetNodeMId,
+                            pVar,
+                            pVar
+                    );
+                }
             } else {
                 LIVE_VARIABLES.put(pVar, false);
                 LIVE_VARIABLES.put(newDef, true);
