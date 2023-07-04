@@ -1,6 +1,9 @@
 package graphs.esg;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import data.ClassExecutionData;
 import data.DefUsePair;
 import data.MethodData;
@@ -40,6 +43,7 @@ public class ESGCreator {
             MAIN_METHOD_NAME = mData.buildInternalMethodName();
             MAIN_METHOD_ID = ESGCreator.buildMethodIdentifier(MAIN_METHOD_CLASS_NAME, MAIN_METHOD_NAME);
             ZERO = new ProgramVariable.ZeroVariable(MAIN_METHOD_CLASS_NAME, MAIN_METHOD_NAME);
+            CALL_SEQUENCE.add(MAIN_METHOD_ID);
 
             ESG esg = ESGCreator.createESGForMethod();
             mData.setEsg(esg);
@@ -58,9 +62,13 @@ public class ESGCreator {
             SGNode currSGNode
     ) {
         Map<String, Map<UUID, ProgramVariable>> newActiveScope = new HashMap<>();
-        String currSGNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(currSGNode.getClassName(), currSGNode.getMethodName());
-        if(currSGNode instanceof SGEntryNode) {
-            CALL_SEQUENCE.add(currSGNodeMethodIdentifier);
+        if(currSGNode instanceof SGCallNode) {
+            SGCallNode sgCallNode = (SGCallNode) currSGNode;
+            String calledSGNodeMethodId = ESGCreator.buildMethodIdentifier(
+                    sgCallNode.getCalledClassName(),
+                    sgCallNode.getCalledMethodName()
+            );
+            CALL_SEQUENCE.add(calledSGNodeMethodId);
         }
 
         if(currSGNode instanceof SGReturnSiteNode) {
@@ -125,162 +133,195 @@ public class ESGCreator {
         return null;
     }
 
-    public static ESGEdge handleGlobal(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
+    public static Set<ESGEdge> handleGlobal(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
+        Set<ESGEdge> edges = new HashSet<>();
         String sgNodeMId = ESGCreator.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
         String sgTargetNodeMId = ESGCreator.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch(((SGCallNode) sgNode), pVar);
             if(m != null) {
                 LIVE_VARIABLES.put(m, true);
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgTargetNodeMId,
                         pVar,
                         m
-                );
+                ));
             }
         } else if(sgNode instanceof SGEntryNode) {
             if(!LIVE_VARIABLES.get(pVar)) {
                 LIVE_VARIABLES.put(pVar, true);
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         MAIN_METHOD_ID,
                         sgTargetNodeMId,
                         ZERO,
                         pVar
-                );
+                ));
             } else {
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgTargetNodeMId,
                         pVar,
                         pVar
-                );
+                ));
             }
         } else if (sgNode instanceof SGExitNode) {
             ProgramVariable m = ((SGExitNode) sgNode).getPVarMap().get(pVar);
             LIVE_VARIABLES.put(pVar, false);
             if(m != null) {
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgTargetNodeMId,
                         pVar,
                         m
-                );
+                ));
             }
         } else if (!(sgNode instanceof SGReturnSiteNode)) {
             ProgramVariable newDef = findMatch(sgNode.getDefinitions(), pVar);
             if(newDef == null) {
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgTargetNodeMId,
                         pVar,
                         pVar
-                );
+                ));
             } else {
                 LIVE_VARIABLES.put(pVar, false);
                 LIVE_VARIABLES.put(newDef, true);
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgTargetNodeMId,
                         newDef,
                         newDef
-                );
+                ));
             }
         }
 
-        return null;
+        return edges;
     }
 
-    private static ESGEdge handleLocal(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
+    private static Set<ESGEdge> handleLocal(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
+        Set<ESGEdge> edges = new HashSet<>();
         String sgNodeMId = ESGCreator.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
         String sgTargetNodeMId = ESGCreator.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch((SGCallNode) sgNode, pVar);
             if(m != null) {
                 LIVE_VARIABLES.put(m, true);
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgTargetNodeMId,
                         pVar,
                         m
-                );
+                ));
             } else {
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgNodeMId,
                         pVar,
                         pVar
-                );
+                ));
             }
         } else if(sgNode instanceof SGEntryNode) {
-            if(!LIVE_VARIABLES.get(pVar) && sgNode.getDefinitions().contains(pVar)) {
-                LIVE_VARIABLES.put(pVar, true);
-                return new ESGEdge(
+            if(!LIVE_VARIABLES.get(pVar)) {
+                if(sgNode.getDefinitions().contains(pVar)) {
+                    LIVE_VARIABLES.put(pVar, true);
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            MAIN_METHOD_ID,
+                            sgTargetNodeMId,
+                            ZERO,
+                            pVar
+                    ));
+                }
+            } else {
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
-                        MAIN_METHOD_ID,
+                        sgNodeMId,
                         sgTargetNodeMId,
-                        ZERO,
+                        pVar,
                         pVar
-                );
+                ));
             }
         } else if (sgNode instanceof SGExitNode) {
             ProgramVariable m = ((SGExitNode) sgNode).getPVarMap().get(pVar);
             LIVE_VARIABLES.put(pVar, false);
             if(m != null) {
-                return new ESGEdge(
+                edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
                         sgTargetNodeMId,
                         pVar,
                         m
-                );
+                ));
             }
         } else if (!(sgNode instanceof SGReturnSiteNode)) {
-            ProgramVariable newDef = findMatch(sgNode.getDefinitions(), pVar);
+            ProgramVariable newDef = findMatch(sgTargetNode.getDefinitions(), pVar);
             if(newDef == null) {
                 if(LIVE_VARIABLES.get(pVar)) {
-                    return new ESGEdge(
+                    edges.add(new ESGEdge(
                             sgNode.getIndex(),
                             sgTargetNode.getIndex(),
                             sgNodeMId,
                             sgTargetNodeMId,
                             pVar,
                             pVar
-                    );
+                    ));
+                }
+                else if (sgNode.getDefinitions().contains(pVar)) {
+                    LIVE_VARIABLES.put(pVar, true);
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            sgNodeMId,
+                            sgTargetNodeMId,
+                            pVar,
+                            pVar
+                    ));
                 }
             } else {
-                LIVE_VARIABLES.put(pVar, false);
-                LIVE_VARIABLES.put(newDef, true);
-                return new ESGEdge(
-                        sgNode.getIndex(),
-                        sgTargetNode.getIndex(),
-                        sgNodeMId,
-                        sgTargetNodeMId,
-                        newDef,
-                        newDef
-                );
+                if(LIVE_VARIABLES.get(pVar)) {
+                    LIVE_VARIABLES.put(pVar, false);
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            sgNodeMId,
+                            sgTargetNodeMId,
+                            pVar,
+                            pVar
+                    ));
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            MAIN_METHOD_ID,
+                            sgTargetNodeMId,
+                            ZERO,
+                            newDef
+                    ));
+                }
             }
         }
 
-        return null;
+        return edges;
     }
 
     private static ESGEdge handleLiveOuterScopeLocals(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
@@ -304,6 +345,99 @@ public class ESGCreator {
                 pVar,
                 pVar
         );
+    }
+
+    private static ProgramVariable findLastActiveDef(SGExitNode sgNode, ProgramVariable pVar) {
+        // TODO: Can there be multiple last active defs present?
+        return null;
+    }
+
+    private static Set<ESGEdge> handleOtherScope(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
+        Set<ESGEdge> edges = new HashSet<>();
+        if(sgNode instanceof SGCallNode) {
+            SGCallNode sgCallNode = (SGCallNode) sgNode;
+            String calledMethodId = ESGCreator.buildMethodIdentifier(sgCallNode.getCalledClassName(), sgCallNode.getCalledMethodName());
+            String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+            if(Objects.equals(calledMethodId, pVarMId)) {
+                if(!sgCallNode.getUseDefMap().containsValue(pVar)
+                    && sgTargetNode.getDefinitions().contains(pVar)) {
+                    LIVE_VARIABLES.put(pVar, true);
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            MAIN_METHOD_ID,
+                            calledMethodId,
+                            ZERO,
+                            pVar
+                    ));
+                }
+            } else {
+                if(LIVE_VARIABLES.get(pVar)) {
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            pVarMId,
+                            pVarMId,
+                            pVar,
+                            pVar
+                    ));
+                }
+            }
+        }
+        else if (sgNode instanceof SGEntryNode) {
+            if(LIVE_VARIABLES.get(pVar)) {
+                String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                edges.add(new ESGEdge(
+                        sgNode.getIndex(),
+                        sgTargetNode.getIndex(),
+                        pVarMId,
+                        pVarMId,
+                        pVar,
+                        pVar
+                ));
+            }
+        }
+        else if (sgNode instanceof SGExitNode) {
+            SGExitNode sgExitNode = (SGExitNode) sgNode;
+            String sgExitNodeMId = ESGCreator.buildMethodIdentifier(sgExitNode.getClassName(), sgExitNode.getMethodName());
+            String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+            if(sgExitNode.getPVarMap().containsKey(pVar)) {
+                // TODO: when could this occurr?
+                edges.add(new ESGEdge(
+                        sgExitNode.getIndex(),
+                        sgTargetNode.getIndex(),
+                        sgExitNodeMId,
+                        pVarMId,
+                        pVar,
+                        pVar
+                ));
+            }
+        }
+        else if (sgNode instanceof SGReturnSiteNode) {
+            String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+            edges.add(new ESGEdge(
+                    sgNode.getIndex(),
+                    sgTargetNode.getIndex(),
+                    pVarMId,
+                    pVarMId,
+                    pVar,
+                    pVar
+            ));
+        }
+        else {
+            if(LIVE_VARIABLES.get(pVar)) {
+                String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                edges.add(new ESGEdge(
+                        sgNode.getIndex(),
+                        sgTargetNode.getIndex(),
+                        pVarMId,
+                        pVarMId,
+                        pVar,
+                        pVar
+                ));
+            }
+        }
+        return edges;
     }
 
     public static ESG createESGForMethod() {
@@ -349,20 +483,21 @@ public class ESGCreator {
                             esgEdges.put(currSGNodeIdx, edge);
                         } else {
                             if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
-                                ESGEdge edge;
+                                Set<ESGEdge> edges;
                                 if(Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
-                                    edge = handleGlobal(currSGNode, sgTargetNode, pVar);
+                                    edges = handleGlobal(currSGNode, sgTargetNode, pVar);
                                 } else {
-                                    edge = handleLocal(currSGNode, sgTargetNode, pVar);
+                                    edges = handleLocal(currSGNode, sgTargetNode, pVar);
                                 }
-                                if(edge != null) {
-                                    esgEdges.put(currSGNodeIdx, edge);
+                                if(!edges.isEmpty()) {
+                                    esgEdges.putAll(currSGNodeIdx, edges);
                                 }
                             } else if (!Objects.equals(pVar.getName(), "this")
-                                    && !pVar.getIsField()
-                                    && LIVE_VARIABLES.get(pVar)){
-                                ESGEdge edge = handleLiveOuterScopeLocals(currSGNode, sgTargetNode, pVar);
-                                esgEdges.put(currSGNodeIdx, edge);
+                                    && !pVar.getIsField()){
+                                Set<ESGEdge> edges = handleOtherScope(currSGNode, sgTargetNode, pVar);
+                                if(!edges.isEmpty()) {
+                                    esgEdges.putAll(currSGNodeIdx, edges);
+                                }
                             }
                         }
 
