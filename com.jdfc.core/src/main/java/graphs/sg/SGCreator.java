@@ -183,8 +183,14 @@ public class SGCreator {
                                         new CFGNode(
                                                 cData.getRelativePath(),
                                                 internalMethodName,
+                                                Sets.newLinkedHashSet(),
+                                                Sets.newLinkedHashSet(),
                                                 Integer.MIN_VALUE,
-                                                Integer.MIN_VALUE));
+                                                Integer.MIN_VALUE,
+                                                Sets.newLinkedHashSet(),
+                                                Sets.newLinkedHashSet(),
+                                                cfgNode.getReach(),
+                                                cfgNode.getReachOut()));
                                 sgNodes.put(index + shift, returnSiteNode);
                                 sgReturnSiteNodeMap.put(sgCallNode, returnSiteNode);
                                 sgReturnSiteIndexMap.put(sgCallNodeIdx, index + shift);

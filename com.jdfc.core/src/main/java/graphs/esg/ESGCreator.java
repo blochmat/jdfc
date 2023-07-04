@@ -184,7 +184,7 @@ public class ESGCreator {
                         m
                 ));
             }
-        } else if (!(sgNode instanceof SGReturnSiteNode)) {
+        } else {
             ProgramVariable newDef = findMatch(sgNode.getDefinitions(), pVar);
             if(newDef == null) {
                 edges.add(new ESGEdge(
@@ -269,7 +269,7 @@ public class ESGCreator {
                         m
                 ));
             }
-        } else if (!(sgNode instanceof SGReturnSiteNode)) {
+        } else {
             ProgramVariable newDef = findMatch(sgTargetNode.getDefinitions(), pVar);
             if(newDef == null) {
                 if(LIVE_VARIABLES.get(pVar)) {

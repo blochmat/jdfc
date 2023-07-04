@@ -86,6 +86,30 @@ public class CFGNode {
         reach = Sets.newLinkedHashSet();
     }
 
+    public CFGNode(
+            final String className,
+            final String methodName,
+            final Set<ProgramVariable> pDefinitions,
+            final Set<ProgramVariable> pUses,
+            final int pIndex,
+            final int pOpcode,
+            final Set<CFGNode> pPredecessors,
+            final Set<CFGNode> pSuccessors,
+            final Set<ProgramVariable> reach,
+            final Set<ProgramVariable> reachOut) {
+        this.className = className;
+        this.methodName = methodName;
+        this.definitions = pDefinitions;
+        this.uses = pUses;
+        this.insnIndex = pIndex;
+        this.opcode = pOpcode;
+        this.pred = pPredecessors;
+        this.succ = pSuccessors;
+
+        this.reachOut = reach;
+        this.reach = reachOut;
+    }
+
     public void resetReachOut() {
         reachOut.clear();
     }
