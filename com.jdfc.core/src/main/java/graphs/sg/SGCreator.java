@@ -166,7 +166,7 @@ public class SGCreator {
 
                                 // Add pVarMap and dVarMap to entryNode
                                 SGEntryNode sgEntryNode = (SGEntryNode)  sgNodes.get(index + shift);
-                                sgEntryNode.setPVarMap(pVarMap);
+                                sgEntryNode.setUseDefMap(pVarMap);
                                 sgEntryNode.setDVarMap(dVarMap.inverse());
 
                                 // Update index shift

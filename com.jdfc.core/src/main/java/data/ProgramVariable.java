@@ -33,12 +33,12 @@ public class ProgramVariable implements Comparable<Object> {
         this.className = className;
         this.methodName = methodName;
         this.name = "ZERO";
-        this.descriptor = null;
+        this.descriptor = "UNKNOWN";
         this.instructionIndex = Integer.MIN_VALUE;
-        this.lineNumber = null;
-        this.isDefinition = null;
-        this.isCovered = null;
-        this.isField = null;
+        this.lineNumber = -1;
+        this.isDefinition = true;
+        this.isCovered = false;
+        this.isField = false;
     }
 
     public static class ZeroVariable extends ProgramVariable {

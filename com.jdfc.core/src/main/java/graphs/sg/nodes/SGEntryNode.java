@@ -15,12 +15,12 @@ import java.util.Objects;
 @Data
 public class SGEntryNode extends SGNode {
 
-    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
+    private BiMap<ProgramVariable, ProgramVariable> useDefMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
 
     public SGEntryNode(int index, CFGNode node) {
         super(index, node);
-        this.pVarMap = HashBiMap.create();
+        this.useDefMap = HashBiMap.create();
         this.dVarMap = new HashMap<>();
     }
 

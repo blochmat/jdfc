@@ -19,7 +19,7 @@ public class SGCallNode extends SGNode {
     private String calledMethodName;
     private boolean isInterface;
     private boolean isCalledSGPresent;
-    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
+    private BiMap<ProgramVariable, ProgramVariable> useDefMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
 
     public SGCallNode(int index, CFGCallNode node) {
@@ -28,20 +28,20 @@ public class SGCallNode extends SGNode {
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.isCalledSGPresent = true;
-        this.pVarMap = HashBiMap.create();
+        this.useDefMap = HashBiMap.create();
         this.dVarMap = new HashMap<>();
     }
 
     public SGCallNode(int index,
                       CFGCallNode node,
-                      BiMap<ProgramVariable, ProgramVariable> pVarMap,
+                      BiMap<ProgramVariable, ProgramVariable> useDefMap,
                       Map<DomainVariable, DomainVariable> dVarMap) {
         super(index, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.isCalledSGPresent = true;
-        this.pVarMap = pVarMap;
+        this.useDefMap = useDefMap;
         this.dVarMap = dVarMap;
     }
 
