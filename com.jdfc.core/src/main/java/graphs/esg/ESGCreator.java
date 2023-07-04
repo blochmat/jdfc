@@ -1,9 +1,6 @@
 package graphs.esg;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import data.ClassExecutionData;
 import data.DefUsePair;
 import data.MethodData;
@@ -35,6 +32,8 @@ public class ESGCreator {
 
     private static Map<ProgramVariable, Boolean> LIVE_VARIABLES = new HashMap<>();
 
+    private static final BiMap<ProgramVariable, ProgramVariable> DEFINITION_MATCHES = HashBiMap.create();
+
     public static void createESGsForClass(ClassExecutionData cData) {
         MAIN_METHOD_CLASS_NAME = cData.getRelativePath();
         for(MethodData mData : cData.getMethods().values()) {
@@ -43,6 +42,7 @@ public class ESGCreator {
             MAIN_METHOD_NAME = mData.buildInternalMethodName();
             MAIN_METHOD_ID = ESGCreator.buildMethodIdentifier(MAIN_METHOD_CLASS_NAME, MAIN_METHOD_NAME);
             ZERO = new ProgramVariable.ZeroVariable(MAIN_METHOD_CLASS_NAME, MAIN_METHOD_NAME);
+            CALL_SEQUENCE.clear();
             CALL_SEQUENCE.add(MAIN_METHOD_ID);
 
             ESG esg = ESGCreator.createESGForMethod();
@@ -88,6 +88,7 @@ public class ESGCreator {
     ){
         if(log.isDebugEnabled()) {
             StringBuilder sb = new StringBuilder();
+            sb.append("\nCALL SEQUENCE: ").append(CALL_SEQUENCE).append("\n");
             sb.append("\nACTIVE SCOPE: ").append(MAIN_METHOD_ID).append("\n");
 
             for(Map.Entry<String, Map<UUID, ProgramVariable>> domainMethodEntry : activeScope.entrySet()) {
@@ -139,6 +140,7 @@ public class ESGCreator {
         String sgTargetNodeMId = ESGCreator.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch(((SGCallNode) sgNode), pVar);
+            DEFINITION_MATCHES.put(pVar, m);
             if(m != null) {
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
@@ -170,8 +172,9 @@ public class ESGCreator {
                 ));
             }
         } else if (sgNode instanceof SGExitNode) {
-            ProgramVariable m = ((SGExitNode) sgNode).getPVarMap().get(pVar);
+            ProgramVariable m = DEFINITION_MATCHES.inverse().get(pVar);
             if(m != null) {
+                DEFINITION_MATCHES.remove(m);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -387,15 +390,12 @@ public class ESGCreator {
             }
         }
         else if (sgNode instanceof SGExitNode) {
-            SGExitNode sgExitNode = (SGExitNode) sgNode;
-            String sgExitNodeMId = ESGCreator.buildMethodIdentifier(sgExitNode.getClassName(), sgExitNode.getMethodName());
-            String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
-            if(sgExitNode.getPVarMap().containsKey(pVar)) {
-                // TODO: when could this occurr?
+            if(LIVE_VARIABLES.get(pVar)) {
+                String pVarMId = ESGCreator.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
                 edges.add(new ESGEdge(
-                        sgExitNode.getIndex(),
+                        sgNode.getIndex(),
                         sgTargetNode.getIndex(),
-                        sgExitNodeMId,
+                        pVarMId,
                         pVarMId,
                         pVar,
                         pVar
@@ -435,14 +435,18 @@ public class ESGCreator {
 
         for(Map.Entry<String, Map<UUID, ProgramVariable>> mEntry : activeScope.entrySet()) {
             for(ProgramVariable p : activeScope.get(mEntry.getKey()).values()) {
-                if(Objects.equals(mEntry.getKey(), sgNodeMId)) {
-                    if(sgNode.getCfgReachOut().contains(p)) {
-                        updated.put(p, true);
+                if(CALL_SEQUENCE.contains(mEntry.getKey())) {
+                    if(Objects.equals(mEntry.getKey(), sgNodeMId)) {
+                        if(sgNode.getCfgReachOut().contains(p)) {
+                            updated.put(p, true);
+                        } else {
+                            updated.put(p, false);
+                        }
                     } else {
-                        updated.put(p, false);
+                        updated.put(p, LIVE_VARIABLES.getOrDefault(p, false));
                     }
                 } else {
-                    updated.put(p, LIVE_VARIABLES.getOrDefault(p, false));
+                    updated.put(p, false);
                 }
             }
         }
