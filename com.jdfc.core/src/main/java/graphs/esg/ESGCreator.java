@@ -220,7 +220,7 @@ public class ESGCreator {
                 );
             }
         } else if(sgNode instanceof SGEntryNode) {
-            if(!LIVE_VARIABLES.get(pVar)) {
+            if(!LIVE_VARIABLES.get(pVar) && sgNode.getDefinitions().contains(pVar)) {
                 LIVE_VARIABLES.put(pVar, true);
                 return new ESGEdge(
                         sgNode.getIndex(),
@@ -332,11 +332,15 @@ public class ESGCreator {
                     Collection<Integer> currSGNodeTargets = SG.getEdges().get(currSGNodeIdx);
                     for (Integer currSGNodeTargetIdx : currSGNodeTargets) {
                         SGNode sgTargetNode = SG.getNodes().get(currSGNodeTargetIdx);
+
+                        if(Objects.equals(pVar, ZERO)) {
+                            ESGEdge edge = handleZero(currSGNode, sgTargetNode, pVar);
+                            esgEdges.put(currSGNodeIdx, edge);
+                        }
+
                         if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
                             ESGEdge edge;
-                            if(Objects.equals(pVar, ZERO)) {
-                                edge = handleZero(currSGNode, sgTargetNode, pVar);
-                            } else if(Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
+                            if(Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
                                 edge = handleGlobal(currSGNode, sgTargetNode, pVar);
                             } else {
                                 edge = handleLocal(currSGNode, sgTargetNode, pVar);
