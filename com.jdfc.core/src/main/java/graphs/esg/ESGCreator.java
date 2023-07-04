@@ -152,6 +152,15 @@ public class ESGCreator {
                         ZERO,
                         pVar
                 );
+            } else {
+                return new ESGEdge(
+                        sgNode.getIndex(),
+                        sgTargetNode.getIndex(),
+                        sgNodeMId,
+                        sgTargetNodeMId,
+                        pVar,
+                        pVar
+                );
             }
         } else if (sgNode instanceof SGExitNode) {
             ProgramVariable m = ((SGExitNode) sgNode).getPVarMap().get(pVar);
