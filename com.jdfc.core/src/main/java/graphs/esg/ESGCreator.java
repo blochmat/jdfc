@@ -33,7 +33,7 @@ public class ESGCreator {
 
     private static final List<String> CALL_SEQUENCE = new ArrayList<>();
 
-    private static final Map<ProgramVariable, Boolean> LIVE_VARIABLES = new HashMap<>();
+    private static Map<ProgramVariable, Boolean> LIVE_VARIABLES = new HashMap<>();
 
     public static void createESGsForClass(ClassExecutionData cData) {
         MAIN_METHOD_CLASS_NAME = cData.getRelativePath();
@@ -88,7 +88,7 @@ public class ESGCreator {
     ){
         if(log.isDebugEnabled()) {
             StringBuilder sb = new StringBuilder();
-            sb.append(MAIN_METHOD_ID).append("\n");
+            sb.append("\nACTIVE SCOPE: ").append(MAIN_METHOD_ID).append("\n");
 
             for(Map.Entry<String, Map<UUID, ProgramVariable>> domainMethodEntry : activeScope.entrySet()) {
                 sb.append(domainMethodEntry.getKey()).append("\n");
@@ -140,7 +140,6 @@ public class ESGCreator {
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch(((SGCallNode) sgNode), pVar);
             if(m != null) {
-                LIVE_VARIABLES.put(m, true);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -152,7 +151,6 @@ public class ESGCreator {
             }
         } else if(sgNode instanceof SGEntryNode) {
             if(!LIVE_VARIABLES.get(pVar)) {
-                LIVE_VARIABLES.put(pVar, true);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -173,7 +171,6 @@ public class ESGCreator {
             }
         } else if (sgNode instanceof SGExitNode) {
             ProgramVariable m = ((SGExitNode) sgNode).getPVarMap().get(pVar);
-            LIVE_VARIABLES.put(pVar, false);
             if(m != null) {
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
@@ -196,8 +193,6 @@ public class ESGCreator {
                         pVar
                 ));
             } else {
-                LIVE_VARIABLES.put(pVar, false);
-                LIVE_VARIABLES.put(newDef, true);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -219,7 +214,6 @@ public class ESGCreator {
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch((SGCallNode) sgNode, pVar);
             if(m != null) {
-                LIVE_VARIABLES.put(m, true);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -241,7 +235,6 @@ public class ESGCreator {
         } else if(sgNode instanceof SGEntryNode) {
             if(!LIVE_VARIABLES.get(pVar)) {
                 if(sgNode.getDefinitions().contains(pVar)) {
-                    LIVE_VARIABLES.put(pVar, true);
                     edges.add(new ESGEdge(
                             sgNode.getIndex(),
                             sgTargetNode.getIndex(),
@@ -263,7 +256,6 @@ public class ESGCreator {
             }
         } else if (sgNode instanceof SGExitNode) {
             ProgramVariable m = ((SGExitNode) sgNode).getPVarMap().get(pVar);
-            LIVE_VARIABLES.put(pVar, false);
             if(m != null) {
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
@@ -288,7 +280,6 @@ public class ESGCreator {
                     ));
                 }
                 else if (sgNode.getDefinitions().contains(pVar)) {
-                    LIVE_VARIABLES.put(pVar, true);
                     edges.add(new ESGEdge(
                             sgNode.getIndex(),
                             sgTargetNode.getIndex(),
@@ -300,7 +291,6 @@ public class ESGCreator {
                 }
             } else {
                 if(LIVE_VARIABLES.get(pVar)) {
-                    LIVE_VARIABLES.put(pVar, false);
                     edges.add(new ESGEdge(
                             sgNode.getIndex(),
                             sgTargetNode.getIndex(),
@@ -361,7 +351,6 @@ public class ESGCreator {
             if(Objects.equals(calledMethodId, pVarMId)) {
                 if(!sgCallNode.getUseDefMap().containsValue(pVar)
                     && sgTargetNode.getDefinitions().contains(pVar)) {
-                    LIVE_VARIABLES.put(pVar, true);
                     edges.add(new ESGEdge(
                             sgNode.getIndex(),
                             sgTargetNode.getIndex(),
@@ -440,6 +429,40 @@ public class ESGCreator {
         return edges;
     }
 
+    private static Map<ProgramVariable, Boolean> updateLiveVariables(Map<String, Map<UUID, ProgramVariable>> activeScope, SGNode sgNode) {
+        Map<ProgramVariable, Boolean> updated = new HashMap<>();
+        String sgNodeMId = ESGCreator.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
+
+        for(Map.Entry<String, Map<UUID, ProgramVariable>> mEntry : activeScope.entrySet()) {
+            for(ProgramVariable p : activeScope.get(mEntry.getKey()).values()) {
+                if(Objects.equals(mEntry.getKey(), sgNodeMId)) {
+                    if(sgNode.getCfgReachOut().contains(p)) {
+                        updated.put(p, true);
+                    } else {
+                        updated.put(p, false);
+                    }
+                } else {
+                    updated.put(p, LIVE_VARIABLES.getOrDefault(p, false));
+                }
+            }
+        }
+
+        return updated;
+    }
+
+    public static void debugLiveVariables(int currSgIdx) {
+        if(log.isDebugEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("\nLIVE VARIABLES: ").append(MAIN_METHOD_ID).append("\n");
+
+            for(Map.Entry<ProgramVariable, Boolean> liveEntry : LIVE_VARIABLES.entrySet()) {
+                sb.append(liveEntry.getKey()).append(" => ").append(liveEntry.getValue()).append("\n");
+            }
+
+            JDFCUtils.logThis(sb.toString(), String.valueOf(currSgIdx));
+        }
+    }
+
     public static ESG createESGForMethod() {
         //--- CREATE DOMAIN --------------------------------------------------------------------------------------------
         Map<String, Map<UUID, ProgramVariable>> domain = createDomain();
@@ -462,11 +485,17 @@ public class ESGCreator {
             String currSGNodeMethodIdentifier = ESGCreator.buildMethodIdentifier(
                     currSGNode.getClassName(), currSGNode.getMethodName());
 
-            //--- CREATE ACTIVE SCOPE ----------------------------------------------------------------------------------
+            //--- UPDATE ACTIVE SCOPE ----------------------------------------------------------------------------------
             Map<String, Map<UUID, ProgramVariable>> activeScope = updateActiveScope(domain, currSGNode);
 
             //--- DEBUG ACTIVE DOMAIN ----------------------------------------------------------------------------------
             debugActiveScope(activeScope, currSGNodeIdx);
+
+            //--- UPDATE LIVE VARIABLES --------------------------------------------------------------------------------
+            LIVE_VARIABLES = updateLiveVariables(activeScope, currSGNode);
+
+            //--- DEBUG LIVE VARIABLES ---------------------------------------------------------------------------------
+            debugLiveVariables(currSGNodeIdx);
 
             // --- CREATE EDGES ----------------------------------------------------------------------------------------
             for(Map.Entry<String, Map<UUID, ProgramVariable>> activeDomainMethodSection : activeScope.entrySet()) {
