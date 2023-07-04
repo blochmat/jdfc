@@ -221,6 +221,14 @@ public class ESGCreator {
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
                         sgNodeMId,
+                        sgNodeMId,
+                        pVar,
+                        pVar
+                ));
+                edges.add(new ESGEdge(
+                        sgNode.getIndex(),
+                        sgTargetNode.getIndex(),
+                        sgNodeMId,
                         sgTargetNodeMId,
                         pVar,
                         m
