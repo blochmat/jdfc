@@ -202,9 +202,9 @@ public class MethodData {
 
             for (ProgramVariable def : node.getReach()) {
                 for (ProgramVariable use : node.getUses()) {
-                    if (def.getName().equals(use.getName())
-                            && !def.getDescriptor().equals("UNKNOWN")
-                            && !use.getIsField()) {
+                    if (Objects.equals(def.getName(), use.getName())
+                            && Objects.equals(def.getIsField(), use.getIsField())
+                            && !def.getDescriptor().equals("UNKNOWN")) {
                         this.pairs.add(new DefUsePair(def, use));
                     }
 

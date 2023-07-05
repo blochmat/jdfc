@@ -269,7 +269,7 @@ public class ClassExecutionData extends ExecutionData {
     }
 
     public void computeCoverage() {
-        for (MethodData mData : this.getMethods().values()) {
+        for(MethodData mData : this.getMethods().values()) {
             JDFCUtils.logThis(mData.getName() + "\n" + JDFCUtils.prettyPrintMap(mData.getProgramVariables()), "programVariables");
             String internalMethodName = mData.buildInternalMethodName();
             if (mData.getPairs().size() == 0) {

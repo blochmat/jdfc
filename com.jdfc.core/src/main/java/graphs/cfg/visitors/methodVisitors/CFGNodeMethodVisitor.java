@@ -564,10 +564,10 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-
     private void addEntryAndExitNode() {
 //        logger.debug("addEntryAndExitNode");
         Set<ProgramVariable> definitions = createDefinitionsFromLocalVars();
+        definitions.addAll(createDefinitionsFromFields());
         Map<Integer, ProgramVariable> pVarMap = new HashMap<>();
         Map<Integer, DomainVariable> dVarMap = new HashMap<>();
         int idx = 0;
@@ -704,4 +704,25 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
        return parameters;
     }
+
+    private Set<ProgramVariable> createDefinitionsFromFields() {
+        Set<ProgramVariable> definitions = new HashSet<>();
+        for(ProgramVariable f : classVisitor.classExecutionData.getFields()) {
+            definitions.add(new ProgramVariable(
+                    f.getId(),
+                    f.getLocalVarIdx(),
+                    f.getClassName(),
+                    mData.buildInternalMethodName(),
+                    f.getName(),
+                    f.getDescriptor(),
+                    f.getInstructionIndex(),
+                    f.getLineNumber(),
+                    f.getIsDefinition(),
+                    f.getIsCovered(),
+                    f.getIsField()
+            ));
+        }
+        return definitions;
+    }
+
 }
