@@ -72,148 +72,144 @@ public class TabulationAlgorithm {
             String peTargetMethodId = currPathEdge.getTargetMethodId();
             ProgramVariable peTargetVar = currPathEdge.getTargetVar();
 
-            if(peTargetNode instanceof SGCallNode) {
-                Collection<ESGEdge> esgEdges = esg.getEdges().get(peTargetNodeIdx);
-                for(ESGEdge esgEdge : esgEdges) {
-                    boolean basicEdgeExits = Objects.equals(peTargetNodeIdx, esgEdge.getSgnSourceIdx())
-                            && Objects.equals(peSrcMethodId, esgEdge.getSourceMethodId())
-                            && Objects.equals(peSrcVar, esgEdge.getSourceVar());
-                    boolean matchEdgeExists = false;
-                    if(esg.getCallerToCalleeDefinitionMap().containsKey(peTargetNodeIdx)) {
-                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(peTargetNodeIdx).containsKey(peSrcVar);
-                    }
-                    if(basicEdgeExits || matchEdgeExists) {
-                        int mIdx = esgEdge.getSgnTargetIdx();
-                        String d3MId = esgEdge.getTargetMethodId();
-                        ProgramVariable d3 = esgEdge.getTargetVar();
-                        SGNode mSGNode = sg.getNodes().get(mIdx);
-
-                        if(mSGNode instanceof SGEntryNode) {
-                            propagate(new ESGEdge(
-                                    peTargetNodeIdx,
-                                    mIdx,
-                                    peTargetMethodId,
-                                    d3MId,
-                                    peTargetVar,
-                                    d3)
-                            );
-                        } else {
-                            propagate(new ESGEdge(
-                                    peSrcNodeIdx,
-                                    mIdx,
-                                    peSrcMethodId,
-                                    d3MId,
-                                    peSrcVar,
-                                    d3
-                            ));
-                        }
-                    }
-                }
-
-                for(ESGEdge esgEdge : summaryEdgeSet) {
-                    if(Objects.equals(peTargetNode.getIndex(), esgEdge.getSgnSourceIdx())
-                            && Objects.equals(peSrcMethodId, esgEdge.getSourceMethodId())
-                            && Objects.equals(peSrcVar, esgEdge.getSourceVar())) {
-                        int mIdx = esgEdge.getSgnTargetIdx();
-                        String d3MId = esgEdge.getTargetMethodId();
-                        ProgramVariable d3 = esgEdge.getTargetVar();
-                        SGNode mSGNode = sg.getNodes().get(mIdx);
-                        if(mSGNode instanceof SGReturnSiteNode) {
-                            propagate(new ESGEdge(
-                                    peSrcNode.getIndex(),
-                                    mIdx,
-                                    peSrcMethodId,
-                                    d3MId,
-                                    peSrcVar,
-                                    d3
-                            ));
-                        }
-                    }
-                }
-            }
-            else if (peTargetNode instanceof SGExitNode && !Objects.equals(peTargetNode, sg.getExitNode())) {
-                Collection<SGCallNode> callers = sg.getCallersMap().get(peTargetNode.getMethodName());
-                for(SGCallNode c : callers) {
-                    int cIdx = c.getIndex();
-                    Collection<ESGEdge> callEdges = esg.getEdges().get(c.getIndex());
-                    Collection<ESGEdge> exitEdges = esg.getEdges().get(peTargetNode.getIndex());
-
-                    for(ESGEdge callEdge : callEdges) {
-                        if(Objects.equals(cIdx, callEdge.getSgnSourceIdx())
-                                && Objects.equals(peSrcNodeIdx, callEdge.getSgnTargetIdx())
-                                && Objects.equals(peSrcMethodId, callEdge.getTargetMethodId())
-                                && Objects.equals(peSrcVar, callEdge.getTargetVar())) {
-                            String d4MethodIdentifier = callEdge.getSourceMethodId();
-                            ProgramVariable d4 = callEdge.getSourceVar();
-
-                            for (ESGEdge exitEdge : exitEdges) {
-                                int rIdx = sg.getReturnSiteIndexMap().get(cIdx);
-                                if(Objects.equals(peTargetNodeIdx, exitEdge.getSgnSourceIdx())
-                                        && Objects.equals(peTargetMethodId, exitEdge.getSourceMethodId())
-                                        && Objects.equals(peTargetVar, exitEdge.getSourceVar())
-                                        && Objects.equals(rIdx, exitEdge.getSgnTargetIdx())) {
-                                    String d5MethodIdentifier = exitEdge.getTargetMethodId();
-                                    ProgramVariable d5 = exitEdge.getTargetVar();
-                                    ESGEdge e = new ESGEdge(cIdx, rIdx, d4MethodIdentifier, d5MethodIdentifier, d4, d5);
-                                    if(!summaryEdgeSet.contains(e)){
-                                        summaryEdgeSet.add(e);
-
-                                        ClassExecutionData cData = (ClassExecutionData) CoverageDataStore
-                                                .getInstance().findClassDataNode(c.getClassName()).getData();
-                                        SGEntryNode cEntryNode = cData.getMethodByInternalName(c.getMethodName())
-                                                .getSg()
-                                                .getEntryNode();
-                                        int cEntryIdx = cEntryNode.getIndex();
-                                        Collection<ESGEdge> entryEdges = esg.getEdges().get(cEntryIdx);
-                                        for(ESGEdge entryEdge: entryEdges) {
-                                            int eIdx = entryEdge.getSgnSourceIdx();
-                                            String d3MethodIdentifier = entryEdge.getSourceMethodId();
-                                            ProgramVariable d3 = entryEdge.getSourceVar();
-
-                                            ESGEdge search = new ESGEdge(eIdx,
-                                                    cIdx,
-                                                    d3MethodIdentifier,
-                                                    d4MethodIdentifier,
-                                                    d3,
-                                                    d4);
-                                            if(pathEdgeSet.contains(search)) {
-                                                propagate(new ESGEdge(
-                                                        eIdx,
-                                                        rIdx,
-                                                        d3MethodIdentifier,
-                                                        d5MethodIdentifier,
-                                                        d3,
-                                                        d5
-                                                ));
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else {
+//            if(peTargetNode instanceof SGCallNode) {
+//                Collection<ESGEdge> esgEdges = esg.getEdges().get(peTargetNodeIdx);
+//                for(ESGEdge esgEdge : esgEdges) {
+//                    boolean basicEdgeExits = Objects.equals(peSrcMethodId, esgEdge.getSourceMethodId())
+//                            && Objects.equals(peSrcVar, esgEdge.getSourceVar());
+//                    boolean matchEdgeExists = false;
+//                    if(esg.getCallerToCalleeDefinitionMap().containsKey(peTargetNodeIdx)) {
+//                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(peTargetNodeIdx).containsKey(peSrcVar);
+//                    }
+//                    if(basicEdgeExits || matchEdgeExists) {
+//                        int mIdx = esgEdge.getSgnTargetIdx();
+//                        String d3MId = esgEdge.getTargetMethodId();
+//                        ProgramVariable d3 = esgEdge.getTargetVar();
+//                        SGNode mSGNode = sg.getNodes().get(mIdx);
+//
+//                        if(mSGNode instanceof SGEntryNode) {
+//                            propagate(new ESGEdge(
+//                                    peTargetNodeIdx,
+//                                    mIdx,
+//                                    peTargetMethodId,
+//                                    d3MId,
+//                                    peTargetVar,
+//                                    d3)
+//                            );
+//                        } else {
+//                            propagate(new ESGEdge(
+//                                    peSrcNodeIdx,
+//                                    mIdx,
+//                                    peSrcMethodId,
+//                                    d3MId,
+//                                    peSrcVar,
+//                                    d3
+//                            ));
+//                        }
+//                    }
+//                }
+//
+//                for(ESGEdge esgEdge : summaryEdgeSet) {
+//                    if(Objects.equals(peTargetNode.getIndex(), esgEdge.getSgnSourceIdx())
+//                            && Objects.equals(peSrcMethodId, esgEdge.getSourceMethodId())
+//                            && Objects.equals(peSrcVar, esgEdge.getSourceVar())) {
+//                        int mIdx = esgEdge.getSgnTargetIdx();
+//                        String d3MId = esgEdge.getTargetMethodId();
+//                        ProgramVariable d3 = esgEdge.getTargetVar();
+//                        SGNode mSGNode = sg.getNodes().get(mIdx);
+//                        if(mSGNode instanceof SGReturnSiteNode) {
+//                            propagate(new ESGEdge(
+//                                    peSrcNode.getIndex(),
+//                                    mIdx,
+//                                    peSrcMethodId,
+//                                    d3MId,
+//                                    peSrcVar,
+//                                    d3
+//                            ));
+//                        }
+//                    }
+//                }
+//            }
+//            else if (peTargetNode instanceof SGExitNode && !Objects.equals(peTargetNode, sg.getExitNode())) {
+//                Collection<SGCallNode> callers = sg.getCallersMap().get(peTargetNode.getMethodName());
+//                for(SGCallNode c : callers) {
+//                    int cIdx = c.getIndex();
+//                    Collection<ESGEdge> callEdges = esg.getEdges().get(c.getIndex());
+//                    Collection<ESGEdge> exitEdges = esg.getEdges().get(peTargetNode.getIndex());
+//
+//                    for(ESGEdge callEdge : callEdges) {
+//                        if(Objects.equals(cIdx, callEdge.getSgnSourceIdx())
+//                                && Objects.equals(peSrcNodeIdx, callEdge.getSgnTargetIdx())
+//                                && Objects.equals(peSrcMethodId, callEdge.getTargetMethodId())
+//                                && Objects.equals(peSrcVar, callEdge.getTargetVar())) {
+//                            String d4MethodIdentifier = callEdge.getSourceMethodId();
+//                            ProgramVariable d4 = callEdge.getSourceVar();
+//
+//                            for (ESGEdge exitEdge : exitEdges) {
+//                                int rIdx = sg.getReturnSiteIndexMap().get(cIdx);
+//                                if(Objects.equals(peTargetNodeIdx, exitEdge.getSgnSourceIdx())
+//                                        && Objects.equals(peTargetMethodId, exitEdge.getSourceMethodId())
+//                                        && Objects.equals(peTargetVar, exitEdge.getSourceVar())
+//                                        && Objects.equals(rIdx, exitEdge.getSgnTargetIdx())) {
+//                                    String d5MethodIdentifier = exitEdge.getTargetMethodId();
+//                                    ProgramVariable d5 = exitEdge.getTargetVar();
+//                                    ESGEdge e = new ESGEdge(cIdx, rIdx, d4MethodIdentifier, d5MethodIdentifier, d4, d5);
+//                                    if(!summaryEdgeSet.contains(e)){
+//                                        summaryEdgeSet.add(e);
+//
+//                                        ClassExecutionData cData = (ClassExecutionData) CoverageDataStore
+//                                                .getInstance().findClassDataNode(c.getClassName()).getData();
+//                                        SGEntryNode cEntryNode = cData.getMethodByInternalName(c.getMethodName())
+//                                                .getSg()
+//                                                .getEntryNode();
+//                                        int cEntryIdx = cEntryNode.getIndex();
+//                                        Collection<ESGEdge> entryEdges = esg.getEdges().get(cEntryIdx);
+//                                        for(ESGEdge entryEdge: entryEdges) {
+//                                            int eIdx = entryEdge.getSgnSourceIdx();
+//                                            String d3MethodIdentifier = entryEdge.getSourceMethodId();
+//                                            ProgramVariable d3 = entryEdge.getSourceVar();
+//
+//                                            ESGEdge search = new ESGEdge(eIdx,
+//                                                    cIdx,
+//                                                    d3MethodIdentifier,
+//                                                    d4MethodIdentifier,
+//                                                    d3,
+//                                                    d4);
+//                                            if(pathEdgeSet.contains(search)) {
+//                                                propagate(new ESGEdge(
+//                                                        eIdx,
+//                                                        rIdx,
+//                                                        d3MethodIdentifier,
+//                                                        d5MethodIdentifier,
+//                                                        d3,
+//                                                        d5
+//                                                ));
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            else {
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(peTargetNode.getIndex());
                 for(ESGEdge e : esgEdges) {
-                    if(Objects.equals(peTargetMethodId, e.getSourceMethodId())
-                            && Objects.equals(peTargetVar, e.getSourceVar())) {
-                        int mIdx = e.getSgnTargetIdx();
-                        String d3MId = e.getTargetMethodId();
-                        ProgramVariable d3 = e.getTargetVar();
+                    int eSgnTargetIdx = e.getSgnTargetIdx();
+                    String eTargetMethodId = e.getTargetMethodId();
+                    ProgramVariable eTargetVar = e.getTargetVar();
 
-                        propagate(new ESGEdge(
-                                peSrcNodeIdx,
-                                mIdx,
-                                peSrcMethodId,
-                                d3MId,
-                                peSrcVar,
-                                d3)
-                        );
-                    }
+                    propagate(new ESGEdge(
+                            peSrcNodeIdx,
+                            eSgnTargetIdx,
+                            peSrcMethodId,
+                            eTargetMethodId,
+                            peSrcVar,
+                            eTargetVar)
+                    );
                 }
-            }
+//            }
         }
 
         //--- CREATE MVP -----------------------------------------------------------------------------------------------
