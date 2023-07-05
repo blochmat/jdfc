@@ -30,6 +30,12 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     }
 
     @Override
+    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+        super.visitFieldInsn(opcode, owner, name, descriptor);
+        insertFieldEntryCreation(opcode, owner, name, descriptor);
+    }
+
+    @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
         insertLocalVariableEntryCreation(opcode, var);
@@ -41,7 +47,61 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         insertLocalVariableEntryCreation(ISTORE, var);
     }
 
+    public void insertFieldEntryCreation(int opcode, String className, String name, String descriptor) {
+        if (!internalMethodName.contains("<clinit>")) {
+            UUID cId = classVisitor.classExecutionData.getId();
+            UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+            if(mId == null && internalMethodName.equals("<init>: ()V;")) {
+                // Default constructor
+                mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+            }
 
+            if(mId != null) {
+                MethodData mData = classVisitor.classExecutionData.getMethods().get(mId);
+                ProgramVariable localPVar = new ProgramVariable(
+                        null,
+                        Integer.MIN_VALUE,
+                        className,
+                        mData.buildInternalMethodName(),
+                        name,
+                        descriptor,
+                        currentInstructionIndex,
+                        currentLineNumber,
+                        this.isDefinition(opcode),
+                        false,
+                        true);
+                UUID pId = mData.findVarId(localPVar);
+                if (pId == null) {
+                    if(log.isDebugEnabled()) {
+                        File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
+                        try (FileWriter writer = new FileWriter(file, true)) {
+                            writer.write("Error: ProgramVariableId is null.\n");
+                            writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
+                            writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
+                            writer.write(String.format("  ProgramVariable: %s\n", localPVar));
+                            writer.write("==============================\n");
+                            writer.write("Program Variables:\n");
+                            writer.write(JDFCUtils.prettyPrintMap(mData.getProgramVariables()));
+                            writer.write("==============================\n");
+                            writer.write("\n");
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                    }
+                } else {
+                    mv.visitLdcInsn(cId.toString());
+                    mv.visitLdcInsn(mId.toString());
+                    mv.visitLdcInsn(pId.toString());
+                    mv.visitMethodInsn(
+                            Opcodes.INVOKESTATIC,
+                            Type.getInternalName(CoverageDataStore.class),
+                            "invokeCoverageTracker",
+                            "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                            false);
+                }
+            }
+        }
+    }
 
     private void insertLocalVariableEntryCreation(final int opcode,
                                                   final int localVarIdx) {
@@ -58,7 +118,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
                 if(localVariable == null) {
                     if(log.isDebugEnabled()) {
-                        File file = JDFCUtils.createFileInDebugDir("4_insertLocalVariableEntryCreation.txt", false);
+                        File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: LocalVariable is null.\n");
                             writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));

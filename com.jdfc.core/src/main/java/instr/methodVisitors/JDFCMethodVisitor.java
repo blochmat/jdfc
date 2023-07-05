@@ -179,6 +179,8 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
             case FSTORE:
             case DSTORE:
             case ASTORE:
+            case PUTFIELD:
+            case PUTSTATIC:
                 return true;
             default:
                 return false;

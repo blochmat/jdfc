@@ -128,13 +128,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         super.visitFieldInsn(opcode, owner, name, descriptor);
         createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor, currentInstructionIndex, currentLineNumber);
         aa.visitFieldInsn(opcode, owner, name, descriptor);
-//        checkForF_NEW();
-        final CFGNode node = new CFGNode(
-                classVisitor.classNode.name,
-                internalMethodName,
-                currentInstructionIndex,
-                opcode);
-        nodes.put(currentInstructionIndex, node);
     }
 
     @Override
@@ -408,6 +401,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         false,
                         true
                 );
+                mData.getProgramVariables().put(programVariable.getId(), programVariable);
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
@@ -431,6 +425,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         false,
                         true
                 );
+                mData.getProgramVariables().put(programVariable.getId(), programVariable);
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
