@@ -23,9 +23,9 @@ public class CoverageTracker {
         return singleton;
     }
 
-    public synchronized void addLocalVarCoveredEntry(final String cId,
-                                                     final String mId,
-                                                     final String pId) {
+    public synchronized void addVarCoveredEntry(final String cId,
+                                                final String mId,
+                                                final String pId) {
         ClassExecutionData cData = null;
         MethodData mData = null;
         ProgramVariable pVar = null;
@@ -40,7 +40,7 @@ public class CoverageTracker {
             CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
         } catch (Exception e) {
             if (log.isDebugEnabled()) {
-                File file = JDFCUtils.createFileInDebugDir("5_addLocalVarCoveredEntry.txt", false);
+                File file = JDFCUtils.createFileInDebugDir("ERROR_addLocalVarCoveredEntry.txt", false);
                 try (FileWriter writer = new FileWriter(file, true)) {
                     writer.write(String.format("Exception: %s ", e.getClass()));
                     writer.write(String.format("Message: %s ", e.getMessage()));

@@ -290,7 +290,7 @@ public class ClassExecutionData extends ExecutionData {
                     }
                 }
                 if (!internalMethodName.contains("<clinit>")) {
-                    mData.computeCoverage();
+                    mData.computeCoverageMetadata();
                 }
             }
 

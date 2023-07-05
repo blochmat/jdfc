@@ -160,7 +160,7 @@ public class MethodData {
         return String.format("%s: %s", name, desc);
     }
 
-    public void computeCoverage() {
+    public void computeCoverageMetadata() {
         this.total = pairs.size();
         this.covered = (int) pairs.stream().filter(DefUsePair::isCovered).count();
         if (total != 0) {
@@ -202,9 +202,12 @@ public class MethodData {
 
             for (ProgramVariable def : node.getReach()) {
                 for (ProgramVariable use : node.getUses()) {
-                    if (def.getName().equals(use.getName()) && !def.getDescriptor().equals("UNKNOWN")) {
+                    if (def.getName().equals(use.getName())
+                            && !def.getDescriptor().equals("UNKNOWN")
+                            && !use.getIsField()) {
                         this.pairs.add(new DefUsePair(def, use));
                     }
+
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
                         def.setIsCovered(true);
                     }

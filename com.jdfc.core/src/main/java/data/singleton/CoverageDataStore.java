@@ -83,7 +83,7 @@ public class CoverageDataStore {
     public static void invokeCoverageTracker(final String cId,
                                              final String mId,
                                              final String pId) {
-        CoverageTracker.getInstance().addLocalVarCoveredEntry(cId, mId, pId);
+        CoverageTracker.getInstance().addVarCoveredEntry(cId, mId, pId);
     }
 
     public void exportCoverageData() {
