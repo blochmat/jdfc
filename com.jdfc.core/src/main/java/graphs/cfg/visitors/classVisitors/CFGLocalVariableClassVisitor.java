@@ -1,6 +1,7 @@
 package graphs.cfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
+import data.ProgramVariable;
 import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import utils.ASMHelper;
+
+import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -43,9 +46,19 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
             final String signature,
             final Object value) {
         final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
-//        this.fields.add(
-//                new ProgramVariable(this.getClassNode().name,
-//                        name, descriptor, Integer.MIN_VALUE, Integer.MIN_VALUE, false, false));
+        ProgramVariable var = new ProgramVariable(
+                        UUID.randomUUID(),
+                        Integer.MIN_VALUE,
+                        classExecutionData.getRelativePath(),
+                        null,
+                        name,
+                        descriptor,
+                        Integer.MIN_VALUE,
+                        Integer.MIN_VALUE,
+                        true,
+                        false,
+                        true);
+        classExecutionData.getFields().add(var);
         return fv;
     }
 

@@ -125,9 +125,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-//        String debug = String.format("visitFieldInsn %s", JDFCUtils.getOpcode(opcode));
-//        logger.debug(debug);
         super.visitFieldInsn(opcode, owner, name, descriptor);
+        createCFGNodeForFieldInsnNode(opcode, owner, name, descriptor, currentInstructionIndex, currentLineNumber);
         aa.visitFieldInsn(opcode, owner, name, descriptor);
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(
@@ -383,6 +382,72 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         } else {
             return "UNKNOWN";
         }
+    }
+
+    private void createCFGNodeForFieldInsnNode(final int opcode,
+                                               final String owner,
+                                               final String name,
+                                               final String descriptor,
+                                               final int insnIdx,
+                                               final int lineNumber) {
+        CFGNode node;
+        ProgramVariable programVariable;
+        switch(opcode) {
+            case PUTFIELD:
+            case PUTSTATIC:
+                programVariable = new ProgramVariable(
+                        UUID.randomUUID(),
+                        Integer.MIN_VALUE,
+                        owner,
+                        internalMethodName,
+                        name,
+                        descriptor,
+                        insnIdx,
+                        lineNumber,
+                        true,
+                        false,
+                        true
+                );
+                node = new CFGNode(
+                        classVisitor.classNode.name,
+                        internalMethodName,
+                        Sets.newHashSet(programVariable),
+                        Sets.newLinkedHashSet(),
+                        insnIdx,
+                        opcode);
+                break;
+            case GETFIELD:
+            case GETSTATIC:
+                programVariable = new ProgramVariable(
+                        UUID.randomUUID(),
+                        Integer.MIN_VALUE,
+                        owner,
+                        internalMethodName,
+                        name,
+                        descriptor,
+                        insnIdx,
+                        lineNumber,
+                        false,
+                        false,
+                        true
+                );
+                node = new CFGNode(
+                        classVisitor.classNode.name,
+                        internalMethodName,
+                        Sets.newLinkedHashSet(),
+                        Sets.newHashSet(programVariable),
+                        insnIdx,
+                        opcode);
+                break;
+            default:
+                node = new CFGNode(
+                        classVisitor.classNode.name,
+                        internalMethodName,
+                        insnIdx,
+                        opcode);
+                break;
+        }
+        nodes.put(insnIdx, node);
     }
 
     private void createCFGNodeForVarInsnNode(final int opcode, final int localVarIdx, final int insnIdx, final int lineNumber) {
