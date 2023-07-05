@@ -20,65 +20,65 @@ public class ESGEdge {
     /**
      * Name of the source node's method
      */
-    private String sourceDVarMethodName;
+    private String sourceMethodId;
 
     /**
      * Name of the target node's method
      */
-    private String targetDVarMethodName;
+    private String targetMethodId;
 
     /**
      * Source Domain Variable Index
      */
-    private ProgramVariable sourcePVar;
+    private ProgramVariable sourceVar;
 
     /**
      * Target Domain Variable Index
      */
-    private ProgramVariable targetPVar;
+    private ProgramVariable targetVar;
 
     /**
      *
      * @param sgnSourceIdx Super Graph Source Node Index
      * @param sgnTargetIdx Super Graph Target Node Index
-     * @param sourcePVar Source Domain Variable Index
-     * @param targetPVar Target Domain Variable Index
+     * @param sourceVar Source Domain Variable Index
+     * @param targetVar Target Domain Variable Index
      */
     public ESGEdge(final int sgnSourceIdx,
                    final int sgnTargetIdx,
-                   final String sourceDVarMethodName,
-                   final String targetDVarMethodName,
-                   final ProgramVariable sourcePVar,
-                   final ProgramVariable targetPVar) {
+                   final String sourceMethodId,
+                   final String targetMethodId,
+                   final ProgramVariable sourceVar,
+                   final ProgramVariable targetVar) {
         this.sgnSourceIdx = sgnSourceIdx;
         this.sgnTargetIdx = sgnTargetIdx;
-        this.sourceDVarMethodName = sourceDVarMethodName;
-        this.targetDVarMethodName = targetDVarMethodName;
-        this.sourcePVar = sourcePVar;
-        this.targetPVar = targetPVar;
+        this.sourceMethodId = sourceMethodId;
+        this.targetMethodId = targetMethodId;
+        this.sourceVar = sourceVar;
+        this.targetVar = targetVar;
     }
 
     @Override
     public String toString() {
         String sourceVarStr;
-        if(sourcePVar.getInstructionIndex() != Integer.MIN_VALUE) {
-            sourceVarStr = String.format("%s:%s", sourcePVar.getName(), sourcePVar.getInstructionIndex());
+        if(sourceVar.getInstructionIndex() != Integer.MIN_VALUE) {
+            sourceVarStr = String.format("%s:%s", sourceVar.getName(), sourceVar.getInstructionIndex());
         } else {
-            sourceVarStr = sourcePVar.getName();
+            sourceVarStr = sourceVar.getName();
         }
 
         String targetVarStr;
-        if(targetPVar.getInstructionIndex() != Integer.MIN_VALUE) {
-            targetVarStr = String.format("%s:%s", targetPVar.getName(), targetPVar.getInstructionIndex());
+        if(targetVar.getInstructionIndex() != Integer.MIN_VALUE) {
+            targetVarStr = String.format("%s:%s", targetVar.getName(), targetVar.getInstructionIndex());
         } else {
-            targetVarStr = targetPVar.getName();
+            targetVarStr = targetVar.getName();
         }
 
         return "ESGEdge{"
                 + sgnSourceIdx + ", "
                 + sgnTargetIdx + ", "
-                + sourceDVarMethodName + ", "
-                + targetDVarMethodName + ", "
+                + sourceMethodId + ", "
+                + targetMethodId + ", "
                 + sourceVarStr + ", "
                 + targetVarStr + '}';
     }

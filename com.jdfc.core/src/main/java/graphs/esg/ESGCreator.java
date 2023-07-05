@@ -569,10 +569,10 @@ public class ESGCreator {
         for(ESGEdge esgEdge : esgEdges.values()) {
             int sgnSourceIdx = esgEdge.getSgnSourceIdx();
             int sgnTargetIdx = esgEdge.getSgnTargetIdx();
-            String sourceMethodName = esgEdge.getSourceDVarMethodName();
-            String targetMethodName = esgEdge.getTargetDVarMethodName();
-            ProgramVariable sourceDVar = esgEdge.getSourcePVar();
-            ProgramVariable targetDVar = esgEdge.getTargetPVar();
+            String sourceMethodName = esgEdge.getSourceMethodId();
+            String targetMethodName = esgEdge.getTargetMethodId();
+            ProgramVariable sourceDVar = esgEdge.getSourceVar();
+            ProgramVariable targetDVar = esgEdge.getTargetVar();
 
             String debug = String.format("%d %s %s %d %s %s",
                     sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
