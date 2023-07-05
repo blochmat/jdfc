@@ -16,8 +16,10 @@ import java.util.Objects;
 public class SGExitNode extends SGNode {
 
     private BiMap<ProgramVariable, ProgramVariable> pVarMap;
-
     private Map<DomainVariable, DomainVariable> dVarMap;
+    private int callNodeIdx;
+    private int entryNodeIdx;
+    private int returnSiteNodeIdx;
 
     public SGExitNode(int index, CFGNode node) {
         super(index, node);

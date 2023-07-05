@@ -165,6 +165,7 @@ public class SGCreator {
                                 sgEdges.putAll(calledSG.getEdges());
 
                                 // Add pVarMap and dVarMap to entryNode
+                                int sgEntryNodeIdx = index + shift;
                                 SGEntryNode sgEntryNode = (SGEntryNode)  sgNodes.get(index + shift);
                                 sgEntryNode.setUseDefMap(pVarMap);
                                 sgEntryNode.setDVarMap(dVarMap.inverse());
@@ -173,12 +174,14 @@ public class SGCreator {
                                 shift = shift + calledSG.getNodes().size();
 
                                 // Add pVarMap and dVarMap to exit node
+                                int sgExitNodeIdx = index + shift - 1;
                                 SGExitNode sgExitNode = (SGExitNode) sgNodes.get(index + shift - 1);
                                 sgExitNode.setPVarMap(pVarMap);
                                 sgExitNode.setDVarMap(dVarMap.inverse());
 
                                 // Add returnSite node
-                                SGReturnSiteNode returnSiteNode = new SGReturnSiteNode(
+                                int sgReturnSiteNodeIdx = index + shift;
+                                SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                         index + shift,
                                         new CFGNode(
                                                 cData.getRelativePath(),
@@ -191,8 +194,8 @@ public class SGCreator {
                                                 Sets.newLinkedHashSet(),
                                                 cfgNode.getReach(),
                                                 cfgNode.getReachOut()));
-                                sgNodes.put(index + shift, returnSiteNode);
-                                sgReturnSiteNodeMap.put(sgCallNode, returnSiteNode);
+                                sgNodes.put(index + shift, sgReturnSiteNode);
+                                sgReturnSiteNodeMap.put(sgCallNode, sgReturnSiteNode);
                                 sgReturnSiteIndexMap.put(sgCallNodeIdx, index + shift);
 
                                 // Connect exit and return site node
@@ -204,6 +207,23 @@ public class SGCreator {
                                 // Connect return site node with next node
                                 sgEdges.put(index + shift, index + shift + 1);
                                 shift++;
+
+                                // Set indices in all relevant nodes
+                                sgCallNode.setEntryNodeIdx(sgEntryNodeIdx);
+                                sgCallNode.setExitNodeIdx(sgExitNodeIdx);
+                                sgCallNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
+
+                                sgEntryNode.setCallNodeIdx(sgCallNodeIdx);
+                                sgEntryNode.setExitNodeIdx(sgExitNodeIdx);
+                                sgEntryNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
+
+                                sgExitNode.setCallNodeIdx(sgCallNodeIdx);
+                                sgExitNode.setEntryNodeIdx(sgEntryNodeIdx);
+                                sgExitNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
+
+                                sgReturnSiteNode.setCallNodeIdx(sgCallNodeIdx);
+                                sgReturnSiteNode.setEntryNodeIdx(sgEntryNodeIdx);
+                                sgReturnSiteNode.setExitNodeIdx(sgExitNodeIdx);
                             }
                         }
                     }

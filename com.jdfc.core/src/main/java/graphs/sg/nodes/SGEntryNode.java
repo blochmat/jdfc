@@ -17,6 +17,9 @@ public class SGEntryNode extends SGNode {
 
     private BiMap<ProgramVariable, ProgramVariable> useDefMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
+    private int callNodeIdx;
+    private int exitNodeIdx;
+    private int returnSiteNodeIdx;
 
     public SGEntryNode(int index, CFGNode node) {
         super(index, node);

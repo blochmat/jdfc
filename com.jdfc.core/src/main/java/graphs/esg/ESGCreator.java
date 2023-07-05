@@ -29,11 +29,13 @@ public class ESGCreator {
 
     private static ProgramVariable ZERO;
 
-    private static final List<String> CALL_SEQUENCE = new ArrayList<>();
+    private static List<String> CALL_SEQUENCE;
 
-    private static Map<ProgramVariable, Boolean> LIVE_VARIABLES = new HashMap<>();
+    private static Map<ProgramVariable, Boolean> LIVE_VARIABLES;
 
-    private static final BiMap<ProgramVariable, ProgramVariable> DEFINITION_MATCHES = HashBiMap.create();
+    private static NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> CALLER_TO_CALLEE_DEFINITION_MAP;
+
+    private static NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> CALLEE_TO_CALLER_DEFINITION_MAP;
 
     public static void createESGsForClass(ClassExecutionData cData) {
         MAIN_METHOD_CLASS_NAME = cData.getRelativePath();
@@ -43,8 +45,12 @@ public class ESGCreator {
             MAIN_METHOD_NAME = mData.buildInternalMethodName();
             MAIN_METHOD_ID = ESGCreator.buildMethodIdentifier(MAIN_METHOD_CLASS_NAME, MAIN_METHOD_NAME);
             ZERO = new ProgramVariable.ZeroVariable(MAIN_METHOD_CLASS_NAME, MAIN_METHOD_NAME);
-            CALL_SEQUENCE.clear();
+            CALL_SEQUENCE = new ArrayList<>();
             CALL_SEQUENCE.add(MAIN_METHOD_ID);
+            LIVE_VARIABLES = new HashMap<>();
+            CALLER_TO_CALLEE_DEFINITION_MAP = new TreeMap<>();
+            CALLEE_TO_CALLER_DEFINITION_MAP = new TreeMap<>();
+
 
             ESG esg = ESGCreator.createESGForMethod();
             mData.setEsg(esg);
@@ -141,7 +147,10 @@ public class ESGCreator {
         String sgTargetNodeMId = ESGCreator.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch(((SGCallNode) sgNode), pVar);
-            DEFINITION_MATCHES.put(pVar, m);
+            CALLER_TO_CALLEE_DEFINITION_MAP.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
+            CALLER_TO_CALLEE_DEFINITION_MAP.get(sgNode.getIndex()).put(pVar, m);
+            CALLEE_TO_CALLER_DEFINITION_MAP.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
+            CALLEE_TO_CALLER_DEFINITION_MAP.get(((SGCallNode) sgNode).getExitNodeIdx()).put(m, pVar);
             if(m != null) {
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
@@ -173,9 +182,8 @@ public class ESGCreator {
                 ));
             }
         } else if (sgNode instanceof SGExitNode) {
-            ProgramVariable m = DEFINITION_MATCHES.inverse().get(pVar);
+            ProgramVariable m = CALLEE_TO_CALLER_DEFINITION_MAP.get(sgNode.getIndex()).get(pVar);
             if(m != null) {
-                DEFINITION_MATCHES.remove(m);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -606,7 +614,7 @@ public class ESGCreator {
 //        }
 
         //--- CREATE ESG -----------------------------------------------------------------------------------------------
-        return new ESG(SG, esgNodes, esgEdges, domain);
+        return new ESG(SG, esgNodes, esgEdges, domain, CALLER_TO_CALLEE_DEFINITION_MAP, CALLEE_TO_CALLER_DEFINITION_MAP);
     }
 
     public static Map<String, Map<UUID, ProgramVariable>> createDomain() {

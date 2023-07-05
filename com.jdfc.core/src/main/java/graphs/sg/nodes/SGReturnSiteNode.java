@@ -9,6 +9,9 @@ import java.util.Objects;
 @Data
 public class SGReturnSiteNode extends SGNode {
 
+    private int callNodeIdx;
+    private int entryNodeIdx;
+    private int exitNodeIdx;
 
     public SGReturnSiteNode(int index, CFGNode node) {
         super(index, node);

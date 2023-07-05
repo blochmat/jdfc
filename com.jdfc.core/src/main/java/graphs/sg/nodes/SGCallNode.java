@@ -21,6 +21,9 @@ public class SGCallNode extends SGNode {
     private boolean isCalledSGPresent;
     private BiMap<ProgramVariable, ProgramVariable> useDefMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
+    private int entryNodeIdx;
+    private int exitNodeIdx;
+    private int returnSiteNodeIdx;
 
     public SGCallNode(int index, CFGCallNode node) {
         super(index, node);

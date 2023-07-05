@@ -12,6 +12,7 @@ import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
 import graphs.sg.nodes.*;
 import lombok.Data;
+import utils.JDFCUtils;
 
 import java.util.*;
 
@@ -50,7 +51,13 @@ public class TabulationAlgorithm {
         this.pathEdgeSet.add(initialEdge);
         this.workList.add(initialEdge);
 
+        int iteration = 0;
+
         while(!workList.isEmpty()) {
+            if(mainMId.contains("callFoo")) {
+                JDFCUtils.logThis(JDFCUtils.prettyPrintArray(workList.toArray(new ESGEdge[0])), "worklist_" + iteration);
+            }
+            iteration++;
             ESGEdge currPathEdge = workList.pop();
 
             // Source
