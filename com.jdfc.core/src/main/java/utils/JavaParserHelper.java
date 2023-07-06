@@ -406,9 +406,10 @@ public class JavaParserHelper {
     }
 
     public String finalizeComponentTypes(String descriptor) {
-        if(descriptor.contains("<") && descriptor.contains(">")) {
+        if(descriptor.contains("?")) {
             String[] parts = descriptor.split("[<>]");
             StringBuilder result = new StringBuilder();
+
             if (parts.length % 3 == 0) {
                 for(int i = 0; i < parts.length / 3; i++) {
                     int x = i * 3;
@@ -421,9 +422,8 @@ public class JavaParserHelper {
                     }
                 }
             } else {
-                throw new RuntimeException("Invalid type descriptor.");
+                throw new RuntimeException("Invalid type descriptor: " + descriptor);
             }
-
             return result.toString();
         }
         return descriptor;
