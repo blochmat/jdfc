@@ -100,6 +100,11 @@ public class MethodData {
     private Map<UUID, ProgramVariable> programVariables;
 
     /**
+     * All field definitions
+     */
+    private Map<UUID, ProgramVariable> fieldDefinitions;
+
+    /**
      * Line of method declaration in source code
      */
     private int beginLine;
@@ -126,6 +131,7 @@ public class MethodData {
         this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
+        this.fieldDefinitions = new HashMap<>();
     }
 
     public MethodData(UUID id, String className, int access, String name, String desc, MethodDeclaration srcAst) {

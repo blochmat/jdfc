@@ -183,4 +183,8 @@ public class CFGNode {
     public Set<ProgramVariable> getReachOut() {
         return ImmutableSet.copyOf(reachOut);
     }
+
+    void addFieldDefinitions(Set<ProgramVariable> fieldDefinitions) {
+        this.definitions.addAll(fieldDefinitions);
+    }
 }

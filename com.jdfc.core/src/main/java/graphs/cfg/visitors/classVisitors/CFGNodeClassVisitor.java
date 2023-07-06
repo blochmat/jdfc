@@ -50,8 +50,12 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
 
             // TODO
             if (methodNode != null
-                    && isInstrumentationRequired(methodNode)
+                    && isInstrumentationRequired(methodNode, internalMethodName)
                     && !internalMethodName.contains("<clinit>")) {
+                if(methodNode.name.contains("<init>")) {
+                    String debug = String.format("%s::%s -> CFGNodeClassVisitor", classExecutionData.getRelativePath(), internalMethodName);
+                    JDFCUtils.logThis(debug, "synth_check");
+                }
                 CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, mv);
 
                 return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName, aa);
@@ -59,6 +63,13 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
         }
 
         return mv;
+    }
+
+    @Override
+    public void visitEnd() {
+        String debug = String.format("%s -> CFGNodeClassVisitor", classExecutionData.getRelativePath());
+        JDFCUtils.logThis(debug, "synth_check");
+        super.visitEnd();
     }
 }
 

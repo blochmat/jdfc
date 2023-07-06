@@ -26,8 +26,6 @@ public class SGCreator {
     public static void createSGsForClass(ClassExecutionData cData) {
         for(MethodData mData : cData.getMethods().values()) {
             mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashMap<>(), 0, new ArrayList<>()));
-//            mData.getSg().calculateReachingDefinitions();
-//            mData.calculateInterDefUsePairs();
         }
     }
 

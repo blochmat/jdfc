@@ -1,6 +1,8 @@
 package instr;
 
 import data.ClassExecutionData;
+import data.MethodData;
+import data.ProgramVariable;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
 import graphs.esg.ESGCreator;
@@ -18,6 +20,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class JDFCInstrument {
@@ -28,15 +32,31 @@ public class JDFCInstrument {
 
         // cw
         final ClassWriter cw = new ClassWriter(classReader, 0);
-        ClassExecutionData classExecutionData =
+        ClassExecutionData cData =
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
-        if (classExecutionData != null) {
-            CFGCreator.createCFGsForClass(classReader, classNode, classExecutionData);
+        if (cData != null) {
 
-            SGCreator.createSGsForClass(classExecutionData);
+            // Always
+            CFGCreator.createCFGsForClass(classReader, classNode, cData);
 
-            ESGCreator.createESGsForClass(classExecutionData);
+            // if intra
+            Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
+                    .flatMap(inner -> inner.values().stream())
+                    .collect(Collectors.toSet());
+            JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
+            for(MethodData mData : cData.getMethods().values()) {
+                mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
+                mData.getCfg().calculateReachingDefinitions();
+                mData.calculateIntraDefUsePairs();
+            }
+
+            // if inter
+            SGCreator.createSGsForClass(cData);
+            ESGCreator.createESGsForClass(cData);
+
+            // if intra
+
 
             if (log.isDebugEnabled()) {
                 // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
@@ -49,7 +69,7 @@ public class JDFCInstrument {
                     TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
 
                     // cv -> afterTcv -> cw
-                    ClassVisitor cv = new InstrumentationClassVisitor(afterTcv, classNode, classExecutionData);
+                    ClassVisitor cv = new InstrumentationClassVisitor(afterTcv, classNode, cData);
 
                     // beforeTcv -> cv -> afterTcv -> cw
                     File beforeFile = JDFCUtils.createFileIn(instrLogDir, "BEFORE", false);
@@ -67,7 +87,7 @@ public class JDFCInstrument {
             } else {
                 // Normal visitor chain: cr -> cv -> cw
                 // cv -> cw
-                ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, classExecutionData);
+                ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, cData);
 
                 // cr -> cv -> cw
                 classReader.accept(cv, 0);

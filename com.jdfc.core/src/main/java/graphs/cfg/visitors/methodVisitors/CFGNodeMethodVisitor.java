@@ -65,11 +65,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     }
 
     @Override
-    public void visitParameter(String name, int access) {
-        // TODO: Investigate as option to add entry node
-    }
-
-    @Override
     public void visitInsn(int opcode) {
 //        String debug = String.format("visitInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
@@ -280,8 +275,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         if (!internalMethodName.contains("<clinit>")) {
             MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
-            mData.getCfg().calculateReachingDefinitions();
-            mData.calculateIntraDefUsePairs();
         }
     }
 
@@ -402,6 +395,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         true
                 );
                 mData.getProgramVariables().put(programVariable.getId(), programVariable);
+                classVisitor.classExecutionData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
+                classVisitor.classExecutionData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
@@ -567,7 +562,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private void addEntryAndExitNode() {
 //        logger.debug("addEntryAndExitNode");
         Set<ProgramVariable> definitions = createDefinitionsFromLocalVars();
-        definitions.addAll(createDefinitionsFromFields());
         Map<Integer, ProgramVariable> pVarMap = new HashMap<>();
         Map<Integer, DomainVariable> dVarMap = new HashMap<>();
         int idx = 0;
@@ -704,25 +698,4 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         }
        return parameters;
     }
-
-    private Set<ProgramVariable> createDefinitionsFromFields() {
-        Set<ProgramVariable> definitions = new HashSet<>();
-        for(ProgramVariable f : classVisitor.classExecutionData.getFields()) {
-            definitions.add(new ProgramVariable(
-                    f.getId(),
-                    f.getLocalVarIdx(),
-                    f.getClassName(),
-                    mData.buildInternalMethodName(),
-                    f.getName(),
-                    f.getDescriptor(),
-                    f.getInstructionIndex(),
-                    f.getLineNumber(),
-                    f.getIsDefinition(),
-                    f.getIsCovered(),
-                    f.getIsField()
-            ));
-        }
-        return definitions;
-    }
-
 }

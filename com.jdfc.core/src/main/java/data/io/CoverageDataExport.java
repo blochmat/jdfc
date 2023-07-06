@@ -107,6 +107,10 @@ public class CoverageDataExport {
             pkg.appendChild(classes);
 
             for(ClassExecutionData cData : cDataSet) {
+                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
+                        .flatMap(inner -> inner.values().stream())
+                        .collect(Collectors.toSet());
+                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
                 if (Objects.equals(pkgData.getFqn(), cData.getParentFqn())) {
                     Element clazz = doc.createElement("class");
                     clazz.setAttribute("name", cData.getFqn());

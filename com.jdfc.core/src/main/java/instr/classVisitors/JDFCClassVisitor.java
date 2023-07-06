@@ -5,6 +5,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import utils.JDFCUtils;
 
 public abstract class JDFCClassVisitor extends ClassVisitor {
 
@@ -39,15 +40,25 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         return null;
     }
 
-    protected boolean isInstrumentationRequired(MethodNode methodNode) {
-        return !methodNode.name.contains("$jacoco") // no jacoco method
-                && !methodNode.name.contains("$lambda") // no lambda expression
-                && ((methodNode.access & Opcodes.ACC_SYNTHETIC) == 0) // no synthetic method
-                && ((methodNode.access & Opcodes.ACC_BRIDGE) == 0); // no bridge method
-    }
+    protected boolean isInstrumentationRequired(MethodNode methodNode, String internalMethodName) {
+        if(methodNode.name.contains("<init>")) {
+            String debug = String.format("%s::%s -> synth: %b, bridge: %b", classExecutionData.getRelativePath(), internalMethodName, ((methodNode.access & Opcodes.ACC_SYNTHETIC) == 0), ((methodNode.access & Opcodes.ACC_BRIDGE) == 0));
+            JDFCUtils.logThis(debug, "synth_check");
+        }
 
-    public ClassNode getClassNode() {
-        return classNode;
-    }
+        boolean isSynthetic = !((methodNode.access & Opcodes.ACC_SYNTHETIC) == 0);
+        boolean isBridge = !((methodNode.access & Opcodes.ACC_BRIDGE) == 0);
+        boolean isJacocoInstrumentation = methodNode.name.contains("$jacoco");
+        boolean isLambdaExpression = methodNode.name.contains("$lambda");
 
+        boolean isDefaultConstructor = internalMethodName.equals("<init>: ()V;") && isSynthetic && isBridge;
+        boolean isSourceCodeMethod = !isJacocoInstrumentation && !isLambdaExpression && !isSynthetic && !isBridge;
+
+        if(methodNode.name.contains("<init>")) {
+            String debug = String.format("%s::%s -> default: %b, sourceCode: %b", classExecutionData.getRelativePath(), internalMethodName, isDefaultConstructor, isSourceCodeMethod);
+            JDFCUtils.logThis(debug, "synth_check");
+        }
+
+        return  isDefaultConstructor || isSourceCodeMethod;
+    }
 }

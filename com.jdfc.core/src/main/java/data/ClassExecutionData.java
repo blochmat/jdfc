@@ -53,18 +53,18 @@ public class ClassExecutionData extends ExecutionData {
 
     private Map<String, String> nestedTypeMap;
 
-    private Set<ProgramVariable> fields;
-
     private Map<UUID, MethodData> methods;
 
     private Map<Integer, UUID> lineToMethodIdMap;
 
+    private Map<UUID, Map<UUID, ProgramVariable>> fieldDefinitions;
+
     public ClassExecutionData(String fqn, String name, UUID id, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
-        this.fields = new HashSet<>();
-        this.lineToMethodIdMap = new HashMap<>();
         this.id = id;
         this.relativePath = pRelativePath;
+        this.lineToMethodIdMap = new HashMap<>();
+        this.fieldDefinitions = new HashMap<>();
         this.srcFileAst = srcFileAst;
         this.pkgDecl = extractPackageDeclaration(srcFileAst);
         this.impDeclList = extractImportDeclarationList(srcFileAst);

@@ -1,18 +1,15 @@
 package graphs.cfg.visitors.classVisitors;
 
 import data.ClassExecutionData;
-import data.ProgramVariable;
 import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import utils.ASMHelper;
-
-import java.util.UUID;
+import utils.JDFCUtils;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -33,37 +30,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     /**
      * {@inheritDoc}
-     *
-     * Used to grab all fields of a class.
-     * Value is assigned in the constructor.
-     *
-     */
-    @Override
-    public FieldVisitor visitField(
-            final int access,
-            final String name,
-            final String descriptor,
-            final String signature,
-            final Object value) {
-        final FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
-        ProgramVariable var = new ProgramVariable(
-                        UUID.randomUUID(),
-                        Integer.MIN_VALUE,
-                        classExecutionData.getRelativePath(),
-                        null,
-                        name,
-                        descriptor,
-                        Integer.MIN_VALUE,
-                        Integer.MIN_VALUE,
-                        true,
-                        false,
-                        true);
-        classExecutionData.getFields().add(var);
-        return fv;
-    }
-
-    /**
-     * {@inheritDoc}
      */
     @Override
     public MethodVisitor visitMethod(final int pAccess,
@@ -74,11 +40,14 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         final MethodVisitor mv = super.visitMethod(pAccess, pName, pDescriptor, pSignature, pExceptions);
         final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
-        // TODO
 
         if (methodNode != null
-                && isInstrumentationRequired(methodNode)
+                && isInstrumentationRequired(methodNode, internalMethodName)
                 && !internalMethodName.contains("<clinit>")) {
+            if(methodNode.name.contains("<init>")) {
+                String debug = String.format("%s::%s -> CFGLocalVariableClassVisitor", classExecutionData.getRelativePath(), internalMethodName);
+                JDFCUtils.logThis(debug, "synth_check");
+            }
             return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
         }
@@ -87,11 +56,12 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     @Override
     public void visitEnd() {
+        String debug = String.format("%s -> CFGLocalVariableClassVisitor", classExecutionData.getRelativePath());
+        JDFCUtils.logThis(debug, "synth_check");
         if (cv != null) {
             cv.visitEnd();
         } else {
             super.visitEnd();
         }
-        // TODO: Add fields to classExecutionData
     }
 }

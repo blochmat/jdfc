@@ -40,6 +40,11 @@ public class CFGEntryNode extends CFGNode {
     }
 
     @Override
+    public void addFieldDefinitions(Set<ProgramVariable> fieldDefinitions) {
+        super.addFieldDefinitions(fieldDefinitions);
+    }
+
+    @Override
     public String toString() {
         return String.format(
                 "CFGEntryNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
