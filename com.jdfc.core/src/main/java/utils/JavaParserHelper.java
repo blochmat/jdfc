@@ -59,10 +59,10 @@ public class JavaParserHelper {
                                   Set<ResolvedType> toAdd,
                                   Set<ResolvedType> toRemove) {
 
-        // TODO: register: (LClass;)V;
-        //       register: (Ljava/lang/Class;)V;
+        // TODO: addToEveryListEl: (ILList<Integer>;)LList<Integer>;
+        //       addToEveryListEl: (ILjava/util/List<Ljava/lang/Integer;>;)Ljava/util/List<Ljava/lang/Integer;>;
 
-//        if(jvmDesc.contains("(LClass;)V;")) {
+//        if(jvmDesc.contains("(ILList<Integer>;)LList<Integer>;")) {
 //            System.out.println("asdf");
 //        }
         for(ResolvedType resolvedType : resolvedTypes) {
@@ -72,7 +72,7 @@ public class JavaParserHelper {
                     if (typeDeclaration.isPresent()) {
                         ResolvedReferenceTypeDeclaration rrtd = typeDeclaration.get();
 
-                        // Non-Generic Classes
+                        // Non-Generic types
                         if (rrtd.isClass() || rrtd.isInterface()) {
                             if(nestedTypeMap.containsKey(rrtd.getName())) {
                                 // inner or nested class
@@ -104,16 +104,70 @@ public class JavaParserHelper {
                                         }
                                     } else {
                                         // normal class or interface
-                                        String newName = rrtd.getQualifiedName().replace(".", "/");
-                                        String replacePattern = "L" + rrtd.getName() + ";";
-                                        String replacement = "L" + newName + ";";
-                                        jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
-                                        toRemove.add(resolvedType);
+                                        ResolvedReferenceTypeDeclaration listDecl = combinedTypeSolver.solveType("java.util.List");
+                                        ResolvedReferenceTypeDeclaration collectionDecl = combinedTypeSolver.solveType("java.util.Collection");
+                                        ResolvedReferenceTypeDeclaration comparatorDecl = combinedTypeSolver.solveType("java.util.Comparator");
+                                        ResolvedReferenceTypeDeclaration appendableDecl = combinedTypeSolver.solveType("java.lang.Appendable");
+                                        if(listDecl.isAssignableBy(rrtd)) {
+                                            String newName = listDecl.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + listDecl.getName();
+                                            String replacement = "L" + newName;
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                                            ResolvedTypeParametersMap typeParametersMap = resolvedReferenceType.typeParametersMap();
+                                            if(!typeParametersMap.isEmpty()) {
+                                                toAdd.addAll(typeParametersMap.getTypes());
+                                            }
+                                            toRemove.add(resolvedType);
+                                        } else if (collectionDecl.isAssignableBy(rrtd)){
+                                            String newName = collectionDecl.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + collectionDecl.getName();
+                                            String replacement = "L" + newName;
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                                            ResolvedTypeParametersMap typeParametersMap = resolvedReferenceType.typeParametersMap();
+                                            if(!typeParametersMap.isEmpty()) {
+                                                toAdd.addAll(typeParametersMap.getTypes());
+                                            }
+                                            toRemove.add(resolvedType);
+                                        } else if (comparatorDecl.isAssignableBy(rrtd)) {
+                                            String newName = comparatorDecl.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + comparatorDecl.getName();
+                                            String replacement = "L" + newName;
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                                            ResolvedTypeParametersMap typeParametersMap = resolvedReferenceType.typeParametersMap();
+                                            if(!typeParametersMap.isEmpty()) {
+                                                toAdd.addAll(typeParametersMap.getTypes());
+                                            }
+                                            toRemove.add(resolvedType);
+                                        } else if (appendableDecl.isAssignableBy(rrtd)) {
+                                            String newName = appendableDecl.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + appendableDecl.getName();
+                                            String replacement = "L" + newName;
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                                            ResolvedTypeParametersMap typeParametersMap = resolvedReferenceType.typeParametersMap();
+                                            if(!typeParametersMap.isEmpty()) {
+                                                toAdd.addAll(typeParametersMap.getTypes());
+                                            }
+                                            toRemove.add(resolvedType);
+                                        } else {
+                                            String newName = rrtd.getQualifiedName().replace(".", "/");
+                                            String replacePattern ;
+                                            if(jvmDesc.contains(String.format("<%s>", rrtd.getName()))) {
+                                                replacePattern = rrtd.getName();
+                                            } else {
+                                                replacePattern = "L" + rrtd.getName() + ";";
+                                            }
+                                            String replacement = "L" + newName + ";";
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            toRemove.add(resolvedType);
+                                        }
                                     }
                                 }
                             }
                         } else {
-                            // Lists
                             ResolvedReferenceTypeDeclaration listDecl = combinedTypeSolver.solveType("java.util.List");
                             ResolvedReferenceTypeDeclaration collectionDecl = combinedTypeSolver.solveType("java.util.Collection");
                             ResolvedReferenceTypeDeclaration comparatorDecl = combinedTypeSolver.solveType("java.util.Comparator");
