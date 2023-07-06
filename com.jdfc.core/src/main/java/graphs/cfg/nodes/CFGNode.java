@@ -131,6 +131,8 @@ public class CFGNode {
                 .anyMatch(
                         programVariable ->
                                 programVariable.getName().equals(variable.getName())
+                                        && programVariable.getName().equals(this.methodName)
+                                        && programVariable.getMethodName().equals(variable.getMethodName())
                                         && !Objects.equals(programVariable.getInstructionIndex(), variable.getInstructionIndex()));
     }
 

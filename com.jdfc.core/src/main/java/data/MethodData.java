@@ -205,7 +205,6 @@ public class MethodData {
     public void calculateIntraDefUsePairs() {
         for (Map.Entry<Integer, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
-
             for (ProgramVariable def : node.getReach()) {
                 for (ProgramVariable use : node.getUses()) {
                     if (Objects.equals(def.getName(), use.getName())
