@@ -9,7 +9,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import utils.ASMHelper;
-import utils.JDFCUtils;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -44,10 +43,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
         if (methodNode != null
                 && isInstrumentationRequired(methodNode, internalMethodName)
                 && !internalMethodName.contains("<clinit>")) {
-            if(methodNode.name.contains("<init>")) {
-                String debug = String.format("%s::%s -> CFGLocalVariableClassVisitor", classExecutionData.getRelativePath(), internalMethodName);
-                JDFCUtils.logThis(debug, "synth_check");
-            }
             return new CFGLocalVariableMethodVisitor(
                     this, mv, methodNode, internalMethodName);
         }
@@ -56,8 +51,6 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     @Override
     public void visitEnd() {
-        String debug = String.format("%s -> CFGLocalVariableClassVisitor", classExecutionData.getRelativePath());
-        JDFCUtils.logThis(debug, "synth_check");
         if (cv != null) {
             cv.visitEnd();
         } else {

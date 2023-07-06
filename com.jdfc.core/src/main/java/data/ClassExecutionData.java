@@ -201,16 +201,18 @@ public class ClassExecutionData extends ExecutionData {
             for(int i = mData.getBeginLine(); i <= mData.getEndLine(); i++) {
                 this.lineToMethodIdMap.put(i, id);
             }
-            JDFCUtils.logThis(JDFCUtils.prettyPrintMap(lineToMethodIdMap), "lineToMethodIdMap");
         }
 
         // Add default constructor
         if (methods.values().stream().noneMatch(x -> x.getName().equals("<init>"))) {
             UUID id = UUID.randomUUID();
             MethodData mData = new MethodData(id, this.relativePath, AccessSpecifier.PUBLIC.ordinal(), "<init>", "()V;");
-
             methods.put(id, mData);
+
+            this.lineToMethodIdMap.put(Integer.MIN_VALUE, id);
         }
+
+        JDFCUtils.logThis(JDFCUtils.prettyPrintMap(lineToMethodIdMap), "lineToMethodIdMap");
 
         return methods;
     }

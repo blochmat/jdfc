@@ -9,7 +9,6 @@ import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.ASMHelper;
-import utils.JDFCUtils;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -35,10 +34,6 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         MethodNode methodNode = getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (isInstrumentationRequired(methodNode, internalMethodName)) {
-            if(methodNode.name.contains("<init>")) {
-                String debug = String.format("%s::%s -> InstrumentationClassVisitor", classExecutionData.getRelativePath(), internalMethodName);
-                JDFCUtils.logThis(debug, "synth_check");
-            }
             mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName);
         }
 
@@ -47,8 +42,6 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
 
     @Override
     public void visitEnd() {
-        String debug = String.format("%s -> InstrumentationClassVisitor", classExecutionData.getRelativePath());
-        JDFCUtils.logThis(debug, "synth_check");
         super.visitEnd();
     }
 }

@@ -99,6 +99,10 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
                             false);
                 }
+            } else {
+                String debug = String.format("FIELDINSN %s::%s -> InstrumentationMethodVisitor", classVisitor.classExecutionData.getRelativePath(), internalMethodName);
+                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()), "synth_check");
+                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap()), "synth_check");
             }
         }
     }
