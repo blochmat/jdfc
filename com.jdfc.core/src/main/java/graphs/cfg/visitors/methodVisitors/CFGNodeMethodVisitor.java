@@ -66,11 +66,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitInsn(int opcode) {
-//        String debug = String.format("visitInsn %s", JDFCUtils.getOpcode(opcode));
-//        logger.debug(debug);
         super.visitInsn(opcode);
         aa.visitInsn(opcode);
-//        checkForF_NEW();
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
@@ -105,11 +102,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
-//        String debug = String.format("visitTypeInsn %s", JDFCUtils.getOpcode(opcode));
-//        logger.debug(debug);
         super.visitTypeInsn(opcode, type);
         aa.visitTypeInsn(opcode, type);
-//        checkForF_NEW();
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
@@ -134,13 +128,12 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
 
         ASMHelper asmHelper = new ASMHelper();
-        String shortInternalMethodName = asmHelper.computeInternalMethodName(
+        String shortCalledMethodName = asmHelper.computeInternalMethodName(
                 name,
                 descriptor,
                 null,
                 null);
-        MethodData cmData = classVisitor.classExecutionData.getMethodByShortInternalName(shortInternalMethodName);
-
+        MethodData cmData = classVisitor.classExecutionData.getMethodByShortInternalName(shortCalledMethodName);
         if (owner.equals(classVisitor.classNode.name) && cmData != null) {
             CFGCallNode node = new CFGCallNode(
                     currentInstructionIndex,
@@ -177,6 +170,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         JDFCUtils.logThis(String.format("%s %s %s %s %s", "invokedynamic", name, descriptor, bootstrapMethodHandle, Arrays.toString(bootstrapMethodArguments)), "dynamic_insn");
         nodes.put(currentInstructionIndex, node);
     }
+
+
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
@@ -256,6 +251,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                 MULTIANEWARRAY);
         nodes.put(currentInstructionIndex, node);
     }
+
+
 
     @Override
     public void visitEnd() {
