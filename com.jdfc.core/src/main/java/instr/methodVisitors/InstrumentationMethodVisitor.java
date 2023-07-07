@@ -75,9 +75,6 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     public void visitTypeInsn(int opcode, String type) {
         super.visitTypeInsn(opcode, type);
         aa.visitTypeInsn(opcode, type);
-//        if (!internalMethodName.contains("<clinit>") && opcode == Opcodes.NEW) {
-//            trackObject.add(aa.stack.size());
-//        }
     }
 
     @Override
@@ -87,15 +84,20 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         insertFieldTracking(opcode, owner, name, descriptor);
     }
 
-//    @Override
-//    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-//        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-//        if(trackObject.contains(aa.stack.size()) && opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
-//            trackObject.remove(aa.stack.size());
-//            insertObjectTracking();
-//        }
-//        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-//    }
+    @Override
+    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+        if(opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
+            if (owner.equals("java/lang/Object")) {
+                mv.visitInsn(Opcodes.DUP);
+                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+            } else {
+                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                mv.visitInsn(Opcodes.DUP);
+            }
+            insertObjectTracking();
+        }
+        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+    }
 
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
@@ -155,7 +157,6 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         }
 
         if(mId != null) {
-            mv.visitInsn(Opcodes.DUP);
             mv.visitLdcInsn(cId.toString());
             mv.visitLdcInsn(mId.toString());
             mv.visitMethodInsn(

@@ -44,7 +44,7 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         MethodNode methodNode = getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (isInstrumentationRequired(methodNode, internalMethodName)) {
-            CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, mv);
+            CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, null);
             mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName, aa);
         }
 

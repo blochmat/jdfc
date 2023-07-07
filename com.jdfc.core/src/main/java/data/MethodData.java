@@ -107,11 +107,13 @@ public class MethodData {
     /**
      * Allocated Objects
      */
+    @JsonIgnore
     private Map<Integer, Object> allocatedObjects;
 
     /**
      * Modified Objects
      */
+    @JsonIgnore
     private Map<Integer, Object> modifiedObjects;
 
     /**
@@ -158,6 +160,9 @@ public class MethodData {
         this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
+        this.fieldDefinitions = new HashMap<>();
+        this.allocatedObjects = new HashMap<>();
+        this.modifiedObjects = new HashMap<>();
     }
 
     public MethodData(UUID id, String className, int access, String name, String desc, ConstructorDeclaration srcAst) {
@@ -172,6 +177,9 @@ public class MethodData {
         this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
+        this.fieldDefinitions = new HashMap<>();
+        this.allocatedObjects = new HashMap<>();
+        this.modifiedObjects = new HashMap<>();
     }
 
     public String buildInternalMethodName() {
