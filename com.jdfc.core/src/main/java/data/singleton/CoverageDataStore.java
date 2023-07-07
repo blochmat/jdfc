@@ -80,10 +80,22 @@ public class CoverageDataStore {
         this.jdfcDebugDevLogDir = new File(String.format("%s%slog", this.jdfcDebugDir, File.separator));
     }
 
-    public static void invokeCoverageTracker(final String cId,
-                                             final String mId,
-                                             final String pId) {
+    public static void trackVar(final String cId,
+                                final String mId,
+                                final String pId) {
         CoverageTracker.getInstance().addVarCoveredEntry(cId, mId, pId);
+    }
+
+    public static void trackNewObject(final Object obj,
+                                      final String cId,
+                                      final String mId) {
+        CoverageTracker.getInstance().trackNewObjectRef(cId, mId, obj);
+    }
+
+    public static void trackModifiedObject(final Object obj,
+                                           final String cId,
+                                           final String mId) {
+        CoverageTracker.getInstance().trackModifiedObjectRef(cId, mId, obj);
     }
 
     public void exportCoverageData() {

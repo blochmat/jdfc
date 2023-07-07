@@ -15,12 +15,27 @@ import utils.JDFCUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 import static org.objectweb.asm.Opcodes.ISTORE;
 @Slf4j
 public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
+
+    private static final String COVERAGE_DATA_STORE = Type.getInternalName(CoverageDataStore.class);
+
+    private static final String TRACK_VAR = "trackVar";
+    private static final String TRACK_VAR_DESC = "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V";
+
+    private static final String TRACK_NEW_OBJECT = "trackNewObject";
+    private static final String TRACK_NEW_OBJECT_DESC = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
+
+    private static final String TRACK_MODIFIED_OBJECT = "trackModifiedObject";
+    private static final String TRACK_MODIFIED_OBJECT_DESC = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
+
+    private final Map<Integer, Boolean> trackObject = new HashMap<>();
 
     public InstrumentationMethodVisitor(InstrumentationClassVisitor pClassVisitor,
                                         MethodVisitor pMethodVisitor,
@@ -29,25 +44,45 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
     }
 
+//    @Override
+//    public void visitTypeInsn(int opcode, String type) {
+//        super.visitTypeInsn(opcode, type);
+//        if(!internalMethodName.contains("<clinit>") && opcode == Opcodes.NEW) {
+//
+//            UUID cId = classVisitor.classExecutionData.getId();
+//            UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+//
+//            mv.visitInsn(Opcodes.DUP);
+//            mv.visitLdcInsn(cId.toString());
+//            mv.visitLdcInsn(mId.toString());
+//            mv.visitMethodInsn(
+//                    Opcodes.INVOKESTATIC,
+//                    COVERAGE_DATA_STORE,
+//                    TRACK_NEW_OBJECT,
+//                    TRACK_NEW_OBJECT_DESC,
+//                    false);
+//        }
+//    }
+
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         super.visitFieldInsn(opcode, owner, name, descriptor);
-        insertFieldEntryCreation(opcode, owner, name, descriptor);
+        insertFieldTracking(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
-        insertLocalVariableEntryCreation(opcode, var);
+        insertLocalVarTracking(opcode, var);
     }
 
     @Override
     public void visitIincInsn(int var, int increment) {
         super.visitIincInsn(var, increment);
-        insertLocalVariableEntryCreation(ISTORE, var);
+        insertLocalVarTracking(ISTORE, var);
     }
 
-    public void insertFieldEntryCreation(int opcode, String className, String name, String descriptor) {
+    public void insertFieldTracking(int opcode, String className, String name, String descriptor) {
         if (!internalMethodName.contains("<clinit>")) {
             UUID cId = classVisitor.classExecutionData.getId();
             UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
@@ -73,7 +108,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 UUID pId = mData.findVarId(localPVar);
                 if (pId == null) {
                     if(log.isDebugEnabled()) {
-                        File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
+                        File file = JDFCUtils.createFileInDebugDir("insertLocalVarTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: ProgramVariableId is null.\n");
                             writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
@@ -94,21 +129,27 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     mv.visitLdcInsn(pId.toString());
                     mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
-                            Type.getInternalName(CoverageDataStore.class),
-                            "invokeCoverageTracker",
-                            "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                            COVERAGE_DATA_STORE,
+                            TRACK_VAR,
+                            TRACK_VAR_DESC,
                             false);
                 }
             } else {
-                String debug = String.format("FIELDINSN %s::%s -> InstrumentationMethodVisitor", classVisitor.classExecutionData.getRelativePath(), internalMethodName);
-                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()), "synth_check");
-                JDFCUtils.logThis(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap()), "synth_check");
+                if(log.isDebugEnabled()) {
+                    String error = String.format("%s::%s : mId == null\n%s%s",
+                            classVisitor.classExecutionData.getRelativePath(),
+                            internalMethodName,
+                            JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()),
+                            JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap())
+                    );
+                    JDFCUtils.logThis(error, "ERROR");
+                }
             }
         }
     }
 
-    private void insertLocalVariableEntryCreation(final int opcode,
-                                                  final int localVarIdx) {
+    private void insertLocalVarTracking(final int opcode,
+                                        final int localVarIdx) {
         if (!internalMethodName.contains("<clinit>")) {
             UUID cId = classVisitor.classExecutionData.getId();
             UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
@@ -122,7 +163,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
                 if(localVariable == null) {
                     if(log.isDebugEnabled()) {
-                        File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
+                        File file = JDFCUtils.createFileInDebugDir("insertLocalVarTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: LocalVariable is null.\n");
                             writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
@@ -153,7 +194,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     UUID pId = mData.findVarId(localPVar);
                     if (pId == null) {
                         if(log.isDebugEnabled()) {
-                            File file = JDFCUtils.createFileInDebugDir("insertLocalVariableEntryCreation.txt", false);
+                            File file = JDFCUtils.createFileInDebugDir("insertLocalVarTracking.txt", false);
                             try (FileWriter writer = new FileWriter(file, true)) {
                                 writer.write("Error: ProgramVariableId is null.\n");
                                 writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
@@ -174,9 +215,9 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         mv.visitLdcInsn(pId.toString());
                         mv.visitMethodInsn(
                                 Opcodes.INVOKESTATIC,
-                                Type.getInternalName(CoverageDataStore.class),
-                                "invokeCoverageTracker",
-                                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+                                COVERAGE_DATA_STORE,
+                                TRACK_VAR,
+                                TRACK_VAR_DESC,
                                 false);
                     }
                 }

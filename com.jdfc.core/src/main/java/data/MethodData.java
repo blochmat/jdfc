@@ -105,6 +105,16 @@ public class MethodData {
     private Map<UUID, ProgramVariable> fieldDefinitions;
 
     /**
+     * Allocated Objects
+     */
+    private Map<Integer, Object> allocatedObjects;
+
+    /**
+     * Modified Objects
+     */
+    private Map<Integer, Object> modifiedObjects;
+
+    /**
      * Line of method declaration in source code
      */
     private int beginLine;
@@ -132,6 +142,8 @@ public class MethodData {
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
         this.fieldDefinitions = new HashMap<>();
+        this.allocatedObjects = new HashMap<>();
+        this.modifiedObjects = new HashMap<>();
     }
 
     public MethodData(UUID id, String className, int access, String name, String desc, MethodDeclaration srcAst) {

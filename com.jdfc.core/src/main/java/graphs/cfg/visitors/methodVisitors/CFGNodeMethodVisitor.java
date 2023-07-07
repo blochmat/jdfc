@@ -33,7 +33,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final NavigableMap<Integer, CFGNode> nodes;
     private final NavigableMap<Integer, DomainVariable> domain;
     private final MethodData mData;
-    private CFGAnalyzerAdapter aa;
+    private final CFGAnalyzerAdapter aa;
 
     public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
                                 final MethodVisitor pMethodVisitor,

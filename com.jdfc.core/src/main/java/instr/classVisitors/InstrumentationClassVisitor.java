@@ -18,10 +18,18 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
+    public String className;
+
     public InstrumentationClassVisitor(final ClassVisitor pClassVisitor,
                                        final ClassNode pClassNode,
                                        final ClassExecutionData pClassExecutionData) {
         super(ASM5, pClassVisitor, pClassNode, pClassExecutionData);
+    }
+
+    @Override
+    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        this.className = name;
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 
     @Override

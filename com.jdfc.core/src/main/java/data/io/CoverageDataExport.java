@@ -121,6 +121,7 @@ public class CoverageDataExport {
                     clazz.appendChild(methods);
 
                     for(MethodData mData : cData.getMethods().values()) {
+                        JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintMap(mData.getAllocatedObjects()), "allocatedObjects");
                         ObjectMapper objectMapper = new ObjectMapper();
                         try {
                             objectMapper.writeValue(new File(String.format("/tmp/%s.json", mData.getName())), mData);
