@@ -76,7 +76,7 @@ public class JDFCInstrument {
                     try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFile, true))) {
                         TraceClassVisitor beforeTcv = new TraceClassVisitor(cv, beforeWriter);
                         // cr -> beforeTcv -> cv -> afterTcv -> cw
-                        classReader.accept(beforeTcv, 0);
+                        classReader.accept(beforeTcv, ClassReader.EXPAND_FRAMES);
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
@@ -90,7 +90,7 @@ public class JDFCInstrument {
                 ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, cData);
 
                 // cr -> cv -> cw
-                classReader.accept(cv, 0);
+                classReader.accept(cv, ClassReader.EXPAND_FRAMES);
             }
         }
 

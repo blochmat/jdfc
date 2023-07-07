@@ -4,19 +4,18 @@ import data.MethodData;
 import data.ProgramVariable;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.LocalVariable;
+import graphs.cfg.visitors.methodVisitors.CFGAnalyzerAdapter;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.tree.MethodNode;
 import utils.JDFCUtils;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.ASM5;
@@ -35,52 +34,150 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     private static final String TRACK_MODIFIED_OBJECT = "trackModifiedObject";
     private static final String TRACK_MODIFIED_OBJECT_DESC = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
 
-    private final Map<Integer, Boolean> trackObject = new HashMap<>();
+    private final Set<Integer> trackObject = new HashSet<>();
+    private final CFGAnalyzerAdapter aa;
 
     public InstrumentationMethodVisitor(InstrumentationClassVisitor pClassVisitor,
                                         MethodVisitor pMethodVisitor,
                                         MethodNode pMethodNode,
-                                        String internalMethodName) {
+                                        String internalMethodName,
+                                        final CFGAnalyzerAdapter aa) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
+        this.aa = aa;
     }
 
-//    @Override
-//    public void visitTypeInsn(int opcode, String type) {
-//        super.visitTypeInsn(opcode, type);
-//        if(!internalMethodName.contains("<clinit>") && opcode == Opcodes.NEW) {
-//
-//            UUID cId = classVisitor.classExecutionData.getId();
-//            UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
-//
-//            mv.visitInsn(Opcodes.DUP);
-//            mv.visitLdcInsn(cId.toString());
-//            mv.visitLdcInsn(mId.toString());
-//            mv.visitMethodInsn(
-//                    Opcodes.INVOKESTATIC,
-//                    COVERAGE_DATA_STORE,
-//                    TRACK_NEW_OBJECT,
-//                    TRACK_NEW_OBJECT_DESC,
-//                    false);
-//        }
-//    }
+    @Override
+    public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
+        super.visitFrame(type, numLocal, local, numStack, stack);
+        aa.visitFrame(type, numLocal, local, numStack, stack);
+    }
 
     @Override
-    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        super.visitFieldInsn(opcode, owner, name, descriptor);
-        insertFieldTracking(opcode, owner, name, descriptor);
+    public void visitInsn(int opcode) {
+        super.visitInsn(opcode);
+        aa.visitInsn(opcode);
+    }
+
+    @Override
+    public void visitIntInsn(int opcode, int operand) {
+        super.visitIntInsn(opcode, operand);
+        aa.visitIntInsn(opcode, operand);
     }
 
     @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
+        aa.visitVarInsn(opcode, var);
         insertLocalVarTracking(opcode, var);
+    }
+
+    @Override
+    public void visitTypeInsn(int opcode, String type) {
+        super.visitTypeInsn(opcode, type);
+        aa.visitTypeInsn(opcode, type);
+//        if (!internalMethodName.contains("<clinit>") && opcode == Opcodes.NEW) {
+//            trackObject.add(aa.stack.size());
+//        }
+    }
+
+    @Override
+    public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+        super.visitFieldInsn(opcode, owner, name, descriptor);
+        aa.visitFieldInsn(opcode, owner, name, descriptor);
+        insertFieldTracking(opcode, owner, name, descriptor);
+    }
+
+//    @Override
+//    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+//        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+//        if(trackObject.contains(aa.stack.size()) && opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
+//            trackObject.remove(aa.stack.size());
+//            insertObjectTracking();
+//        }
+//        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+//    }
+
+    @Override
+    public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+        super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+        aa.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+    }
+
+    @Override
+    public void visitJumpInsn(int opcode, Label label) {
+        super.visitJumpInsn(opcode, label);
+        aa.visitJumpInsn(opcode, label);
+    }
+
+    @Override
+    public void visitLdcInsn(Object value) {
+        super.visitLdcInsn(value);
+        aa.visitLdcInsn(value);
     }
 
     @Override
     public void visitIincInsn(int var, int increment) {
         super.visitIincInsn(var, increment);
+        aa.visitIincInsn(var, increment);
         insertLocalVarTracking(ISTORE, var);
     }
+
+    @Override
+    public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
+        super.visitTableSwitchInsn(min, max, dflt, labels);
+        aa.visitTableSwitchInsn(min, max, dflt, labels);
+    }
+
+    @Override
+    public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
+        super.visitLookupSwitchInsn(dflt, keys, labels);
+        aa.visitLookupSwitchInsn(dflt, keys, labels);
+    }
+
+    @Override
+    public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
+        super.visitMultiANewArrayInsn(descriptor, numDimensions);
+        aa.visitMultiANewArrayInsn(descriptor, numDimensions);
+    }
+
+    @Override
+    public void visitEnd() {
+        super.visitEnd();
+//        aa.visitEnd();
+    }
+
+    private void insertObjectTracking() {
+        UUID cId = classVisitor.classExecutionData.getId();
+        UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+        if(mId == null && internalMethodName.equals("<init>: ()V;")) {
+            // Default constructor
+            mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+        }
+
+        if(mId != null) {
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitLdcInsn(cId.toString());
+            mv.visitLdcInsn(mId.toString());
+            mv.visitMethodInsn(
+                    Opcodes.INVOKESTATIC,
+                    COVERAGE_DATA_STORE,
+                    TRACK_NEW_OBJECT,
+                    TRACK_NEW_OBJECT_DESC,
+                    false);
+
+        } else {
+            if(log.isDebugEnabled()) {
+                String error = String.format("%s::%s : mId == null\n%s%s",
+                        classVisitor.classExecutionData.getRelativePath(),
+                        internalMethodName,
+                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()),
+                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap())
+                );
+                JDFCUtils.logThis(error, "ERROR");
+            }
+        }
+    }
+
 
     public void insertFieldTracking(int opcode, String className, String name, String descriptor) {
         if (!internalMethodName.contains("<clinit>")) {

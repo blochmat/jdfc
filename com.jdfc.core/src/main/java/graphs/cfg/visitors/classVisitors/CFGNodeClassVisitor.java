@@ -53,7 +53,6 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
                     && isInstrumentationRequired(methodNode, internalMethodName)
                     && !internalMethodName.contains("<clinit>")) {
                 CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, mv);
-
                 return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName, aa);
             }
         }
