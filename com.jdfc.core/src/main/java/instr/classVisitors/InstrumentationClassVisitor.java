@@ -1,11 +1,9 @@
 package instr.classVisitors;
 
 import data.ClassExecutionData;
-import graphs.cfg.visitors.methodVisitors.CFGAnalyzerAdapter;
 import instr.methodVisitors.InstrumentationMethodVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
@@ -44,8 +42,9 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         MethodNode methodNode = getMethodNode(pName, pDescriptor);
         final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
         if (isInstrumentationRequired(methodNode, internalMethodName)) {
-            CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, null);
-            mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName, aa);
+//            CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, null);
+            mv = new InstrumentationMethodVisitor(this, mv, methodNode, internalMethodName);
+//            mv = new JDFCAdviceAdapter(Opcodes.ASM5, mv, pAccess, pName, pDescriptor);
         }
 
         return mv;

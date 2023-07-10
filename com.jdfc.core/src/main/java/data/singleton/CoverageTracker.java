@@ -31,13 +31,13 @@ public class CoverageTracker {
         ProgramVariable pVar = null;
         try {
             cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
+            CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
+            CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
             mData = cData.getMethods().get(UUID.fromString(mId));
             pVar = mData.getProgramVariables().get(UUID.fromString(pId));
             if (!pVar.getIsCovered()) {
                 pVar.setIsCovered(true);
             }
-            CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
-            CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
         } catch (Exception e) {
             if (log.isDebugEnabled()) {
                 File file = JDFCUtils.createFileInDebugDir("ERROR_addLocalVarCoveredEntry.txt", false);
@@ -87,6 +87,8 @@ public class CoverageTracker {
         MethodData mData = null;
         try {
             cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
+            CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
+            CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
             mData = cData.getMethods().get(UUID.fromString(mId));
             mData.getAllocatedObjects().put(System.identityHashCode(obj), obj);
         } catch (Exception e) {
@@ -130,6 +132,8 @@ public class CoverageTracker {
         MethodData mData = null;
         try {
             cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
+            CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
+            CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
             mData = cData.getMethods().get(UUID.fromString(mId));
             mData.getModifiedObjects().put(System.identityHashCode(obj), obj);
         } catch (Exception e) {

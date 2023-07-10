@@ -145,10 +145,10 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
     }
 
-    @Override
-    public void visitMaxs(int maxStack, int maxLocals) {
-        super.visitMaxs(maxStack + 9, maxLocals);
-    }
+//    @Override
+//    public void visitMaxs(int maxStack, int maxLocals) {
+//        super.visitMaxs(maxStack + 9, maxLocals);
+//    }
 
     @Override
     public void visitEnd() {

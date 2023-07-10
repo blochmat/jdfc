@@ -4,7 +4,6 @@ import data.MethodData;
 import data.ProgramVariable;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.LocalVariable;
-import graphs.cfg.visitors.methodVisitors.CFGAnalyzerAdapter;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.*;
@@ -35,59 +34,58 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     private static final String TRACK_MODIFIED_OBJECT_DESC = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
 
     private final Set<Integer> trackObject = new HashSet<>();
-    private final CFGAnalyzerAdapter aa;
+//    private final CFGAnalyzerAdapter aa;
 
     public InstrumentationMethodVisitor(InstrumentationClassVisitor pClassVisitor,
                                         MethodVisitor pMethodVisitor,
                                         MethodNode pMethodNode,
-                                        String internalMethodName,
-                                        final CFGAnalyzerAdapter aa) {
+                                        String internalMethodName) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
-        this.aa = aa;
+//        this.aa = aa;
     }
 
     @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         super.visitFrame(type, numLocal, local, numStack, stack);
-        aa.visitFrame(type, numLocal, local, numStack, stack);
+//        aa.visitFrame(type, numLocal, local, numStack, stack);
     }
 
     @Override
     public void visitInsn(int opcode) {
         super.visitInsn(opcode);
-        aa.visitInsn(opcode);
+//        aa.visitInsn(opcode);
     }
 
     @Override
     public void visitIntInsn(int opcode, int operand) {
         super.visitIntInsn(opcode, operand);
-        aa.visitIntInsn(opcode, operand);
+//        aa.visitIntInsn(opcode, operand);
     }
 
     @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
-        aa.visitVarInsn(opcode, var);
+//        aa.visitVarInsn(opcode, var);
         insertLocalVarTracking(opcode, var);
     }
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
         super.visitTypeInsn(opcode, type);
-        aa.visitTypeInsn(opcode, type);
+//        aa.visitTypeInsn(opcode, type);
     }
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
         super.visitFieldInsn(opcode, owner, name, descriptor);
-        aa.visitFieldInsn(opcode, owner, name, descriptor);
+//        aa.visitFieldInsn(opcode, owner, name, descriptor);
         insertFieldTracking(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         if(opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
-            if (owner.equals("java/lang/Object")) {
+            if (owner.equals("java/lang/Object") || owner.equals("java/lang/Exception")) {
                 mv.visitInsn(Opcodes.DUP);
                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
             } else {
@@ -96,50 +94,50 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             }
             insertObjectTracking();
         }
-        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+//        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
 
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
-        aa.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+//        aa.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
     }
 
     @Override
     public void visitJumpInsn(int opcode, Label label) {
         super.visitJumpInsn(opcode, label);
-        aa.visitJumpInsn(opcode, label);
+//        aa.visitJumpInsn(opcode, label);
     }
 
     @Override
     public void visitLdcInsn(Object value) {
         super.visitLdcInsn(value);
-        aa.visitLdcInsn(value);
+//        aa.visitLdcInsn(value);
     }
 
     @Override
     public void visitIincInsn(int var, int increment) {
         super.visitIincInsn(var, increment);
-        aa.visitIincInsn(var, increment);
+//        aa.visitIincInsn(var, increment);
         insertLocalVarTracking(ISTORE, var);
     }
 
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         super.visitTableSwitchInsn(min, max, dflt, labels);
-        aa.visitTableSwitchInsn(min, max, dflt, labels);
+//        aa.visitTableSwitchInsn(min, max, dflt, labels);
     }
 
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         super.visitLookupSwitchInsn(dflt, keys, labels);
-        aa.visitLookupSwitchInsn(dflt, keys, labels);
+//        aa.visitLookupSwitchInsn(dflt, keys, labels);
     }
 
     @Override
     public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
         super.visitMultiANewArrayInsn(descriptor, numDimensions);
-        aa.visitMultiANewArrayInsn(descriptor, numDimensions);
+//        aa.visitMultiANewArrayInsn(descriptor, numDimensions);
     }
 
     @Override
@@ -206,7 +204,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 UUID pId = mData.findVarId(localPVar);
                 if (pId == null) {
                     if(log.isDebugEnabled()) {
-                        File file = JDFCUtils.createFileInDebugDir("insertLocalVarTracking.txt", false);
+                        File file = JDFCUtils.createFileInDebugDir("ERROR_insertFieldTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: ProgramVariableId is null.\n");
                             writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
@@ -261,7 +259,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
                 if(localVariable == null) {
                     if(log.isDebugEnabled()) {
-                        File file = JDFCUtils.createFileInDebugDir("insertLocalVarTracking.txt", false);
+                        File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: LocalVariable is null.\n");
                             writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
@@ -292,7 +290,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     UUID pId = mData.findVarId(localPVar);
                     if (pId == null) {
                         if(log.isDebugEnabled()) {
-                            File file = JDFCUtils.createFileInDebugDir("insertLocalVarTracking.txt", false);
+                            File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
                             try (FileWriter writer = new FileWriter(file, true)) {
                                 writer.write("Error: ProgramVariableId is null.\n");
                                 writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));

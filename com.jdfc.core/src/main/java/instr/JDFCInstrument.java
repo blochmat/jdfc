@@ -31,7 +31,7 @@ public class JDFCInstrument {
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
         // cw
-        final ClassWriter cw = new ClassWriter(classReader, 0);
+        final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
         ClassExecutionData cData =
                 (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
 
