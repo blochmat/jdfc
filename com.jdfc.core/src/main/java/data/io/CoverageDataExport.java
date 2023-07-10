@@ -34,7 +34,6 @@ public class CoverageDataExport {
     }
 
     public static void dumpCoverageDataToFile() throws ParserConfigurationException, TransformerException {
-        logger.debug("dumpCoverageDataToFile");
         // Create JDFC directory
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
         File JDFCDir = new File(outPath);
@@ -192,14 +191,11 @@ public class CoverageDataExport {
     }
 
     private static void analyseUntestedClasses() {
-        logger.debug("analyseUntestedClasses");
         Set<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
         JDFCInstrument JDFCInstrument = new JDFCInstrument();
 
-        JDFCUtils.logThis(JDFCUtils.prettyPrintArray(classList.toArray()), "classList");
         for (String relPath : classList) {
             // pClassesDir = target/classes
-            JDFCUtils.logThis(relPath, "relPaths");
             String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesBuildDir(), relPath, ".class");
             File classFile = new File(classFilePath);
             try {
@@ -227,7 +223,6 @@ public class CoverageDataExport {
      * @throws TransformerException Occurs in case of failing to transform the built file into xml
      */
     public static void dumpClassExecutionDataToFile(final ClassExecutionData pClassExecutionData) throws ParserConfigurationException, TransformerException {
-        logger.debug("dumpClassExecutionDataToFile");
         String outPath = String.format("%s%starget%sjdfc", System.getProperty("user.dir"), File.separator, File.separator);
         File JDFCDir = new File(outPath);
         if (!JDFCDir.exists()) {
