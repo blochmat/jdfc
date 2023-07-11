@@ -17,8 +17,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.objectweb.asm.Opcodes.ASM5;
-import static org.objectweb.asm.Opcodes.ISTORE;
+import static org.objectweb.asm.Opcodes.*;
+
 @Slf4j
 public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
@@ -65,6 +65,9 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
+        if(opcode == Opcodes.ALOAD && var == 0) {
+            mv.visitInsn(Opcodes.DUP);
+        }
 //        aa.visitVarInsn(opcode, var);
         insertLocalVarTracking(opcode, var);
     }
@@ -77,22 +80,25 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-        super.visitFieldInsn(opcode, owner, name, descriptor);
 //        aa.visitFieldInsn(opcode, owner, name, descriptor);
+        super.visitFieldInsn(opcode, owner, name, descriptor);
+        if(opcode == Opcodes.PUTFIELD || opcode == PUTSTATIC) {
+            insertModifiedObjectTracking();
+        }
         insertFieldTracking(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         if(opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
-            if (owner.equals("java/lang/Object") || owner.equals("java/lang/Exception")) {
+            if (owner.equals("java/lang/Exception")) {
                 mv.visitInsn(Opcodes.DUP);
                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
             } else {
                 super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                 mv.visitInsn(Opcodes.DUP);
             }
-            insertObjectTracking();
+            insertNewObjectTracking();
         }
 //        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
@@ -146,7 +152,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 //        aa.visitEnd();
     }
 
-    private void insertObjectTracking() {
+    private void insertNewObjectTracking() {
         UUID cId = classVisitor.classExecutionData.getId();
         UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
         if(mId == null && internalMethodName.equals("<init>: ()V;")) {
@@ -177,6 +183,36 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
+    private void insertModifiedObjectTracking() {
+        UUID cId = classVisitor.classExecutionData.getId();
+        UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+        if(mId == null && internalMethodName.equals("<init>: ()V;")) {
+            // Default constructor
+            mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+        }
+
+        if(mId != null) {
+            mv.visitLdcInsn(cId.toString());
+            mv.visitLdcInsn(mId.toString());
+            mv.visitMethodInsn(
+                    Opcodes.INVOKESTATIC,
+                    COVERAGE_DATA_STORE,
+                    TRACK_MODIFIED_OBJECT,
+                    TRACK_MODIFIED_OBJECT_DESC,
+                    false);
+
+        } else {
+            if(log.isDebugEnabled()) {
+                String error = String.format("%s::%s : mId == null\n%s%s",
+                        classVisitor.classExecutionData.getRelativePath(),
+                        internalMethodName,
+                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()),
+                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap())
+                );
+                JDFCUtils.logThis(error, "ERROR");
+            }
+        }
+    }
 
     public void insertFieldTracking(int opcode, String className, String name, String descriptor) {
         if (!internalMethodName.contains("<clinit>")) {
