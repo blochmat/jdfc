@@ -59,7 +59,6 @@ public class JDFCInstrument {
 
             // if intra
 
-
             if (log.isDebugEnabled()) {
                 // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
                 // Byte code is written to two files BEFORE.txt and AFTER.txt.
@@ -69,6 +68,7 @@ public class JDFCInstrument {
                 File afterFile = JDFCUtils.createFileIn(instrLogDir, "AFTER", false);
                 try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFile, true))) {
                     TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
+//                    CheckClassAdapter cca = new CheckClassAdapter(afterTcv, true);
 
                     // iv -> afterTcv -> cw
                     ClassVisitor iv = new InstrumentationClassVisitor(afterTcv, classNode, cData);

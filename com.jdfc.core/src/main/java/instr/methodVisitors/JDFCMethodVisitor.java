@@ -146,11 +146,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
     }
 
     @Override
-    public void visitMaxs(int maxStack, int maxLocals) {
-        super.visitMaxs(maxStack, maxLocals);
-    }
-
-    @Override
     public void visitEnd() {
         super.visitEnd();
     }

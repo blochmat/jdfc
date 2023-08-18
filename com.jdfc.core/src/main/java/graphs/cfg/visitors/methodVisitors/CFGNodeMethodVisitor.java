@@ -252,8 +252,6 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         nodes.put(currentInstructionIndex, node);
     }
 
-
-
     @Override
     public void visitEnd() {
 //        logger.debug("visitEnd");

@@ -65,9 +65,9 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitVarInsn(int opcode, int var) {
         super.visitVarInsn(opcode, var);
-        if(opcode == Opcodes.ALOAD && var == 0) {
-            mv.visitInsn(Opcodes.DUP);
-        }
+//        if(opcode == Opcodes.ALOAD && var == 0) {
+//            mv.visitInsn(Opcodes.DUP);
+//        }
 //        aa.visitVarInsn(opcode, var);
         insertLocalVarTracking(opcode, var);
     }
@@ -82,24 +82,26 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
 //        aa.visitFieldInsn(opcode, owner, name, descriptor);
         super.visitFieldInsn(opcode, owner, name, descriptor);
-        if(opcode == Opcodes.PUTFIELD || opcode == PUTSTATIC) {
-            insertModifiedObjectTracking();
-        }
-        insertFieldTracking(opcode, owner, name, descriptor);
+//        if(opcode == Opcodes.PUTFIELD || opcode == PUTSTATIC) {
+//            insertModifiedObjectTracking();
+//        }
+//        insertFieldTracking(opcode, owner, name, descriptor);
     }
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-        if(opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
-            if (owner.equals("java/lang/Exception")) {
-                mv.visitInsn(Opcodes.DUP);
-                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-            } else {
-                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-                mv.visitInsn(Opcodes.DUP);
-            }
-            insertNewObjectTracking();
-        }
+//        if(opcode == Opcodes.INVOKESPECIAL && name.equals("<init>")) {
+//            if (owner.equals("java/lang/Exception")) {
+//                mv.visitInsn(Opcodes.DUP);
+//                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+//            } else {
+//                super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+//                mv.visitInsn(Opcodes.DUP);
+//            }
+//            insertNewObjectTracking();
+//        } else {
+            super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+//        }
 //        aa.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
     }
 
