@@ -85,7 +85,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 //        if(opcode == Opcodes.PUTFIELD || opcode == PUTSTATIC) {
 //            insertModifiedObjectTracking();
 //        }
-//        insertFieldTracking(opcode, owner, name, descriptor);
+        insertFieldTracking(opcode, owner, name, descriptor);
     }
 
     @Override

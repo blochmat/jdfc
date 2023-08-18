@@ -328,6 +328,9 @@ public class HTMLFactory {
 //                    }
                 }
 
+                if (pLineNumber == 11) {
+                    System.out.println("FOUND");
+                }
                 // search for variable in method
                 if (programVariable == null) {
                     // if word is no variable
@@ -343,9 +346,6 @@ public class HTMLFactory {
                         spanTag.getAttributes().add("class=\"orange\"");
                     } else {
                         // is a variable present in the data
-                        if (item.equals("c")) {
-                            System.out.println("FOUND");
-                        }
 
                         // check if associated uses or defs are covered and highlight
                         Set<DefUsePair> pairSet = getDefUsePairsCoveredForVar(mData, programVariable);
