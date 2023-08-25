@@ -9,12 +9,13 @@
     #python ~/important_tmp_scripts/get_test_methods.py /tmp/lang_"$item"_buggy "$AFFECTEDCLASS"
 #done
 
+bug_id=1
+
 ## Setup
 # Query bug_id, relevant test classes map
 relevant_test_classes_map=$(defects4j query -p Lang -q "tests.relevant")
 # Extract relevant test classes by bug id
-id=1
-relevant_test_classes_string=$(echo "$relevant_test_classes_map" | grep "^$id," | cut -d',' -f2 | tr -d '"')
+relevant_test_classes_string=$(echo "$relevant_test_classes_map" | grep "^$bug_id," | cut -d',' -f2 | tr -d '"')
 # Split line by ";" and store in array
 IFS=';' read -ra test_classes_array <<< "$relevant_test_classes_string"
 echo "${test_classes_array[@]}"
@@ -22,24 +23,23 @@ echo "${test_classes_array[@]}"
 # Query bug_id, triggering tests map
 triggering_tests_map=$(defects4j query -p Lang -q "tests.trigger")
 # Extract relevant test classes by bug id
-id=1
-triggering_tests_string=$(echo "$triggering_tests_map" | grep "^$id," | cut -d',' -f2 | tr -d '"')
+triggering_tests_string=$(echo "$triggering_tests_map" | grep "^$bug_id," | cut -d',' -f2 | tr -d '"')
 # Split line by ";" and store in array
 IFS=';' read -ra triggering_tests_array <<< "$triggering_tests_string"
 echo "${triggering_tests_array[@]}"
 
 # Checkout and compile one buggy version
-$(defects4j checkout -p Lang -v 1b -w /tmp/lang_1_buggy)
-$(defects4j compile -w /tmp/lang_1_buggy)
+$(defects4j checkout -p Lang -v "$bug_id"b -w /tmp/lang_"$bug_id"_buggy)
+$(defects4j compile -w /tmp/lang_"$bug_id"_buggy)
 
 # Run all relevant tests
-echo "$(defects4j coverage -w /tmp/lang_1_buggy -r)"
+echo "$(defects4j coverage -w /tmp/lang_"$bug_id"_buggy -r)"
 
 # Extract all coverage goals
-readarray -t line_numbers < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/lines/line" -v "@number" -n /tmp/lang_1_buggy/coverage.xml | sort -n | uniq)
+readarray -t line_numbers < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/lines/line" -v "@number" -n /tmp/lang_"$bug_id"_buggy/coverage.xml | sort -n | uniq)
 
 # Add header row to csv
-echo ",failed,${line_numbers[*]}" | sed 's/ /,/g' > analysis_result_1.csv
+echo ",failed,${line_numbers[*]}" | sed 's/ /,/g' > bug"$bug_id".csv
 
 ## Get test methods
 
@@ -49,7 +49,7 @@ test_classes_array_joined=${test_classes_array_joined%,}
 echo "${test_classes_array_joined[@]}"
 
 # Extract all relevant test methods (format: ["a","b",...])
-test_methods_py=$(python ~/repos/hub/jdfc/tmp_scripts/get_test_methods.py /tmp/lang_1_buggy "$test_classes_array_joined")
+test_methods_py=$(python ~/repos/hub/jdfc/tmp_scripts/get_test_methods.py /tmp/lang_"$bug_id"_buggy "$test_classes_array_joined")
 echo $test_methods_py
 
 # Convert test methods to sh array
@@ -59,9 +59,9 @@ test_methods_sh=($(echo $test_methods_py | jq -r '.[]'))
 for test_method in "${test_methods_sh[@]}"; do
     echo "$test_method"
     # Execute test method
-    echo "$(defects4j coverage -w /tmp/lang_1_buggy -t "$test_method")"
+    echo "$(defects4j coverage -w /tmp/lang_"$bug_id"_buggy -t "$test_method")"
     # Extract covered coverage goals from coverage.xml
-    readarray -t hits < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/lines/line" -v "@hits" -n /tmp/lang_1_buggy/coverage.xml)
+    readarray -t hits < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/lines/line" -v "@hits" -n /tmp/lang_"$bug_id"_buggy/coverage.xml)
     coverage=()
     failed=""
 
@@ -79,7 +79,7 @@ for test_method in "${test_methods_sh[@]}"; do
             coverage+=("")
         fi
     done
-    echo "$test_method,$failed,${coverage[*]}" | sed 's/ /,/g' >> analysis_result_1.csv
+    echo "$test_method,$failed,${coverage[*]}" | sed 's/ /,/g' >> bug"$bug_id".csv
 done
 
-sh ./compute_prob_couling.sh ./analysis_result_1.csv
+sh compute_prob_coupling_final.sh bug"$bug_id".csv
