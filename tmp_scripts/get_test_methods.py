@@ -14,27 +14,31 @@ def extract_test_methods(file_path):
 
         return matches
 
-def find_test_methods(directory_path, file_name):
+def find_test_methods(directory_path, test_classes):
+    # input: org.apache.commons.lang3.ClassA
     all_test_methods = []
 
     # Walk through the directory to get all .java files
     for root, dirs, files in os.walk(directory_path):
         for file in files:
-            if file.endswith("Test.java") and file_name in file:
-                file_path = os.path.join(root, file)
-                methods = extract_test_methods(file_path)
-                file_path = os.path.splitext(file_path)[0]
-                substring = "java/"
-                parts = file_path.split(substring)
-                file_name = parts[1].replace("/", ".")
-                all_test_methods.extend([(file_name, method) for method in methods])
+            # file: ClassA.java
+            if file.endswith("Test.java"):
+                file_without_ext = os.path.splitext(file)[0]
+                if any(file_without_ext in c for c in test_classes):
+                    file_path = os.path.join(root, file)
+                    methods = extract_test_methods(file_path)
+                    file_path = os.path.splitext(file_path)[0]
+                    substring = "java/"
+                    parts = file_path.split(substring)
+                    file_name = parts[1].replace("/", ".")
+                    all_test_methods.extend([(file_name, method) for method in methods])
 
     return all_test_methods
 
 if len(sys.argv) > 2:
     directory_path = sys.argv[1]
-    file_name = sys.argv[2].split(".")[-1]
-    tests = find_test_methods(directory_path, file_name)
+    test_classes = sys.argv[2].split(',')
+    tests = find_test_methods(directory_path, test_classes)
     methods = []
     with open("test_method_list", 'w') as file:
         for class_name, method_name in tests:
