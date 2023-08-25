@@ -1,13 +1,27 @@
 #!/bin/sh
 
 if [ -z "$1" ]; then
-  echo "Please provide the path to the CSV file."
+  echo "Please provide a path to the coverage CSV file."
   exit 1
 fi
 
-bug_id=$(basename "$1" | cut -d '.' -f 1 | cut -d 'g' -f 2)
+if [ -z "$2" ]; then
+  echo "Please provide an output path."
+  exit 1
+fi
+
+if [ -z "$3" ]; then
+  echo "Please provide a bug id."
+  exit 1
+fi
+
+bug_id="$3"
 max_quotient=0
-output_file="prob_coupling_final.csv"
+output_file="${2}/probe_coupling.csv"
+
+if [ ! -d "$2" ]; then
+    mkdir -p "$2"
+fi
 
 # Add header if file does not exist
 if [ ! -f "$output_file" ]; then

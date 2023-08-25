@@ -40,13 +40,8 @@ if len(sys.argv) > 2:
     test_classes = sys.argv[2].split(',')
     tests = find_test_methods(directory_path, test_classes)
     methods = []
-    with open("test_method_list", 'w') as file:
-        for class_name, method_name in tests:
-            file.write(f"{class_name}::{method_name}\n")
-            methods.append(f"{class_name}::{method_name}")
-            #command = f"defects4j coverage -t {class_name}::{method_name}"
-            #print(command)
-            #subprocess.run(command, shell=True, cwd=directory_path)
+    for class_name, method_name in tests:
+        methods.append(f"{class_name}::{method_name}")
     print(json.dumps(methods))
 else:
     print("Please pass the target directory and the affected class name as a string")
