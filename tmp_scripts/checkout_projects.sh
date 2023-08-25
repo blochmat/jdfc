@@ -82,5 +82,4 @@ for test_method in "${test_methods_sh[@]}"; do
     echo "$test_method,$failed,${coverage[*]}" | sed 's/ /,/g' >> analysis_result_1.csv
 done
 
-
-
+sh ./compute_prob_couling.sh ./analysis_result_1.csv
