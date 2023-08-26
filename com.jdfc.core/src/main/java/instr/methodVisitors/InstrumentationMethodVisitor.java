@@ -288,7 +288,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             UUID cId = classVisitor.classExecutionData.getId();
             UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
             if(mId == null && internalMethodName.equals("<init>: ()V;")) {
-                // Default constructor
+                // Undefined default constructor
                 mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
             }
 

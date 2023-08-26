@@ -406,7 +406,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         UUID.randomUUID(),
                         Integer.MIN_VALUE,
                         owner,
-                        internalMethodName,
+                        "test",
                         name,
                         descriptor,
                         insnIdx,
