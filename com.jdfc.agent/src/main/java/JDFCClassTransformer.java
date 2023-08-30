@@ -9,14 +9,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
+import java.util.List;
 
 @Slf4j
 public class JDFCClassTransformer implements ClassFileTransformer {
 
     private final JDFCInstrument JDFCInstrument;
 
-    public JDFCClassTransformer() {
-        this.JDFCInstrument = new JDFCInstrument();
+    public JDFCClassTransformer(String projectDirStr,
+                                String buildDirStr,
+                                String classesBuildDirStr,
+                                List<String> srcDirStrList) {
+        this.JDFCInstrument = new JDFCInstrument(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStrList);
     }
 
     @Override

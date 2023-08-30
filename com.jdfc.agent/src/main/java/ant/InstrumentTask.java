@@ -37,6 +37,9 @@ public class InstrumentTask extends Task {
         log("workDir: " + workDir);
         log("classFilePath: " + classesDir);
         log("instrument: " + instrument);
+        String buildDirStr = String.format("%s%starget", workDir, File.separator);
+
+        // We need to instrument a single class without breaking stuff
 
         String[] classes = instrument.split(",");
 
@@ -52,7 +55,7 @@ public class InstrumentTask extends Task {
             try {
                 classFileBuffer = Files.readAllBytes(Paths.get(path));
                 ClassReader cr = new ClassReader(classFileBuffer);
-                JDFCInstrument jdfcInstrument = new JDFCInstrument();
+                JDFCInstrument jdfcInstrument = new JDFCInstrument(workDir, classesDir, null, null);
                 byte[] instr = jdfcInstrument.instrument(cr);
 
                 String dirPath = String.format("%s%sjdfc_instrumented", workDir, File.separator);

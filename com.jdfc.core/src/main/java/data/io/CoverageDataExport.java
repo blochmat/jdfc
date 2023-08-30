@@ -193,7 +193,7 @@ public class CoverageDataExport {
 
     private static void analyseUntestedClasses() {
         Set<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
-        JDFCInstrument JDFCInstrument = new JDFCInstrument();
+        JDFCInstrument JDFCInstrument = new JDFCInstrument(null, null, null, null);
 
         for (String relPath : classList) {
             // pClassesDir = target/classes
