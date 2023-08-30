@@ -8,11 +8,18 @@ def extract_test_methods(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
 
-        # Look for annotations followed by method declarations
-        pattern = r'@Test\s+public\s+void\s+([\w_]+)\s*\('
-        matches = re.findall(pattern, content)
+        # Look for annotations followed by method declarations for JUnit 4/5
+        junit4_pattern = r'@Test\s+public\s+void\s+([\w_]+)\s*\('
+        junit4_matches = re.findall(junit4_pattern, content)
 
-        return matches
+        # Look for method declarations starting with 'test' for JUnit 3
+        junit3_pattern = r'public\s+void\s+(test[\w_]+)\s*\('
+        junit3_matches = re.findall(junit3_pattern, content)
+
+        # Combine matches
+        all_matches = junit4_matches + junit3_matches
+        return all_matches
+
 
 def find_test_methods(directory_path, test_classes):
     # input: org.apache.commons.lang3.ClassA
@@ -28,9 +35,9 @@ def find_test_methods(directory_path, test_classes):
                     file_path = os.path.join(root, file)
                     methods = extract_test_methods(file_path)
                     file_path = os.path.splitext(file_path)[0]
-                    substring = "java/"
+                    substring = "test/"
                     parts = file_path.split(substring)
-                    file_name = parts[1].replace("/", ".")
+                    file_name = parts[1].replace("java/", "").replace("/", ".")
                     all_test_methods.extend([(file_name, method) for method in methods])
 
     return all_test_methods
