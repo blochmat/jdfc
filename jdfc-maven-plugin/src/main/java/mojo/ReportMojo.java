@@ -54,7 +54,7 @@ public class ReportMojo extends AbstractMavenReport {
 //            throw new RuntimeException(e);
 //        }
 
-        CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, sourceDirStrList);
+        CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, sourceDirStrList.get(0));
         CoverageDataImport.loadExecutionData(classesBuildDirStr, importDir);
 
         final String exportDir = String.format("%s%sjdfc-report", buildDirStr, File.separator);

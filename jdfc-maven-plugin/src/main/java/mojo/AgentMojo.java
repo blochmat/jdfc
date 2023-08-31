@@ -32,9 +32,8 @@ public class AgentMojo extends AbstractJdfcMojo {
         final String buildDirStr = getProject().getBuild().getDirectory(); // default: target
         final String classesBuildDirStr = getProject().getBuild().getOutputDirectory(); // default: target/classes
         final List<String> sourceDirStrList = getProject().getCompileSourceRoots(); // [/home/path/to/project/src,..]
-        final String srcsDirString = String.join(",", sourceDirStrList);
 
-        JDFCInstrument jdfcInstrument = new JDFCInstrument(projectDirStr, buildDirStr, classesBuildDirStr, sourceDirStrList);
+        JDFCInstrument jdfcInstrument = new JDFCInstrument(projectDirStr, buildDirStr, classesBuildDirStr, sourceDirStrList.get(0));
 
         // load class files from build dir
         List<File> classFiles = new ArrayList<>();
@@ -76,8 +75,8 @@ public class AgentMojo extends AbstractJdfcMojo {
                 out.mkdirs();
             }
 
-            String filePath = String.format("%s%s%s", out.getAbsolutePath(), File.separator, classFile.getName());
-            try (FileOutputStream fos = new FileOutputStream(filePath)){
+            String outFilePath = String.format("%s%s%s", out.getAbsolutePath(), File.separator, classFile.getName());
+            try (FileOutputStream fos = new FileOutputStream(outFilePath)){
                 byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
                 ClassReader cr = new ClassReader(classFileBuffer);
                 byte[] instrumented = jdfcInstrument.instrument(cr);

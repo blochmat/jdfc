@@ -24,7 +24,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,8 +38,8 @@ public class JDFCInstrument {
     public JDFCInstrument(String projectDirStr,
                           String buildDirStr,
                           String classesBuildDirStr,
-                          List<String> srcDirStrList) {
-        CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStrList);
+                          String srcDirStr) {
+        CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStr);
         File dir = CoverageDataStore.getInstance().getClassesBuildDir();
         Path classesBuildDir = dir.toPath();
         String fileEnding = ".class";

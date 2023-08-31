@@ -80,13 +80,11 @@ public class CoverageDataExport {
 
         // fill sources
         File projectDirString = CoverageDataStore.getInstance().getProjectDir();
-        for(String src : CoverageDataStore.getInstance().getSrcDirStrList()) {
-            Element source = doc.createElement("source");
-            // substring(1) to remove first /
-            String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), src).substring(1);
-            source.setTextContent(relPath);
-            sources.appendChild(source);
-        }
+        Element source = doc.createElement("source");
+        // substring(1) to remove first /
+        String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), CoverageDataStore.getInstance().getSrcDirStr()).substring(1);
+        source.setTextContent(relPath);
+        sources.appendChild(source);
 
         // create packages
         Element packages = doc.createElement("packages");

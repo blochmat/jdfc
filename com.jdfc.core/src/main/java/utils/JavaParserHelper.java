@@ -38,9 +38,7 @@ public class JavaParserHelper {
         this.combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(new ReflectionTypeSolver()); // For java standard library types
         if(CoverageDataStore.getInstance() != null) {
-            for(String source : CoverageDataStore.getInstance().getSrcDirStrList()) {
-                combinedTypeSolver.add(new JavaParserTypeSolver(new File(source))); // For source code
-            }
+            combinedTypeSolver.add(new JavaParserTypeSolver(new File(CoverageDataStore.getInstance().getSrcDirStr()))); // For source code
         }
         // NOTE: in case libraries are required for the source code add
         // combinedTypeSolver.add(new JarTypeSolver("lib/your-library.jar")); // For library types

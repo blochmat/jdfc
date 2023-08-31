@@ -14,7 +14,7 @@ public final class JDFCAgent {
         List<String> args = Arrays.asList(agentArgs.split(","));
 
         // add transformer for classes with tests
-        JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer(args.get(0), args.get(1), args.get(2), args.subList(3, args.size()));
+        JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer(args.get(0), args.get(1), args.get(2), null);
         inst.addTransformer(jdfcClassTransformer);
     }
 }
