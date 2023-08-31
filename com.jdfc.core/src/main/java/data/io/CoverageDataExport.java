@@ -3,8 +3,6 @@ package data.io;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import data.*;
 import data.singleton.CoverageDataStore;
-import instr.JDFCInstrument;
-import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -21,7 +19,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +38,7 @@ public class CoverageDataExport {
             JDFCDir.mkdirs();
         }
 
+        // TODO
         CoverageDataExport.analyseUntestedClasses();
         CoverageDataStore.getInstance().getRoot().computeClassCoverage();
         CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
@@ -193,24 +191,24 @@ public class CoverageDataExport {
 
     private static void analyseUntestedClasses() {
         Set<String> classList = CoverageDataStore.getInstance().getUntestedClassList();
-        JDFCInstrument JDFCInstrument = new JDFCInstrument(null, null, null, null);
+//        JDFCInstrument JDFCInstrument = new JDFCInstrument(null, null, null, null);
 
         for (String relPath : classList) {
             // pClassesDir = target/classes
             String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesBuildDir(), relPath, ".class");
             File classFile = new File(classFilePath);
             try {
-                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
-                ClassReader cr = new ClassReader(classFileBuffer);
-                JDFCInstrument.instrument(cr);
+//                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+//                ClassReader cr = new ClassReader(classFileBuffer);
+//                JDFCInstrument.instrument(cr);
                 ExecutionDataNode<ExecutionData> classExecutionDataNode =
                         CoverageDataStore.getInstance().findClassDataNode(relPath);
                 ClassExecutionData classExecutionData = (ClassExecutionData) classExecutionDataNode.getData();
                 classExecutionData.computeCoverage();
                 classExecutionDataNode.aggregateDataToRootRecursive();
                 CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
-            } catch (IOException e) {
-                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
             } catch (ParserConfigurationException | TransformerException e) {
                 throw new RuntimeException(e);
             }

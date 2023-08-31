@@ -3,6 +3,7 @@ package instr;
 import data.ClassExecutionData;
 import data.MethodData;
 import data.ProgramVariable;
+import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
 import graphs.esg.ESGCreator;
@@ -30,6 +31,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JDFCInstrument {
 
+    /**
+     * Load classes for shutdown hook
+     */
+    private static final Class<?> exportClass = CoverageDataExport.class;
+
     public JDFCInstrument(String projectDirStr,
                           String buildDirStr,
                           String classesBuildDirStr,
@@ -39,6 +45,29 @@ public class JDFCInstrument {
         Path classesBuildDir = dir.toPath();
         String fileEnding = ".class";
         CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), classesBuildDir, fileEnding);
+
+        // add shutdown hook to compute and write results
+//        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//            Logger logger = LoggerFactory.getLogger("Shutdown Hook");
+//
+//            try {
+//                logger.info("Export started.");
+//                CoverageDataStore.getInstance().exportCoverageData();
+//                logger.info("Export finished.");
+//            } catch (Exception e) {
+//                File jdfcDir = CoverageDataStore.getInstance().getJdfcDir();
+//                if (jdfcDir.exists() || jdfcDir.mkdirs()) {
+//                    try (FileWriter writer = new FileWriter(JDFCUtils.createFileInJDFCDir("shutdown_error.txt", false), false)) {
+//                        String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+//                        writer.write("Exception during shutdown: " + e.getMessage() + "\n");
+//                        writer.write(stackTrace);
+//                        writer.write("\n");
+//                    } catch (IOException ioException) {
+//                        ioException.printStackTrace();  // print to console as a last resort
+//                    }
+//                }
+//            }
+//        }));
     }
 
     public byte[] instrument(final ClassReader classReader) {

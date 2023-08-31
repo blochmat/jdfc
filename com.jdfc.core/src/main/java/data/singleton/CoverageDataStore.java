@@ -2,7 +2,9 @@ package data.singleton;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import data.*;
+import data.ClassExecutionData;
+import data.ExecutionData;
+import data.ExecutionDataNode;
 import data.io.CoverageDataExport;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Data
 public class CoverageDataStore {
+
+
     private static CoverageDataStore instance;
     private final ExecutionDataNode<ExecutionData> root;
     private final Map<UUID, ClassExecutionData> classExecutionDataMap;
@@ -69,6 +73,11 @@ public class CoverageDataStore {
                                 String buildDirStr,
                                 String classesBuildDirStr,
                                 List<String> srcDirStrList) {
+        // print uncaught exception
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.err.println("Exception occurred in thread: " + t.getName());
+            e.printStackTrace();
+        });
         this.projectDir = new File(projectDirStr);
         this.buildDir = new File(buildDirStr);
         this.classesBuildDir = new File(classesBuildDirStr);
@@ -78,6 +87,7 @@ public class CoverageDataStore {
         this.jdfcDebugInstrDir = new File(String.format("%s%sinstrumentation", this.jdfcDebugDir, File.separator));
         this.jdfcDebugErrorDir = new File(String.format("%s%serror", this.jdfcDebugDir, File.separator));
         this.jdfcDebugDevLogDir = new File(String.format("%s%slog", this.jdfcDebugDir, File.separator));
+
     }
 
     public static void trackVar(final String cId,

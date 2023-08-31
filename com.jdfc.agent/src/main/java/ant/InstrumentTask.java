@@ -1,14 +1,8 @@
 package ant;
 
-import instr.JDFCInstrument;
 import org.apache.tools.ant.Task;
-import org.objectweb.asm.ClassReader;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class InstrumentTask extends Task {
 
@@ -41,40 +35,37 @@ public class InstrumentTask extends Task {
 
         // We need to instrument a single class without breaking stuff
 
-        String[] classes = instrument.split(",");
-
-        for(String c : classes) {
-            if (c.contains("$")) {
-                continue;
-            }
-
-            String path = String.format("%s%s%s%s%s", workDir, File.separator, classesDir, File.separator, c);
-            log(path);
-
-            byte[] classFileBuffer;
-            try {
-                classFileBuffer = Files.readAllBytes(Paths.get(path));
-                ClassReader cr = new ClassReader(classFileBuffer);
-                JDFCInstrument jdfcInstrument = new JDFCInstrument(workDir, classesDir, null, null);
-                byte[] instr = jdfcInstrument.instrument(cr);
-
-                String dirPath = String.format("%s%sjdfc_instrumented", workDir, File.separator);
-                File dir =  new File(dirPath);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
-
-                String filePath = dirPath + File.separator + c;
-
-                try (FileOutputStream fos = new FileOutputStream(filePath)) {
-                    fos.write(instr);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+//        String[] classes = instrument.split(",");
+//
+//        for(String c : classes) {
+//            if (c.contains("$")) {
+//                continue;
+//            }
+//
+//            String path = String.format("%s%s%s%s%s", workDir, File.separator, classesDir, File.separator, c);
+//            log(path);
+//
+//            byte[] classFileBuffer;
+//            try {
+//                classFileBuffer = Files.readAllBytes(Paths.get(path));
+//                ClassReader cr = new ClassReader(classFileBuffer);
+//                String dirPath = String.format("%s%sjdfc_instrumented", workDir, File.separator);
+//                File dir =  new File(dirPath);
+//                if (!dir.exists()) {
+//                    dir.mkdirs();
+//                }
+//
+//                String filePath = dirPath + File.separator + c;
+//
+//                try (FileOutputStream fos = new FileOutputStream(filePath)) {
+//                    fos.write(instr);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
     }
 
     private void logToFile(String text) {
