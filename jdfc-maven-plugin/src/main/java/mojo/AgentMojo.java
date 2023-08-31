@@ -1,10 +1,8 @@
 package mojo;
 
 import instr.JDFCInstrument;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.objectweb.asm.ClassReader;
 
@@ -16,18 +14,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 
 @Mojo(name = "prepare-agent", defaultPhase = LifecyclePhase.PROCESS_TEST_CLASSES, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
 public class AgentMojo extends AbstractJdfcMojo {
-
-    /**
-     * Map of plugin artifacts.
-     */
-    @Parameter(property = "plugin.artifactMap", required = true, readonly = true)
-    public Map<String, Artifact> pluginArtifactMap;
-
-    private static final String AGENT_FILE_NAME = "com.jdfc.agent-1.0-SNAPSHOT-runtime.jar";
 
     private static final String JDFC_INSTRUMENTED = ".jdfc_instrumented";
 
