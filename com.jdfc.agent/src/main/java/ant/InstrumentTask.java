@@ -43,7 +43,7 @@ public class InstrumentTask extends Task {
 
     @Override
     public void execute() {
-        log("ant.InstrumentTask is about to execute.");
+        log("InstrumentTask is about to execute.");
         log("projectPath: " + getProject().getName());
         log("workDir: " + workDir);
         log("src: " + srcDir);
