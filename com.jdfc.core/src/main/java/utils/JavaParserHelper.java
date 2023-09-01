@@ -457,6 +457,7 @@ public class JavaParserHelper {
         return this.finalizeComponentTypes(descriptor.toString());
     }
 
+    // Todo: (LClass<?>;)LList<Class<?>>;
     public String finalizeComponentTypes(String descriptor) {
         if(descriptor.contains("?")) {
             String[] parts = descriptor.split("[<>]");
