@@ -27,18 +27,22 @@ public class AgentMojo extends AbstractJdfcMojo {
      */
     @Override
     protected void executeMojo()  {
-        getLog().info("Preparing JDFC agent for analysis. ");
-        final String projectDirStr = getProject().getBasedir().toString(); // /home/path/to/project/root
-        final String buildDirStr = getProject().getBuild().getDirectory(); // default: target
-        final String classesBuildDirStr = getProject().getBuild().getOutputDirectory(); // default: target/classes
-        final List<String> sourceDirStrList = getProject().getCompileSourceRoots(); // [/home/path/to/project/src,..]
+        final String workDirAbs = getProject().getBasedir().toString();
+        final String buildDirAbs = getProject().getBuild().getDirectory();
+        final String classesDirAbs = getProject().getBuild().getOutputDirectory();
+        final String sourceDirAbs = getProject().getCompileSourceRoots().get(0);
 
-        JDFCInstrument jdfcInstrument = new JDFCInstrument(projectDirStr, buildDirStr, classesBuildDirStr, sourceDirStrList.get(0));
+        System.out.println(workDirAbs);
+        System.out.println(buildDirAbs);
+        System.out.println(classesDirAbs);
+        System.out.println(sourceDirAbs);
+
+        JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
 
         // load class files from build dir
         List<File> classFiles = new ArrayList<>();
         try {
-            Files.walkFileTree(Paths.get(classesBuildDirStr), EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, new FileVisitor<Path>() {
+            Files.walkFileTree(Paths.get(classesDirAbs), EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, new FileVisitor<Path>() {
 
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -69,7 +73,7 @@ public class AgentMojo extends AbstractJdfcMojo {
 
         // Instrumenting and saving classes
         for (File classFile : classFiles) {
-            String packagePath = classFile.getAbsolutePath().replace(classesBuildDirStr, "").replace(classFile.getName(), "");
+            String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
             File out = new File(String.format("%s%s%s", JDFC_INSTRUMENTED, File.separator, packagePath));
             if(!out.exists()) {
                 out.mkdirs();

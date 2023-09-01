@@ -17,61 +17,61 @@ public class InstrumentTask extends Task {
 
     private List<FileSet> filesets = new ArrayList<>();
 
-    private String workDir;
+    private String work;
 
-    private String classesDir;
+    private String classes;
 
-    private String srcDir;
+    private String src;
 
     public void addFileset(FileSet fileset) {
         filesets.add(fileset);
     }
 
-    public void setWorkDir(String workDir) {
-        this.workDir = workDir;
+    public void setWork(String work) {
+        this.work = work;
     }
 
-    public void setClassesDir(String classesDir) {
-        this.classesDir = classesDir;
+    public void setClasses(String classes) {
+        this.classes = classes;
     }
 
-    public void setSrcDir(String srcDir) {
-        this.srcDir = srcDir;
+    public void setSrc(String src) {
+        this.src = src;
     }
 
     private static final String JDFC_INSTRUMENTED = ".jdfc_instrumented";
 
     @Override
     public void execute() {
-        log("InstrumentTask is about to execute.");
-        log("projectPath: " + getProject().getName());
-        log("workDir: " + workDir);
-        log("src: " + srcDir);
-        String srcDirStr = String.format("%s%s%s", workDir, File.separator, srcDir);
-        log("srcDirStr: " + srcDirStr);
+        String workDirAbs = work;
+        String buildDirAbs = String.format("%s%starget", workDirAbs, File.separator);
+        String classesDirAbs = String.join(File.separator, workDirAbs, classes);
+        String sourceDirAbs = String.join(File.separator, workDirAbs, src);
 
-        String buildDirStr = String.format("%s%starget", workDir, File.separator);
-        log("classFilePath: " + classesDir);
+        log(workDirAbs);
+        log(buildDirAbs);
+        log(classesDirAbs);
+        log(sourceDirAbs);
 
         // TODO
-        JDFCInstrument jdfcInstrument = new JDFCInstrument(workDir, buildDirStr, classesDir, srcDirStr);
         for (FileSet fs : filesets) {
-            System.out.println(fs.getDir());
+            log("fs dir: " + fs.getDir());
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             for (String includedFile : ds.getIncludedFiles()) {
-                System.out.println(includedFile);
-                String classFilePath = String.format("%s%s%s%s%s", workDir, File.separator, classesDir, File.separator, includedFile);
+                log("include file: " + includedFile);
+                String classFilePath = String.join(File.separator, classesDirAbs, includedFile);
                 File classFile = new File(classFilePath);
 
-                String packagePath = classFile.getAbsolutePath().replace(workDir, "").replace(classFile.getName(), "");
-                File outDir = new File(String.format("%s%s%s", JDFC_INSTRUMENTED, File.separator, packagePath));
+                String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
+                File outDir = new File(String.join(File.separator, JDFC_INSTRUMENTED, packagePath));
                 if(!outDir.exists()) {
                     outDir.mkdirs();
                 }
-                String outPath = String.format("%s%s%s", outDir.getAbsolutePath(), File.separator, classFile.getName());
+                String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
                 try (FileOutputStream fos = new FileOutputStream(outPath)){
                     byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
                     ClassReader cr = new ClassReader(classFileBuffer);
+                    JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
                     byte[] instrumented = jdfcInstrument.instrument(cr);
                     fos.write(instrumented);
                 } catch (IOException e) {
