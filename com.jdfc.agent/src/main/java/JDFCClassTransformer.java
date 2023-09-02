@@ -19,7 +19,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
                                 String buildDirStr,
                                 String classesBuildDirStr,
                                 String srcDirStr) {
-        this.JDFCInstrument = new JDFCInstrument(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStr);
+        this.JDFCInstrument = new JDFCInstrument(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStr, "");
     }
 
     @Override

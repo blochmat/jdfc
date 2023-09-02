@@ -6,8 +6,6 @@ import data.ProgramVariable;
 import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
-import graphs.esg.ESGCreator;
-import graphs.sg.SGCreator;
 import instr.classVisitors.AddTryCatchClassVisitor;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
@@ -103,8 +101,8 @@ public class JDFCInstrument {
             }
 
             // if inter
-            SGCreator.createSGsForClass(cData);
-            ESGCreator.createESGsForClass(cData);
+//            SGCreator.createSGsForClass(cData);
+//            ESGCreator.createESGsForClass(cData);
 
             // if intra
 

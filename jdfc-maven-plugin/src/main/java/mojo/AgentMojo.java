@@ -37,7 +37,7 @@ public class AgentMojo extends AbstractJdfcMojo {
         System.out.println(classesDirAbs);
         System.out.println(sourceDirAbs);
 
-        JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+        JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs, "");
 
         // load class files from build dir
         List<File> classFiles = new ArrayList<>();
