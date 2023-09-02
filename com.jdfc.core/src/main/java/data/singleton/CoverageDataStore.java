@@ -39,6 +39,7 @@ public class CoverageDataStore {
     private final Map<UUID, ClassExecutionData> classExecutionDataMap;
     private final Set<String> testedClassList;
     private final Set<String> untestedClassList;
+    private final Map<String, Map<String, ClassExecutionData>> projectData;
     private File projectDir;
     private File buildDir;
     private File classesBuildDir;
@@ -55,6 +56,7 @@ public class CoverageDataStore {
         this.classExecutionDataMap = new HashMap<>();
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
+        this.projectData = new HashMap<>();
     }
 
     public static CoverageDataStore getInstance() {
@@ -233,11 +235,11 @@ public class CoverageDataStore {
         }
     }
 
-    private void addClassData(String classesAbs, String classFileAbs) {
+    public void addClassData(String classesAbs, String classFileAbs) {
         JavaParserHelper javaParserHelper = new JavaParserHelper();
         File classFile = new File(classFileAbs);
         String classFileRel = classFileAbs.replace(classesAbs, "");
-        String classFilePackage = classFileRel.replace(classFile.getName(), "");
+        String classFilePackage = classFileRel.replace(classFile.getName(), "").replaceAll("^/|/$", "");
         String classFileRelNoType = classFileRel.split("\\.")[0].replace(File.separator, "/");
         String sourceFileRel = classFileRel.replace(".class", ".java");
         String sourceFileAbs = String.format("%s/%s", CoverageDataStore.getInstance().getSrcDirStr(), sourceFileRel);
@@ -254,9 +256,8 @@ public class CoverageDataStore {
                     classExecutionDataMap.put(id, classNodeData);
 
                     String nameWithoutType = classFile.getName().split("\\.")[0];
-                    Map<String, Map<String, ClassExecutionData>> projectData = new HashMap<>();
                     if(classFilePackage.equals("")) {
-                        projectData.computeIfAbsent("default", k -> new HashMap<>());
+                        CoverageDataStore.getInstance().projectData.computeIfAbsent("default", k -> new HashMap<>());
                         projectData.get("default").put(nameWithoutType, classNodeData);
                     } else {
                         projectData.computeIfAbsent(classFilePackage, k -> new HashMap<>());

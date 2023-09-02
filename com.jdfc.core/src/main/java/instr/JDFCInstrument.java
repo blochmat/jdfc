@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,19 +36,20 @@ public class JDFCInstrument {
      */
     private static final Class<?> exportClass = CoverageDataExport.class;
 
-    public JDFCInstrument(String projectDirStr,
-                          String buildDirStr,
-                          String classesBuildDirStr,
-                          String srcDirStr,
-                          String classPath) {
-        CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStr);
+    public JDFCInstrument(String projectDirAbs,
+                          String buildDirAbs,
+                          String classesDirAbs,
+                          String sourceDirAbs,
+                          String classFileAbs) {
+        CoverageDataStore.getInstance().saveProjectInfo(projectDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
         File dir = CoverageDataStore.getInstance().getClassesBuildDir();
         Path classesBuildDir = dir.toPath();
         String fileEnding = ".class";
-        if(!classPath.equals("")) {
-
+        if(!classFileAbs.equals("")) {
+            CoverageDataStore.getInstance().addClassData(classesDirAbs, classFileAbs);
+        } else {
+            CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), classesBuildDir, fileEnding);
         }
-        CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), classesBuildDir, fileEnding);
 
         // add shutdown hook to compute and write results
 //        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -79,8 +81,10 @@ public class JDFCInstrument {
 
         // cw
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
-        ClassExecutionData cData =
-                (ClassExecutionData) CoverageDataStore.getInstance().findClassDataNode(classNode.name).getData();
+        String packageRel = this.getPackage(classNode);
+        String className = this.getClassName(classNode);
+
+        ClassExecutionData cData = CoverageDataStore.getInstance().getProjectData().get(packageRel).get(className);
 
         if (cData != null) {
 
@@ -173,5 +177,16 @@ public class JDFCInstrument {
         }
 
         return cw.toByteArray();
+    }
+
+    private String getPackage(ClassNode classNode) {
+        String[] components = classNode.name.split("/");
+        String[] packageComponents = Arrays.copyOf(components, components.length - 1);
+        return String.join("/", packageComponents);
+    }
+
+    private String getClassName(ClassNode classNode) {
+        String[] components = classNode.name.split("/");
+        return components[components.length - 1];
     }
 }
