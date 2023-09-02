@@ -71,7 +71,7 @@ public class InstrumentTask extends Task {
                 try (FileOutputStream fos = new FileOutputStream(outPath)){
                     byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
                     ClassReader cr = new ClassReader(classFileBuffer);
-                    JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+                    JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs, classFilePath);
                     byte[] instrumented = jdfcInstrument.instrument(cr);
                     fos.write(instrumented);
                 } catch (IOException e) {

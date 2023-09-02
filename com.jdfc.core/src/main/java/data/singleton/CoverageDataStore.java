@@ -175,7 +175,6 @@ public class CoverageDataStore {
                                          ExecutionDataNode<ExecutionData> pExecutionDataNode,
                                          Path pBaseDir,
                                          String suffix) {
-        JavaParserHelper javaParserHelper = new JavaParserHelper();
         FileHelper fileHelper = new FileHelper();
 
         File[] fileList = Objects.requireNonNull(pFile.listFiles());
@@ -194,31 +193,7 @@ public class CoverageDataStore {
                 // Do not handle anonymous inner files
                 if(!JDFCUtils.isNestedClass(f.getName()) && !JDFCUtils.isAnonymousInnerClass(f.getName())) {
                     // Get AST of source file
-                    String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
-                    String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
-                    String relSourceFileStr = relativePathWithType.replace(".class", ".java");
-                    String sourceFileStr = String.format("%s/%s", CoverageDataStore.getInstance().getSrcDirStr(), relSourceFileStr);
-                    File sourceFile = new File(sourceFileStr);
-                    if (sourceFile.exists()) {
-                        try {
-                            CompilationUnit cu = javaParserHelper.parse(sourceFile);
-                            if (!isOnlyInterface(cu)) {
-                                UUID id = UUID.randomUUID();
-                                untestedClassList.add(relativePath);
-                                ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), id, relativePath, cu);
-                                classExecutionDataMap.put(id, classNodeData);
-
-                                String nameWithoutType = f.getName().split("\\.")[0];
-                                if (pExecutionDataNode.isRoot()) {
-                                    pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
-                                } else {
-                                    pExecutionDataNode.addChild(nameWithoutType, classNodeData);
-                                }
-                            }
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
+                    this.createClassExData(f, fqn, pExecutionDataNode, pBaseDir);
                 }
             }
         }
@@ -258,6 +233,71 @@ public class CoverageDataStore {
         }
     }
 
+    private void addClassData(String classesAbs, String classFileAbs) {
+        JavaParserHelper javaParserHelper = new JavaParserHelper();
+        File classFile = new File(classFileAbs);
+        String classFileRel = classFileAbs.replace(classesAbs, "");
+        String classFilePackage = classFileRel.replace(classFile.getName(), "");
+        String classFileRelNoType = classFileRel.split("\\.")[0].replace(File.separator, "/");
+        String sourceFileRel = classFileRel.replace(".class", ".java");
+        String sourceFileAbs = String.format("%s/%s", CoverageDataStore.getInstance().getSrcDirStr(), sourceFileRel);
+        String fqn = classFileRelNoType.replace(File.separator, ".");
+
+        File sourceFile = new File(sourceFileAbs);
+        if (sourceFile.exists()) {
+            try {
+                CompilationUnit cu = javaParserHelper.parse(sourceFile);
+                if (!isOnlyInterface(cu) && !isOnlyEnum(cu)) {
+                    UUID id = UUID.randomUUID();
+                    untestedClassList.add(classFileRelNoType);
+                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, classFile.getName(), id, classFileRelNoType, cu);
+                    classExecutionDataMap.put(id, classNodeData);
+
+                    String nameWithoutType = classFile.getName().split("\\.")[0];
+                    Map<String, Map<String, ClassExecutionData>> projectData = new HashMap<>();
+                    if(classFilePackage.equals("")) {
+                        projectData.computeIfAbsent("default", k -> new HashMap<>());
+                        projectData.get("default").put(nameWithoutType, classNodeData);
+                    } else {
+                        projectData.computeIfAbsent(classFilePackage, k -> new HashMap<>());
+                        projectData.get(classFilePackage).put(nameWithoutType, classNodeData);
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void createClassExData(File f, String fqn, ExecutionDataNode<ExecutionData> pExecutionDataNode, Path pBaseDir) {
+        JavaParserHelper javaParserHelper = new JavaParserHelper();
+        String relativePathWithType = pBaseDir.relativize(f.toPath()).toString();
+        String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
+        String relSourceFileStr = relativePathWithType.replace(".class", ".java");
+        String sourceFileStr = String.format("%s/%s", CoverageDataStore.getInstance().getSrcDirStr(), relSourceFileStr);
+        File sourceFile = new File(sourceFileStr);
+        if (sourceFile.exists()) {
+            try {
+                CompilationUnit cu = javaParserHelper.parse(sourceFile);
+                if (!isOnlyInterface(cu) && !isOnlyEnum(cu)) {
+                    UUID id = UUID.randomUUID();
+                    untestedClassList.add(relativePath);
+                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, f.getName(), id, relativePath, cu);
+                    classExecutionDataMap.put(id, classNodeData);
+
+                    String nameWithoutType = f.getName().split("\\.")[0];
+                    if (pExecutionDataNode.isRoot()) {
+                        pExecutionDataNode.getChildren().get("default").addChild(nameWithoutType, classNodeData);
+                    } else {
+                        pExecutionDataNode.addChild(nameWithoutType, classNodeData);
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     private String createFqn(ExecutionDataNode<ExecutionData> node, String childName) {
         if (node.isRoot()) {
             return childName;
@@ -274,6 +314,18 @@ public class CoverageDataStore {
             TypeDeclaration<?> type = types.get(0);
             // If the single type is an interface
             return type.isClassOrInterfaceDeclaration() && type.asClassOrInterfaceDeclaration().isInterface();
+        }
+        return false;
+    }
+
+    public boolean isOnlyEnum(CompilationUnit cu) {
+        // Get a list of all types declared in the file
+        List<TypeDeclaration<?>> types = cu.getTypes();
+        // Check if there's exactly one type
+        if (types.size() == 1) {
+            TypeDeclaration<?> type = types.get(0);
+            // If the single type is an interface
+            return type.isEnumDeclaration() && type.asClassOrInterfaceDeclaration().isEnumDeclaration();
         }
         return false;
     }

@@ -38,11 +38,15 @@ public class JDFCInstrument {
     public JDFCInstrument(String projectDirStr,
                           String buildDirStr,
                           String classesBuildDirStr,
-                          String srcDirStr) {
+                          String srcDirStr,
+                          String classPath) {
         CoverageDataStore.getInstance().saveProjectInfo(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStr);
         File dir = CoverageDataStore.getInstance().getClassesBuildDir();
         Path classesBuildDir = dir.toPath();
         String fileEnding = ".class";
+        if(!classPath.equals("")) {
+
+        }
         CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), classesBuildDir, fileEnding);
 
         // add shutdown hook to compute and write results

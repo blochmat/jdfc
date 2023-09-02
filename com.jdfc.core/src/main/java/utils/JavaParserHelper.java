@@ -60,9 +60,6 @@ public class JavaParserHelper {
         // TODO: addToEveryListEl: (ILList<Integer>;)LList<Integer>;
         //       addToEveryListEl: (ILjava/util/List<Ljava/lang/Integer;>;)Ljava/util/List<Ljava/lang/Integer;>;
 
-//        if(jvmDesc.contains("(ILList<Integer>;)LList<Integer>;")) {
-//            System.out.println("asdf");
-//        }
         for(ResolvedType resolvedType : resolvedTypes) {
             try {
                 if (resolvedType.isReferenceType()) {
@@ -90,12 +87,28 @@ public class JavaParserHelper {
                                     ResolvedReferenceTypeDeclaration classDecl = combinedTypeSolver.solveType("java.lang.Class");
                                     if(classDecl.isAssignableBy(rrtd)) {
                                         String newName = rrtd.getQualifiedName().replace(".", "/");
+                                        if(jvmDesc.equals("(LClass<T>;[LObject;[LClass<?>;)LT;")) {
+                                            System.out.println("asdf");
+                                        }
                                         if (jvmDesc.contains(String.format("L%s<", rrtd.getName()))
-                                                || jvmDesc.contains(String.format("L%s;", rrtd.getName()))) {
+                                                || jvmDesc.contains(String.format("L%s;", rrtd.getName()))
+                                                || jvmDesc.contains(String.format("<%s", rrtd.getName()))) {
                                             // Class<?> or Class
-                                            String replacePattern = "L" + rrtd.getName();
-                                            String replacement = "L" + newName;
-                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            if(jvmDesc.contains(String.format("L%s<*>;", rrtd.getName()))) {
+                                                String replacePattern = "L" + rrtd.getName() + "<\\*>;";
+                                                String replacement = "L" + newName + "<*>;";
+                                                jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            } else if(jvmDesc.contains(String.format("L%s<?>;", rrtd.getName()))) {
+                                                String replacePattern = "L" + rrtd.getName() + "<\\?>;";
+                                                String replacement = "L" + newName + "<?>;";
+                                                jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            } else {
+                                                String replacePattern = "L" + rrtd.getName();
+                                                String replacement = "L" + newName;
+                                                jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            }
+
+
                                             toRemove.add(resolvedType);
                                         } else {
                                             throw new IllegalArgumentException("Unknown type descriptor: " + rrtd.getQualifiedName());
@@ -165,6 +178,11 @@ public class JavaParserHelper {
                                     }
                                 }
                             }
+                        } else if (rrtd.isEnum()) {
+                            String newName = rrtd.getQualifiedName().replace(".", "/");
+                            String replacePattern = rrtd.getName();
+                            jvmDesc = jvmDesc.replaceAll(replacePattern, newName);
+                            toRemove.add(resolvedType);
                         } else {
                             ResolvedReferenceTypeDeclaration listDecl = combinedTypeSolver.solveType("java.util.List");
                             ResolvedReferenceTypeDeclaration collectionDecl = combinedTypeSolver.solveType("java.util.Collection");
@@ -383,6 +401,9 @@ public class JavaParserHelper {
         return jvmDesc;
     }
     public String toJvmTypeDescriptor(MethodDeclaration method) {
+        if(method.getName().getIdentifier().equals("getAllSuperclasses")) {
+            System.out.println("asdf");
+        }
         StringBuilder descriptor = new StringBuilder();
 
         // Param Types
@@ -473,10 +494,11 @@ public class JavaParserHelper {
                         result.append(parts[x]).append("<").append("*").append(">").append(parts[z]);
                     }
                 }
-            } else {
-                throw new RuntimeException("Invalid type descriptor: " + descriptor);
+                return result.toString();
             }
-            return result.toString();
+//            else {
+//                throw new RuntimeException("Invalid type descriptor: " + descriptor);
+//            }
         }
         return descriptor;
     }
