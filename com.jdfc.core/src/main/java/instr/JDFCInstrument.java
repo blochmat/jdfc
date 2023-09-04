@@ -3,8 +3,8 @@ package instr;
 import data.ClassExecutionData;
 import data.MethodData;
 import data.ProgramVariable;
-import data.ProjectData;
 import data.io.CoverageDataExport;
+import data.neu.ProjectData;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
 import instr.classVisitors.AddTryCatchClassVisitor;
@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,19 +34,15 @@ public class JDFCInstrument {
      */
     private static final Class<?> exportClass = CoverageDataExport.class;
 
-    public JDFCInstrument(String projectDirAbs,
-                          String buildDirAbs,
-                          String classesDirAbs,
-                          String sourceDirAbs,
-                          String classFileAbs) {
-        CoverageDataStore.getInstance().saveProjectInfo(projectDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-        File dir = CoverageDataStore.getInstance().getClassesBuildDir();
-        Path classesBuildDir = dir.toPath();
-        String fileEnding = ".class";
+    public JDFCInstrument(String classesDirAbs, String classFileAbs) {
         if(!classFileAbs.equals("")) {
             CoverageDataStore.getInstance().addClassData(classesDirAbs, classFileAbs);
         } else {
-            CoverageDataStore.getInstance().addNodesFromDirRecursive(dir, CoverageDataStore.getInstance().getRoot(), classesBuildDir, fileEnding);
+            CoverageDataStore.getInstance().addNodesFromDirRecursive(
+                    CoverageDataStore.getInstance().getClassesBuildDir(),
+                    CoverageDataStore.getInstance().getRoot(),
+                    classesDirAbs,
+                    ".class");
         }
 
         // add shutdown hook to compute and write results
@@ -100,8 +95,8 @@ public class JDFCInstrument {
                 mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
                 mData.getCfg().calculateReachingDefinitions();
                 mData.calculateIntraDefUsePairs();
-//                projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
-//                projectData.getDefUsePairMap().putAll(mData.getPairs());
+                projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
+                projectData.getDefUsePairMap().putAll(mData.getPairs());
             }
 
             // if inter

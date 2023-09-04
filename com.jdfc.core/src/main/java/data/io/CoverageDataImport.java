@@ -16,17 +16,16 @@ public class CoverageDataImport {
 
     private final static Logger logger = LoggerFactory.getLogger(CoverageDataImport.class);
 
-    public static void loadExecutionData(String pClassesDir, String pJDFCDir) {
+    public static void loadExecutionData(String classesDirAbs, String pJDFCDir) {
         logger.debug("loadClassExecutionData");
-        File classes = new File(pClassesDir);
-        Path classesPath = classes.toPath();
+        File classes = new File(classesDirAbs);
 
         File jdfc = new File(pJDFCDir);
         Path jdfcPath = jdfc.toPath();
 
         // Loading data node structure from target/classes
         CoverageDataStore.getInstance()
-                .addNodesFromDirRecursive(classes, CoverageDataStore.getInstance().getRoot(), classesPath, ".class");
+                .addNodesFromDirRecursive(classes, CoverageDataStore.getInstance().getRoot(), classesDirAbs, ".class");
 
         // Load xml files from target/jdfc
         List<File> jsonFileList = loadFilesFromDirRecursive(jdfc, ".json");

@@ -1,19 +1,12 @@
-import instr.JDFCInstrument;
+import data.singleton.CoverageDataStore;
 import org.apache.commons.cli.*;
-import org.objectweb.asm.ClassReader;
+import utils.Instrumenter;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 
 public class Main {
 
-    private static final String JDFC_INSTRUMENTED = ".jdfc_instrumented";
 
     public static void main(String[] args) {
         // create Options object
@@ -79,83 +72,19 @@ public class Main {
         String buildDirAbs = String.join(File.separator, workDirAbs, cmd.getOptionValue("B"));
         String classesDirAbs = String.join(File.separator, workDirAbs, cmd.getOptionValue("C"));
         String sourceDirAbs = String.join(File.separator, workDirAbs, cmd.getOptionValue("S"));
-
-        System.out.println(workDirAbs);
-        System.out.println(buildDirAbs);
-        System.out.println(classesDirAbs);
-        System.out.println(sourceDirAbs);
-
+        CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
         if(cmd.hasOption("c")) {
             // Instrument single class
-            String classFilePath = String.join(File.separator, classesDirAbs, cmd.getOptionValue("c"));
-            File classFile = new File(classFilePath);
-            String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
-            File outDir = new File(String.join(File.separator, workDirAbs, JDFC_INSTRUMENTED, packagePath));
-            if(!outDir.exists()) {
-                outDir.mkdirs();
-            }
-            String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
-            try (FileOutputStream fos = new FileOutputStream(outPath)){
-                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
-                ClassReader cr = new ClassReader(classFileBuffer);
-                JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs, classFilePath);
-                byte[] instrumented = jdfcInstrument.instrument(cr);
-                fos.write(instrumented);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            String classFileAbs = String.join(File.separator, classesDirAbs, cmd.getOptionValue("c"));
+            instrumenter.instrumentClass(classFileAbs);
         } else {
-            // load class files from build dir
-            List<File> classFiles = new ArrayList<>();
-            try {
-                Files.walkFileTree(Paths.get(classesDirAbs), EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, new FileVisitor<Path>() {
-
-                    @Override
-                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (file.toString().endsWith(".class")) {
-                            classFiles.add(file.toFile());
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                        return FileVisitResult.CONTINUE;
-                    }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            // Instrumenting and saving classes
+            // Instrument all classes from project
+            List<File> classFiles = instrumenter.loadClassFiles();
             for (File classFile : classFiles) {
-                String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
-                File out = new File(String.format("%s%s%s", JDFC_INSTRUMENTED, File.separator, packagePath));
-                if(!out.exists()) {
-                    out.mkdirs();
-                }
-
-                String outFilePath = String.format("%s%s%s", out.getAbsolutePath(), File.separator, classFile.getName());
-                try (FileOutputStream fos = new FileOutputStream(outFilePath)){
-                    byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
-                    ClassReader cr = new ClassReader(classFileBuffer);
-                    JDFCInstrument jdfcInstrument = new JDFCInstrument(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs, classFile.getAbsolutePath());
-                    byte[] instrumented = jdfcInstrument.instrument(cr);
-                    fos.write(instrumented);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                instrumenter.instrumentClass(classFile.getAbsolutePath());
             }
         }
     }
+
 }

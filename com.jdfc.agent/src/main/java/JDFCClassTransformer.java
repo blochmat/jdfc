@@ -15,11 +15,12 @@ public class JDFCClassTransformer implements ClassFileTransformer {
 
     private final JDFCInstrument JDFCInstrument;
 
-    public JDFCClassTransformer(String projectDirStr,
-                                String buildDirStr,
-                                String classesBuildDirStr,
-                                String srcDirStr) {
-        this.JDFCInstrument = new JDFCInstrument(projectDirStr, buildDirStr, classesBuildDirStr, srcDirStr, "");
+    public JDFCClassTransformer(String workDirAbs,
+                                String buildDirAbs,
+                                String classesDirAbs,
+                                String sourceDirAbs) {
+        CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+        this.JDFCInstrument = new JDFCInstrument(classesDirAbs, "");
     }
 
     @Override

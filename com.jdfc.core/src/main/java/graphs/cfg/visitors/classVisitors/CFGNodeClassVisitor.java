@@ -10,7 +10,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import utils.ASMHelper;
-import utils.JDFCUtils;
 
 @Slf4j
 public class CFGNodeClassVisitor extends JDFCClassVisitor {
@@ -44,17 +43,12 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
             mv = null;
         }
 
-        if(classNode.access != Opcodes.ACC_INTERFACE && !JDFCUtils.isNestedClass(classNode.name)) {
-            final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
-            final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
+        final MethodNode methodNode = this.getMethodNode(pName, pDescriptor);
+        final String internalMethodName = asmHelper.computeInternalMethodName(pName, pDescriptor, pSignature, pExceptions);
 
-            // TODO
-            if (methodNode != null
-                    && isInstrumentationRequired(methodNode, internalMethodName)
-                    && !internalMethodName.contains("<clinit>")) {
-                CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, null);
-                return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName, aa);
-            }
+        if (methodNode != null && isInstrumentationRequired(methodNode, internalMethodName)) {
+            CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(Opcodes.ASM5, className, pAccess, pName, pDescriptor, null);
+            return new CFGNodeMethodVisitor(this, mv, methodNode, internalMethodName, aa);
         }
 
         return mv;
