@@ -134,7 +134,7 @@ public class CoverageDataExport {
                         Element pairs = doc.createElement("pairs");
                         method.appendChild(pairs);
 
-                        for(DefUsePair pData : mData.getPairs()) {
+                        for(DefUsePair pData : mData.getPairs().values()) {
                             Element pair = doc.createElement("pair");
                             pair.setAttribute("type", pData.getType());
                             pair.setAttribute("covered", String.valueOf(pData.isCovered()));

@@ -275,7 +275,7 @@ public class ClassExecutionData extends ExecutionData {
                 continue;
             }
 
-            for (DefUsePair pair : mData.getPairs()) {
+            for (DefUsePair pair : mData.getPairs().values()) {
                 ProgramVariable def = pair.getDefinition();
                 ProgramVariable use = pair.getUsage();
 

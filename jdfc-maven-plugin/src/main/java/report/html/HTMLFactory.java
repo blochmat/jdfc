@@ -1024,7 +1024,7 @@ public class HTMLFactory {
     }
 
     private boolean isRedefined(MethodData mData, int pLineNumber, String pName) {
-        for (DefUsePair pair : mData.getPairs()) {
+        for (DefUsePair pair : mData.getPairs().values()) {
             ProgramVariable def = pair.getDefinition();
             // if another definition with the same name, but greater line number exists and
             // the current variable is not part of an active pair we know, that it must have been redefined
@@ -1057,7 +1057,7 @@ public class HTMLFactory {
     // find all uses for one particular definition
     private Set<DefUsePair> getDefUsePairsCoveredForVar(MethodData mData, ProgramVariable pVariable) {
         Set<DefUsePair> result = new HashSet<>();
-        for (DefUsePair element : mData.getPairs()) {
+        for (DefUsePair element : mData.getPairs().values()) {
                 if (element.getDefinition().equals(pVariable) || element.getUsage().equals(pVariable)) {
                     result.add(element);
                 }

@@ -111,7 +111,7 @@ public class ESGCreator {
 
     public static ProgramVariable findDefMatch(SGCallNode sgNode, ProgramVariable def) {
         List<ProgramVariable> usages = new ArrayList<>();
-        for(DefUsePair pair : METHOD_DATA.getPairs()) {
+        for(DefUsePair pair : METHOD_DATA.getPairs().values()) {
             if(Objects.equals(pair.getDefinition(), def)) {
                usages.add(pair.getUsage());
             }
@@ -128,7 +128,7 @@ public class ESGCreator {
 
     public static ProgramVariable findDefMatch(SGEntryNode sgNode, ProgramVariable def) {
         List<ProgramVariable> usages = new ArrayList<>();
-        for(DefUsePair pair : METHOD_DATA.getPairs()) {
+        for(DefUsePair pair : METHOD_DATA.getPairs().values()) {
             if(Objects.equals(pair.getDefinition(), def)) {
                 usages.add(pair.getUsage());
             }

@@ -92,7 +92,7 @@ public class MethodData {
     /**
      * All DU-pairs of method
      */
-    private Set<DefUsePair> pairs;
+    private Map<UUID, DefUsePair> pairs;
 
     /**
      * All program variables
@@ -128,7 +128,7 @@ public class MethodData {
 
     public String toString() {
         return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
-                access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintSet(pairs));
+                access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintMap(pairs));
     }
 
     public MethodData(UUID id, String classname, int access, String name, String desc) {
@@ -140,7 +140,7 @@ public class MethodData {
         this.declarationStr = "";
         this.beginLine = Integer.MIN_VALUE;
         this.endLine = Integer.MIN_VALUE;
-        this.pairs = ConcurrentHashMap.newKeySet();
+        this.pairs = new ConcurrentHashMap<>();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
         this.fieldDefinitions = new HashMap<>();
@@ -157,7 +157,7 @@ public class MethodData {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = ConcurrentHashMap.newKeySet();
+        this.pairs = new ConcurrentHashMap<>();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
         this.fieldDefinitions = new HashMap<>();
@@ -174,7 +174,7 @@ public class MethodData {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = ConcurrentHashMap.newKeySet();
+        this.pairs = new ConcurrentHashMap<>();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashMap<>();
         this.fieldDefinitions = new HashMap<>();
@@ -188,7 +188,7 @@ public class MethodData {
 
     public void computeCoverageMetadata() {
         this.total = pairs.size();
-        this.covered = (int) pairs.stream().filter(DefUsePair::isCovered).count();
+        this.covered = (int) pairs.values().stream().filter(DefUsePair::isCovered).count();
         if (total != 0) {
             this.rate = (double) covered / total;
         }
@@ -211,7 +211,7 @@ public class MethodData {
     }
 
     public DefUsePair findDefUsePair(DefUsePair pair) {
-        for(DefUsePair p : pairs) {
+        for(DefUsePair p : pairs.values()) {
             if (p.getDefinition().equals(pair.getDefinition()) && p.getUsage().equals(pair.getUsage())) {
                 return p;
             }
@@ -230,7 +230,8 @@ public class MethodData {
                     if (Objects.equals(def.getName(), use.getName())
                             && Objects.equals(def.getIsField(), use.getIsField())
                             && !def.getDescriptor().equals("UNKNOWN")) {
-                        this.pairs.add(new DefUsePair(def, use));
+                        UUID id = UUID.randomUUID();
+                        this.pairs.put(id, new DefUsePair(def, use));
                     }
 
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
@@ -240,7 +241,7 @@ public class MethodData {
             }
 
         }
-        JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintSet(this.pairs), "intra_pairs");
+        JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintMap(this.pairs), "intra_pairs");
     }
 
     /**
@@ -250,7 +251,7 @@ public class MethodData {
      * @return
      */
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
-        for (DefUsePair pair : pairs) {
+        for (DefUsePair pair : pairs.values()) {
             if ((pair.getDefinition().getName().equals(pName) && pair.getDefinition().getLineNumber() == pLineNumber)
                     || pair.getUsage().getName().equals(pName) && pair.getUsage().getLineNumber() == pLineNumber) {
                 return true;

@@ -3,6 +3,7 @@ package instr;
 import data.ClassExecutionData;
 import data.MethodData;
 import data.ProgramVariable;
+import data.ProjectData;
 import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
@@ -76,6 +77,7 @@ public class JDFCInstrument {
     public byte[] instrument(final ClassReader classReader) {
         final ClassNode classNode = new ClassNode();
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        ProjectData projectData = new ProjectData();
 
         // cw
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
@@ -98,6 +100,8 @@ public class JDFCInstrument {
                 mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
                 mData.getCfg().calculateReachingDefinitions();
                 mData.calculateIntraDefUsePairs();
+//                projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
+//                projectData.getDefUsePairMap().putAll(mData.getPairs());
             }
 
             // if inter
