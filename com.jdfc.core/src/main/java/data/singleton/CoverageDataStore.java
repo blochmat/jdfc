@@ -1,6 +1,7 @@
 package data.singleton;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import data.ClassExecutionData;
 import data.ExecutionData;
@@ -10,7 +11,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import utils.FileHelper;
 import utils.JDFCUtils;
 import utils.JavaParserHelper;
 
@@ -18,8 +18,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -172,69 +170,7 @@ public class CoverageDataStore {
         return root.getChildDataRecursive(nodePath);
     }
 
-    public void addNodesFromDirRecursive(File pFile,
-                                         ExecutionDataNode<ExecutionData> pExecutionDataNode,
-                                         String classesDirAbs,
-                                         String suffix) {
-        FileHelper fileHelper = new FileHelper();
-
-        File[] fileList = Objects.requireNonNull(pFile.listFiles());
-        boolean containsClasses = fileHelper.filesWithSuffixPresentIn(fileList, suffix);
-        if (pExecutionDataNode.isRoot() && containsClasses) {
-            pExecutionDataNode.addChild("default", this.root.getData());
-        }
-        for (File f : fileList) {
-            String fqn = createFqn(pExecutionDataNode, f.getName());
-            if (f.isDirectory() && !fileHelper.isMetaInfFile(f)) {
-                ExecutionData pkgData = new ExecutionData(fqn, f.getName());
-                ExecutionDataNode<ExecutionData> newPkgExecutionDataNode = new ExecutionDataNode<>(pkgData);
-                pExecutionDataNode.addChild(f.getName(), newPkgExecutionDataNode);
-                addNodesFromDirRecursive(f, newPkgExecutionDataNode, classesDirAbs, suffix);
-            } else if (f.isFile() && f.getName().endsWith(suffix)) {
-                // Do not handle anonymous inner files
-                if(!JDFCUtils.isNestedClass(f.getName()) && !JDFCUtils.isAnonymousInnerClass(f.getName())) {
-                    // Get AST of source file
-                    this.createClassExData(f, fqn, pExecutionDataNode, classesDirAbs);
-                }
-            }
-        }
-
-        if (log.isDebugEnabled()) {
-            File file = JDFCUtils.createFileInDebugDir("1_addNodesFromDirRecursive.txt", false);
-            try (FileWriter writer = new FileWriter(file, true)) {
-                writer.write("ExecutionData\n");
-                writer.write("Name: ");
-                writer.write(pExecutionDataNode.getData().getName());
-                writer.write("\n");
-                writer.write("Fqn: ");
-                writer.write(pExecutionDataNode.getData().getFqn());
-                writer.write("\n");
-                writer.write("Parent Fqn: ");
-                writer.write(pExecutionDataNode.getData().getParentFqn());
-                writer.write("\n");
-                writer.write("Children: ");
-                writer.write(JDFCUtils.prettyPrintArray(pExecutionDataNode.getChildren().keySet().toArray()));
-                writer.write("\n");
-                writer.write("=========================================");
-                writer.write("\n");
-                writer.write("CoverageDataStorage.untestedClasses");
-                writer.write(JDFCUtils.prettyPrintArray(untestedClassList.toArray(new String[0])));
-                writer.write("-----------------------------------------");
-                writer.write("\n");
-                writer.write("-----------------------------------------");
-                writer.write("\n");
-                writer.write("CoverageDataStorage.classExecutionDataMap: ");
-                writer.write(JDFCUtils.prettyPrintMap(classExecutionDataMap));
-                writer.write("=========================================");
-                writer.write("\n");
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        }
-    }
-
-    public void addClassData(String classesAbs, String classFileAbs) {
+    public boolean addClassData(String classesAbs, String classFileAbs) {
         JavaParserHelper javaParserHelper = new JavaParserHelper();
         File classFile = new File(classFileAbs);
         String classFileRel = classFileAbs.replace(classesAbs, "");
@@ -248,7 +184,7 @@ public class CoverageDataStore {
         if (sourceFile.exists()) {
             try {
                 CompilationUnit cu = javaParserHelper.parse(sourceFile);
-                if (!isOnlyInterface(cu) && !isOnlyEnum(cu)) {
+                if (!isInterface(cu) && !isEnum(cu) && !isGeneric(cu)) {
                     UUID id = UUID.randomUUID();
                     untestedClassList.add(classFileRelNoType);
                     ClassExecutionData classNodeData = new ClassExecutionData(fqn, classFile.getName(), id, classFileRelNoType, cu);
@@ -262,55 +198,21 @@ public class CoverageDataStore {
                         projectData.computeIfAbsent(classFilePackage, k -> new HashMap<>());
                         projectData.get(classFilePackage).put(nameWithoutType, classNodeData);
                     }
+                    return true;
                 }
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
         }
+        return false;
     }
 
-    private void createClassExData(File classFile, String fqn, ExecutionDataNode<ExecutionData> pExecutionDataNode, String classesDirAbs) {
-        JavaParserHelper javaParserHelper = new JavaParserHelper();
-        String classFileRel = classFile.getAbsolutePath().replace(classesDirAbs, "");
-        String classFilePackage = classFileRel.replace(classFile.getName(), "").replaceAll("^/|/$", "");
-        String classFileRelNoType = classFileRel.split("\\.")[0].replace(File.separator, "/");
-        String sourceFileRel = classFileRel.replace(".class", ".java");
-        String sourceFileAbs = String.format("%s%s", CoverageDataStore.getInstance().getSrcDirStr(), sourceFileRel);
-
-        File sourceFile = new File(sourceFileAbs);
-        if (sourceFile.exists()) {
-            try {
-                CompilationUnit cu = javaParserHelper.parse(sourceFile);
-                if (!isOnlyInterface(cu) && !isOnlyEnum(cu)) {
-                    UUID id = UUID.randomUUID();
-                    untestedClassList.add(classFileRelNoType);
-                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, classFile.getName(), id, classFileRelNoType, cu);
-                    classExecutionDataMap.put(id, classNodeData);
-
-                    String nameWithoutType = classFile.getName().split("\\.")[0];
-                    if(classFilePackage.equals("")) {
-                        CoverageDataStore.getInstance().projectData.computeIfAbsent("default", k -> new HashMap<>());
-                        projectData.get("default").put(nameWithoutType, classNodeData);
-                    } else {
-                        projectData.computeIfAbsent(classFilePackage, k -> new HashMap<>());
-                        projectData.get(classFilePackage).put(nameWithoutType, classNodeData);
-                    }
-                }
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public boolean isGeneric(CompilationUnit cu) {
+        return cu.findAll(ClassOrInterfaceDeclaration.class).stream()
+                .allMatch(d -> d.isClassOrInterfaceDeclaration() && !d.getTypeParameters().isEmpty());
     }
 
-    private String createFqn(ExecutionDataNode<ExecutionData> node, String childName) {
-        if (node.isRoot()) {
-            return childName;
-        } else {
-            return String.format("%s.%s", node.getData().getFqn(), childName);
-        }
-    }
-
-    public boolean isOnlyInterface(CompilationUnit cu) {
+    public boolean isInterface(CompilationUnit cu) {
         // Get a list of all types declared in the file
         List<TypeDeclaration<?>> types = cu.getTypes();
         // Check if there's exactly one type
@@ -322,7 +224,7 @@ public class CoverageDataStore {
         return false;
     }
 
-    public boolean isOnlyEnum(CompilationUnit cu) {
+    public boolean isEnum(CompilationUnit cu) {
         // Get a list of all types declared in the file
         List<TypeDeclaration<?>> types = cu.getTypes();
         // Check if there's exactly one type

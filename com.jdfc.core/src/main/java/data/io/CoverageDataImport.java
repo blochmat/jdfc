@@ -1,13 +1,9 @@
 package data.io;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import data.ClassExecutionData;
-import data.singleton.CoverageDataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,28 +19,25 @@ public class CoverageDataImport {
         File jdfc = new File(pJDFCDir);
         Path jdfcPath = jdfc.toPath();
 
-        // Loading data node structure from target/classes
-        CoverageDataStore.getInstance()
-                .addNodesFromDirRecursive(classes, CoverageDataStore.getInstance().getRoot(), classesDirAbs, ".class");
-
+        // No longer working
         // Load xml files from target/jdfc
-        List<File> jsonFileList = loadFilesFromDirRecursive(jdfc, ".json");
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        for (File file : jsonFileList) {
-            String relativePathWithType = jdfcPath.relativize(file.toPath()).toString();
-            String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
-            try {
-                ClassExecutionData classExecutionData = objectMapper.readValue(file, ClassExecutionData.class);
-                CoverageDataStore.getInstance().findClassDataNode(relativePath).setData(classExecutionData);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-//        CoverageDataStore.getInstance().getRoot().computeClassCoverage();
-        CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
-        logger.debug("Loading successful.");
+//        List<File> jsonFileList = loadFilesFromDirRecursive(jdfc, ".json");
+//        ObjectMapper objectMapper = new ObjectMapper();
+//
+//        for (File file : jsonFileList) {
+//            String relativePathWithType = jdfcPath.relativize(file.toPath()).toString();
+//            String relativePath = relativePathWithType.split("\\.")[0].replace(File.separator, "/");
+//            try {
+//                ClassExecutionData classExecutionData = objectMapper.readValue(file, ClassExecutionData.class);
+//                CoverageDataStore.getInstance().findClassDataNode(relativePath).setData(classExecutionData);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
+//
+////        CoverageDataStore.getInstance().getRoot().computeClassCoverage();
+//        CoverageDataStore.getInstance().getRoot().aggregateDataToRootRecursive();
+//        logger.debug("Loading successful.");
     }
 
     public static List<File> loadFilesFromDirRecursive(File file, String suffix) {

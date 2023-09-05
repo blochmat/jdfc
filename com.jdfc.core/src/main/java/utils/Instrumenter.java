@@ -1,5 +1,6 @@
 package utils;
 
+import data.singleton.CoverageDataStore;
 import instr.JDFCInstrument;
 import org.objectweb.asm.ClassReader;
 
@@ -22,25 +23,26 @@ public class Instrumenter {
         this.classesDirAbs = classesDirAbs;
     }
 
-    public void instrumentClass(String classFilePath) {
-        File classFile = new File(classFilePath);
-        String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
-        File outDir = new File(String.join(File.separator, workDirAbs, ".jdfc_instrumented", packagePath));
-        if(!outDir.exists()) {
-            outDir.mkdirs();
-        }
-        String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
-        try (FileOutputStream fos = new FileOutputStream(outPath)){
-            byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
-            ClassReader cr = new ClassReader(classFileBuffer);
-            JDFCInstrument jdfcInstrument = new JDFCInstrument(classesDirAbs, classFilePath);
-            byte[] instrumented = jdfcInstrument.instrument(cr);
-            fos.write(instrumented);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    public void instrumentClass(String classFileAbs) {
+        if (CoverageDataStore.getInstance().addClassData(classesDirAbs, classFileAbs)) {
+            File classFile = new File(classFileAbs);
+            String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
+            File outDir = new File(String.join(File.separator, workDirAbs, ".jdfc_instrumented", packagePath));
+            if(!outDir.exists()) {
+                outDir.mkdirs();
+            }
+            String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
+            try (FileOutputStream fos = new FileOutputStream(outPath)){
+                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+                ClassReader cr = new ClassReader(classFileBuffer);
+                JDFCInstrument jdfcInstrument = new JDFCInstrument();
+                byte[] instrumented = jdfcInstrument.instrument(cr);
+                fos.write(instrumented);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
-
 
     public List<File> loadClassFiles() {
         List<File> classFiles = new ArrayList<>();

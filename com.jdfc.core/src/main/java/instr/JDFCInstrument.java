@@ -34,41 +34,6 @@ public class JDFCInstrument {
      */
     private static final Class<?> exportClass = CoverageDataExport.class;
 
-    public JDFCInstrument(String classesDirAbs, String classFileAbs) {
-        if(!classFileAbs.equals("")) {
-            CoverageDataStore.getInstance().addClassData(classesDirAbs, classFileAbs);
-        } else {
-            CoverageDataStore.getInstance().addNodesFromDirRecursive(
-                    CoverageDataStore.getInstance().getClassesBuildDir(),
-                    CoverageDataStore.getInstance().getRoot(),
-                    classesDirAbs,
-                    ".class");
-        }
-
-        // add shutdown hook to compute and write results
-//        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-//            Logger logger = LoggerFactory.getLogger("Shutdown Hook");
-//
-//            try {
-//                logger.info("Export started.");
-//                CoverageDataStore.getInstance().exportCoverageData();
-//                logger.info("Export finished.");
-//            } catch (Exception e) {
-//                File jdfcDir = CoverageDataStore.getInstance().getJdfcDir();
-//                if (jdfcDir.exists() || jdfcDir.mkdirs()) {
-//                    try (FileWriter writer = new FileWriter(JDFCUtils.createFileInJDFCDir("shutdown_error.txt", false), false)) {
-//                        String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
-//                        writer.write("Exception during shutdown: " + e.getMessage() + "\n");
-//                        writer.write(stackTrace);
-//                        writer.write("\n");
-//                    } catch (IOException ioException) {
-//                        ioException.printStackTrace();  // print to console as a last resort
-//                    }
-//                }
-//            }
-//        }));
-    }
-
     public byte[] instrument(final ClassReader classReader) {
         final ClassNode classNode = new ClassNode();
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
@@ -78,7 +43,6 @@ public class JDFCInstrument {
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
         String packageRel = this.getPackage(classNode);
         String className = this.getClassName(classNode);
-
 
         if (CoverageDataStore.getInstance().getProjectData().get(packageRel) != null) {
             ClassExecutionData cData = CoverageDataStore.getInstance().getProjectData().get(packageRel).get(className);
