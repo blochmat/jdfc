@@ -17,7 +17,11 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
-    public String className;
+    private String className;
+
+    public String getClassName() {
+        return className;
+    }
 
     private static final String TEST_DATA = "__jdfc_test_data";
     private static final String TEST_DATA_DESCRIPTOR = "Ljava/util/Map;";
