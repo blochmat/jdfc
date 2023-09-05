@@ -79,100 +79,101 @@ public class JDFCInstrument {
         String packageRel = this.getPackage(classNode);
         String className = this.getClassName(classNode);
 
-        ClassExecutionData cData = CoverageDataStore.getInstance().getProjectData().get(packageRel).get(className);
 
-        if (cData != null) {
+        if (CoverageDataStore.getInstance().getProjectData().get(packageRel) != null) {
+            ClassExecutionData cData = CoverageDataStore.getInstance().getProjectData().get(packageRel).get(className);
 
-            // Always
-            CFGCreator.createCFGsForClass(classReader, classNode, cData);
+            if (cData != null) {
+                // Always
+                CFGCreator.createCFGsForClass(classReader, classNode, cData);
 
-            // if intra
-            Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
-                    .flatMap(inner -> inner.values().stream())
-                    .collect(Collectors.toSet());
-            JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
-            for(MethodData mData : cData.getMethods().values()) {
-                mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
-                mData.getCfg().calculateReachingDefinitions();
-                mData.calculateIntraDefUsePairs();
-                projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
-                projectData.getDefUsePairMap().putAll(mData.getPairs());
-            }
+                // if intra
+                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
+                        .flatMap(inner -> inner.values().stream())
+                        .collect(Collectors.toSet());
+                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
+                for(MethodData mData : cData.getMethods().values()) {
+                    mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
+                    mData.getCfg().calculateReachingDefinitions();
+                    mData.calculateIntraDefUsePairs();
+                    projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
+                    projectData.getDefUsePairMap().putAll(mData.getPairs());
+                }
 
-            // if inter
+                // if inter
 //            SGCreator.createSGsForClass(cData);
 //            ESGCreator.createESGsForClass(cData);
 
-            // if intra
+                // if intra
 
-            if (log.isDebugEnabled()) {
-                // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
-                // Byte code is written to two files BEFORE.txt and AFTER.txt.
-                // Visitor chain is built from back to front
-                File instrLogDir = JDFCUtils.createFileInInstrDir(classNode.name.replace(File.separator, "."), true);
+                if (log.isDebugEnabled()) {
+                    // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
+                    // Byte code is written to two files BEFORE.txt and AFTER.txt.
+                    // Visitor chain is built from back to front
+                    File instrLogDir = JDFCUtils.createFileInInstrDir(classNode.name.replace(File.separator, "."), true);
                     // afterTcv -> cw
-                File afterFile = JDFCUtils.createFileIn(instrLogDir, "AFTER", false);
-                try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFile, true))) {
-                    TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
+                    File afterFile = JDFCUtils.createFileIn(instrLogDir, "AFTER", false);
+                    try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFile, true))) {
+                        TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
 //                    CheckClassAdapter cca = new CheckClassAdapter(afterTcv, true);
 
-                    // iv -> afterTcv -> cw
-                    ClassVisitor iv = new InstrumentationClassVisitor(afterTcv, classNode, cData);
+                        // iv -> afterTcv -> cw
+                        ClassVisitor iv = new InstrumentationClassVisitor(afterTcv, classNode, cData);
 
 
-                    // beforeTcv -> iv -> afterTcv -> cw
-                    File beforeFile = JDFCUtils.createFileIn(instrLogDir, "BEFORE", false);
-                    try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFile, true))) {
-                        TraceClassVisitor beforeTcv = new TraceClassVisitor(iv, beforeWriter);
-                        // cr -> beforeTcv -> iv -> afterTcv -> cw
-                        classReader.accept(beforeTcv, ClassReader.EXPAND_FRAMES);
+                        // beforeTcv -> iv -> afterTcv -> cw
+                        File beforeFile = JDFCUtils.createFileIn(instrLogDir, "BEFORE", false);
+                        try (PrintWriter beforeWriter = new PrintWriter(new FileWriter(beforeFile, true))) {
+                            TraceClassVisitor beforeTcv = new TraceClassVisitor(iv, beforeWriter);
+                            // cr -> beforeTcv -> iv -> afterTcv -> cw
+                            classReader.accept(beforeTcv, ClassReader.EXPAND_FRAMES);
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
+                } else {
+                    // Normal visitor chain: cr -> cv -> cw
+                    // cv -> cw
+                    ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, cData);
 
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                    // cr -> cv -> cw
+                    classReader.accept(cv, ClassReader.EXPAND_FRAMES);
                 }
-            } else {
-                // Normal visitor chain: cr -> cv -> cw
-                // cv -> cw
-                ClassVisitor cv = new InstrumentationClassVisitor(cw, classNode, cData);
 
-                // cr -> cv -> cw
-                classReader.accept(cv, ClassReader.EXPAND_FRAMES);
-            }
+                ClassReader reader = new ClassReader(cw.toByteArray());
+                ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
 
-            ClassReader reader = new ClassReader(cw.toByteArray());
-            ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
+                if (log.isDebugEnabled()) {
+                    // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
+                    // Byte code is written to two files BEFORE.txt and AFTER.txt.
+                    // Visitor chain is built from back to front
+                    File instrLogDir = JDFCUtils.createFileInInstrDir(classNode.name.replace(File.separator, "."), true);
+                    // afterTcv -> writer
+                    File afterFile = JDFCUtils.createFileIn(instrLogDir, "AFTER_wTc", false);
+                    try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFile, true))) {
+                        TraceClassVisitor afterTcv = new TraceClassVisitor(writer, afterWriter);
 
-            if (log.isDebugEnabled()) {
-                // Debug visitor chain: cr -> beforeTcv -> cv -> afterTCV -> cw
-                // Byte code is written to two files BEFORE.txt and AFTER.txt.
-                // Visitor chain is built from back to front
-                File instrLogDir = JDFCUtils.createFileInInstrDir(classNode.name.replace(File.separator, "."), true);
-                // afterTcv -> writer
-                File afterFile = JDFCUtils.createFileIn(instrLogDir, "AFTER_wTc", false);
-                try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFile, true))) {
-                    TraceClassVisitor afterTcv = new TraceClassVisitor(writer, afterWriter);
+                        // atcv -> afterTcv -> writer
+                        ClassVisitor atcv = new AddTryCatchClassVisitor(Opcodes.ASM5, afterTcv);
 
-                    // atcv -> afterTcv -> writer
-                    ClassVisitor atcv = new AddTryCatchClassVisitor(Opcodes.ASM5, afterTcv);
+                        reader.accept(atcv, ClassReader.EXPAND_FRAMES);
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                } else {
+                    // Normal visitor chain: cr -> cv -> writer
+                    // cv -> writer
+                    ClassVisitor atcv = new AddTryCatchClassVisitor(Opcodes.ASM5, writer);
 
+                    // cr -> cv -> writer
                     reader.accept(atcv, ClassReader.EXPAND_FRAMES);
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
                 }
-            } else {
-                // Normal visitor chain: cr -> cv -> writer
-                // cv -> writer
-                ClassVisitor atcv = new AddTryCatchClassVisitor(Opcodes.ASM5, writer);
-
-                // cr -> cv -> writer
-                reader.accept(atcv, ClassReader.EXPAND_FRAMES);
+                return writer.toByteArray();
             }
-            return writer.toByteArray();
         }
-
         return cw.toByteArray();
     }
 
