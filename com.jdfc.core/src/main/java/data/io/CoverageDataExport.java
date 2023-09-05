@@ -79,10 +79,10 @@ public class CoverageDataExport {
         coverage.appendChild(sources);
 
         // fill sources
-        File projectDirString = CoverageDataStore.getInstance().getProjectDir();
+        File projectDirString = CoverageDataStore.getInstance().getWorkDirAbs();
         Element source = doc.createElement("source");
         // substring(1) to remove first /
-        String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), CoverageDataStore.getInstance().getSrcDirStr()).substring(1);
+        String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), CoverageDataStore.getInstance().getSourceDirAbs()).substring(1);
         source.setTextContent(relPath);
         sources.appendChild(source);
 
@@ -193,7 +193,7 @@ public class CoverageDataExport {
 
         for (String relPath : classList) {
             // pClassesDir = target/classes
-            String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesBuildDir(), relPath, ".class");
+            String classFilePath = String.format("%s/%s%s", CoverageDataStore.getInstance().getClassesDirAbs(), relPath, ".class");
             File classFile = new File(classFilePath);
             try {
 //                byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());

@@ -37,11 +37,11 @@ public class CoverageDataStore {
     private final Set<String> testedClassList;
     private final Set<String> untestedClassList;
     private final Map<String, Map<String, ClassExecutionData>> projectData;
-    private File projectDir;
-    private File buildDir;
-    private File classesBuildDir;
+    private File workDirAbs;
+    private File buildDirAbs;
+    private File classesDirAbs;
     private File jdfcDir;
-    private String srcDirStr;
+    private String sourceDirAbs;
     private File jdfcDebugDir;
     private File jdfcDebugInstrDir;
     private File jdfcDebugErrorDir;
@@ -77,11 +77,11 @@ public class CoverageDataStore {
             System.err.println("Exception occurred in thread: " + t.getName());
             e.printStackTrace();
         });
-        this.projectDir = new File(projectDirStr);
-        this.buildDir = new File(buildDirStr);
-        this.classesBuildDir = new File(classesBuildDirStr);
-        this.srcDirStr = srcDirStr;
-        this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDir, File.separator));
+        this.workDirAbs = new File(projectDirStr);
+        this.buildDirAbs = new File(buildDirStr);
+        this.classesDirAbs = new File(classesBuildDirStr);
+        this.sourceDirAbs = srcDirStr;
+        this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDirAbs, File.separator));
         this.jdfcDebugDir = new File(String.format("%s%sdebug", this.jdfcDir, File.separator));
         this.jdfcDebugInstrDir = new File(String.format("%s%sinstrumentation", this.jdfcDebugDir, File.separator));
         this.jdfcDebugErrorDir = new File(String.format("%s%serror", this.jdfcDebugDir, File.separator));
@@ -177,7 +177,7 @@ public class CoverageDataStore {
         String classFilePackage = classFileRel.replace(classFile.getName(), "").replaceAll("^/|/$", "");
         String classFileRelNoType = classFileRel.split("\\.")[0].replace(File.separator, "/");
         String sourceFileRel = classFileRel.replace(".class", ".java");
-        String sourceFileAbs = String.format("%s/%s", CoverageDataStore.getInstance().getSrcDirStr(), sourceFileRel);
+        String sourceFileAbs = CoverageDataStore.getInstance().getSourceDirAbs().concat(sourceFileRel);
         String fqn = classFileRelNoType.replace(File.separator, ".");
 
         File sourceFile = new File(sourceFileAbs);

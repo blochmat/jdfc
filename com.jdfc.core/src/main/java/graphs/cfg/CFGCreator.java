@@ -50,8 +50,8 @@ public class CFGCreator {
                                           final ClassExecutionData pClassExecutionData) {
         Preconditions.checkNotNull(pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
-//        Preconditions.checkNotNull(pClassExecutionData,
-//                "We need a non-null class execution data to generate CFGs from.");
+        Preconditions.checkNotNull(pClassExecutionData,
+                "We need a non-null class execution data to generate CFGs from.");
 
         // Get local variable information for all methods in the class
         final CFGLocalVariableClassVisitor localVariableVisitor =

@@ -1,12 +1,9 @@
 package instr;
 
 import data.ClassExecutionData;
-import data.MethodData;
-import data.ProgramVariable;
 import data.io.CoverageDataExport;
 import data.neu.ProjectData;
 import data.singleton.CoverageDataStore;
-import graphs.cfg.CFGCreator;
 import instr.classVisitors.AddTryCatchClassVisitor;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +12,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import utils.JDFCUtils;
 
@@ -23,8 +21,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class JDFCInstrument {
@@ -49,20 +45,20 @@ public class JDFCInstrument {
 
             if (cData != null) {
                 // Always
-                CFGCreator.createCFGsForClass(classReader, classNode, cData);
-
-                // if intra
-                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
-                        .flatMap(inner -> inner.values().stream())
-                        .collect(Collectors.toSet());
-                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
-                for(MethodData mData : cData.getMethods().values()) {
-                    mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
-                    mData.getCfg().calculateReachingDefinitions();
-                    mData.calculateIntraDefUsePairs();
-                    projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
-                    projectData.getDefUsePairMap().putAll(mData.getPairs());
-                }
+//                CFGCreator.createCFGsForClass(classReader, classNode, cData);
+//
+//                // if intra
+//                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
+//                        .flatMap(inner -> inner.values().stream())
+//                        .collect(Collectors.toSet());
+//                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
+//                for(MethodData mData : cData.getMethods().values()) {
+//                    mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
+//                    mData.getCfg().calculateReachingDefinitions();
+//                    mData.calculateIntraDefUsePairs();
+//                    projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
+//                    projectData.getDefUsePairMap().putAll(mData.getPairs());
+//                }
 
                 // if inter
 //            SGCreator.createSGsForClass(cData);
@@ -135,6 +131,7 @@ public class JDFCInstrument {
                     // cr -> cv -> writer
                     reader.accept(atcv, ClassReader.EXPAND_FRAMES);
                 }
+                CheckClassAdapter.verify(new ClassReader(writer.toByteArray()), false, new PrintWriter(System.err));
                 return writer.toByteArray();
             }
         }
