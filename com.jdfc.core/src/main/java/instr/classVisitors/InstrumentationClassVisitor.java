@@ -2,6 +2,7 @@ package instr.classVisitors;
 
 import data.ClassExecutionData;
 import instr.methodVisitors.InstrumentationMethodVisitor;
+import lombok.Getter;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -10,7 +11,9 @@ import org.slf4j.LoggerFactory;
 import utils.ASMHelper;
 
 import static org.objectweb.asm.Opcodes.*;
+import static utils.Constants.*;
 
+@Getter
 public class InstrumentationClassVisitor extends JDFCClassVisitor {
 
     private final Logger logger = LoggerFactory.getLogger(InstrumentationClassVisitor.class);
@@ -18,24 +21,6 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
     private final ASMHelper asmHelper = new ASMHelper();
 
     private String className;
-
-    public String getClassName() {
-        return className;
-    }
-
-    private static final String TEST_DATA = "__jdfc_test_data";
-    private static final String TEST_DATA_DESCRIPTOR = "Ljava/util/Set;";
-    private static final String TEST_DATA_SIGNATURE = "Ljava/util/Set<Ljava/lang/String;>;";
-
-    private static final String METHOD_INIT = "__jdfc_initialize";
-    private static final String METHOD_INIT_DESCRIPTOR = "()V";
-
-    private static final String METHOD_TRACK = "__jdfc_track";
-    private static final String METHOD_TRACK_DESCRIPTOR = "(Ljava/lang/String;)V";
-
-    private static final String METHOD_GET_AND_RESET = "__jdfc_getAndReset";
-    private static final String METHOD_GET_AND_RESET_DESCRIPTOR = "()Ljava/util/Set;";
-    private static final String METHOD_GET_AND_RESET_SIGNATURE = "()Ljava/util/Set<Ljava/lang/String;>;";
 
 
     public InstrumentationClassVisitor(final ClassVisitor pClassVisitor,
@@ -79,9 +64,9 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
     private void createTestData() {
         FieldVisitor fv = cv.visitField(
                 ACC_PUBLIC | ACC_STATIC,
-                TEST_DATA,
-                TEST_DATA_DESCRIPTOR,
-                TEST_DATA_SIGNATURE,
+                FIELD_TEST_DATA,
+                FIELD_TEST_DATA_DESCRIPTOR,
+                FIELD_TEST_DATA_SIGNATURE,
                 null);
         fv.visitEnd();
     }
@@ -99,14 +84,14 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         Label l0 = new Label();
         mvInitTestData.visitLabel(l0);
         // if (testData == null)
-        mvInitTestData.visitFieldInsn(Opcodes.GETSTATIC, this.className, TEST_DATA, TEST_DATA_DESCRIPTOR);
+        mvInitTestData.visitFieldInsn(Opcodes.GETSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         Label l1 = new Label();
         mvInitTestData.visitJumpInsn(Opcodes.IFNONNULL, l1);
         // testData = new HashMap<>();
         Label l2 = new Label();
         mvInitTestData.visitLabel(l2);
         mvInitTestData.visitMethodInsn(Opcodes.INVOKESTATIC, "java/util/concurrent/ConcurrentHashMap", "newKeySet", "()Ljava/util/Set;", false);
-        mvInitTestData.visitFieldInsn(Opcodes.PUTSTATIC, this.className, TEST_DATA, TEST_DATA_DESCRIPTOR);
+        mvInitTestData.visitFieldInsn(Opcodes.PUTSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         // Label for end of method and return statement
         mvInitTestData.visitLabel(l1);
         mvInitTestData.visitInsn(Opcodes.RETURN);
@@ -125,7 +110,7 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         );
         mvTrack.visitCode();
         // Load 'this' and 'key' and invoke map.get(key)
-        mvTrack.visitFieldInsn(Opcodes.GETSTATIC, this.className, TEST_DATA, TEST_DATA_DESCRIPTOR);
+        mvTrack.visitFieldInsn(Opcodes.GETSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         mvTrack.visitVarInsn(Opcodes.ALOAD, 0);  // Load 'key' onto stack
         mvTrack.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
         mvTrack.visitInsn(Opcodes.POP);  // Pop the boolean returned by Set.add()
@@ -145,10 +130,10 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
                 null);
         mvGetAndReset.visitCode();
         // Initialize local variable 'local' by copying 'testData' to it
-        mvGetAndReset.visitFieldInsn(GETSTATIC, this.className, TEST_DATA, TEST_DATA_DESCRIPTOR);
+        mvGetAndReset.visitFieldInsn(GETSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         mvGetAndReset.visitVarInsn(ASTORE, 0);
         mvGetAndReset.visitMethodInsn(Opcodes.INVOKESTATIC, "java/util/concurrent/ConcurrentHashMap", "newKeySet", "()Ljava/util/Set;", false);
-        mvGetAndReset.visitFieldInsn(PUTSTATIC, this.className, TEST_DATA, TEST_DATA_DESCRIPTOR);
+        mvGetAndReset.visitFieldInsn(PUTSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         // Return 'local'
         mvGetAndReset.visitVarInsn(ALOAD, 0);
         mvGetAndReset.visitInsn(ARETURN);

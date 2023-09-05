@@ -4,6 +4,7 @@ import data.ClassExecutionData;
 import data.io.CoverageDataExport;
 import data.neu.ProjectData;
 import data.singleton.CoverageDataStore;
+import graphs.cfg.CFGCreator;
 import instr.classVisitors.AddTryCatchClassVisitor;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,9 +46,9 @@ public class JDFCInstrument {
 
             if (cData != null) {
                 // Always
-//                CFGCreator.createCFGsForClass(classReader, classNode, cData);
-//
-//                // if intra
+                CFGCreator.createCFGsForClass(classReader, classNode, cData);
+
+                // if intra
 //                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
 //                        .flatMap(inner -> inner.values().stream())
 //                        .collect(Collectors.toSet());

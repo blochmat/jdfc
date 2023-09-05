@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.*;
+import static utils.Constants.*;
 
 @Slf4j
 public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
@@ -25,9 +26,6 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     private final String className;
 
     private static final String COVERAGE_DATA_STORE = Type.getInternalName(CoverageDataStore.class);
-
-    private static final String TRACK_VAR = "trackVar";
-    private static final String TRACK_VAR_DESC = "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V";
 
     private static final String TRACK_NEW_OBJECT = "trackNewObject";
     private static final String TRACK_NEW_OBJECT_DESC = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
@@ -52,8 +50,8 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         mv.visitMethodInsn(
                 Opcodes.INVOKESTATIC,
                 this.className,
-                "__jdfc_initialize",
-                "()V",
+                METHOD_INIT,
+                METHOD_INIT_DESCRIPTOR,
                 false
         );
         super.visitCode();
@@ -273,14 +271,12 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         }
                     }
                 } else {
-                    mv.visitLdcInsn(cId.toString());
-                    mv.visitLdcInsn(mId.toString());
                     mv.visitLdcInsn(pId.toString());
                     mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
-                            COVERAGE_DATA_STORE,
-                            TRACK_VAR,
-                            TRACK_VAR_DESC,
+                            this.className,
+                            METHOD_TRACK,
+                            METHOD_TRACK_DESCRIPTOR,
                             false);
                 }
             } else {
@@ -358,14 +354,12 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         }
                     }
                 } else {
-                    mv.visitLdcInsn(cId.toString());
-                    mv.visitLdcInsn(mId.toString());
                     mv.visitLdcInsn(pId.toString());
                     mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
-                            COVERAGE_DATA_STORE,
-                            TRACK_VAR,
-                            TRACK_VAR_DESC,
+                            this.className,
+                            METHOD_TRACK,
+                            METHOD_TRACK_DESCRIPTOR,
                             false);
                 }
             }
