@@ -38,9 +38,9 @@ public class CoverageDataStore implements Serializable {
     private final Set<String> testedClassList;
     private final Set<String> untestedClassList;
     private final Map<String, Map<String, ClassExecutionData>> projectData;
-    private File workDirAbs;
-    private File buildDirAbs;
-    private File classesDirAbs;
+    private File workDir;
+    private File buildDir;
+    private File classesDir;
     private File jdfcDir;
     private String sourceDirAbs;
     private File jdfcDebugDir;
@@ -79,11 +79,11 @@ public class CoverageDataStore implements Serializable {
             System.err.println("Exception occurred in thread: " + t.getName());
             e.printStackTrace();
         });
-        this.workDirAbs = new File(projectDirStr);
-        this.buildDirAbs = new File(buildDirStr);
-        this.classesDirAbs = new File(classesBuildDirStr);
+        this.workDir = new File(projectDirStr);
+        this.buildDir = new File(buildDirStr);
+        this.classesDir = new File(classesBuildDirStr);
         this.sourceDirAbs = srcDirStr;
-        this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDirAbs, File.separator));
+        this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDir, File.separator));
         this.jdfcDebugDir = new File(String.format("%s%sdebug", this.jdfcDir, File.separator));
         this.jdfcDebugInstrDir = new File(String.format("%s%sinstrumentation", this.jdfcDebugDir, File.separator));
         this.jdfcDebugErrorDir = new File(String.format("%s%serror", this.jdfcDebugDir, File.separator));
