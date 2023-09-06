@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ClassExecutionData extends ExecutionData implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private transient CompilationUnit srcFileAst;
 
     private transient PackageDeclaration pkgDecl;

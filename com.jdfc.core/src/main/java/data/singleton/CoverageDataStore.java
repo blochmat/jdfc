@@ -3,9 +3,7 @@ package data.singleton;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
-import data.ClassExecutionData;
-import data.ExecutionData;
-import data.ExecutionDataNode;
+import data.*;
 import data.io.CoverageDataExport;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +29,7 @@ import java.util.stream.Collectors;
 @Data
 public class CoverageDataStore implements Serializable {
 
+    private static final long serialVersionUID = 1L;
 
     private static CoverageDataStore instance;
     private final transient ExecutionDataNode<ExecutionData> root;
@@ -38,6 +37,8 @@ public class CoverageDataStore implements Serializable {
     private final Set<String> testedClassList;
     private final Set<String> untestedClassList;
     private final Map<String, Map<String, ClassExecutionData>> projectData;
+    private final Map<UUID, ProgramVariable> programVariableMap;
+    private final Map<UUID, DefUsePair> defUsePairMap;
     private File workDir;
     private File buildDir;
     private File classesDir;
@@ -55,6 +56,8 @@ public class CoverageDataStore implements Serializable {
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
         this.projectData = new HashMap<>();
+        this.programVariableMap = new HashMap<>();
+        this.defUsePairMap = new HashMap<>();
     }
 
     public static CoverageDataStore getInstance() {

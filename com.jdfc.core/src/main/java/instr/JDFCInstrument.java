@@ -4,7 +4,6 @@ import data.ClassExecutionData;
 import data.MethodData;
 import data.ProgramVariable;
 import data.io.CoverageDataExport;
-import data.neu.ProjectData;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
 import instr.classVisitors.AddTryCatchClassVisitor;
@@ -38,7 +37,6 @@ public class JDFCInstrument {
     public byte[] instrument(final ClassReader classReader) {
         final ClassNode classNode = new ClassNode();
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        ProjectData projectData = new ProjectData();
 
         // cw
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
@@ -62,8 +60,8 @@ public class JDFCInstrument {
                         mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
                         mData.getCfg().calculateReachingDefinitions();
                         mData.calculateIntraDefUsePairs();
-                        projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
-                        projectData.getDefUsePairMap().putAll(mData.getPairs());
+                        CoverageDataStore.getInstance().getProgramVariableMap().putAll(mData.getProgramVariables());
+                        CoverageDataStore.getInstance().getDefUsePairMap().putAll(mData.getPairs());
                     } else {
                         System.err.println("ERROR: MethodData.getCfg() returned null! See /target/jdfc/debug/ERROR_JDFCInstrument.log for more info.");
                         if(log.isDebugEnabled()) {
