@@ -32,6 +32,7 @@ public class Main {
 
         if(cmd.hasOption("i") ^ cmd.hasOption("r")) {
             if(cmd.hasOption("i")) {
+                // Instrument
                 parsePathOptions(cmd, false);
                 CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
                 Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
@@ -47,6 +48,7 @@ public class Main {
                     }
                 }
             } else {
+                // Report
                 if(cmd.hasOption("O")) {
                     parsePathOptions(cmd, true);
                     CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
