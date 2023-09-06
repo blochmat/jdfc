@@ -328,9 +328,6 @@ public class HTMLFactory {
 //                    }
                 }
 
-                if (pLineNumber == 11) {
-                    System.out.println("FOUND");
-                }
                 // search for variable in method
                 if (programVariable == null) {
                     // if word is no variable

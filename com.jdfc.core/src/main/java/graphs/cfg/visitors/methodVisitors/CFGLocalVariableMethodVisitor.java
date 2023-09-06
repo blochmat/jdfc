@@ -51,22 +51,26 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
      */
     @Override
     public void visitEnd() {
-        classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
-                .setLocalVariableTable(localVariableTable);
-        if(log.isDebugEnabled()) {
-            File file = JDFCUtils.createFileInDebugDir("3_localVariableTables.txt", false);
-            try (FileWriter writer = new FileWriter(file, true)) {
-                writer.write(String.format("Class: %s\n", classVisitor.classExecutionData.getName()));
-                writer.write(String.format("Method: %s\n", internalMethodName));
-                writer.write("==============================\n");
-                writer.write("Local Variables:\n");
-                writer.write(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
-                                .getLocalVariableTable()));
-                writer.write("==============================\n");
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
+        if(classVisitor.classExecutionData.getMethodByInternalName(internalMethodName) == null) {
+            System.err.println("ERROR: getMethodByInternalName returned null! See /target/jdfc/debug/ERROR_CFGLocalVariableMethodVisitor.log for more info.");
+            if(log.isDebugEnabled()) {
+                File file = JDFCUtils.createFileInDebugDir("ERROR_CFGLocalVariableMethodVisitor.log", false);
+                try (FileWriter writer = new FileWriter(file, true)) {
+                    writer.write(String.format("Class: %s\n", classVisitor.classExecutionData.getName()));
+                    writer.write(String.format("Method: %s\n", internalMethodName));
+                    writer.write("==============================\n");
+                    writer.write("Local Variables:\n");
+                    writer.write(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
+                            .getLocalVariableTable()));
+                    writer.write("==============================\n");
+                    writer.write("\n");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
             }
+        } else {
+            classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
+                    .setLocalVariableTable(localVariableTable);
         }
     }
 }

@@ -60,6 +60,9 @@ public class JavaParserHelper {
         // TODO: addToEveryListEl: (ILList<Integer>;)LList<Integer>;
         //       addToEveryListEl: (ILjava/util/List<Ljava/lang/Integer;>;)Ljava/util/List<Ljava/lang/Integer;>;
 
+        // TODO  getTestData: ()LSet<Ljava/lang/String;>;
+        //       getTestData: ()Ljava/util/Set<Ljava/lang/String;>;:
+
         for(ResolvedType resolvedType : resolvedTypes) {
             try {
                 if (resolvedType.isReferenceType()) {
@@ -87,9 +90,6 @@ public class JavaParserHelper {
                                     ResolvedReferenceTypeDeclaration classDecl = combinedTypeSolver.solveType("java.lang.Class");
                                     if(classDecl.isAssignableBy(rrtd)) {
                                         String newName = rrtd.getQualifiedName().replace(".", "/");
-                                        if(jvmDesc.equals("(LClass<T>;[LObject;[LClass<?>;)LT;")) {
-                                            System.out.println("asdf");
-                                        }
                                         if (jvmDesc.contains(String.format("L%s<", rrtd.getName()))
                                                 || jvmDesc.contains(String.format("L%s;", rrtd.getName()))
                                                 || jvmDesc.contains(String.format("<%s", rrtd.getName()))) {
@@ -116,10 +116,13 @@ public class JavaParserHelper {
                                     } else {
                                         // normal class or interface
                                         ResolvedReferenceTypeDeclaration listDecl = combinedTypeSolver.solveType("java.util.List");
+                                        ResolvedReferenceTypeDeclaration setDecl = combinedTypeSolver.solveType("java.util.Set");
+                                        ResolvedReferenceTypeDeclaration mapDecl = combinedTypeSolver.solveType("java.util.Map");
                                         ResolvedReferenceTypeDeclaration collectionDecl = combinedTypeSolver.solveType("java.util.Collection");
                                         ResolvedReferenceTypeDeclaration comparatorDecl = combinedTypeSolver.solveType("java.util.Comparator");
                                         ResolvedReferenceTypeDeclaration appendableDecl = combinedTypeSolver.solveType("java.lang.Appendable");
                                         if(listDecl.isAssignableBy(rrtd)) {
+                                            // List
                                             String newName = listDecl.getQualifiedName().replace(".", "/");
                                             String replacePattern = "L" + listDecl.getName();
                                             String replacement = "L" + newName;
@@ -130,7 +133,32 @@ public class JavaParserHelper {
                                                 toAdd.addAll(typeParametersMap.getTypes());
                                             }
                                             toRemove.add(resolvedType);
+                                        } else if (setDecl.isAssignableBy(rrtd)) {
+                                            // Set
+                                            String newName = setDecl.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + setDecl.getName();
+                                            String replacement = "L" + newName;
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                                            ResolvedTypeParametersMap typeParametersMap = resolvedReferenceType.typeParametersMap();
+                                            if(!typeParametersMap.isEmpty()) {
+                                                toAdd.addAll(typeParametersMap.getTypes());
+                                            }
+                                            toRemove.add(resolvedType);
+                                        } else if (mapDecl.isAssignableBy(rrtd)) {
+                                            // Map
+                                            String newName = mapDecl.getQualifiedName().replace(".", "/");
+                                            String replacePattern = "L" + mapDecl.getName();
+                                            String replacement = "L" + newName;
+                                            jvmDesc = jvmDesc.replaceAll(replacePattern, replacement);
+                                            ResolvedReferenceType resolvedReferenceType = resolvedType.asReferenceType();
+                                            ResolvedTypeParametersMap typeParametersMap = resolvedReferenceType.typeParametersMap();
+                                            if(!typeParametersMap.isEmpty()) {
+                                                toAdd.addAll(typeParametersMap.getTypes());
+                                            }
+                                            toRemove.add(resolvedType);
                                         } else if (collectionDecl.isAssignableBy(rrtd)){
+                                            // Collection
                                             String newName = collectionDecl.getQualifiedName().replace(".", "/");
                                             String replacePattern = "L" + collectionDecl.getName();
                                             String replacement = "L" + newName;
@@ -142,6 +170,7 @@ public class JavaParserHelper {
                                             }
                                             toRemove.add(resolvedType);
                                         } else if (comparatorDecl.isAssignableBy(rrtd)) {
+                                            //
                                             String newName = comparatorDecl.getQualifiedName().replace(".", "/");
                                             String replacePattern = "L" + comparatorDecl.getName();
                                             String replacement = "L" + newName;
@@ -401,9 +430,6 @@ public class JavaParserHelper {
         return jvmDesc;
     }
     public String toJvmTypeDescriptor(MethodDeclaration method) {
-        if(method.getName().getIdentifier().equals("getAllSuperclasses")) {
-            System.out.println("asdf");
-        }
         StringBuilder descriptor = new StringBuilder();
 
         // Param Types

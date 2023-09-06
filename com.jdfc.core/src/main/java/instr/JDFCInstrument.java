@@ -1,6 +1,8 @@
 package instr;
 
 import data.ClassExecutionData;
+import data.MethodData;
+import data.ProgramVariable;
 import data.io.CoverageDataExport;
 import data.neu.ProjectData;
 import data.singleton.CoverageDataStore;
@@ -22,6 +24,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class JDFCInstrument {
@@ -49,17 +53,32 @@ public class JDFCInstrument {
                 CFGCreator.createCFGsForClass(classReader, classNode, cData);
 
                 // if intra
-//                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
-//                        .flatMap(inner -> inner.values().stream())
-//                        .collect(Collectors.toSet());
-//                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
-//                for(MethodData mData : cData.getMethods().values()) {
-//                    mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
-//                    mData.getCfg().calculateReachingDefinitions();
-//                    mData.calculateIntraDefUsePairs();
-//                    projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
-//                    projectData.getDefUsePairMap().putAll(mData.getPairs());
-//                }
+                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
+                        .flatMap(inner -> inner.values().stream())
+                        .collect(Collectors.toSet());
+                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
+                for(MethodData mData : cData.getMethods().values()) {
+                    if(mData.getCfg() != null) {
+                        mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
+                        mData.getCfg().calculateReachingDefinitions();
+                        mData.calculateIntraDefUsePairs();
+                        projectData.getProgramVariableMap().putAll(mData.getProgramVariables());
+                        projectData.getDefUsePairMap().putAll(mData.getPairs());
+                    } else {
+                        System.err.println("ERROR: MethodData.getCfg() returned null! See /target/jdfc/debug/ERROR_JDFCInstrument.log for more info.");
+                        if(log.isDebugEnabled()) {
+                            File file = JDFCUtils.createFileInDebugDir("ERROR_JDFCInstrument.log", false);
+                            try (FileWriter writer = new FileWriter(file, true)) {
+                                writer.write(String.format("Class: %s\n", cData.getName()));
+                                writer.write(String.format("Method: %s\n", mData.buildInternalMethodName()));
+                                writer.write("==============================\n");
+                                writer.write("\n");
+                            } catch (IOException ioException) {
+                                ioException.printStackTrace();
+                            }
+                        }
+                    }
+                }
 
                 // if inter
 //            SGCreator.createSGsForClass(cData);

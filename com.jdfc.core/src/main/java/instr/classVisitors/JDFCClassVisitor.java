@@ -46,13 +46,11 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
         boolean isJacocoInstrumentation = methodNode.name.contains("$jacoco");
         boolean isLambdaExpression = methodNode.name.contains("$lambda");
         boolean isStaticInitializer = internalMethodName.contains("<clinit>");
-        boolean isGenericMethod = methodNode.signature != null;
         boolean isSourceCodeMethod = !isJacocoInstrumentation
                 && !isLambdaExpression
                 && !isSynthetic
                 && !isBridge
-                && !isStaticInitializer
-                && !isGenericMethod;
+                && !isStaticInitializer;
 
         return  isDefaultConstructor || isSourceCodeMethod;
     }
