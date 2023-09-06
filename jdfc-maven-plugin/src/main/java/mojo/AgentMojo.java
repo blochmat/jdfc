@@ -24,7 +24,7 @@ public class AgentMojo extends AbstractJdfcMojo {
         final String workDirAbs = getProject().getBasedir().toString();
         final String buildDirAbs = getProject().getBuild().getDirectory();
         final String classesDirAbs = getProject().getBuild().getOutputDirectory();
-        final String sourceDirAbs = getProject().getCompileSourceRoots().get(0);
+        final String sourceDirAbs = getProject().getBuild().getSourceDirectory();
         CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
         Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
         List<File> classFiles = instrumenter.loadClassFiles();

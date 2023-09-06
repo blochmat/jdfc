@@ -6,8 +6,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
-import graphs.esg.ESG;
-import graphs.sg.SG;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -73,15 +71,15 @@ public class MethodData implements Serializable {
      */
     private transient CFG cfg;
 
-    /**
-     * Inter-procedural SG of compiled method
-     */
-    private transient SG sg;
+//    /**
+//     * Inter-procedural SG of compiled method
+//     */
+//    private transient SG sg;
 
-    /**
-     * Inter-procedural ESG of compiled method
-     */
-    private transient ESG esg;
+//    /**
+//     * Inter-procedural ESG of compiled method
+//     */
+//    private transient ESG esg;
 
     /**
      * Local variables in class

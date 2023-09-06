@@ -7,11 +7,14 @@ import org.objectweb.asm.ClassReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
+import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
 public class Instrumenter {
 
@@ -22,7 +25,30 @@ public class Instrumenter {
         this.workDirAbs = workDirAbs;
         this.classesDirAbs = classesDirAbs;
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> Serializer.serializeCoverageData(workDirAbs)));
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    // Create a file to save the object to
+                    String fileAbs = workDirAbs.replace("/", File.separator)
+                            .concat(File.separator)
+                            .concat(JDFC_SERIALIZATION_FILE);
+                    FileOutputStream fileOut = new FileOutputStream(fileAbs);
+
+                    // Create an ObjectOutputStream to write the object
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+
+                    // Write the object
+                    out.writeObject(CoverageDataStore.getInstance());
+
+                    // Close the streams
+                    out.close();
+                    fileOut.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public void instrumentClass(String classFileAbs) {
