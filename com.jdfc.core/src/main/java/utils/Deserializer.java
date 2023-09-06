@@ -2,6 +2,7 @@ package utils;
 
 import data.singleton.CoverageDataStore;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -13,7 +14,8 @@ public class Deserializer {
     public static void deserializeCoverageData() {
         try {
             // Create a file input stream
-            FileInputStream fileIn = new FileInputStream(JDFC_SERIALIZATION_FILE);
+            String fileAbs = String.join(File.separator, CoverageDataStore.getInstance().getWorkDir().getAbsolutePath(), JDFC_SERIALIZATION_FILE);
+            FileInputStream fileIn = new FileInputStream(fileAbs);
 
             // Create an ObjectInputStream
             ObjectInputStream in = new ObjectInputStream(fileIn);
