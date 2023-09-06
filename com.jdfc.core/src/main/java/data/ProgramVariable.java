@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -15,7 +16,9 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProgramVariable implements Comparable<Object> {
+public class ProgramVariable implements Comparable<Object>, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private UUID id;
     private Integer localVarIdx;
