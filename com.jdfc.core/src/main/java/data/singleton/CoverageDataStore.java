@@ -170,7 +170,7 @@ public class CoverageDataStore {
         return root.getChildDataRecursive(nodePath);
     }
 
-    public boolean addClassData(String classesAbs, String classFileAbs) {
+    public void addClassData(String classesAbs, String classFileAbs) {
         JavaParserHelper javaParserHelper = new JavaParserHelper();
         File classFile = new File(classFileAbs);
         String classFileRel = classFileAbs.replace(classesAbs, "");
@@ -198,13 +198,13 @@ public class CoverageDataStore {
                         projectData.computeIfAbsent(classFilePackage, k -> new HashMap<>());
                         projectData.get(classFilePackage).put(nameWithoutType, classNodeData);
                     }
-                    return true;
                 }
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            throw new RuntimeException("ERROR: Missing source file for " + classFileAbs);
         }
-        return false;
     }
 
     public boolean isGeneric(CompilationUnit cu) {

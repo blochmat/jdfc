@@ -1,10 +1,6 @@
-import data.singleton.CoverageDataStore;
 import lombok.extern.slf4j.Slf4j;
-import utils.JDFCUtils;
+import utils.Instrumenter;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.net.URL;
 import java.security.CodeSource;
@@ -13,42 +9,37 @@ import java.security.ProtectionDomain;
 @Slf4j
 public class JDFCClassTransformer implements ClassFileTransformer {
 
-//    private final JDFCInstrument JDFCInstrument;
+    private final String workDirAbs;
+    private final String classesDirAbs;
 
-    public JDFCClassTransformer(String workDirAbs,
-                                String buildDirAbs,
-                                String classesDirAbs,
-                                String sourceDirAbs) {
-//        CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-//        this.JDFCInstrument = new JDFCInstrument(classesDirAbs, "");
+    public JDFCClassTransformer(String workDirAbs, String classesDirAbs) {
+        this.workDirAbs = workDirAbs;
+        this.classesDirAbs = classesDirAbs;
     }
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-        if (!CoverageDataStore.getInstance().getUntestedClassList().contains(className)) {
+        String classFileAbs = this.getAbsolutePath(classBeingRedefined);
+        if(classFileAbs == null) {
+            throw new RuntimeException("ERROR: Absolute path of " + className + " could not be retrieved. Code source is null.");
+        }
+
+        if(classFileAbs.startsWith(classesDirAbs)) {
+            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
+            return instrumenter.instrumentClass(classfileBuffer, classFileAbs);
+        } else {
             return classfileBuffer;
         }
 
-        if(log.isDebugEnabled()) {
-            // Log all relative paths of files in the classpath
-            File transformFile = JDFCUtils.createFileInDebugDir("2_transform.txt", false);
-            try (FileWriter writer = new FileWriter(transformFile, true)) {
-                CodeSource codeSource = classBeingRedefined.getProtectionDomain().getCodeSource();
-                if(codeSource != null) {
-                    URL resource = codeSource.getLocation();
-                    writer.write(resource.getPath());
-                }
-                writer.write(JDFCUtils.prettyPrintArray(CoverageDataStore.getInstance().getUntestedClassList().toArray(new String[0])));
-                writer.write(className);
-                writer.write("\n");
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        }
-        return classfileBuffer;
+    }
 
-//        final ClassReader cr = new ClassReader(classfileBuffer);
-//        return JDFCInstrument.instrument(cr);
+    private String getAbsolutePath(Class<?> classBeingRedefined) {
+        CodeSource codeSource = classBeingRedefined.getProtectionDomain().getCodeSource();
+        if(codeSource != null) {
+            URL resource = codeSource.getLocation();
+            return resource.getPath();
+        } else {
+            return null;
+        }
     }
 }

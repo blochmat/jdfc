@@ -8,13 +8,8 @@ import java.util.List;
 public final class JDFCAgent {
 
     public static void premain(final String agentArgs, final Instrumentation inst) {
-        log.info("Instrumentation started.");
-
-        // handle arguments
         List<String> args = Arrays.asList(agentArgs.split(","));
-
-        // add transformer for classes with tests
-        JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer(args.get(0), args.get(1), args.get(2), null);
+        JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer(args.get(0), args.get(1));
         inst.addTransformer(jdfcClassTransformer);
     }
 }
