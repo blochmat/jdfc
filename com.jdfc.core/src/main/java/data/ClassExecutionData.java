@@ -1,8 +1,10 @@
 package data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.ast.*;
-import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
@@ -18,6 +20,7 @@ import utils.JavaParserHelper;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,19 +33,15 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClassExecutionData extends ExecutionData {
+public class ClassExecutionData extends ExecutionData implements Serializable {
 
-    @JsonIgnore
-    private CompilationUnit srcFileAst;
+    private transient CompilationUnit srcFileAst;
 
-    @JsonIgnore
-    private PackageDeclaration pkgDecl;
+    private transient PackageDeclaration pkgDecl;
 
-    @JsonIgnore
-    private List<ImportDeclaration> impDeclList;
+    private transient List<ImportDeclaration> impDeclList;
 
-    @JsonIgnore
-    private ClassOrInterfaceDeclaration ciDecl;
+    private transient ClassOrInterfaceDeclaration ciDecl;
 
     private UUID id;
 

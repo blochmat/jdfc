@@ -1,6 +1,5 @@
 package data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -15,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,7 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MethodData {
+public class MethodData implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private UUID id;
 
@@ -69,25 +71,22 @@ public class MethodData {
     /**
      * CFG of compiled method
      */
-    @JsonIgnore
-    private CFG cfg;
+    private transient CFG cfg;
 
     /**
      * Inter-procedural SG of compiled method
      */
-    @JsonIgnore
-    private SG sg;
+    private transient SG sg;
 
     /**
      * Inter-procedural ESG of compiled method
      */
-    @JsonIgnore
-    private ESG esg;
+    private transient ESG esg;
 
     /**
      * Local variables in class
      */
-    private Map<Integer, LocalVariable> localVariableTable;
+    private transient Map<Integer, LocalVariable> localVariableTable;
 
     /**
      * All DU-pairs of method
@@ -107,14 +106,12 @@ public class MethodData {
     /**
      * Allocated Objects
      */
-    @JsonIgnore
-    private Map<Integer, Object> allocatedObjects;
+    private transient Map<Integer, Object> allocatedObjects;
 
     /**
      * Modified Objects
      */
-    @JsonIgnore
-    private Map<Integer, Object> modifiedObjects;
+    private transient Map<Integer, Object> modifiedObjects;
 
     /**
      * Line of method declaration in source code

@@ -18,6 +18,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,11 +29,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Data
-public class CoverageDataStore {
+public class CoverageDataStore implements Serializable {
 
 
     private static CoverageDataStore instance;
-    private final ExecutionDataNode<ExecutionData> root;
+    private final transient ExecutionDataNode<ExecutionData> root;
     private final Map<UUID, ClassExecutionData> classExecutionDataMap;
     private final Set<String> testedClassList;
     private final Set<String> untestedClassList;
