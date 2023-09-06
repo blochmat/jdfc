@@ -7,7 +7,6 @@ import org.objectweb.asm.ClassReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -23,30 +22,7 @@ public class Instrumenter {
         this.workDirAbs = workDirAbs;
         this.classesDirAbs = classesDirAbs;
 
-        Runtime.getRuntime().addShutdownHook( new Thread() {
-            @Override
-            public void run() {
-                // TODO
-                try {
-                    // Create a file to save the object to
-                    FileOutputStream fileOut = new FileOutputStream("serialized_object.ser");
-
-                    // Create an ObjectOutputStream to write the object
-                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-
-                    // Write the object
-                    out.writeObject(CoverageDataStore.getInstance());
-
-                    // Close the streams
-                    out.close();
-                    fileOut.close();
-
-                    System.out.println("Object serialized and saved to 'serialized_object.ser'");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> Serializer.serializeCoverageData(workDirAbs)));
     }
 
     public void instrumentClass(String classFileAbs) {

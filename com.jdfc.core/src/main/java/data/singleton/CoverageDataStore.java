@@ -64,9 +64,10 @@ public class CoverageDataStore implements Serializable {
         return instance;
     }
 
-    // Just for testing
-    public static void setInstance(CoverageDataStore mock) {
-        instance = mock;
+    public static void setInstance(CoverageDataStore deserialized) {
+        if(instance == null) {
+            instance = deserialized;
+        }
     }
 
     public void saveProjectInfo(String projectDirStr,
@@ -204,7 +205,11 @@ public class CoverageDataStore implements Serializable {
                 throw new RuntimeException(e);
             }
         } else {
-            throw new RuntimeException("ERROR: Missing source file for " + classFileAbs);
+            if(classFileAbs.contains("$")) {
+                System.out.println("Instrumentation of inner class was skipped: " + classFileAbs);
+            } else {
+                throw new RuntimeException("ERROR: Missing source file for " + classFileAbs);
+            }
         }
     }
 
