@@ -19,7 +19,7 @@ public class ReportMojo extends AbstractMojo {
 
     @Override
     public void execute() {
-        Deserializer.deserializeCoverageData();
+        Deserializer.deserializeCoverageData(project.getBasedir().toString());
         final String outDirAbs = String.format("%s%sjdfc-report", CoverageDataStore.getInstance().getBuildDir().getAbsolutePath(), File.separator);
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
         ReportGenerator reportGenerator = new ReportGenerator(outDirAbs, sourceDirAbs);

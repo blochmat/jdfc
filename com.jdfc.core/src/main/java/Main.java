@@ -51,9 +51,8 @@ public class Main {
                 // Report
                 if(cmd.hasOption("O")) {
                     parsePathOptions(cmd, true);
-                    CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-                    Deserializer.deserializeCoverageData();
-                    String outDirAbs = String.join(File.separator, workDirAbs, cmd.getOptionValue("o"));
+                    Deserializer.deserializeCoverageData(workDirAbs);
+                    String outDirAbs = String.join(File.separator, workDirAbs, outputDirAbs);
                     ReportGenerator reportGenerator = new ReportGenerator(outDirAbs, sourceDirAbs);
                     reportGenerator.createReport();
                 } else {
@@ -165,10 +164,9 @@ public class Main {
 
         if(parseOutputDir) {
             if(cmd.hasOption("O")) {
-                sourceDirAbs = String.join(File.separator, workDirAbs, cmd.getOptionValue("O"));
+                outputDirAbs = String.join(File.separator, workDirAbs, cmd.getOptionValue("O"));
             } else {
-                System.out.println("Please pass missing option -O.");
-                systemExit = true;
+                outputDirAbs = "";
             }
         }
 

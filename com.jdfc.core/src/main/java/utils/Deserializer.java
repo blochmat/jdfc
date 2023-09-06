@@ -11,10 +11,10 @@ import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
 public class Deserializer {
 
-    public static void deserializeCoverageData() {
+    public static void deserializeCoverageData(String workDirAbs) {
         try {
             // Create a file input stream
-            String fileAbs = String.join(File.separator, CoverageDataStore.getInstance().getWorkDir().getAbsolutePath(), JDFC_SERIALIZATION_FILE);
+            String fileAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
             FileInputStream fileIn = new FileInputStream(fileAbs);
 
             // Create an ObjectInputStream
