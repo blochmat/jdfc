@@ -6,6 +6,8 @@ import org.apache.tools.ant.Task;
 import report.ReportGenerator;
 import utils.Deserializer;
 
+import java.io.File;
+
 public class ReportTask extends Task {
 
     private String work;
@@ -23,7 +25,7 @@ public class ReportTask extends Task {
     @Override
     public void execute() throws BuildException {
         Deserializer.deserializeCoverageData(work);
-        String outAbs = CoverageDataStore.getInstance().getWorkDir().getAbsolutePath().concat(out);
+        String outAbs = String.join(File.separator, CoverageDataStore.getInstance().getWorkDir().getAbsolutePath(), out);
         ReportGenerator reportGenerator = new ReportGenerator(outAbs, CoverageDataStore.getInstance().getSourceDirAbs());
         reportGenerator.createHTMLReport();
     }
