@@ -34,7 +34,7 @@ public class ReportGenerator {
                 Resources resources = new Resources(outputDir);
                 HTMLFactory factory = new HTMLFactory(resources, outputDir);
                 createHTMLFiles(factory);
-                createInitialIndexFile(factory, root, outputDir);
+                createRootIndexHTML(factory, outputDir);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -69,7 +69,7 @@ public class ReportGenerator {
 //            }
 //        }
 //        if (!classExecutionDataNodeMap.isEmpty()) {
-//            factory.createIndex(classExecutionDataNodeMap, outputFolder);
+//            factory.createPkgIndexHTML(classExecutionDataNodeMap, outputFolder);
 //        }
 //    }
 
@@ -83,19 +83,15 @@ public class ReportGenerator {
                     factory.createClassOverviewHTML(classEntry.getKey(), classEntry.getValue(), pkg);
                     factory.createClassSourceViewHTML(classEntry.getKey(), classEntry.getValue(), pkg, sourceDir);
                 }
-//                factory.createIndex(packageEntry);
+                factory.createPkgIndexHTML(pkg, packageEntry.getValue());
             } else {
                 System.err.println("Directory could not be created: " + packageAbs);
             }
         }
     }
 
-    private void createInitialIndexFile(final HTMLFactory pFactory,
-                                        final ExecutionDataNode<ExecutionData> pRoot,
-                                        final File pReportDir) throws IOException {
-        Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataNodeMap =
-                getClassContainingPackagesRecursive(pRoot, "");
-        pFactory.createIndex(packageExecutionDataNodeMap, pReportDir);
+    private void createRootIndexHTML(final HTMLFactory pFactory, final File outputDir) throws IOException {
+        pFactory.createRootIndexHTML(outputDir);
     }
 
     private Map<String, ExecutionDataNode<ExecutionData>> getClassContainingPackagesRecursive(

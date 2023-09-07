@@ -1,6 +1,7 @@
 package report.html;
 
 import data.*;
+import data.singleton.CoverageDataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,34 +67,61 @@ public class HTMLFactory {
      */
     final String SCRIPT = "script.js";
 
-    public void createIndex(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
-                            final File pkg) throws IOException {
-        String indexPath = String.format("%s/index.html", pkg.toString());
+    public void createPkgIndexHTML(File pkg, Map<String, ClassExecutionData> classDataMap) throws IOException {
+        String indexPath = String.format("%s/index.html", pkg);
         File index = new File(indexPath);
 
         String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), STYLE_SHEET);
         String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), SCRIPT);
 
-        HTMLElement indexHTML = createIndexHTML(pClassFileDataMap, pkg, styleSheetPath, scriptPath);
+        HTMLElement indexHTML = createIndexHTML(classDataMap, pkg, styleSheetPath, scriptPath);
 
         Writer writer = new FileWriter(index);
         writer.write(indexHTML.render());
         writer.close();
     }
 
-    private HTMLElement createIndexHTML(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
-                                        final File pWorkDir,
-                                        final String pPathToStyleSheet,
-                                        final String pPathToScript) {
-        String[] split = pWorkDir.toString().replace(File.separator, "/").split("/");
+    private HTMLElement createIndexHTML(final Map<String, ClassExecutionData> classDataMap,
+                                        final File pkg,
+                                        final String styleSheetRel,
+                                        final String scriptRel) {
+        String[] split = pkg.toString().replace(File.separator, "/").split("/");
         String title = split[split.length - 1];
 
         HTMLElement htmlMainTag = HTMLElement.html();
-        htmlMainTag.getContent().add(createDefaultHTMLHead(title, pPathToStyleSheet));
+        htmlMainTag.getContent().add(createDefaultHTMLHead(title, styleSheetRel));
 
-        HTMLElement htmlBodyTag = createDefaultHTMLBody(title, pWorkDir, pPathToScript, null);
+        HTMLElement htmlBodyTag = createDefaultHTMLBody(title, pkg, scriptRel, null);
         List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Covered %", "Total", "Covered", "Missed"));
-        htmlBodyTag.getContent().add(createDataTable(columns, pClassFileDataMap));
+        htmlBodyTag.getContent().add(createClassesTable(columns, classDataMap));
+        htmlMainTag.getContent().add(htmlBodyTag);
+        return htmlMainTag;
+    }
+
+    public void createRootIndexHTML(File outputDir) throws IOException {
+        String indexPath = String.format("%s/index.html", outputDir);
+        File index = new File(indexPath);
+
+        String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), STYLE_SHEET);
+        String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), SCRIPT);
+
+        HTMLElement indexHTML = createRootIndexHTML(outputDir, styleSheetPath, scriptPath);
+
+        Writer writer = new FileWriter(index);
+        writer.write(indexHTML.render());
+        writer.close();
+    }
+
+    private HTMLElement createRootIndexHTML(File outputDir, String styleSheetRel, String scriptRel) {
+        String[] split = outputDir.toString().replace(File.separator, "/").split("/");
+        String title = split[split.length - 1];
+
+        HTMLElement htmlMainTag = HTMLElement.html();
+        htmlMainTag.getContent().add(createDefaultHTMLHead(title, styleSheetRel));
+
+        HTMLElement htmlBodyTag = createDefaultHTMLBody(title, outputDir, scriptRel, null);
+        List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Covered %", "Total", "Covered", "Missed"));
+        htmlBodyTag.getContent().add(createPackagesTable(columns));
         htmlMainTag.getContent().add(htmlBodyTag);
         return htmlMainTag;
     }
@@ -133,7 +161,7 @@ public class HTMLFactory {
 
         HTMLElement htmlBodyTag = createDefaultHTMLBody(pClassFileName, pClassFile, pPathToScript, null);
         List<String> columns = new ArrayList<>(Arrays.asList("Total", "Covered", "Missed"));
-        htmlBodyTag.getContent().add(createDataTable(columns, pData, pClassFileName));
+        htmlBodyTag.getContent().add(createMethodsTable(columns, pData, pClassFileName));
         htmlMainTag.getContent().add(htmlBodyTag);
         return htmlMainTag;
     }
@@ -557,20 +585,28 @@ public class HTMLFactory {
         return htmlBodyTag;
     }
 
-    private HTMLElement createDataTable(final List<String> pColumns, Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
+    private HTMLElement createPackagesTable(final List<String> pColumns) {
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
-        tableTag.getContent().add(createTableBodyTag(pClassFileDataMap));
-
-        // TODO: Build the sum of all displayed elements
-        tableTag.getContent().add(createTableFootTag(pClassFileDataMap));
+        tableTag.getContent().add(createPackagesTableBodyTag());
+        tableTag.getContent().add(createPackagesTableFootTag());
         return tableTag;
     }
 
-    private HTMLElement createDataTable(final List<String> pColumns,
-                                        final ClassExecutionData pData,
-                                        final String pClassfileName) {
-        logger.debug(String.format("createDataTable(%s, <ExecutionData>, %s)", pColumns.toString(), pClassfileName));
+    private HTMLElement createClassesTable(final List<String> pColumns, Map<String, ClassExecutionData> classDataMap) {
+        HTMLElement tableTag = HTMLElement.table();
+        tableTag.getContent().add(createTableHeadTag(pColumns));
+        tableTag.getContent().add(createClassesTableBodyTag(classDataMap));
+
+        // TODO: Build the sum of all displayed elements
+        tableTag.getContent().add(createClassesTableFootTag(classDataMap));
+        return tableTag;
+    }
+
+    private HTMLElement createMethodsTable(final List<String> pColumns,
+                                           final ClassExecutionData pData,
+                                           final String pClassfileName) {
+        logger.debug(String.format("createClassesTable(%s, <ExecutionData>, %s)", pColumns.toString(), pClassfileName));
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
         for (MethodData mData : pData.getMethods().values()) {
@@ -595,7 +631,7 @@ public class HTMLFactory {
                 tableTag.getContent().add(trTag);
             }
         }
-        tableTag.getContent().add(createTableFootTag(pData));
+        tableTag.getContent().add(createMethodsTableFootTag(pData));
         return tableTag;
     }
 
@@ -610,47 +646,60 @@ public class HTMLFactory {
         return theadTag;
     }
 
-    private HTMLElement createTableFootTag(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
-        HTMLElement tfootTag = HTMLElement.tfoot();
-        HTMLElement rowTag = HTMLElement.tr();
-        tfootTag.getContent().add(rowTag);
-        Map.Entry<String, ExecutionDataNode<ExecutionData>> entry = pClassFileDataMap.entrySet().iterator().next();
-        ExecutionData parentData = entry.getValue().getParent().getData();
-        rowTag.getContent().add(HTMLElement.td("Total"));
-        rowTag.getContent().add(HTMLElement.td(parentData.getMethodCount()));
-        // TODO: fill with rate
-        rowTag.getContent().add(HTMLElement.td("TODO"));
-        rowTag.getContent().add(HTMLElement.td(parentData.getTotal()));
-        rowTag.getContent().add(HTMLElement.td(parentData.getCovered()));
-        rowTag.getContent().add(HTMLElement.td(parentData.getTotal() - parentData.getCovered()));
-        return tfootTag;
-    }
-
-    private HTMLElement createTableFootTag(final ClassExecutionData pData) {
-        HTMLElement tfootTag = HTMLElement.tfoot();
-        HTMLElement rowTag = HTMLElement.tr();
-        tfootTag.getContent().add(rowTag);
-        rowTag.getContent().add(HTMLElement.td("Total"));
-        rowTag.getContent().add(HTMLElement.td(pData.getTotal()));
-        rowTag.getContent().add(HTMLElement.td(pData.getCovered()));
-        rowTag.getContent().add(HTMLElement.td(pData.getTotal() - pData.getCovered()));
-        return tfootTag;
-    }
-
-    private HTMLElement createTableBodyTag(Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap) {
+    private HTMLElement createPackagesTableBodyTag() {
         HTMLElement bodyTag = HTMLElement.tbody();
-        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> entry : pClassFileDataMap.entrySet()) {
-            ExecutionData data = entry.getValue().getData();
+        for (Map.Entry<String, Map<String, ClassExecutionData>> entry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
             HTMLElement trTag = HTMLElement.tr();
 
             // First link tag
             HTMLElement tdTag = HTMLElement.td();
-            if (data instanceof ClassExecutionData) {
-                String link = String.format("%s.html", entry.getKey());
-                tdTag.getContent().add(HTMLElement.a(link, entry.getKey()));
-            } else {
-                tdTag.getContent().add(HTMLElement.a(entry.getKey(), entry.getKey()));
-            }
+            tdTag.getContent().add(HTMLElement.a(entry.getKey(), entry.getKey()));
+
+            trTag.getContent().add(tdTag);
+
+            // TODO
+            int methodCount = 0;
+            int pairsTotal = 0;
+            int pairsCovered = 0;
+            double percentage = 0;
+            trTag.getContent().add(HTMLElement.td(methodCount));
+            trTag.getContent().add(HTMLElement.td("TODO"));
+            trTag.getContent().add(HTMLElement.td(pairsTotal));
+            trTag.getContent().add(HTMLElement.td(pairsCovered));
+            trTag.getContent().add(HTMLElement.td(percentage));
+            bodyTag.getContent().add(trTag);
+        }
+        return bodyTag;
+    }
+
+    private HTMLElement createPackagesTableFootTag() {
+        HTMLElement tfootTag = HTMLElement.tfoot();
+        HTMLElement rowTag = HTMLElement.tr();
+        tfootTag.getContent().add(rowTag);
+        // TODO
+        int pkgMethodCount = 0;
+        int totalPairs = 0;
+        int coveredPairs = 0;
+        double percentage = 0.00;
+        rowTag.getContent().add(HTMLElement.td("Total"));
+        rowTag.getContent().add(HTMLElement.td(pkgMethodCount));
+        rowTag.getContent().add(HTMLElement.td("TODO"));
+        rowTag.getContent().add(HTMLElement.td(totalPairs));
+        rowTag.getContent().add(HTMLElement.td(coveredPairs));
+        rowTag.getContent().add(HTMLElement.td(percentage));
+        return tfootTag;
+    }
+
+    private HTMLElement createClassesTableBodyTag(Map<String, ClassExecutionData> classDataMap) {
+        HTMLElement bodyTag = HTMLElement.tbody();
+        for (Map.Entry<String, ClassExecutionData> entry : classDataMap.entrySet()) {
+            ExecutionData data = entry.getValue();
+            HTMLElement trTag = HTMLElement.tr();
+
+            // First link tag
+            HTMLElement tdTag = HTMLElement.td();
+            String link = String.format("%s.html", entry.getKey());
+            tdTag.getContent().add(HTMLElement.a(link, entry.getKey()));
 
             trTag.getContent().add(tdTag);
             trTag.getContent().add(HTMLElement.td(data.getMethodCount()));
@@ -662,6 +711,35 @@ public class HTMLFactory {
             bodyTag.getContent().add(trTag);
         }
         return bodyTag;
+    }
+
+    private HTMLElement createClassesTableFootTag(final Map<String, ClassExecutionData> classDataMap) {
+        HTMLElement tfootTag = HTMLElement.tfoot();
+        HTMLElement rowTag = HTMLElement.tr();
+        tfootTag.getContent().add(rowTag);
+        // TODO
+        int pkgMethodCount = 0;
+        int totalPairs = 0;
+        int coveredPairs = 0;
+        double percentage = 0.00;
+        rowTag.getContent().add(HTMLElement.td("Total"));
+        rowTag.getContent().add(HTMLElement.td(pkgMethodCount));
+        rowTag.getContent().add(HTMLElement.td("TODO"));
+        rowTag.getContent().add(HTMLElement.td(totalPairs));
+        rowTag.getContent().add(HTMLElement.td(coveredPairs));
+        rowTag.getContent().add(HTMLElement.td(percentage));
+        return tfootTag;
+    }
+
+    private HTMLElement createMethodsTableFootTag(final ClassExecutionData pData) {
+        HTMLElement tfootTag = HTMLElement.tfoot();
+        HTMLElement rowTag = HTMLElement.tr();
+        tfootTag.getContent().add(rowTag);
+        rowTag.getContent().add(HTMLElement.td("Total"));
+        rowTag.getContent().add(HTMLElement.td(pData.getTotal()));
+        rowTag.getContent().add(HTMLElement.td(pData.getCovered()));
+        rowTag.getContent().add(HTMLElement.td(pData.getTotal() - pData.getCovered()));
+        return tfootTag;
     }
 
     private HTMLElement createVariableInformation(final File cFile,

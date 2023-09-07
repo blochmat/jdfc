@@ -123,6 +123,11 @@ public class HTMLElement {
         return new HTMLElement(tdTag, String.valueOf(pNumber));
     }
 
+    static HTMLElement td(final double pNumber) {
+        String tdTag = "<td%s>%s</td>";
+        return new HTMLElement(tdTag, String.valueOf(pNumber));
+    }
+
     static HTMLElement span(final String pText) {
         String spanTag = "<span%s>%s</span>";
         return new HTMLElement(spanTag, pText);
