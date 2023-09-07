@@ -1,8 +1,9 @@
 package report;
 
-import data.singleton.CoverageDataStore;
+import data.ClassExecutionData;
 import data.ExecutionData;
 import data.ExecutionDataNode;
+import data.singleton.CoverageDataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import report.html.HTMLFactory;
@@ -12,64 +13,80 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ReportGenerator {
 
     private Logger logger = LoggerFactory.getLogger(ReportGenerator.class);
-    private final File reportDir;
+    private final File outputDir;
     private final File sourceDir;
 
-    public ReportGenerator(String pReportDir, String pSourceDir) {
-        this.reportDir = new File(pReportDir);
-        this.sourceDir = new File(pSourceDir);
+    public ReportGenerator(String outputDirAbs, String sourceDirAbs) {
+        this.outputDir = new File(outputDirAbs);
+        this.sourceDir = new File(sourceDirAbs);
     }
 
-    public void createReport() {
+    public void createHTMLReport() {
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
-        if (reportDir.exists() || reportDir.mkdir()) {
+        if (outputDir.exists() || outputDir.mkdirs()) {
             try {
-                Resources resources = new Resources(reportDir);
-                HTMLFactory factory = new HTMLFactory(resources, reportDir);
-                createPackageRelatedHTMLFilesRecursive(factory, root, reportDir.toString());
-                createInitialIndexFile(factory, root, reportDir);
+                Resources resources = new Resources(outputDir);
+                HTMLFactory factory = new HTMLFactory(resources, outputDir);
+                createHTMLFiles(factory);
+                createInitialIndexFile(factory, root, outputDir);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void createPackageRelatedHTMLFilesRecursive(final HTMLFactory pFactory,
-                                                        final ExecutionDataNode<ExecutionData> pNode,
-                                                        final String pPathName) throws IOException {
-        logger.debug(String.format("createPackageRelatedHTMLFilesRecursive(<HTMLFactory>, <ExecutionDataNode>, %s)", pPathName));
-        Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = pNode.getChildren();
-        Map<String, ExecutionDataNode<ExecutionData>> classExecutionDataNodeMap = new TreeMap<>();
-        File outputFolder = new File(pPathName);
-        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> childEntry : currentNodeChildren.entrySet()) {
-            if (childEntry.getValue().isLeaf()) {
-                classExecutionDataNodeMap.put(childEntry.getKey(), childEntry.getValue());
-                if (outputFolder.exists() || outputFolder.mkdir()) {
-                    // method overview
-                    pFactory.createClassOverview(childEntry.getKey(), childEntry.getValue().getData(), outputFolder);
-                    // class detail view
-                    pFactory.createClassSourceView(childEntry.getKey(), childEntry.getValue().getData(), outputFolder,
-                            sourceDir);
+//    private void createPackageRelatedHTMLFilesRecursive(final HTMLFactory factory,
+//                                                        final ExecutionDataNode<ExecutionData> node,
+//                                                        final String filePathAbs) throws IOException {
+//        logger.debug(String.format("createPackageRelatedHTMLFilesRecursive(<HTMLFactory>, <ExecutionDataNode>, %s)", filePathAbs));
+//        Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = node.getChildren();
+//        Map<String, ExecutionDataNode<ExecutionData>> classExecutionDataNodeMap = new TreeMap<>();
+//        File outputFolder = new File(filePathAbs);
+//        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> childEntry : currentNodeChildren.entrySet()) {
+//            if (childEntry.getValue().isLeaf()) {
+//                classExecutionDataNodeMap.put(childEntry.getKey(), childEntry.getValue());
+//                if (outputFolder.exists() || outputFolder.mkdir()) {
+//                    // method overview
+//                    factory.createClassOverviewHTML(childEntry.getKey(), childEntry.getValue().getData(), outputFolder);
+//                    // class detail view
+//                    factory.createClassSourceViewHTML(childEntry.getKey(), childEntry.getValue().getData(), outputFolder,
+//                            sourceDir);
+//                }
+//            } else {
+//                String nextPathName;
+//                if (filePathAbs.equals(reportDir.toString())) {
+//                    nextPathName = String.format("%s/%s", filePathAbs, childEntry.getKey());
+//                } else {
+//                    nextPathName = String.format("%s.%s", filePathAbs, childEntry.getKey());
+//                }
+//                createPackageRelatedHTMLFilesRecursive(factory, childEntry.getValue(), nextPathName);
+//            }
+//        }
+//        if (!classExecutionDataNodeMap.isEmpty()) {
+//            factory.createIndex(classExecutionDataNodeMap, outputFolder);
+//        }
+//    }
+
+    private void createHTMLFiles(HTMLFactory factory) throws IOException {
+        System.out.println("debug");
+        for(Map.Entry<String, Map<String, ClassExecutionData>> packageEntry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
+            String packageAbs = String.join(File.separator, outputDir.getAbsolutePath(), packageEntry.getKey());
+            File pkg = new File(packageAbs);
+            if(pkg.exists() || pkg.mkdirs()) {
+                for(Map.Entry<String, ClassExecutionData> classEntry : packageEntry.getValue().entrySet()) {
+                    factory.createClassOverviewHTML(classEntry.getKey(), classEntry.getValue(), pkg);
+                    factory.createClassSourceViewHTML(classEntry.getKey(), classEntry.getValue(), pkg, sourceDir);
                 }
+//                factory.createIndex(packageEntry);
             } else {
-                String nextPathName;
-                if (pPathName.equals(reportDir.toString())) {
-                    nextPathName = String.format("%s/%s", pPathName, childEntry.getKey());
-                } else {
-                    nextPathName = String.format("%s.%s", pPathName, childEntry.getKey());
-                }
-                createPackageRelatedHTMLFilesRecursive(pFactory, childEntry.getValue(), nextPathName);
+                System.err.println("Directory could not be created: " + packageAbs);
             }
-        }
-        if (!classExecutionDataNodeMap.isEmpty()) {
-            pFactory.createIndex(classExecutionDataNodeMap, outputFolder);
         }
     }
 

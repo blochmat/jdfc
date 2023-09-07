@@ -25,6 +25,6 @@ public class ReportTask extends Task {
         Deserializer.deserializeCoverageData(work);
         String outAbs = CoverageDataStore.getInstance().getWorkDir().getAbsolutePath().concat(out);
         ReportGenerator reportGenerator = new ReportGenerator(outAbs, CoverageDataStore.getInstance().getSourceDirAbs());
-        reportGenerator.createReport();
+        reportGenerator.createHTMLReport();
     }
 }

@@ -8,8 +8,8 @@ public class Resources {
 
     private final File folder;
 
-    public Resources(final File pOut) {
-        String resourcesPath = String.format("%s/resources", pOut.getAbsolutePath());
+    public Resources(final File outputDir) {
+        String resourcesPath = String.format("%s/resources", outputDir.getAbsolutePath());
         folder = new File(resourcesPath);
     }
 
@@ -23,22 +23,25 @@ public class Resources {
         return relative.toString().replaceFirst("\\.", "");
     }
 
-    private void copyResource(final String name) throws IOException {
+    private void copyResource(final String fileName) throws IOException {
         if (folder.exists() || folder.mkdir()) {
-            String newFilePath = String.format("%s/%s", folder.getAbsolutePath(), name);
+            String newFilePath = String.format("%s/%s", folder.getAbsolutePath(), fileName);
             File newFile = new File(newFilePath);
-            final InputStream in = Resources.class.getResourceAsStream("/main/resources/" + name);
-            final OutputStream out = Files.newOutputStream(newFile.toPath());
-            byte[] buffer = new byte[256];
-            if (in != null) {
+            ClassLoader classLoader = Resources.class.getClassLoader();
+            try (InputStream in = classLoader.getResourceAsStream(fileName)) {
+                if (in == null) {
+                    throw new IllegalArgumentException("File not found");
+                }
+                final OutputStream out = Files.newOutputStream(newFile.toPath());
+                byte[] buffer = new byte[256];
                 int len = in.read(buffer);
                 while (len != -1) {
                     out.write(buffer, 0, len);
                     len = in.read(buffer);
                 }
                 in.close();
+                out.close();
             }
-            out.close();
         }
     }
 }

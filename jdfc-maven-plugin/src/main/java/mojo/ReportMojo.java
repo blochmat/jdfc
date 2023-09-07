@@ -23,6 +23,6 @@ public class ReportMojo extends AbstractMojo {
         final String outDirAbs = String.format("%s%sjdfc-report", CoverageDataStore.getInstance().getBuildDir().getAbsolutePath(), File.separator);
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
         ReportGenerator reportGenerator = new ReportGenerator(outDirAbs, sourceDirAbs);
-        reportGenerator.createReport();
+        reportGenerator.createHTMLReport();
     }
 }

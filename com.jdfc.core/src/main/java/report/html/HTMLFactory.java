@@ -67,14 +67,14 @@ public class HTMLFactory {
     final String SCRIPT = "script.js";
 
     public void createIndex(final Map<String, ExecutionDataNode<ExecutionData>> pClassFileDataMap,
-                            final File pWorkDir) throws IOException {
-        String indexPath = String.format("%s/index.html", pWorkDir.toString());
+                            final File pkg) throws IOException {
+        String indexPath = String.format("%s/index.html", pkg.toString());
         File index = new File(indexPath);
 
         String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), STYLE_SHEET);
         String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(index), SCRIPT);
 
-        HTMLElement indexHTML = createIndexHTML(pClassFileDataMap, pWorkDir, styleSheetPath, scriptPath);
+        HTMLElement indexHTML = createIndexHTML(pClassFileDataMap, pkg, styleSheetPath, scriptPath);
 
         Writer writer = new FileWriter(index);
         writer.write(indexHTML.render());
@@ -98,10 +98,10 @@ public class HTMLFactory {
         return htmlMainTag;
     }
 
-    public void createClassOverview(final String pClassName,
-                                    final ExecutionData pData,
-                                    final File pWorkDir) throws IOException {
-        logger.debug(String.format("createClassOverview(%s, <ExecutionData>, %s)", pClassName, pWorkDir));
+    public void createClassOverviewHTML(final String pClassName,
+                                        final ExecutionData pData,
+                                        final File pWorkDir) throws IOException {
+        logger.debug(String.format("createClassOverviewHTML(%s, <ExecutionData>, %s)", pClassName, pWorkDir));
         if (pData instanceof ClassExecutionData) {
             String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
             File classFile = new File(filePath);
@@ -161,12 +161,12 @@ public class HTMLFactory {
         return breadcrumbs;
     }
 
-    public void createClassSourceView(final String pClassName,
-                                      final ExecutionData pData,
-                                      final File pWorkDir,
-                                      final File pSourceDir)
+    public void createClassSourceViewHTML(final String pClassName,
+                                          final ExecutionData pData,
+                                          final File pWorkDir,
+                                          final File pSourceDir)
             throws IOException {
-        logger.debug(String.format("createClassSourceView(%s, <ExecutionData>, %s, %s)", pClassName, pWorkDir.toString(), pSourceDir.toString()));
+        logger.debug(String.format("createClassSourceViewHTML(%s, <ExecutionData>, %s, %s)", pClassName, pWorkDir.toString(), pSourceDir.toString()));
         if (pData instanceof ClassExecutionData) {
             String sourceViewPath = String.format("%s/%s.java.html", pWorkDir, pClassName);
             File sourceViewHTML = new File(sourceViewPath);
