@@ -46,18 +46,6 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     }
 
     @Override
-    public void visitCode() {
-        super.visitCode();
-        mv.visitMethodInsn(
-                Opcodes.INVOKESTATIC,
-                this.className,
-                METHOD_INIT,
-                METHOD_INIT_DESCRIPTOR,
-                false
-        );
-    }
-
-    @Override
     public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
         super.visitFrame(type, numLocal, local, numStack, stack);
 //        aa.visitFrame(type, numLocal, local, numStack, stack);
@@ -370,86 +358,8 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                             "trackVar",
                             "(Ljava/lang/String;)V",
                             false);
-                    mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-                    mv.visitLdcInsn("Test");
-                    mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-
                 }
             }
         }
-
-//        if (!internalMethodName.contains("<clinit>")) {
-//            UUID cId = classVisitor.classExecutionData.getId();
-//            UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
-//            if (mId == null && internalMethodName.equals("<init>: ()V;")) {
-//                // Undefined default constructor
-//                mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
-//            }
-//
-//            if (mId != null) {
-//                MethodData mData = classVisitor.classExecutionData.getMethods().get(mId);
-//                LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
-//                if (localVariable == null) {
-//                    if (log.isDebugEnabled()) {
-//                        File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
-//                        try (FileWriter writer = new FileWriter(file, true)) {
-//                            writer.write("Error: LocalVariable is null.\n");
-//                            writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
-//                            writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
-//                            writer.write(String.format("  localVarIdx: %d\n", localVarIdx));
-//                            writer.write("==============================\n");
-//                            writer.write("Local Variable Table:\n");
-//                            writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
-//                            writer.write("==============================\n");
-//                            writer.write("\n");
-//                        } catch (IOException ioException) {
-//                            ioException.printStackTrace();
-//                        }
-//                    }
-//                } else {
-//                    ProgramVariable localPVar = new ProgramVariable(
-//                            null,
-//                            localVarIdx,
-//                            mData.getClassName(),
-//                            mData.buildInternalMethodName(),
-//                            localVariable.getName(),
-//                            localVariable.getDescriptor(),
-//                            currentInstructionIndex,
-//                            currentLineNumber,
-//                            this.isDefinition(opcode),
-//                            false,
-//                            false);
-//                    UUID pId = mData.findVarId(localPVar);
-//                    if (pId == null) {
-//                        if (log.isDebugEnabled()) {
-//                            File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
-//                            try (FileWriter writer = new FileWriter(file, true)) {
-//                                writer.write("Error: ProgramVariableId is null.\n");
-//                                writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
-//                                writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
-//                                writer.write(String.format("  ProgramVariable: %s\n", localPVar));
-//                                writer.write("==============================\n");
-//                                writer.write("Program Variables:\n");
-//                                writer.write(JDFCUtils.prettyPrintMap(mData.getProgramVariables()));
-//                                writer.write("==============================\n");
-//                                writer.write("\n");
-//                            } catch (IOException ioException) {
-//                                ioException.printStackTrace();
-//                            }
-//                        }
-//                    } else {
-//                        mv.visitLdcInsn(cId.toString());
-//                        mv.visitLdcInsn(mId.toString());
-//                        mv.visitLdcInsn(pId.toString());
-//                        mv.visitMethodInsn(
-//                                Opcodes.INVOKESTATIC,
-//                                COVERAGE_DATA_STORE,
-//                                "trackVar",
-//                                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
-//                                false);
-//                    }
-//                }
-//            }
-//        }
     }
 }

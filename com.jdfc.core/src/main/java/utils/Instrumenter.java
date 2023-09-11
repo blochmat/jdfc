@@ -21,7 +21,6 @@ public class Instrumenter {
     public Instrumenter(String workDirAbs, String classesDirAbs) {
         this.workDirAbs = workDirAbs;
         this.classesDirAbs = classesDirAbs;
-
     }
 
     public void instrumentClass(String classFileAbs) {
