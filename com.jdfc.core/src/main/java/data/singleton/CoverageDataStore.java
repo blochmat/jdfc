@@ -138,12 +138,6 @@ public class CoverageDataStore implements Serializable {
 //    }
 
     public static void trackVar(final String pId) {
-        File file = JDFCUtils.createFileInDebugDir("DEBUG_trackVar.txt", false);
-        try (FileWriter writer = new FileWriter(file, true)) {
-            writer.write(pId);
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
         CoverageTracker.getInstance().addVarCoveredEntry(pId);
     }
 

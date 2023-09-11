@@ -95,6 +95,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     public void visitVarInsn(int opcode, int var) {
 //        String debug = String.format("visitVarInsn %s", JDFCUtils.getOpcode(opcode));
 //        logger.debug(debug);
+        updateCurrentNode();
+        checkForF_NEW();
         super.visitVarInsn(opcode, var);
         createCFGNodeForVarInsnNode(opcode, var, currentInstructionIndex, currentLineNumber);
         aa.visitVarInsn(opcode, var);
@@ -205,6 +207,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitIincInsn(int var, int increment) {
 //        logger.debug("visitIincInsn");
+        updateCurrentNode();
+        checkForF_NEW();
         super.visitIincInsn(var, increment);
         createCFGNodeForIincInsnNode(var, currentInstructionIndex, currentLineNumber);
         aa.visitIincInsn(var, increment);

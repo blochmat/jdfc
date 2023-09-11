@@ -69,8 +69,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitVarInsn(int opcode, int var) {
-        updateCurrentNode();
-        checkForF_NEW();
         super.visitVarInsn(opcode, var);
     }
 
@@ -119,8 +117,6 @@ public abstract class JDFCMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitIincInsn(int var, int increment) {
-        updateCurrentNode();
-        checkForF_NEW();
         super.visitIincInsn(var, increment);
     }
 

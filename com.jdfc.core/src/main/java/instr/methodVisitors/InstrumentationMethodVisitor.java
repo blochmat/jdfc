@@ -81,6 +81,8 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 //            mv.visitInsn(Opcodes.DUP);
 //        }
 //        aa.visitVarInsn(opcode, var);
+        updateCurrentNode();
+        checkForF_NEW();
         insertLocalVarTracking(opcode, var);
         super.visitVarInsn(opcode, var);
     }
@@ -139,6 +141,8 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     @Override
     public void visitIincInsn(int var, int increment) {
 //        aa.visitIincInsn(var, increment);
+        updateCurrentNode();
+        checkForF_NEW();
         insertLocalVarTracking(ISTORE, var);
         super.visitIincInsn(var, increment);
     }

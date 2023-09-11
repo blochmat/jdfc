@@ -91,10 +91,10 @@ public class JDFCInstrument {
                     File afterFile = JDFCUtils.createFileIn(instrLogDir, "AFTER", false);
                     try (PrintWriter afterWriter = new PrintWriter(new FileWriter(afterFile, true))) {
                         TraceClassVisitor afterTcv = new TraceClassVisitor(cw, afterWriter);
-                        CheckClassAdapter cca = new CheckClassAdapter(afterTcv, true);
+//                        CheckClassAdapter cca = new CheckClassAdapter(afterTcv, true);
 
                         // iv -> afterTcv -> cw
-                        ClassVisitor iv = new InstrumentationClassVisitor(cca, classNode, cData);
+                        ClassVisitor iv = new InstrumentationClassVisitor(afterTcv, classNode, cData);
 
 
                         // beforeTcv -> iv -> afterTcv -> cw
@@ -147,7 +147,7 @@ public class JDFCInstrument {
 //                    // cr -> cv -> writer
 //                    reader.accept(atcv, ClassReader.EXPAND_FRAMES);
 //                }
-//                CheckClassAdapter.verify(new ClassReader(writer.toByteArray()), false, new PrintWriter(System.err));
+                CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, new PrintWriter(System.err));
                 return cw.toByteArray();
             }
         }

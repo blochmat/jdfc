@@ -27,12 +27,6 @@ public class CoverageTracker {
 //                                                final String pId
     ) {
         CoverageDataStore.getInstance().getTest().add(cId);
-        File file = JDFCUtils.createFileInDebugDir("DEBUG_addVarCoveredEntry.txt", false);
-        try (FileWriter writer = new FileWriter(file, true)) {
-            writer.write(cId);
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
 //        ClassExecutionData cData = null;
 //        MethodData mData = null;
 //        ProgramVariable pVar = null;
