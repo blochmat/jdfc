@@ -90,13 +90,16 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         // testData = new HashMap<>();
         Label l2 = new Label();
         mvInitTestData.visitLabel(l2);
-        mvInitTestData.visitMethodInsn(Opcodes.INVOKESTATIC, "java/util/concurrent/ConcurrentHashMap", "newKeySet", "()Ljava/util/Set;", false);
+        // Create new hashmap
+        mvInitTestData.visitTypeInsn(Opcodes.NEW, "java/util/concurrent/ConcurrentHashMap");
+        mvInitTestData.visitInsn(Opcodes.DUP);
+        mvInitTestData.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/concurrent/ConcurrentHashMap", "<init>", "()V", false);
         mvInitTestData.visitFieldInsn(Opcodes.PUTSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         // Label for end of method and return statement
         mvInitTestData.visitLabel(l1);
         mvInitTestData.visitInsn(Opcodes.RETURN);
         // Complete the generation of the method
-        mvInitTestData.visitMaxs(0, 0); // Computed automatically due to ClassWriter.COMPUTE_FRAMES
+        mvInitTestData.visitMaxs(10, 10); // Computed automatically due to ClassWriter.COMPUTE_FRAMES
         mvInitTestData.visitEnd();
     }
 
@@ -112,12 +115,21 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         // Load 'this' and 'key' and invoke map.get(key)
         mvTrack.visitFieldInsn(Opcodes.GETSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         mvTrack.visitVarInsn(Opcodes.ALOAD, 0);  // Load 'key' onto stack
-        mvTrack.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
-        mvTrack.visitInsn(Opcodes.POP);  // Pop the boolean returned by Set.add()
+        // Create a new Integer with value 0
+        mvTrack.visitTypeInsn(Opcodes.NEW, "java/lang/Integer");
+        mvTrack.visitInsn(Opcodes.DUP);
+        mvTrack.visitInsn(Opcodes.ICONST_0);
+        mvTrack.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Integer", "<init>", "(I)V", false);
+
+        // Call `put` method on `testData`
+        mvTrack.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Map", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", true);
+        // Pop the return value of put
+        mvTrack.visitInsn(Opcodes.POP);
+
         // Return
         mvTrack.visitInsn(Opcodes.RETURN);
         // Compute max stack and max locals
-        mvTrack.visitMaxs(0, 0);
+        mvTrack.visitMaxs(10, 10);
         mvTrack.visitEnd();
     }
 
@@ -132,13 +144,16 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         // Initialize local variable 'local' by copying 'testData' to it
         mvGetAndReset.visitFieldInsn(GETSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         mvGetAndReset.visitVarInsn(ASTORE, 0);
-        mvGetAndReset.visitMethodInsn(Opcodes.INVOKESTATIC, "java/util/concurrent/ConcurrentHashMap", "newKeySet", "()Ljava/util/Set;", false);
-        mvGetAndReset.visitFieldInsn(PUTSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
+        // Create new hashmap
+        mvGetAndReset.visitTypeInsn(Opcodes.NEW, "java/util/concurrent/ConcurrentHashMap");
+        mvGetAndReset.visitInsn(Opcodes.DUP);
+        mvGetAndReset.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/concurrent/ConcurrentHashMap", "<init>", "()V", false);
+        mvGetAndReset.visitFieldInsn(Opcodes.PUTSTATIC, this.className, FIELD_TEST_DATA, FIELD_TEST_DATA_DESCRIPTOR);
         // Return 'local'
         mvGetAndReset.visitVarInsn(ALOAD, 0);
         mvGetAndReset.visitInsn(ARETURN);
         // Compute max stack and max locals
-        mvGetAndReset.visitMaxs(0, 0);
+        mvGetAndReset.visitMaxs(10, 10);
         mvGetAndReset.visitEnd();
     }
 

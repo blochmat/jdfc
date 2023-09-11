@@ -5,6 +5,8 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import data.*;
 import data.io.CoverageDataExport;
+import graphs.cfg.CFG;
+import graphs.cfg.LocalVariable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -14,12 +16,12 @@ import utils.JavaParserHelper;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.Serializable;
+import java.io.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
 /**
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
@@ -48,6 +50,12 @@ public class CoverageDataStore implements Serializable {
     private File jdfcDebugInstrDir;
     private File jdfcDebugErrorDir;
     private File jdfcDebugDevLogDir;
+    private Set<String> test = null;
+
+    private static final Class<?> defUsePairClass = DefUsePair.class;
+    private static final Class<?> programVariableClass = ProgramVariable.class;
+    private static final Class<?> localVariableClass = LocalVariable.class;
+    private static final Class<?> cfgClass = CFG.class;
 
     private CoverageDataStore() {
         ExecutionData executionData = new ExecutionData("", "");
@@ -58,6 +66,35 @@ public class CoverageDataStore implements Serializable {
         this.projectData = new HashMap<>();
         this.programVariableMap = new HashMap<>();
         this.defUsePairMap = new HashMap<>();
+        test = new HashSet<>();
+        test.add("dummy");
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    // Create a file to save the object to
+//                    String fileAbs = workDirAbs.replace("/", File.separator)
+//                            .concat(File.separator)
+//                            .concat(JDFC_SERIALIZATION_FILE);
+
+                    String fileAbs = JDFC_SERIALIZATION_FILE;
+                    FileOutputStream fileOut = new FileOutputStream(fileAbs);
+
+                    // Create an ObjectOutputStream to write the object
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+
+                    // Write the object
+                    out.writeObject(CoverageDataStore.getInstance());
+
+                    // Close the streams
+                    out.close();
+                    fileOut.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public static CoverageDataStore getInstance() {
@@ -94,10 +131,20 @@ public class CoverageDataStore implements Serializable {
 
     }
 
-    public static void trackVar(final String cId,
-                                final String mId,
-                                final String pId) {
-        CoverageTracker.getInstance().addVarCoveredEntry(cId, mId, pId);
+//    public static void trackVar(final String cId,
+//                                final String mId,
+//                                final String pId) {
+//        CoverageTracker.getInstance().addVarCoveredEntry(cId, mId, pId);
+//    }
+
+    public static void trackVar(final String pId) {
+        File file = JDFCUtils.createFileInDebugDir("DEBUG_trackVar.txt", false);
+        try (FileWriter writer = new FileWriter(file, true)) {
+            writer.write(pId);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+        CoverageTracker.getInstance().addVarCoveredEntry(pId);
     }
 
     public static void trackNewObject(final Object obj,

@@ -60,8 +60,12 @@ public class JavaParserHelper {
         // TODO: addToEveryListEl: (ILList<Integer>;)LList<Integer>;
         //       addToEveryListEl: (ILjava/util/List<Ljava/lang/Integer;>;)Ljava/util/List<Ljava/lang/Integer;>;
 
-        // TODO  getTestData: ()LSet<Ljava/lang/String;>;
-        //       getTestData: ()Ljava/util/Set<Ljava/lang/String;>;:
+        // TODO  getTestData: ()Ljava/util/Map<String,Integer>;
+        //       getTestData: ()Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;
+
+        if(jvmDesc.contains("Map<String,Integer>")) {
+            System.err.println();
+        }
 
         for(ResolvedType resolvedType : resolvedTypes) {
             try {
@@ -196,6 +200,12 @@ public class JavaParserHelper {
                                             String newName = rrtd.getQualifiedName().replace(".", "/");
                                             String replacePattern ;
                                             if(jvmDesc.contains(String.format("<%s>", rrtd.getName()))) {
+                                                replacePattern = rrtd.getName();
+                                            } else if (jvmDesc.contains(String.format("<%s,", rrtd.getName()))) {
+                                                replacePattern = rrtd.getName() + ',';
+                                            } else if (jvmDesc.contains(String.format("%s,", rrtd.getName()))) {
+                                                replacePattern = rrtd.getName() + ',';
+                                            } else if (jvmDesc.contains(String.format("%s>", rrtd.getName()))) {
                                                 replacePattern = rrtd.getName();
                                             } else {
                                                 replacePattern = "L" + rrtd.getName() + ";";

@@ -1,5 +1,6 @@
 package graphs.cfg.visitors.methodVisitors;
 
+import data.MethodData;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
@@ -14,6 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.objectweb.asm.Opcodes.ASM5;
 
@@ -59,9 +61,8 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
                     writer.write(String.format("Class: %s\n", classVisitor.classExecutionData.getName()));
                     writer.write(String.format("Method: %s\n", internalMethodName));
                     writer.write("==============================\n");
-                    writer.write("Local Variables:\n");
-                    writer.write(JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
-                            .getLocalVariableTable()));
+                    writer.write("Methods:\n");
+                    writer.write(JDFCUtils.prettyPrintSet(classVisitor.classExecutionData.getMethods().values().stream().map(MethodData::buildInternalMethodName).collect(Collectors.toSet())));
                     writer.write("==============================\n");
                     writer.write("\n");
                 } catch (IOException ioException) {
