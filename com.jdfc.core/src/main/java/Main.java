@@ -51,7 +51,7 @@ public class Main {
                 // Report
                 if(cmd.hasOption("O")) {
                     parsePathOptions(cmd, true);
-                    Deserializer.deserializeCoverageData(workDirAbs);
+                    CoverageDataStore.setInstance(Deserializer.deserializeCoverageData(workDirAbs));
                     ReportGenerator reportGenerator = new ReportGenerator(outputDirAbs, sourceDirAbs);
                     reportGenerator.createHTMLReport();
                 } else {

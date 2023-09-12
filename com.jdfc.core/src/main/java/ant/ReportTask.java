@@ -24,7 +24,7 @@ public class ReportTask extends Task {
 
     @Override
     public void execute() throws BuildException {
-        Deserializer.deserializeCoverageData(work);
+        CoverageDataStore.setInstance(Deserializer.deserializeCoverageData(work));
         String outAbs = String.join(File.separator, CoverageDataStore.getInstance().getWorkDir().getAbsolutePath(), out);
         ReportGenerator reportGenerator = new ReportGenerator(outAbs, CoverageDataStore.getInstance().getSourceDirAbs());
         reportGenerator.createHTMLReport();

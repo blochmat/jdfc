@@ -11,7 +11,8 @@ import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
 public class Deserializer {
 
-    public static void deserializeCoverageData(String workDirAbs) {
+    public static CoverageDataStore deserializeCoverageData(String workDirAbs) {
+        CoverageDataStore obj = null;
         try {
             // Create a file input stream
             String fileAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
@@ -21,7 +22,7 @@ public class Deserializer {
             ObjectInputStream in = new ObjectInputStream(fileIn);
 
             // Read the object
-            CoverageDataStore.setInstance((CoverageDataStore) in.readObject());
+            obj = (CoverageDataStore) in.readObject();
 
             // Close the streams
             in.close();
@@ -29,5 +30,6 @@ public class Deserializer {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+        return obj;
     }
 }
