@@ -308,10 +308,10 @@ NOTE: Classes with tests get loaded by class loader
         - load CompilationUnit, basic setup of class and method ast
     - load xml files (only exists for tested classes)
     - for each xml setup classExecutionDatat
-        - load classExecutionData interProceduralMatches (delete)
-        - load classExecutionData variablesCovered
-        - load classExecutionData.get(internalMethodName).defUsePairs (!!)
-        - setup classExecutionData.get(internalMethodName).defUsePairsCovered (!!)
+        - load classData interProceduralMatches (delete)
+        - load classData variablesCovered
+        - load classData.get(internalMethodName).defUsePairs (!!)
+        - setup classData.get(internalMethodName).defUsePairsCovered (!!)
         - if vars covered not empty the class is counted as tested (special case that there exist test, but none executes any var)
         - compute coverage for class
         - set data in node

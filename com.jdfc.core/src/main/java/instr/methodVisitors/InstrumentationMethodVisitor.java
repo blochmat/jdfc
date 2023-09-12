@@ -165,11 +165,11 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void insertNewObjectTracking() {
-        UUID cId = classVisitor.classExecutionData.getId();
-        UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+        UUID cId = classVisitor.classData.getId();
+        UUID mId = classVisitor.classData.getLineToMethodIdMap().get(currentLineNumber);
         if(mId == null && internalMethodName.equals("<init>: ()V;")) {
             // Default constructor
-            mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+            mId = classVisitor.classData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
         }
 
         if(mId != null) {
@@ -185,10 +185,10 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         } else {
             if(log.isDebugEnabled()) {
                 String error = String.format("%s::%s : mId == null\n%s%s",
-                        classVisitor.classExecutionData.getRelativePath(),
+                        classVisitor.classData.getRelativePath(),
                         internalMethodName,
-                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()),
-                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap())
+                        JDFCUtils.prettyPrintMap(classVisitor.classData.getMethods()),
+                        JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
                 );
                 JDFCUtils.logThis(error, "ERROR");
             }
@@ -196,11 +196,11 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     }
 
     private void insertModifiedObjectTracking() {
-        UUID cId = classVisitor.classExecutionData.getId();
-        UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+        UUID cId = classVisitor.classData.getId();
+        UUID mId = classVisitor.classData.getLineToMethodIdMap().get(currentLineNumber);
         if(mId == null && internalMethodName.equals("<init>: ()V;")) {
             // Default constructor
-            mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+            mId = classVisitor.classData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
         }
 
         if(mId != null) {
@@ -216,10 +216,10 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         } else {
             if(log.isDebugEnabled()) {
                 String error = String.format("%s::%s : mId == null\n%s%s",
-                        classVisitor.classExecutionData.getRelativePath(),
+                        classVisitor.classData.getRelativePath(),
                         internalMethodName,
-                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()),
-                        JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap())
+                        JDFCUtils.prettyPrintMap(classVisitor.classData.getMethods()),
+                        JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
                 );
                 JDFCUtils.logThis(error, "ERROR");
             }
@@ -228,15 +228,15 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
     public void insertFieldTracking(int opcode, String className, String name, String descriptor) {
         if (!internalMethodName.contains("<clinit>")) {
-            UUID cId = classVisitor.classExecutionData.getId();
-            UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+            UUID cId = classVisitor.classData.getId();
+            UUID mId = classVisitor.classData.getLineToMethodIdMap().get(currentLineNumber);
             if(mId == null && internalMethodName.equals("<init>: ()V;")) {
                 // Default constructor
-                mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+                mId = classVisitor.classData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
             }
 
             if(mId != null) {
-                MethodData mData = classVisitor.classExecutionData.getMethods().get(mId);
+                MethodData mData = classVisitor.classData.getMethods().get(mId);
                 ProgramVariable localPVar = new ProgramVariable(
                         null,
                         Integer.MIN_VALUE,
@@ -255,7 +255,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         File file = JDFCUtils.createFileInDebugDir("ERROR_insertFieldTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: ProgramVariableId is null.\n");
-                            writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
+                            writer.write(String.format("  Class: %s\n", classVisitor.classData.getName()));
                             writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                             writer.write(String.format("  ProgramVariable: %s\n", localPVar));
                             writer.write("==============================\n");
@@ -279,10 +279,10 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             } else {
                 if(log.isDebugEnabled()) {
                     String error = String.format("%s::%s : mId == null\n%s%s",
-                            classVisitor.classExecutionData.getRelativePath(),
+                            classVisitor.classData.getRelativePath(),
                             internalMethodName,
-                            JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getMethods()),
-                            JDFCUtils.prettyPrintMap(classVisitor.classExecutionData.getLineToMethodIdMap())
+                            JDFCUtils.prettyPrintMap(classVisitor.classData.getMethods()),
+                            JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
                     );
                     JDFCUtils.logThis(error, "ERROR");
                 }
@@ -292,22 +292,22 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
     private void insertLocalVarTracking(final int opcode,
                                         final int localVarIdx) {
-        UUID cId = classVisitor.classExecutionData.getId();
-        UUID mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(currentLineNumber);
+        UUID cId = classVisitor.classData.getId();
+        UUID mId = classVisitor.classData.getLineToMethodIdMap().get(currentLineNumber);
         if(mId == null && internalMethodName.equals("<init>: ()V;")) {
             // Undefined default constructor
-            mId = classVisitor.classExecutionData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
+            mId = classVisitor.classData.getLineToMethodIdMap().get(Integer.MIN_VALUE);
         }
 
         if(mId != null) {
-            MethodData mData = classVisitor.classExecutionData.getMethods().get(mId);
+            MethodData mData = classVisitor.classData.getMethods().get(mId);
             LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
             if(localVariable == null) {
                 if(log.isDebugEnabled()) {
                     File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
                     try (FileWriter writer = new FileWriter(file, true)) {
                         writer.write("Error: LocalVariable is null.\n");
-                        writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
+                        writer.write(String.format("  Class: %s\n", classVisitor.classData.getName()));
                         writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                         writer.write(String.format("  localVarIdx: %d\n", localVarIdx));
                         writer.write("==============================\n");
@@ -338,7 +338,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: ProgramVariableId is null.\n");
-                            writer.write(String.format("  Class: %s\n", classVisitor.classExecutionData.getName()));
+                            writer.write(String.format("  Class: %s\n", classVisitor.classData.getName()));
                             writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                             writer.write(String.format("  ProgramVariable: %s\n", localPVar));
                             writer.write("==============================\n");

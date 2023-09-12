@@ -1,6 +1,6 @@
 package report;
 
-import data.ClassExecutionData;
+import data.ClassData;
 import data.ExecutionData;
 import data.ExecutionDataNode;
 import data.singleton.CoverageDataStore;
@@ -28,7 +28,6 @@ public class HTMLReportGenerator {
     }
 
     public void create() {
-        ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         if (outputDir.exists() || outputDir.mkdirs()) {
             try {
                 Resources resources = new Resources(outputDir);
@@ -75,11 +74,11 @@ public class HTMLReportGenerator {
 
     private void createHTMLFiles(HTMLFactory factory) throws IOException {
         System.out.println("debug");
-        for(Map.Entry<String, Map<String, ClassExecutionData>> packageEntry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
+        for(Map.Entry<String, Map<String, ClassData>> packageEntry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
             String packageAbs = String.join(File.separator, outputDir.getAbsolutePath(), packageEntry.getKey());
             File pkg = new File(packageAbs);
             if(pkg.exists() || pkg.mkdirs()) {
-                for(Map.Entry<String, ClassExecutionData> classEntry : packageEntry.getValue().entrySet()) {
+                for(Map.Entry<String, ClassData> classEntry : packageEntry.getValue().entrySet()) {
                     factory.createClassOverviewHTML(classEntry.getKey(), classEntry.getValue(), pkg);
                     factory.createClassSourceViewHTML(classEntry.getKey(), classEntry.getValue(), pkg, sourceDir);
                 }

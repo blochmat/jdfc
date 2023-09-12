@@ -1,6 +1,6 @@
 package instr.classVisitors;
 
-import data.ClassExecutionData;
+import data.ClassData;
 import instr.methodVisitors.InstrumentationMethodVisitor;
 import lombok.Getter;
 import org.objectweb.asm.ClassVisitor;
@@ -25,8 +25,8 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
 
     public InstrumentationClassVisitor(final ClassVisitor pClassVisitor,
                                        final ClassNode pClassNode,
-                                       final ClassExecutionData pClassExecutionData) {
-        super(ASM5, pClassVisitor, pClassNode, pClassExecutionData);
+                                       final ClassData pClassData) {
+        super(ASM5, pClassVisitor, pClassNode, pClassData);
     }
 
     @Override

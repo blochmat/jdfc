@@ -1,6 +1,6 @@
 package graphs.cfg.visitors.classVisitors;
 
-import data.ClassExecutionData;
+import data.ClassData;
 import graphs.cfg.visitors.methodVisitors.CFGLocalVariableMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +23,8 @@ public class CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
-    public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassExecutionData pClassExecutionData) {
-        super(ASM5, pClassNode, pClassExecutionData);
+    public CFGLocalVariableClassVisitor(final ClassNode pClassNode, final ClassData pClassData) {
+        super(ASM5, pClassNode, pClassData);
     }
 
     /**

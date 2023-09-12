@@ -53,16 +53,16 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
      */
     @Override
     public void visitEnd() {
-        if(classVisitor.classExecutionData.getMethodByInternalName(internalMethodName) == null) {
+        if(classVisitor.classData.getMethodByInternalName(internalMethodName) == null) {
             System.err.println("ERROR: getMethodByInternalName returned null! See /target/jdfc/debug/ERROR_CFGLocalVariableMethodVisitor.log for more info.");
             if(log.isDebugEnabled()) {
                 File file = JDFCUtils.createFileInDebugDir("ERROR_CFGLocalVariableMethodVisitor.log", false);
                 try (FileWriter writer = new FileWriter(file, true)) {
-                    writer.write(String.format("Class: %s\n", classVisitor.classExecutionData.getName()));
+                    writer.write(String.format("Class: %s\n", classVisitor.classData.getName()));
                     writer.write(String.format("Method: %s\n", internalMethodName));
                     writer.write("==============================\n");
                     writer.write("Methods:\n");
-                    writer.write(JDFCUtils.prettyPrintSet(classVisitor.classExecutionData.getMethods().values().stream().map(MethodData::buildInternalMethodName).collect(Collectors.toSet())));
+                    writer.write(JDFCUtils.prettyPrintSet(classVisitor.classData.getMethods().values().stream().map(MethodData::buildInternalMethodName).collect(Collectors.toSet())));
                     writer.write("==============================\n");
                     writer.write("\n");
                 } catch (IOException ioException) {
@@ -70,7 +70,7 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
                 }
             }
         } else {
-            classVisitor.classExecutionData.getMethodByInternalName(internalMethodName)
+            classVisitor.classData.getMethodByInternalName(internalMethodName)
                     .setLocalVariableTable(localVariableTable);
         }
     }

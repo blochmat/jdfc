@@ -114,8 +114,8 @@ public class ExecutionDataNode<T extends ExecutionData> {
     public void computeClassCoverage() {
         for(ExecutionDataNode<T> node : this.children.values()) {
             ExecutionData data = node.getData();
-            if (data instanceof ClassExecutionData) {
-                ClassExecutionData cData = (ClassExecutionData) data;
+            if (data instanceof ClassData) {
+                ClassData cData = (ClassData) data;
                 cData.computeCoverage();
             } else {
                 node.computeClassCoverage();
@@ -137,7 +137,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private int aggregateMethodCount() {
-        if (this.getData() instanceof ClassExecutionData) {
+        if (this.getData() instanceof ClassData) {
             return this.getData().getMethodCount();
         }
 
@@ -151,7 +151,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private int aggregateTotal() {
-        if (this.getData() instanceof ClassExecutionData) {
+        if (this.getData() instanceof ClassData) {
             return this.getData().getTotal();
         }
 
@@ -165,7 +165,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private int aggregateCovered() {
-        if (this.getData() instanceof ClassExecutionData) {
+        if (this.getData() instanceof ClassData) {
             return this.getData().getCovered();
         }
 
@@ -178,7 +178,7 @@ public class ExecutionDataNode<T extends ExecutionData> {
     }
 
     private double aggregateRate() {
-        if (this.getData() instanceof ClassExecutionData) {
+        if (this.getData() instanceof ClassData) {
             return this.getData().getRate();
         }
 

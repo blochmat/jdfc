@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClassExecutionData extends ExecutionData implements Serializable {
+public class ClassData extends ExecutionData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -57,7 +57,7 @@ public class ClassExecutionData extends ExecutionData implements Serializable {
 
     private Map<UUID, Map<UUID, ProgramVariable>> fieldDefinitions;
 
-    public ClassExecutionData(String fqn, String name, UUID id, String pRelativePath, CompilationUnit srcFileAst) {
+    public ClassData(String fqn, String name, UUID id, String pRelativePath, CompilationUnit srcFileAst) {
         super(fqn, name);
         this.id = id;
         this.relativePath = pRelativePath;

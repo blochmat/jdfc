@@ -44,7 +44,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         this.edges = ArrayListMultimap.create();
         this.nodes = Maps.newTreeMap();
 
-        this.mData = pClassVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
+        this.mData = pClassVisitor.classData.getMethodByInternalName(internalMethodName);
         this.aa = aa;
         // TODO: Add fields to domain
         this.domain = new TreeMap<>();
@@ -135,7 +135,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                 descriptor,
                 null,
                 null);
-        MethodData cmData = classVisitor.classExecutionData.getMethodByShortInternalName(shortCalledMethodName);
+        MethodData cmData = classVisitor.classData.getMethodByShortInternalName(shortCalledMethodName);
         if (owner.equals(classVisitor.classNode.name) && cmData != null) {
             CFGCallNode node = new CFGCallNode(
                     currentInstructionIndex,
@@ -272,7 +272,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 //        logger.debug(JDFCUtils.prettyPrintMultimap(edges));
 
         if (!internalMethodName.contains("<clinit>")) {
-            MethodData mData = classVisitor.classExecutionData.getMethodByInternalName(internalMethodName);
+            MethodData mData = classVisitor.classData.getMethodByInternalName(internalMethodName);
             mData.setCfg(cfg);
         }
     }
@@ -394,8 +394,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         true
                 );
                 mData.getProgramVariables().put(programVariable.getId(), programVariable);
-                classVisitor.classExecutionData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
-                classVisitor.classExecutionData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
+                classVisitor.classData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
+                classVisitor.classData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,

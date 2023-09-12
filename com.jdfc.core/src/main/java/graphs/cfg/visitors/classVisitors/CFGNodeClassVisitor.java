@@ -1,6 +1,6 @@
 package graphs.cfg.visitors.classVisitors;
 
-import data.ClassExecutionData;
+import data.ClassData;
 import graphs.cfg.visitors.methodVisitors.CFGAnalyzerAdapter;
 import graphs.cfg.visitors.methodVisitors.CFGNodeMethodVisitor;
 import instr.classVisitors.JDFCClassVisitor;
@@ -19,8 +19,8 @@ public class CFGNodeClassVisitor extends JDFCClassVisitor {
     public String className;
 
     public CFGNodeClassVisitor(final ClassNode pClassNode,
-                               final ClassExecutionData pClassExecutionData) {
-        super(Opcodes.ASM5, pClassNode, pClassExecutionData);
+                               final ClassData pClassData) {
+        super(Opcodes.ASM5, pClassNode, pClassData);
     }
 
     @Override

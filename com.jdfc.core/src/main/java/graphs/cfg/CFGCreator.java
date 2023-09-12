@@ -1,7 +1,7 @@
 package graphs.cfg;
 
 import com.google.common.base.Preconditions;
-import data.ClassExecutionData;
+import data.ClassData;
 import data.MethodData;
 import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
 import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
@@ -47,28 +47,28 @@ public class CFGCreator {
      */
     public static void createCFGsForClass(final ClassReader pClassReader,
                                           final ClassNode pClassNode,
-                                          final ClassExecutionData pClassExecutionData) {
+                                          final ClassData pClassData) {
         Preconditions.checkNotNull(pClassReader, "We need a non-null class reader to generate CFGs from.");
         Preconditions.checkNotNull(pClassNode, "We need a non-null class node to generate CFGs from.");
-        Preconditions.checkNotNull(pClassExecutionData,
+        Preconditions.checkNotNull(pClassData,
                 "We need a non-null class execution data to generate CFGs from.");
 
         // Get local variable information for all methods in the class
         final CFGLocalVariableClassVisitor localVariableVisitor =
-                new CFGLocalVariableClassVisitor(pClassNode, pClassExecutionData);
+                new CFGLocalVariableClassVisitor(pClassNode, pClassData);
         pClassReader.accept(localVariableVisitor, 0);
 
         // Build CFG for all methods in the class
         final CFGNodeClassVisitor CFGNodeClassVisitor =
-                new CFGNodeClassVisitor(pClassNode, pClassExecutionData);
+                new CFGNodeClassVisitor(pClassNode, pClassData);
         pClassReader.accept(CFGNodeClassVisitor, ClassReader.EXPAND_FRAMES);
 
         if(log.isDebugEnabled()) {
             // Log all relative paths of files in the classpath
             File transformFile = JDFCUtils.createFileInDebugDir("4_createCFGsForClass.txt", false);
             try (FileWriter writer = new FileWriter(transformFile, true)) {
-                for(MethodData mData : pClassExecutionData.getMethods().values()) {
-                    writer.write("Class: " + pClassExecutionData.getRelativePath());
+                for(MethodData mData : pClassData.getMethods().values()) {
+                    writer.write("Class: " + pClassData.getRelativePath());
                     writer.write("Method: " + mData.buildInternalMethodName());
                     writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
                     if(mData.getCfg() != null) {

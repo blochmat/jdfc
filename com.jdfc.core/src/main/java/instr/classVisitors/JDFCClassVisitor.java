@@ -1,6 +1,6 @@
 package instr.classVisitors;
 
-import data.ClassExecutionData;
+import data.ClassData;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -10,23 +10,23 @@ public abstract class JDFCClassVisitor extends ClassVisitor {
 
     public final ClassNode classNode;
 
-    public final ClassExecutionData classExecutionData;
+    public final ClassData classData;
 
     public JDFCClassVisitor(final int pApi,
                             final ClassNode pClassNode,
-                            final ClassExecutionData pClassExecutionData) {
+                            final ClassData pClassData) {
         super(pApi);
         classNode = pClassNode;
-        classExecutionData = pClassExecutionData;
+        classData = pClassData;
     }
 
     public JDFCClassVisitor(final int pApi,
                             final ClassVisitor pClassVisitor,
                             final ClassNode pClassNode,
-                            final ClassExecutionData pClassExecutionData) {
+                            final ClassData pClassData) {
         super(pApi, pClassVisitor);
         classNode = pClassNode;
-        classExecutionData = pClassExecutionData;
+        classData = pClassData;
     }
 
     public MethodNode getMethodNode(final String pName,

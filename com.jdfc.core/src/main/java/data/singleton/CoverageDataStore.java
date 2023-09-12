@@ -4,22 +4,14 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import data.*;
-import data.io.CoverageDataExport;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import utils.Deserializer;
-import utils.JDFCUtils;
 import utils.JavaParserHelper;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import java.io.*;
-import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
@@ -31,15 +23,7 @@ import static utils.Constants.JDFC_SERIALIZATION_FILE;
 public class CoverageDataStore implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
     private static CoverageDataStore instance;
-    private final transient ExecutionDataNode<ExecutionData> root;
-    private final Map<UUID, ClassExecutionData> classExecutionDataMap;
-    private final Set<String> testedClassList;
-    private final Set<String> untestedClassList;
-    private final Map<String, Map<String, ClassExecutionData>> projectData;
-    private final Map<UUID, ProgramVariable> programVariableMap;
-    private final Map<UUID, DefUsePair> defUsePairMap;
     private File workDir;
     private File buildDir;
     private File classesDir;
@@ -50,7 +34,20 @@ public class CoverageDataStore implements Serializable {
     private File jdfcDebugErrorDir;
     private File jdfcDebugDevLogDir;
     // Filled after test execution
-    private Set<String> coveredPVarIds;
+
+    private final Map<UUID, PackageData> packageDataMap;
+    private final Map<UUID, ClassData> classDataMap;
+    private final Map<UUID, MethodData> methodDataMap;
+    private final Map<UUID, DefUsePair> defUsePairMap;
+    private final Map<UUID, ProgramVariable> programVariableMap;
+    private final Set<String> coveredPVarIds;
+    private final Map<UUID, CoverageData> coverageDataMap;
+
+    private final Map<String, Map<String, ClassData>> projectData;
+
+//    private final transient ExecutionDataNode<ExecutionData> root;
+    private final Set<String> testedClassList;
+    private final Set<String> untestedClassList;
 
     private static final Class<?> deserializerClass = Deserializer.class;
     private static final Class<?> defUsePairClass = DefUsePair.class;
@@ -59,15 +56,20 @@ public class CoverageDataStore implements Serializable {
     private static final Class<?> cfgClass = CFG.class;
 
     private CoverageDataStore() {
-        ExecutionData executionData = new ExecutionData("", "");
-        this.root = new ExecutionDataNode<>(executionData);
-        this.classExecutionDataMap = new HashMap<>();
+//        ExecutionData executionData = new ExecutionData("", "");
+//        this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
-        this.projectData = new HashMap<>();
-        this.programVariableMap = new HashMap<>();
+
+        this.packageDataMap = new HashMap<>();
+        this.classDataMap = new HashMap<>();
+        this.methodDataMap = new HashMap<>();
         this.defUsePairMap = new HashMap<>();
+        this.programVariableMap = new HashMap<>();
         this.coveredPVarIds = new HashSet<>();
+        this.coverageDataMap = new HashMap<>();
+
+        this.projectData = new HashMap<>();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -164,67 +166,67 @@ public class CoverageDataStore implements Serializable {
     }
 
     public void exportCoverageData() {
-        Logger logger = LoggerFactory.getLogger("Global");
-        long start = System.currentTimeMillis();
-        logger.info("Coverage data export started.");
-
-
-        // Summary export
-        try {
-            CoverageDataExport.dumpCoverageDataToFile();
-        } catch (ParserConfigurationException | TransformerException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Tested class data export
-        JDFCUtils.logThis(testedClassList.toString(), "tested_classList");
-        for(String className : testedClassList) {
-            ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
-            try {
-                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
-            } catch (ParserConfigurationException | TransformerException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // TODO: could be removed
-        // Untested class data export
-        JDFCUtils.logThis(untestedClassList.toString(), "untested_classList");
-        for(String className : untestedClassList) {
-            ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
-            try {
-                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
-            } catch (ParserConfigurationException | TransformerException e) {
-                String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
-                logger.debug("Exception:" + e.getMessage());
-                logger.debug(stackTrace);
-            }
-        }
-
-        long end = System.currentTimeMillis();
-        Duration duration = Duration.ofMillis(end - start);
-        long hours = duration.toHours();
-        duration = duration.minusHours(hours);
-        long minutes = duration.toMinutes();
-        duration = duration.minusMinutes(minutes);
-        long seconds = duration.getSeconds();
-        duration = duration.minusSeconds(seconds);
-        long millis = duration.toMillis();
-
-        String time = String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
-        logger.info(String.format("Coverage data export finished. Time: %s", time));
+//        Logger logger = LoggerFactory.getLogger("Global");
+//        long start = System.currentTimeMillis();
+//        logger.info("Coverage data export started.");
+//
+//
+//        // Summary export
+//        try {
+//            CoverageDataExport.dumpCoverageDataToFile();
+//        } catch (ParserConfigurationException | TransformerException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        // Tested class data export
+//        JDFCUtils.logThis(testedClassList.toString(), "tested_classList");
+//        for(String className : testedClassList) {
+//            ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
+//            try {
+//                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
+//            } catch (ParserConfigurationException | TransformerException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        // TODO: could be removed
+//        // Untested class data export
+//        JDFCUtils.logThis(untestedClassList.toString(), "untested_classList");
+//        for(String className : untestedClassList) {
+//            ClassExecutionData classExecutionData = (ClassExecutionData) findClassDataNode(className).getData();
+//            try {
+//                CoverageDataExport.dumpClassExecutionDataToFile(classExecutionData);
+//            } catch (ParserConfigurationException | TransformerException e) {
+//                String stackTrace = Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining("\n"));
+//                logger.debug("Exception:" + e.getMessage());
+//                logger.debug(stackTrace);
+//            }
+//        }
+//
+//        long end = System.currentTimeMillis();
+//        Duration duration = Duration.ofMillis(end - start);
+//        long hours = duration.toHours();
+//        duration = duration.minusHours(hours);
+//        long minutes = duration.toMinutes();
+//        duration = duration.minusMinutes(minutes);
+//        long seconds = duration.getSeconds();
+//        duration = duration.minusSeconds(seconds);
+//        long millis = duration.toMillis();
+//
+//        String time = String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, millis);
+//        logger.info(String.format("Coverage data export finished. Time: %s", time));
     }
 
-    public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
-        ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.replace(File.separator, "/").split("/")));
-
-        // root path
-        if (nodePath.size() == 1) {
-            nodePath.add(0, "default");
-        }
-
-        return root.getChildDataRecursive(nodePath);
-    }
+//    public ExecutionDataNode<ExecutionData> findClassDataNode(String pClassName) {
+//        ArrayList<String> nodePath = new ArrayList<>(Arrays.asList(pClassName.replace(File.separator, "/").split("/")));
+//
+//        // root path
+//        if (nodePath.size() == 1) {
+//            nodePath.add(0, "default");
+//        }
+//
+//        return root.getChildDataRecursive(nodePath);
+//    }
 
     public void addClassData(String classesAbs, String classFileAbs) {
         JavaParserHelper javaParserHelper = new JavaParserHelper();
@@ -243,8 +245,8 @@ public class CoverageDataStore implements Serializable {
                 if (!isInterface(cu) && !isEnum(cu) && !isGeneric(cu)) {
                     UUID id = UUID.randomUUID();
                     untestedClassList.add(classFileRelNoType);
-                    ClassExecutionData classNodeData = new ClassExecutionData(fqn, classFile.getName(), id, classFileRelNoType, cu);
-                    classExecutionDataMap.put(id, classNodeData);
+                    ClassData classNodeData = new ClassData(fqn, classFile.getName(), id, classFileRelNoType, cu);
+                    classDataMap.put(id, classNodeData);
 
                     String nameWithoutType = classFile.getName().split("\\.")[0];
                     if(classFilePackage.equals("")) {

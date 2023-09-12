@@ -1,6 +1,6 @@
 package data.singleton;
 
-import data.ClassExecutionData;
+import data.ClassData;
 import data.MethodData;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
@@ -84,10 +84,10 @@ public class CoverageTracker {
     }
 
     public synchronized void trackNewObjectRef(final String cId, final String mId, final Object obj) {
-        ClassExecutionData cData = null;
+        ClassData cData = null;
         MethodData mData = null;
         try {
-            cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
+            cData = CoverageDataStore.getInstance().getClassDataMap().get(UUID.fromString(cId));
             CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
             CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
             mData = cData.getMethods().get(UUID.fromString(mId));
@@ -102,7 +102,7 @@ public class CoverageTracker {
                         writer.write(String.format("    cId: %s\n", cId));
                         writer.write("==============================\n");
                         writer.write("ClassExecutionDataMap:\n");
-                        writer.write(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getClassExecutionDataMap()));
+                        writer.write(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getClassDataMap()));
                         writer.write("==============================\n");
                     } else if (mData == null){
                         writer.write(String.format("    cData: %s\n", cData));
@@ -129,10 +129,10 @@ public class CoverageTracker {
     }
 
     public synchronized void trackModifiedObjectRef(final String cId, final String mId, final Object obj) {
-        ClassExecutionData cData = null;
+        ClassData cData = null;
         MethodData mData = null;
         try {
-            cData = CoverageDataStore.getInstance().getClassExecutionDataMap().get(UUID.fromString(cId));
+            cData = CoverageDataStore.getInstance().getClassDataMap().get(UUID.fromString(cId));
             CoverageDataStore.getInstance().getTestedClassList().add(cData.getRelativePath());
             CoverageDataStore.getInstance().getUntestedClassList().remove(cData.getRelativePath());
             mData = cData.getMethods().get(UUID.fromString(mId));
@@ -147,7 +147,7 @@ public class CoverageTracker {
                         writer.write(String.format("    cId: %s\n", cId));
                         writer.write("==============================\n");
                         writer.write("ClassExecutionDataMap:\n");
-                        writer.write(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getClassExecutionDataMap()));
+                        writer.write(JDFCUtils.prettyPrintMap(CoverageDataStore.getInstance().getClassDataMap()));
                         writer.write("==============================\n");
                     } else if (mData == null){
                         writer.write(String.format("    cData: %s\n", cData));

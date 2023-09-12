@@ -1,6 +1,6 @@
 package instr;
 
-import data.ClassExecutionData;
+import data.ClassData;
 import data.MethodData;
 import data.ProgramVariable;
 import data.io.CoverageDataExport;
@@ -42,7 +42,7 @@ public class JDFCInstrument {
         String className = this.getClassName(classNode);
 
         if (CoverageDataStore.getInstance().getProjectData().get(packageRel) != null) {
-            ClassExecutionData cData = CoverageDataStore.getInstance().getProjectData().get(packageRel).get(className);
+            ClassData cData = CoverageDataStore.getInstance().getProjectData().get(packageRel).get(className);
 
             if (cData != null) {
                 // Always

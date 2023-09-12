@@ -67,7 +67,7 @@ public class HTMLFactory {
      */
     final String SCRIPT = "script.js";
 
-    public void createPkgIndexHTML(File pkg, Map<String, ClassExecutionData> classDataMap) throws IOException {
+    public void createPkgIndexHTML(File pkg, Map<String, ClassData> classDataMap) throws IOException {
         String indexPath = String.format("%s/index.html", pkg);
         File index = new File(indexPath);
 
@@ -81,7 +81,7 @@ public class HTMLFactory {
         writer.close();
     }
 
-    private HTMLElement createIndexHTML(final Map<String, ClassExecutionData> classDataMap,
+    private HTMLElement createIndexHTML(final Map<String, ClassData> classDataMap,
                                         final File pkg,
                                         final String styleSheetRel,
                                         final String scriptRel) {
@@ -130,7 +130,7 @@ public class HTMLFactory {
                                         final ExecutionData pData,
                                         final File pWorkDir) throws IOException {
         logger.debug(String.format("createClassOverviewHTML(%s, <ExecutionData>, %s)", pClassName, pWorkDir));
-        if (pData instanceof ClassExecutionData) {
+        if (pData instanceof ClassData) {
             String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
             File classFile = new File(filePath);
 
@@ -138,7 +138,7 @@ public class HTMLFactory {
             String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), SCRIPT);
 
             HTMLElement classOverviewHTML =
-                    createClassOverviewHTML((ClassExecutionData) pData, classFile, pClassName, styleSheetPath, scriptPath);
+                    createClassOverviewHTML((ClassData) pData, classFile, pClassName, styleSheetPath, scriptPath);
 
             Writer writer = new FileWriter(classFile);
             writer.write(classOverviewHTML.render());
@@ -148,7 +148,7 @@ public class HTMLFactory {
         }
     }
 
-    private HTMLElement createClassOverviewHTML(final ClassExecutionData pData,
+    private HTMLElement createClassOverviewHTML(final ClassData pData,
                                                 final File pClassFile,
                                                 final String pClassFileName,
                                                 final String pPathToStyleSheet,
@@ -195,7 +195,7 @@ public class HTMLFactory {
                                           final File pSourceDir)
             throws IOException {
         logger.debug(String.format("createClassSourceViewHTML(%s, <ExecutionData>, %s, %s)", pClassName, pWorkDir.toString(), pSourceDir.toString()));
-        if (pData instanceof ClassExecutionData) {
+        if (pData instanceof ClassData) {
             String sourceViewPath = String.format("%s/%s.java.html", pWorkDir, pClassName);
             File sourceViewHTML = new File(sourceViewPath);
 
@@ -203,12 +203,12 @@ public class HTMLFactory {
             String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), SCRIPT);
 
             // load class file
-            String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassExecutionData) pData).getRelativePath());
+            String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassData) pData).getRelativePath());
             File classFile = new File(classFilePath);
 
             // build html
             HTMLElement classSourceViewHTML =
-                    createClassSourceViewHTML(classFile, (ClassExecutionData) pData, pClassName, styleSheetPath, scriptPath);
+                    createClassSourceViewHTML(classFile, (ClassData) pData, pClassName, styleSheetPath, scriptPath);
 
             // save file
             Writer writer = new FileWriter(sourceViewHTML);
@@ -220,7 +220,7 @@ public class HTMLFactory {
     }
 
     private HTMLElement createClassSourceViewHTML(final File pClassFile,
-                                                  final ClassExecutionData pData,
+                                                  final ClassData pData,
                                                   final String pClassName,
                                                   final String pPathToStyleSheet,
                                                   final String pPathToScript) {
@@ -242,7 +242,7 @@ public class HTMLFactory {
     }
 
     private HTMLElement createSourceCode(final File pClassFile,
-                                         final ClassExecutionData pData,
+                                         final ClassData pData,
                                          final String pClassName) throws FileNotFoundException {
         logger.debug(String.format("createSourceCode(%s, <ClassExecutionData>, %s)", pClassFile, pClassName));
         // Read source file
@@ -282,7 +282,7 @@ public class HTMLFactory {
                                          final String pClassName,
                                          final int pLineNumber,
                                          final String pLineString,
-                                         final ClassExecutionData pData) {
+                                         final ClassData pData) {
         logger.debug(String.format("finalizeLineText(%s, %s, %s, %s, <ClassExecutionData>)", pClassFile, pClassName, pLineNumber, pLineString));
         HTMLElement divTagLine = HTMLElement.div();
         divTagLine.getAttributes().add("class=\"line\"");
@@ -593,7 +593,7 @@ public class HTMLFactory {
         return tableTag;
     }
 
-    private HTMLElement createClassesTable(final List<String> pColumns, Map<String, ClassExecutionData> classDataMap) {
+    private HTMLElement createClassesTable(final List<String> pColumns, Map<String, ClassData> classDataMap) {
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
         tableTag.getContent().add(createClassesTableBodyTag(classDataMap));
@@ -604,7 +604,7 @@ public class HTMLFactory {
     }
 
     private HTMLElement createMethodsTable(final List<String> pColumns,
-                                           final ClassExecutionData pData,
+                                           final ClassData pData,
                                            final String pClassfileName) {
         logger.debug(String.format("createClassesTable(%s, <ExecutionData>, %s)", pColumns.toString(), pClassfileName));
         HTMLElement tableTag = HTMLElement.table();
@@ -648,7 +648,7 @@ public class HTMLFactory {
 
     private HTMLElement createPackagesTableBodyTag() {
         HTMLElement bodyTag = HTMLElement.tbody();
-        for (Map.Entry<String, Map<String, ClassExecutionData>> entry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
+        for (Map.Entry<String, Map<String, ClassData>> entry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
             HTMLElement trTag = HTMLElement.tr();
 
             // First link tag
@@ -690,9 +690,9 @@ public class HTMLFactory {
         return tfootTag;
     }
 
-    private HTMLElement createClassesTableBodyTag(Map<String, ClassExecutionData> classDataMap) {
+    private HTMLElement createClassesTableBodyTag(Map<String, ClassData> classDataMap) {
         HTMLElement bodyTag = HTMLElement.tbody();
-        for (Map.Entry<String, ClassExecutionData> entry : classDataMap.entrySet()) {
+        for (Map.Entry<String, ClassData> entry : classDataMap.entrySet()) {
             ExecutionData data = entry.getValue();
             HTMLElement trTag = HTMLElement.tr();
 
@@ -713,7 +713,7 @@ public class HTMLFactory {
         return bodyTag;
     }
 
-    private HTMLElement createClassesTableFootTag(final Map<String, ClassExecutionData> classDataMap) {
+    private HTMLElement createClassesTableFootTag(final Map<String, ClassData> classDataMap) {
         HTMLElement tfootTag = HTMLElement.tfoot();
         HTMLElement rowTag = HTMLElement.tr();
         tfootTag.getContent().add(rowTag);
@@ -731,7 +731,7 @@ public class HTMLFactory {
         return tfootTag;
     }
 
-    private HTMLElement createMethodsTableFootTag(final ClassExecutionData pData) {
+    private HTMLElement createMethodsTableFootTag(final ClassData pData) {
         HTMLElement tfootTag = HTMLElement.tfoot();
         HTMLElement rowTag = HTMLElement.tr();
         tfootTag.getContent().add(rowTag);
