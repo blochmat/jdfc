@@ -19,7 +19,7 @@ public class DefUsePair implements Serializable {
 
     private UUID defId;
     private UUID useId;
-    private boolean covered;
+    private boolean isCovered;
 
     public DefUsePair(UUID defId, UUID useId) {
         this.defId = defId;
