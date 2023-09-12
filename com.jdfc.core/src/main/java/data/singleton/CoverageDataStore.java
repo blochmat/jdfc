@@ -35,15 +35,14 @@ public class CoverageDataStore implements Serializable {
     private File jdfcDebugDevLogDir;
     // Filled after test execution
 
-    private final Map<UUID, PackageData> packageDataMap;
-    private final Map<UUID, ClassData> classDataMap;
-    private final Map<UUID, MethodData> methodDataMap;
+    private final Map<String, Map<String, ClassData>> projectData;
+    private final Map<String, ClassData> classDataMap;
+    private final Map<String, MethodData> methodDataMap;
     private final Map<UUID, DefUsePair> defUsePairMap;
     private final Map<UUID, ProgramVariable> programVariableMap;
     private final Set<String> coveredPVarIds;
     private final Map<UUID, CoverageData> coverageDataMap;
 
-    private final Map<String, Map<String, ClassData>> projectData;
 
 //    private final transient ExecutionDataNode<ExecutionData> root;
     private final Set<String> testedClassList;
@@ -61,7 +60,6 @@ public class CoverageDataStore implements Serializable {
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
 
-        this.packageDataMap = new HashMap<>();
         this.classDataMap = new HashMap<>();
         this.methodDataMap = new HashMap<>();
         this.defUsePairMap = new HashMap<>();
@@ -245,16 +243,16 @@ public class CoverageDataStore implements Serializable {
                 if (!isInterface(cu) && !isEnum(cu) && !isGeneric(cu)) {
                     UUID id = UUID.randomUUID();
                     untestedClassList.add(classFileRelNoType);
-                    ClassData classNodeData = new ClassData(fqn, classFile.getName(), id, classFileRelNoType, cu);
-                    classDataMap.put(id, classNodeData);
+                    ClassData cData = new ClassData(fqn, classFile.getName(), id, classFileRelNoType, cu);
+                    classDataMap.put(fqn, cData);
 
                     String nameWithoutType = classFile.getName().split("\\.")[0];
                     if(classFilePackage.equals("")) {
                         CoverageDataStore.getInstance().projectData.computeIfAbsent("default", k -> new HashMap<>());
-                        projectData.get("default").put(nameWithoutType, classNodeData);
+                        projectData.get("default").put(nameWithoutType, cData);
                     } else {
                         projectData.computeIfAbsent(classFilePackage, k -> new HashMap<>());
-                        projectData.get(classFilePackage).put(nameWithoutType, classNodeData);
+                        projectData.get(classFilePackage).put(nameWithoutType, cData);
                     }
                 }
             } catch (FileNotFoundException e) {
