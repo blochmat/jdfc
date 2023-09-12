@@ -3,6 +3,7 @@ package data;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import data.singleton.CoverageDataStore;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
@@ -207,7 +208,7 @@ public class MethodData implements Serializable {
 
     public DefUsePair findDefUsePair(DefUsePair pair) {
         for(DefUsePair p : pairs.values()) {
-            if (p.getDefinition().equals(pair.getDefinition()) && p.getUsage().equals(pair.getUsage())) {
+            if (p.getDefId().equals(pair.getDefId()) && p.getUseId().equals(pair.getUseId())) {
                 return p;
             }
         }
@@ -226,7 +227,7 @@ public class MethodData implements Serializable {
                             && Objects.equals(def.getIsField(), use.getIsField())
                             && !def.getDescriptor().equals("UNKNOWN")) {
                         UUID id = UUID.randomUUID();
-                        this.pairs.put(id, new DefUsePair(def, use));
+                        this.pairs.put(id, new DefUsePair(def.getId(), use.getId()));
                     }
 
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
@@ -247,8 +248,10 @@ public class MethodData implements Serializable {
      */
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
         for (DefUsePair pair : pairs.values()) {
-            if ((pair.getDefinition().getName().equals(pName) && pair.getDefinition().getLineNumber() == pLineNumber)
-                    || pair.getUsage().getName().equals(pName) && pair.getUsage().getLineNumber() == pLineNumber) {
+            ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
+            ProgramVariable use = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId());
+            if ((def.getName().equals(pName) && def.getLineNumber() == pLineNumber)
+                    || use.getName().equals(pName) && use.getLineNumber() == pLineNumber) {
                 return true;
             }
         }

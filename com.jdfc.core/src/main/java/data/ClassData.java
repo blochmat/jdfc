@@ -8,6 +8,7 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
+import data.singleton.CoverageDataStore;
 import graphs.cfg.LocalVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -277,8 +278,8 @@ public class ClassData extends ExecutionData implements Serializable {
             }
 
             for (DefUsePair pair : mData.getPairs().values()) {
-                ProgramVariable def = pair.getDefinition();
-                ProgramVariable use = pair.getUsage();
+                ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
+                ProgramVariable use = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId());
 
                 if (def.getIsCovered() && use.getIsCovered()) {
                     if (!internalMethodName.contains("<clinit>")) {

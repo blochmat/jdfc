@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -16,19 +17,13 @@ public class DefUsePair implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String type;
-    private ProgramVariable definition;
-    private ProgramVariable usage;
+    private UUID defId;
+    private UUID useId;
     private boolean covered;
 
-    public DefUsePair(ProgramVariable definition, ProgramVariable usage) {
-        if(definition.getDescriptor().equals(usage.getDescriptor())){
-            this.type = definition.getDescriptor();
-        } else {
-            throw new IllegalArgumentException("Definition and Use type are not equal.");
-        }
-        this.definition = definition;
-        this.usage = usage;
+    public DefUsePair(UUID defId, UUID useId) {
+        this.defId = defId;
+        this.useId = useId;
     }
 
     @Override
@@ -46,11 +41,11 @@ public class DefUsePair implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DefUsePair pair = (DefUsePair) o;
-        return isCovered() == pair.isCovered() && Objects.equals(getType(), pair.getType()) && Objects.equals(getDefinition(), pair.getDefinition()) && Objects.equals(getUsage(), pair.getUsage());
+        return isCovered() == pair.isCovered()  && Objects.equals(getDefId(), pair.getDefId()) && Objects.equals(getUseId(), pair.getUseId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, definition, usage);
+        return Objects.hash(defId, useId);
     }
 }

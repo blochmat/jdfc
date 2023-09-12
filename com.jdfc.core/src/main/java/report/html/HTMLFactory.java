@@ -828,7 +828,9 @@ public class HTMLFactory {
             String defTab = String.format("class=\"%s%s%sDefTab margin10\"", var.getName(),
                     var.getLineNumber(), var.getInstructionIndex());
             div.getAttributes().add(defTab);
-            Set<ProgramVariable> useList = pairs.stream().map(DefUsePair::getUsage).collect(Collectors.toSet());
+            Set<ProgramVariable> useList = pairs.stream()
+                    .map(x -> CoverageDataStore.getInstance().getProgramVariableMap().get(x.getUseId()))
+                    .collect(Collectors.toSet());
             for (ProgramVariable use : useList) {
                 try {
                     table.getContent().add(createDataRow(cFile, cName, use.getLineNumber(), use.getIsCovered()));
@@ -840,7 +842,9 @@ public class HTMLFactory {
             String useTab = String.format("class=\"%s%s%sUseTab margin10\"", var.getName(),
                     var.getLineNumber(), var.getInstructionIndex());
             div.getAttributes().add(useTab);
-            Set<ProgramVariable> defList = pairs.stream().map(DefUsePair::getDefinition).collect(Collectors.toSet());
+            Set<ProgramVariable> defList = pairs.stream()
+                    .map(x -> CoverageDataStore.getInstance().getProgramVariableMap().get(x.getDefId()))
+                    .collect(Collectors.toSet());
             for (ProgramVariable def : defList) {
                 try {
                     table.getContent().add(createDataRow(cFile, cName, def.getLineNumber(), def.getIsCovered()));
@@ -853,20 +857,20 @@ public class HTMLFactory {
         return row;
     }
 
-    private Map<ProgramVariable, Boolean> getCoverageInformation(final Map<DefUsePair, Boolean> pVariableInfo,
-                                                                 final boolean isDefinitionTab) {
-        Map<ProgramVariable, Boolean> result = new TreeMap<>();
-        for (Map.Entry<DefUsePair, Boolean> entry : pVariableInfo.entrySet()) {
-            if (isDefinitionTab) {
-                ProgramVariable usage = entry.getKey().getUsage();
-                result.put(usage, entry.getValue());
-            } else {
-                ProgramVariable definition = entry.getKey().getDefinition();
-                result.put(definition, entry.getValue());
-            }
-        }
-        return result;
-    }
+//    private Map<ProgramVariable, Boolean> getCoverageInformation(final Map<DefUsePair, Boolean> pVariableInfo,
+//                                                                 final boolean isDefinitionTab) {
+//        Map<ProgramVariable, Boolean> result = new TreeMap<>();
+//        for (Map.Entry<DefUsePair, Boolean> entry : pVariableInfo.entrySet()) {
+//            if (isDefinitionTab) {
+//                ProgramVariable usage = entry.getKey().getUseId();
+//                result.put(usage, entry.getValue());
+//            } else {
+//                ProgramVariable definition = entry.getKey().getDefId();
+//                result.put(definition, entry.getValue());
+//            }
+//        }
+//        return result;
+//    }
 
     private HTMLElement createDataRow(final File cFile,
                                       final String cName,
@@ -948,8 +952,9 @@ public class HTMLFactory {
                                                     final ProgramVariable var) {
         Set<ProgramVariable> result = new HashSet<>();
         for (DefUsePair element : pairs) {
-            if (!element.getDefinition().equals(var)) {
-                result.add(element.getDefinition());
+            ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(element.getDefId());
+            if (!def.equals(var)) {
+                result.add(def);
             }
         }
         return result;
@@ -1100,7 +1105,7 @@ public class HTMLFactory {
 
     private boolean isRedefined(MethodData mData, int pLineNumber, String pName) {
         for (DefUsePair pair : mData.getPairs().values()) {
-            ProgramVariable def = pair.getDefinition();
+            ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
             // if another definition with the same name, but greater line number exists and
             // the current variable is not part of an active pair we know, that it must have been redefined
             if (def.getLineNumber() > pLineNumber && def.getName().equals(pName)
@@ -1113,7 +1118,7 @@ public class HTMLFactory {
 
     private boolean isDefinition(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
         for (DefUsePair defUsePair : pDefUsePairs) {
-            if (defUsePair.getDefinition().equals(pVariable)) {
+            if (defUsePair.getDefId().equals(pVariable)) {
                 return true;
             }
         }
@@ -1122,7 +1127,7 @@ public class HTMLFactory {
 
     private boolean isUsage(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
         for (DefUsePair defUsePair : pDefUsePairs) {
-            if (defUsePair.getUsage().equals(pVariable)) {
+            if (defUsePair.getUseId().equals(pVariable)) {
                 return true;
             }
         }
@@ -1133,7 +1138,7 @@ public class HTMLFactory {
     private Set<DefUsePair> getDefUsePairsCoveredForVar(MethodData mData, ProgramVariable pVariable) {
         Set<DefUsePair> result = new HashSet<>();
         for (DefUsePair element : mData.getPairs().values()) {
-                if (element.getDefinition().equals(pVariable) || element.getUsage().equals(pVariable)) {
+                if (element.getDefId().equals(pVariable) || element.getUseId().equals(pVariable)) {
                     result.add(element);
                 }
         }
