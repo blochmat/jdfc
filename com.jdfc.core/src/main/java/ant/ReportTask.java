@@ -3,7 +3,7 @@ package ant;
 import data.singleton.CoverageDataStore;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
-import report.ReportGenerator;
+import report.HTMLReportGenerator;
 import utils.Deserializer;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class ReportTask extends Task {
         }
         CoverageDataStore.setInstance(deserialized);
         String outAbs = String.join(File.separator, CoverageDataStore.getInstance().getWorkDir().getAbsolutePath(), out);
-        ReportGenerator reportGenerator = new ReportGenerator(outAbs, CoverageDataStore.getInstance().getSourceDirAbs());
-        reportGenerator.createHTMLReport();
+        HTMLReportGenerator HTMLReportGenerator = new HTMLReportGenerator(outAbs, CoverageDataStore.getInstance().getSourceDirAbs());
+        HTMLReportGenerator.create();
     }
 }

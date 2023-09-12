@@ -6,7 +6,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import report.ReportGenerator;
+import report.HTMLReportGenerator;
 import utils.Deserializer;
 
 import java.io.File;
@@ -30,7 +30,7 @@ public class ReportMojo extends AbstractMojo {
         CoverageDataStore.setInstance(deserialized);
         final String outDirAbs = String.format("%s%sjdfc-report", CoverageDataStore.getInstance().getBuildDir().getAbsolutePath(), File.separator);
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
-        ReportGenerator reportGenerator = new ReportGenerator(outDirAbs, sourceDirAbs);
-        reportGenerator.createHTMLReport();
+        HTMLReportGenerator HTMLReportGenerator = new HTMLReportGenerator(outDirAbs, sourceDirAbs);
+        HTMLReportGenerator.create();
     }
 }

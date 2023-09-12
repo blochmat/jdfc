@@ -16,18 +16,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ReportGenerator {
+public class HTMLReportGenerator {
 
-    private Logger logger = LoggerFactory.getLogger(ReportGenerator.class);
+    private Logger logger = LoggerFactory.getLogger(HTMLReportGenerator.class);
     private final File outputDir;
     private final File sourceDir;
 
-    public ReportGenerator(String outputDirAbs, String sourceDirAbs) {
+    public HTMLReportGenerator(String outputDirAbs, String sourceDirAbs) {
         this.outputDir = new File(outputDirAbs);
         this.sourceDir = new File(sourceDirAbs);
     }
 
-    public void createHTMLReport() {
+    public void create() {
         ExecutionDataNode<ExecutionData> root = CoverageDataStore.getInstance().getRoot();
         if (outputDir.exists() || outputDir.mkdirs()) {
             try {
