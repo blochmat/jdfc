@@ -26,7 +26,7 @@ public class CoverageTracker {
 //                                                final String mId,
 //                                                final String pId
     ) {
-        CoverageDataStore.getInstance().getTest().add(cId);
+        CoverageDataStore.getInstance().getCoveredPVarIds().add(cId);
 //        ClassExecutionData cData = null;
 //        MethodData mData = null;
 //        ProgramVariable pVar = null;

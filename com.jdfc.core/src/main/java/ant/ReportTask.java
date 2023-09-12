@@ -8,6 +8,8 @@ import utils.Deserializer;
 
 import java.io.File;
 
+import static utils.Constants.JDFC_SERIALIZATION_FILE;
+
 public class ReportTask extends Task {
 
     private String work;
@@ -24,7 +26,12 @@ public class ReportTask extends Task {
 
     @Override
     public void execute() throws BuildException {
-        CoverageDataStore.setInstance(Deserializer.deserializeCoverageData(work));
+        String fileInAbs = String.join(File.separator, work, JDFC_SERIALIZATION_FILE);
+        CoverageDataStore deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+        if(deserialized == null) {
+            throw new IllegalArgumentException("Unable do deserialize coverage data.");
+        }
+        CoverageDataStore.setInstance(deserialized);
         String outAbs = String.join(File.separator, CoverageDataStore.getInstance().getWorkDir().getAbsolutePath(), out);
         ReportGenerator reportGenerator = new ReportGenerator(outAbs, CoverageDataStore.getInstance().getSourceDirAbs());
         reportGenerator.createHTMLReport();

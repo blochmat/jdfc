@@ -8,9 +8,9 @@ import data.io.CoverageDataExport;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.Deserializer;
 import utils.JDFCUtils;
 import utils.JavaParserHelper;
 
@@ -27,7 +27,6 @@ import static utils.Constants.JDFC_SERIALIZATION_FILE;
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
  * instance represent the project structure of the project under test
  */
-@Slf4j
 @Data
 public class CoverageDataStore implements Serializable {
 
@@ -50,8 +49,10 @@ public class CoverageDataStore implements Serializable {
     private File jdfcDebugInstrDir;
     private File jdfcDebugErrorDir;
     private File jdfcDebugDevLogDir;
-    private Set<String> test = null;
+    // Filled after test execution
+    private Set<String> coveredPVarIds;
 
+    private static final Class<?> deserializerClass = Deserializer.class;
     private static final Class<?> defUsePairClass = DefUsePair.class;
     private static final Class<?> programVariableClass = ProgramVariable.class;
     private static final Class<?> localVariableClass = LocalVariable.class;
@@ -66,8 +67,7 @@ public class CoverageDataStore implements Serializable {
         this.projectData = new HashMap<>();
         this.programVariableMap = new HashMap<>();
         this.defUsePairMap = new HashMap<>();
-        test = new HashSet<>();
-        test.add("dummy");
+        this.coveredPVarIds = new HashSet<>();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -78,18 +78,28 @@ public class CoverageDataStore implements Serializable {
 //                            .concat(File.separator)
 //                            .concat(JDFC_SERIALIZATION_FILE);
 
+                    // workdir is not set for "mvn test"
+//                    String fileInAbs = String.join(File.separator, workDir.getAbsolutePath(), JDFC_SERIALIZATION_FILE);
+                    CoverageDataStore deserialized = Deserializer.deserializeCoverageData(JDFC_SERIALIZATION_FILE);
+
                     String fileAbs = JDFC_SERIALIZATION_FILE;
                     FileOutputStream fileOut = new FileOutputStream(fileAbs);
 
                     // Create an ObjectOutputStream to write the object
                     ObjectOutputStream out = new ObjectOutputStream(fileOut);
-
-                    // Write the object
-                    out.writeObject(CoverageDataStore.getInstance());
+                    if (deserialized != null) {
+                        deserialized.getCoveredPVarIds().addAll(CoverageDataStore.getInstance().coveredPVarIds);
+                        out.writeObject(deserialized);
+                    } else {
+                        out.writeObject(CoverageDataStore.getInstance());
+                    }
 
                     // Close the streams
+                    out.flush();
                     out.close();
+                    fileOut.flush();
                     fileOut.close();
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

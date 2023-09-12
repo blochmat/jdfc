@@ -7,26 +7,29 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import static utils.Constants.JDFC_SERIALIZATION_FILE;
-
 public class Deserializer {
 
-    public static CoverageDataStore deserializeCoverageData(String workDirAbs) {
+    public static CoverageDataStore deserializeCoverageData(String fileAbs) {
         CoverageDataStore obj = null;
         try {
             // Create a file input stream
-            String fileAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
-            FileInputStream fileIn = new FileInputStream(fileAbs);
+            File file = new File(fileAbs);
 
-            // Create an ObjectInputStream
-            ObjectInputStream in = new ObjectInputStream(fileIn);
+            if(file.exists()) {
+                FileInputStream fileIn = new FileInputStream(fileAbs);
 
-            // Read the object
-            obj = (CoverageDataStore) in.readObject();
+                // Create an ObjectInputStream
+                ObjectInputStream in = new ObjectInputStream(fileIn);
 
-            // Close the streams
-            in.close();
-            fileIn.close();
+                // Read the object
+                obj = (CoverageDataStore) in.readObject();
+
+                // Close the streams
+                in.close();
+                fileIn.close();
+
+                return obj;
+            }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

@@ -7,6 +7,8 @@ import utils.Instrumenter;
 import java.io.File;
 import java.util.List;
 
+import static utils.Constants.JDFC_SERIALIZATION_FILE;
+
 public class Main {
 
     private static Options options;
@@ -51,7 +53,12 @@ public class Main {
                 // Report
                 if(cmd.hasOption("O")) {
                     parsePathOptions(cmd, true);
-                    CoverageDataStore.setInstance(Deserializer.deserializeCoverageData(workDirAbs));
+                    String fileInAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
+                    CoverageDataStore deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+                    if(deserialized == null) {
+                        throw new IllegalArgumentException("Unable do deserialize coverage data.");
+                    }
+                    CoverageDataStore.setInstance(deserialized);
                     ReportGenerator reportGenerator = new ReportGenerator(outputDirAbs, sourceDirAbs);
                     reportGenerator.createHTMLReport();
                 } else {
