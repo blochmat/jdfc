@@ -609,11 +609,11 @@ public class HTMLFactory {
         logger.debug(String.format("createClassesTable(%s, <ExecutionData>, %s)", pColumns.toString(), pClassfileName));
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
-        for (MethodData mData : pData.getMethods().values()) {
+        for (MethodData mData : pData.getMethodDataFromStore().values()) {
             String internalMethodName = mData.buildInternalMethodName();
 
             // Methods with 0 DefUsePairs are standard object constructors; we do not want to show those.
-            if (mData.getPairs().size() != 0) {
+            if (mData.getDuPairIds().size() != 0) {
                 if (internalMethodName.contains("<init>")) {
                     internalMethodName = internalMethodName.replace("<init>", "init");
                 }

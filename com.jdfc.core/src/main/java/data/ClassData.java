@@ -25,10 +25,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Coverage data container of a single class. It contains information about all methods including CFG's, Def-Use pairs,
- * inter-procedural matches, covered and uncovered variables.
- */
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -52,7 +48,7 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private Map<String, String> nestedTypeMap;
 
-    private Map<UUID, MethodData> methods;
+    private Set<UUID> methodDataIds;
 
     private Map<Integer, UUID> lineToMethodIdMap;
 
@@ -69,13 +65,141 @@ public class ClassData extends ExecutionData implements Serializable {
         this.impDeclList = extractImportDeclarationList(srcFileAst);
         this.ciDecl = extractClassDeclaration(srcFileAst, name);
         this.nestedTypeMap = extractNestedTypes(srcFileAst);
-        this.methods = extractMethodDeclarations(this.ciDecl);
+        this.methodDataIds = new HashSet<>();
+        this.extractMethodDeclarations(this.ciDecl);
     }
 
     public String toString() {
         return String.format("ParentFqn: %s Fqn: %s RelPath: %s Methods: %d Total: %d Covered: %d Rate: %f", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
     }
 
+    public Map<UUID, MethodData> getMethodDataFromStore() {
+        Map<UUID, MethodData> methodDataMap = new HashMap<>();
+        for (UUID id : this.methodDataIds) {
+            methodDataMap.put(id, CoverageDataStore.getInstance().getMethodDataMap().get(id));
+        }
+        return methodDataMap;
+    }
+
+    public MethodData getMethodByInternalName(String internalName) {
+        for(MethodData mData : this.getMethodDataFromStore().values()) {
+            if (mData.buildInternalMethodName().equals(internalName)) {
+                return mData;
+            }
+        }
+
+        if(log.isDebugEnabled()) {
+            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByInternalName.txt", false);
+            try (FileWriter writer = new FileWriter(transformFile, true)) {
+                writer.write(String.format("Search param: %s", internalName));
+                writer.write(JDFCUtils.prettyPrintArray(
+                        this.getMethodDataFromStore().values().stream().map(MethodData::buildInternalMethodName).toArray()));
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+
+            }
+        }
+        return null;
+    }
+
+    public MethodData getMethodByShortInternalName(String internalName) {
+        for(MethodData mData : this.getMethodDataFromStore().values()) {
+            if (mData.buildInternalMethodName().contains(internalName)) {
+                return mData;
+            }
+        }
+
+        if(log.isDebugEnabled()) {
+            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByShortInternalName.txt", false);
+            try (FileWriter writer = new FileWriter(transformFile, true)) {
+                writer.write(String.format("Search param: %s", internalName));
+                writer.write(JDFCUtils.prettyPrintArray(
+                        this.getMethodDataFromStore().values().stream().map(MethodData::buildInternalMethodName).toArray()));
+                writer.write("\n");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+
+            }
+        }
+        return null;
+    }
+
+    public MethodData getMethodByLineNumber(int lNr) {
+        for(MethodData mData : this.getMethodDataFromStore().values()) {
+            if (mData.getBeginLine() <= lNr && lNr <= mData.getEndLine()) {
+                return mData;
+            }
+        }
+        return null;
+    }
+
+    public void computeCoverage() {
+        for(MethodData mData : this.getMethodDataFromStore().values()) {
+            String internalMethodName = mData.buildInternalMethodName();
+            if (mData.getDuPairIds().size() == 0) {
+                continue;
+            }
+
+            for (DefUsePair pair : mData.getDUPairsFromStore().values()) {
+                ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
+                ProgramVariable use = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId());
+
+                if (def.getIsCovered() && use.getIsCovered()) {
+                    if (!internalMethodName.contains("<clinit>")) {
+                        this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
+                    }
+                } else {
+                    if (!internalMethodName.contains("<clinit>")) {
+                        this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(false);
+                    }
+                }
+                if (!internalMethodName.contains("<clinit>")) {
+                    mData.computeCoverageMetadata();
+                }
+            }
+
+        }
+        this.calculateMethodCount();
+        this.calculateTotal();
+        this.calculateCovered();
+        this.calculateRate();
+    }
+
+
+    public void calculateMethodCount() {
+        this.setMethodCount(this.methodDataIds.size());
+    }
+
+    public void calculateTotal() {
+        this.setTotal(this.getMethodDataFromStore().values().stream().mapToInt(MethodData::getTotal).sum());
+    }
+
+    public void calculateCovered() {
+        this.setCovered(this.getMethodDataFromStore().values().stream().mapToInt(MethodData::getCovered).sum());
+    }
+
+    public void calculateRate() {
+        if (getTotal() != 0.0) {
+            this.setRate((double) getCovered() / getTotal());
+        } else {
+            this.setRate(0.0);
+        }
+    }
+
+    public LocalVariable findLocalVariable(final String internalMethodName,
+                                           final int pVarIndex) {
+        // TODO
+        if(!internalMethodName.contains("<clinit>")) {
+            Map<Integer, LocalVariable> localVariableTable = this.getMethodByInternalName(internalMethodName)
+                    .getLocalVariableTable();
+            return localVariableTable.get(pVarIndex);
+        } else {
+            return null;
+        }
+    }
+
+    // --Private Methods------------------------------------------------------------------------------------------------
     private PackageDeclaration extractPackageDeclaration(CompilationUnit cu){
         Optional<PackageDeclaration> pkdDeclOpt = cu.getPackageDeclaration();
         return pkdDeclOpt.orElse(null);
@@ -109,8 +233,7 @@ public class ClassData extends ExecutionData implements Serializable {
         return result;
     }
 
-    private Map<UUID, MethodData> extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
-        Map<UUID, MethodData> methods = new HashMap<>();
+    private void extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {
         for(MethodDeclaration mDecl : ciAst.getMethods()) {
             JavaParserHelper javaParserHelper = new JavaParserHelper();
             // jvm patter built from JavaParser: (I)LBuilder; [IndexOutOfBoundsException]
@@ -150,8 +273,9 @@ public class ClassData extends ExecutionData implements Serializable {
 
             UUID id = UUID.randomUUID();
             MethodData mData = new MethodData(id, this.relativePath, mAccess, mName, jvmAsmDesc, mDecl);
+            CoverageDataStore.getInstance().getMethodDataMap().put(id, mData);
+            methodDataIds.add(id);
 
-            methods.put(id, mData);
             for(int i = mData.getBeginLine(); i <= mData.getEndLine(); i++) {
                 this.lineToMethodIdMap.put(i, id);
             }
@@ -195,7 +319,8 @@ public class ClassData extends ExecutionData implements Serializable {
 
             UUID id = UUID.randomUUID();
             MethodData mData = new MethodData(id, this.relativePath, mAccess, mName, jvmAsmDesc, cDecl);
-            methods.put(id, mData);
+            CoverageDataStore.getInstance().getMethodDataMap().put(id, mData);
+            methodDataIds.add(id);
 
             for(int i = mData.getBeginLine(); i <= mData.getEndLine(); i++) {
                 this.lineToMethodIdMap.put(i, id);
@@ -203,134 +328,15 @@ public class ClassData extends ExecutionData implements Serializable {
         }
 
         // Add default constructor
-        if (methods.values().stream().noneMatch(x -> x.getName().equals("<init>"))) {
+        if (this.getMethodDataFromStore().values().stream().noneMatch(mData -> mData.getName().equals("<init>"))) {
             UUID id = UUID.randomUUID();
             MethodData mData = new MethodData(id, this.relativePath, AccessSpecifier.PUBLIC.ordinal(), "<init>", "()V;");
-            methods.put(id, mData);
+            CoverageDataStore.getInstance().getMethodDataMap().put(id, mData);
+            methodDataIds.add(id);
 
             this.lineToMethodIdMap.put(Integer.MIN_VALUE, id);
         }
 
         JDFCUtils.logThis(JDFCUtils.prettyPrintMap(lineToMethodIdMap), "lineToMethodIdMap");
-
-        return methods;
-    }
-
-    public MethodData getMethodByInternalName(String internalName) {
-        for(MethodData mData : methods.values()) {
-            if (mData.buildInternalMethodName().equals(internalName)) {
-                return mData;
-            }
-        }
-
-        if(log.isDebugEnabled()) {
-            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByInternalName.txt", false);
-            try (FileWriter writer = new FileWriter(transformFile, true)) {
-                writer.write(String.format("Search param: %s", internalName));
-                writer.write(JDFCUtils.prettyPrintArray(
-                        methods.values().stream().map(MethodData::buildInternalMethodName).toArray()));
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-
-            }
-        }
-        return null;
-    }
-
-    public MethodData getMethodByShortInternalName(String internalName) {
-        for(MethodData mData : methods.values()) {
-            if (mData.buildInternalMethodName().contains(internalName)) {
-                return mData;
-            }
-        }
-
-        if(log.isDebugEnabled()) {
-            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByShortInternalName.txt", false);
-            try (FileWriter writer = new FileWriter(transformFile, true)) {
-                writer.write(String.format("Search param: %s", internalName));
-                writer.write(JDFCUtils.prettyPrintArray(
-                        methods.values().stream().map(MethodData::buildInternalMethodName).toArray()));
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-
-            }
-        }
-        return null;
-    }
-
-    public MethodData getMethodByLineNumber(int lNr) {
-        for(MethodData mData : methods.values()) {
-            if (mData.getBeginLine() <= lNr && lNr <= mData.getEndLine()) {
-                return mData;
-            }
-        }
-        return null;
-    }
-
-    public void computeCoverage() {
-        for(MethodData mData : this.getMethods().values()) {
-            String internalMethodName = mData.buildInternalMethodName();
-            if (mData.getPairs().size() == 0) {
-                continue;
-            }
-
-            for (DefUsePair pair : mData.getDUPairsFromStore().values()) {
-                ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
-                ProgramVariable use = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId());
-
-                if (def.getIsCovered() && use.getIsCovered()) {
-                    if (!internalMethodName.contains("<clinit>")) {
-                        this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(true);
-                    }
-                } else {
-                    if (!internalMethodName.contains("<clinit>")) {
-                        this.getMethodByInternalName(internalMethodName).findDefUsePair(pair).setCovered(false);
-                    }
-                }
-                if (!internalMethodName.contains("<clinit>")) {
-                    mData.computeCoverageMetadata();
-                }
-            }
-
-        }
-        this.calculateMethodCount();
-        this.calculateTotal();
-        this.calculateCovered();
-        this.calculateRate();
-    }
-
-
-    public void calculateMethodCount() {
-        this.setMethodCount(this.methods.size());
-    }
-
-    public void calculateTotal() {
-        this.setTotal(methods.values().stream().mapToInt(MethodData::getTotal).sum());
-    }
-
-    public void calculateCovered() {
-        this.setCovered(methods.values().stream().mapToInt(MethodData::getCovered).sum());
-    }
-
-    public void calculateRate() {
-        if (getTotal() != 0.0) {
-            this.setRate((double) getCovered() / getTotal());
-        } else {
-            this.setRate(0.0);
-        }
-    }
-
-    public LocalVariable findLocalVariable(final String internalMethodName,
-                                           final int pVarIndex) {
-        // TODO
-        if(!internalMethodName.contains("<clinit>")) {
-            Map<Integer, LocalVariable> localVariableTable = this.getMethodByInternalName(internalMethodName)
-                    .getLocalVariableTable();
-            return localVariableTable.get(pVarIndex);
-        } else {
-            return null;
-        }
     }
 }

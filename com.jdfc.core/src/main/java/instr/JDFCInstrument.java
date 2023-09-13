@@ -53,7 +53,7 @@ public class JDFCInstrument {
                         .flatMap(inner -> inner.values().stream())
                         .collect(Collectors.toSet());
                 JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
-                for(MethodData mData : cData.getMethods().values()) {
+                for(MethodData mData : cData.getMethodDataFromStore().values()) {
                     if(mData.getCfg() != null) {
                         mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
                         mData.getCfg().calculateReachingDefinitions();

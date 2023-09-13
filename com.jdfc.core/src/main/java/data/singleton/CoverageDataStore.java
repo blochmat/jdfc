@@ -37,7 +37,7 @@ public class CoverageDataStore implements Serializable {
 
     private final Map<String, Map<String, ClassData>> projectData;
     private final Map<String, ClassData> classDataMap;
-    private final Map<String, MethodData> methodDataMap;
+    private final Map<UUID, MethodData> methodDataMap;
     private final Map<UUID, DefUsePair> defUsePairMap;
     private final Map<UUID, ProgramVariable> programVariableMap;
     private final Set<String> coveredPVarIds;
@@ -148,19 +148,20 @@ public class CoverageDataStore implements Serializable {
 //    }
 
     public static void trackVar(final String pId) {
-        CoverageTracker.getInstance().addVarCoveredEntry(pId);
+        CoverageDataStore.getInstance().getCoveredPVarIds().add(pId);
+//        CoverageTracker.getInstance().addVarCoveredEntry(pId);
     }
 
     public static void trackNewObject(final Object obj,
                                       final String cId,
                                       final String mId) {
-        CoverageTracker.getInstance().trackNewObjectRef(cId, mId, obj);
+//        CoverageTracker.getInstance().trackNewObjectRef(cId, mId, obj);
     }
 
     public static void trackModifiedObject(final Object obj,
                                            final String cId,
                                            final String mId) {
-        CoverageTracker.getInstance().trackModifiedObjectRef(cId, mId, obj);
+//        CoverageTracker.getInstance().trackModifiedObjectRef(cId, mId, obj);
     }
 
     public void exportCoverageData() {

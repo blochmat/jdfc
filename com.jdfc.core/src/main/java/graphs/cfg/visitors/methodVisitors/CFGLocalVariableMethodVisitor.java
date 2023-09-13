@@ -62,7 +62,7 @@ public class CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {
                     writer.write(String.format("Method: %s\n", internalMethodName));
                     writer.write("==============================\n");
                     writer.write("Methods:\n");
-                    writer.write(JDFCUtils.prettyPrintSet(classVisitor.classData.getMethods().values().stream().map(MethodData::buildInternalMethodName).collect(Collectors.toSet())));
+                    writer.write(JDFCUtils.prettyPrintSet(classVisitor.classData.getMethodDataFromStore().values().stream().map(MethodData::buildInternalMethodName).collect(Collectors.toSet())));
                     writer.write("==============================\n");
                     writer.write("\n");
                 } catch (IOException ioException) {

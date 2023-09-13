@@ -187,7 +187,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 String error = String.format("%s::%s : mId == null\n%s%s",
                         classVisitor.classData.getRelativePath(),
                         internalMethodName,
-                        JDFCUtils.prettyPrintMap(classVisitor.classData.getMethods()),
+                        JDFCUtils.prettyPrintMap(classVisitor.classData.getMethodDataFromStore()),
                         JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
                 );
                 JDFCUtils.logThis(error, "ERROR");
@@ -218,7 +218,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                 String error = String.format("%s::%s : mId == null\n%s%s",
                         classVisitor.classData.getRelativePath(),
                         internalMethodName,
-                        JDFCUtils.prettyPrintMap(classVisitor.classData.getMethods()),
+                        JDFCUtils.prettyPrintMap(classVisitor.classData.getMethodDataFromStore()),
                         JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
                 );
                 JDFCUtils.logThis(error, "ERROR");
@@ -236,7 +236,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             }
 
             if(mId != null) {
-                MethodData mData = classVisitor.classData.getMethods().get(mId);
+                MethodData mData = classVisitor.classData.getMethodDataFromStore().get(mId);
                 ProgramVariable localPVar = new ProgramVariable(
                         null,
                         Integer.MIN_VALUE,
@@ -281,7 +281,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     String error = String.format("%s::%s : mId == null\n%s%s",
                             classVisitor.classData.getRelativePath(),
                             internalMethodName,
-                            JDFCUtils.prettyPrintMap(classVisitor.classData.getMethods()),
+                            JDFCUtils.prettyPrintMap(classVisitor.classData.getMethodDataFromStore()),
                             JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
                     );
                     JDFCUtils.logThis(error, "ERROR");
@@ -300,7 +300,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         }
 
         if(mId != null) {
-            MethodData mData = classVisitor.classData.getMethods().get(mId);
+            MethodData mData = classVisitor.classData.getMethodDataFromStore().get(mId);
             LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
             if(localVariable == null) {
                 if(log.isDebugEnabled()) {

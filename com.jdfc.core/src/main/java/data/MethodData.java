@@ -16,7 +16,6 @@ import utils.JDFCUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -91,12 +90,12 @@ public class MethodData implements Serializable {
     /**
      * All DU-pairs of method
      */
-    private Set<UUID> pairs;
+    private Set<UUID> duPairIds;
 
     /**
      * All program variables
      */
-    private Set<UUID> programVariables;
+    private Set<UUID> pVarIds;
 
     /**
      * Allocated Objects
@@ -132,9 +131,9 @@ public class MethodData implements Serializable {
         this.declarationStr = "";
         this.beginLine = Integer.MIN_VALUE;
         this.endLine = Integer.MIN_VALUE;
-        this.pairs = ConcurrentHashMap.newKeySet();
+        this.duPairIds = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
-        this.programVariables = new HashSet<>();
+        this.pVarIds = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
         this.modifiedObjects = new HashMap<>();
     }
@@ -148,9 +147,9 @@ public class MethodData implements Serializable {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = ConcurrentHashMap.newKeySet();
+        this.duPairIds = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
-        this.programVariables = new HashSet<>();
+        this.pVarIds = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
         this.modifiedObjects = new HashMap<>();
     }
@@ -164,9 +163,9 @@ public class MethodData implements Serializable {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = ConcurrentHashMap.newKeySet();
+        this.duPairIds = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
-        this.programVariables = new HashSet<>();
+        this.pVarIds = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
         this.modifiedObjects = new HashMap<>();
     }
@@ -176,7 +175,7 @@ public class MethodData implements Serializable {
     }
 
     public void computeCoverageMetadata() {
-        this.total = pairs.size();
+        this.total = duPairIds.size();
         this.covered = (int) this.getDUPairsFromStore().values().stream().filter(DefUsePair::isCovered).count();
         if (total != 0) {
             this.rate = (double) covered / total;
@@ -184,7 +183,7 @@ public class MethodData implements Serializable {
     }
 
     public UUID findVarId(ProgramVariable var) {
-        for (UUID id : getPVarIdsFromStore()) {
+        for (UUID id : this.pVarIds) {
             ProgramVariable v = CoverageDataStore.getInstance().getProgramVariableMap().get(id);
             if (Objects.equals(v.getClassName(), var.getClassName())
                     && Objects.equals(v.getMethodName(), var.getMethodName())
@@ -200,36 +199,21 @@ public class MethodData implements Serializable {
     }
 
     public Map<UUID, ProgramVariable> getPVarsFromStore() {
-        Set<UUID> pIds = getPVarIdsFromStore();
         Map<UUID, ProgramVariable> pVars = new HashMap<>();
-        for(UUID id: pIds) {
+        for(UUID id: this.pVarIds) {
             pVars.put(id, CoverageDataStore.getInstance().getProgramVariableMap().get(id));
         }
         return pVars;
     }
 
-    public Set<UUID> getDUPairIdsFromStore() {
-        return CoverageDataStore.getInstance().getDefUsePairMap().entrySet().stream()
-                .filter(x -> x.getValue().getMethodName().equals(this.buildInternalMethodName()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-    }
-
     public Map<UUID, DefUsePair> getDUPairsFromStore() {
-        Set<UUID> pIds = getDUPairIdsFromStore();
         Map<UUID, DefUsePair> pVars = new HashMap<>();
-        for(UUID id: pIds) {
+        for(UUID id: this.duPairIds) {
             pVars.put(id, CoverageDataStore.getInstance().getDefUsePairMap().get(id));
         }
         return pVars;
     }
 
-    public Set<UUID> getPVarIdsFromStore() {
-        return CoverageDataStore.getInstance().getProgramVariableMap().entrySet().stream()
-                .filter(x -> x.getValue().getMethodName().equals(this.buildInternalMethodName()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-    }
     public DefUsePair findDefUsePair(DefUsePair pair) {
         for(DefUsePair p : this.getDUPairsFromStore().values()) {
             if (p.getDefId().equals(pair.getDefId()) && p.getUseId().equals(pair.getUseId())) {
@@ -251,7 +235,7 @@ public class MethodData implements Serializable {
                             && Objects.equals(def.getIsField(), use.getIsField())
                             && !def.getDescriptor().equals("UNKNOWN")) {
                         UUID id = UUID.randomUUID();
-                        this.pairs.add(id);
+                        this.duPairIds.add(id);
                         CoverageDataStore.getInstance().getDefUsePairMap()
                                 .put(id, new DefUsePair(
                                         id,

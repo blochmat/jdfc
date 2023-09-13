@@ -345,7 +345,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                 false
         );
         CoverageDataStore.getInstance().getProgramVariableMap().put(id, var);
-        mData.getProgramVariables().add(id);
+        mData.getPVarIds().add(id);
         aa.setPVar(var);
         return var;
     }
@@ -396,7 +396,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         true
                 );
                 CoverageDataStore.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
-                mData.getProgramVariables().add(programVariable.getId());
+                mData.getPVarIds().add(programVariable.getId());
                 classVisitor.classData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
                 classVisitor.classData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
                 node = new CFGNode(
@@ -423,7 +423,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         true
                 );
                 CoverageDataStore.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
-                mData.getProgramVariables().add(programVariable.getId());
+                mData.getPVarIds().add(programVariable.getId());
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
@@ -570,7 +570,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         int idx = 0;
         for(ProgramVariable def : definitions) {
             CoverageDataStore.getInstance().getProgramVariableMap().put(def.getId(), def);
-            mData.getProgramVariables().add(def.getId());
+            mData.getPVarIds().add(def.getId());
 
             pVarMap.put(idx, def);
 
