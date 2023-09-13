@@ -260,7 +260,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                             writer.write(String.format("  ProgramVariable: %s\n", localPVar));
                             writer.write("==============================\n");
                             writer.write("Program Variables:\n");
-                            writer.write(JDFCUtils.prettyPrintMap(mData.getProgramVariables()));
+                            writer.write(JDFCUtils.prettyPrintMap(mData.getPVarsFromStore()));
                             writer.write("==============================\n");
                             writer.write("\n");
                         } catch (IOException ioException) {
@@ -343,7 +343,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                             writer.write(String.format("  ProgramVariable: %s\n", localPVar));
                             writer.write("==============================\n");
                             writer.write("Program Variables:\n");
-                            writer.write(JDFCUtils.prettyPrintMap(mData.getProgramVariables()));
+                            writer.write(JDFCUtils.prettyPrintMap(mData.getPVarsFromStore()));
                             writer.write("==============================\n");
                             writer.write("\n");
                         } catch (IOException ioException) {

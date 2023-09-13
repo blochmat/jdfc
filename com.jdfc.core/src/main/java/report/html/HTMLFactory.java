@@ -1092,7 +1092,7 @@ public class HTMLFactory {
                                                   final int lNr,
                                                   final String name) {
         List<ProgramVariable> result = new ArrayList<>();
-        for (ProgramVariable element : mData.getProgramVariables().values()) {
+        for (ProgramVariable element : mData.getPVarsFromStore().values()) {
             if (element.getLineNumber() == lNr
                     && element.getName().equals(name)
                     && !result.contains(element)) {

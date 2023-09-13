@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import data.DomainVariable;
 import data.MethodData;
 import data.ProgramVariable;
+import data.singleton.CoverageDataStore;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGCallNode;
@@ -343,7 +344,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                 false,
                 false
         );
-        mData.getProgramVariables().put(id, var);
+        CoverageDataStore.getInstance().getProgramVariableMap().put(id, var);
+        mData.getProgramVariables().add(id);
         aa.setPVar(var);
         return var;
     }
@@ -393,7 +395,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         false,
                         true
                 );
-                mData.getProgramVariables().put(programVariable.getId(), programVariable);
+                CoverageDataStore.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
+                mData.getProgramVariables().add(programVariable.getId());
                 classVisitor.classData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
                 classVisitor.classData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
                 node = new CFGNode(
@@ -419,7 +422,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                         false,
                         true
                 );
-                mData.getProgramVariables().put(programVariable.getId(), programVariable);
+                CoverageDataStore.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
+                mData.getProgramVariables().add(programVariable.getId());
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
@@ -565,7 +569,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
         Map<Integer, DomainVariable> dVarMap = new HashMap<>();
         int idx = 0;
         for(ProgramVariable def : definitions) {
-            mData.getProgramVariables().put(def.getId(), def);
+            CoverageDataStore.getInstance().getProgramVariableMap().put(def.getId(), def);
+            mData.getProgramVariables().add(def.getId());
 
             pVarMap.put(idx, def);
 
@@ -645,7 +650,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
 
     private ProgramVariable createProgramVariableFromLocalVar(int insnIndex) {
         ProgramVariable var = null;
-        for(ProgramVariable p : mData.getProgramVariables().values()) {
+        for(ProgramVariable p : mData.getPVarsFromStore().values()) {
             if(var == null  && p.getName().equals("this")) {
                 var = p;
             }

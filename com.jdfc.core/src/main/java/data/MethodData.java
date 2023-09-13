@@ -16,6 +16,7 @@ import utils.JDFCUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -95,12 +96,7 @@ public class MethodData implements Serializable {
     /**
      * All program variables
      */
-    private Map<UUID, ProgramVariable> programVariables;
-
-    /**
-     * All field definitions
-     */
-    private Map<UUID, ProgramVariable> fieldDefinitions;
+    private Set<UUID> programVariables;
 
     /**
      * Allocated Objects
@@ -138,8 +134,7 @@ public class MethodData implements Serializable {
         this.endLine = Integer.MIN_VALUE;
         this.pairs = new ConcurrentHashMap<>();
         this.localVariableTable = new HashMap<>();
-        this.programVariables = new HashMap<>();
-        this.fieldDefinitions = new HashMap<>();
+        this.programVariables = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
         this.modifiedObjects = new HashMap<>();
     }
@@ -155,8 +150,7 @@ public class MethodData implements Serializable {
         this.endLine = extractEnd(srcAst);
         this.pairs = new ConcurrentHashMap<>();
         this.localVariableTable = new HashMap<>();
-        this.programVariables = new HashMap<>();
-        this.fieldDefinitions = new HashMap<>();
+        this.programVariables = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
         this.modifiedObjects = new HashMap<>();
     }
@@ -172,8 +166,7 @@ public class MethodData implements Serializable {
         this.endLine = extractEnd(srcAst);
         this.pairs = new ConcurrentHashMap<>();
         this.localVariableTable = new HashMap<>();
-        this.programVariables = new HashMap<>();
-        this.fieldDefinitions = new HashMap<>();
+        this.programVariables = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
         this.modifiedObjects = new HashMap<>();
     }
@@ -191,8 +184,8 @@ public class MethodData implements Serializable {
     }
 
     public UUID findVarId(ProgramVariable var) {
-        for (Map.Entry<UUID,ProgramVariable> entry : programVariables.entrySet()) {
-            ProgramVariable v = entry.getValue();
+        for (UUID id : getPVarIdsFromStore()) {
+            ProgramVariable v = CoverageDataStore.getInstance().getProgramVariableMap().get(id);
             if (Objects.equals(v.getClassName(), var.getClassName())
                     && Objects.equals(v.getMethodName(), var.getMethodName())
                     && Objects.equals(v.getName(), var.getName())
@@ -200,10 +193,26 @@ public class MethodData implements Serializable {
                     && Objects.equals(v.getLineNumber(), var.getLineNumber())
                     && Objects.equals(v.getInstructionIndex(), var.getInstructionIndex())
                     && Objects.equals(v.getIsDefinition(), var.getIsDefinition())) {
-                return entry.getKey();
+                return id;
             }
         }
         return null;
+    }
+
+    public Map<UUID, ProgramVariable> getPVarsFromStore() {
+        Set<UUID> pIds = getPVarIdsFromStore();
+        Map<UUID, ProgramVariable> pVars = new HashMap<>();
+        for(UUID id: pIds) {
+            pVars.put(id, CoverageDataStore.getInstance().getProgramVariableMap().get(id));
+        }
+        return pVars;
+    }
+
+    public Set<UUID> getPVarIdsFromStore() {
+        return CoverageDataStore.getInstance().getProgramVariableMap().entrySet().stream()
+                .filter(x -> x.getValue().getMethodName().equals(this.buildInternalMethodName()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
     }
 
     public DefUsePair findDefUsePair(DefUsePair pair) {
