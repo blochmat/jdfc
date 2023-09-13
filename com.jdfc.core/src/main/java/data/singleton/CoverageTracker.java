@@ -3,16 +3,18 @@ package data.singleton;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+
+// TODO: Delete
 public class CoverageTracker {
 
     private static CoverageTracker singleton;
 
-    public static synchronized CoverageTracker getInstance() {
-        if (singleton == null) {
-            singleton = new CoverageTracker();
-        }
-        return singleton;
-    }
+//    public static synchronized CoverageTracker getInstance() {
+//        if (singleton == null) {
+//            singleton = new CoverageTracker();
+//        }
+//        return singleton;
+//    }
 
     public synchronized void addVarCoveredEntry(final String cId
 //                                                final String mId,

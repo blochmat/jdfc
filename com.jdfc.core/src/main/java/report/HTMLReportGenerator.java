@@ -11,7 +11,6 @@ import report.html.Resources;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,28 +92,28 @@ public class HTMLReportGenerator {
         pFactory.createRootIndexHTML(outputDir);
     }
 
-    private Map<String, ExecutionDataNode<ExecutionData>> getClassContainingPackagesRecursive(
-            final ExecutionDataNode<ExecutionData> pNode,
-            final String pPackageName) {
-        Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = pNode.getChildren();
-        Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataNodeMap = new HashMap<>();
-
-        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> childEntry : currentNodeChildren.entrySet()) {
-            if (childEntry.getValue().isLeaf()) {
-                packageExecutionDataNodeMap.put(pPackageName, pNode);
-            } else {
-                String nextPathName;
-                if (pPackageName.equals("")) {
-                    nextPathName = childEntry.getKey();
-                } else {
-                    nextPathName = String.format("%s.%s", pPackageName, childEntry.getKey());
-                }
-                packageExecutionDataNodeMap = mergeMaps(packageExecutionDataNodeMap,
-                        getClassContainingPackagesRecursive(childEntry.getValue(), nextPathName));
-            }
-        }
-        return packageExecutionDataNodeMap;
-    }
+//    private Map<String, ExecutionDataNode<ExecutionData>> getClassContainingPackagesRecursive(
+//            final ExecutionDataNode<ExecutionData> pNode,
+//            final String pPackageName) {
+//        Map<String, ExecutionDataNode<ExecutionData>> currentNodeChildren = pNode.getChildren();
+//        Map<String, ExecutionDataNode<ExecutionData>> packageExecutionDataNodeMap = new HashMap<>();
+//
+//        for (Map.Entry<String, ExecutionDataNode<ExecutionData>> childEntry : currentNodeChildren.entrySet()) {
+//            if (childEntry.getValue().isLeaf()) {
+//                packageExecutionDataNodeMap.put(pPackageName, pNode);
+//            } else {
+//                String nextPathName;
+//                if (pPackageName.equals("")) {
+//                    nextPathName = childEntry.getKey();
+//                } else {
+//                    nextPathName = String.format("%s.%s", pPackageName, childEntry.getKey());
+//                }
+//                packageExecutionDataNodeMap = mergeMaps(packageExecutionDataNodeMap,
+//                        getClassContainingPackagesRecursive(childEntry.getValue(), nextPathName));
+//            }
+//        }
+//        return packageExecutionDataNodeMap;
+//    }
 
     private Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1,
                                                                     Map<String, ExecutionDataNode<ExecutionData>> map2) {

@@ -693,7 +693,7 @@ public class HTMLFactory {
     private HTMLElement createClassesTableBodyTag(Map<String, ClassData> classDataMap) {
         HTMLElement bodyTag = HTMLElement.tbody();
         for (Map.Entry<String, ClassData> entry : classDataMap.entrySet()) {
-            ExecutionData data = entry.getValue();
+            ClassData data = entry.getValue();
             HTMLElement trTag = HTMLElement.tr();
 
             // First link tag
@@ -1118,7 +1118,7 @@ public class HTMLFactory {
 
     private boolean isDefinition(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
         for (DefUsePair defUsePair : pDefUsePairs) {
-            if (defUsePair.getDefId().equals(pVariable)) {
+            if (CoverageDataStore.getInstance().getProgramVariableMap().get(defUsePair.getDefId()).equals(pVariable)) {
                 return true;
             }
         }
@@ -1127,7 +1127,7 @@ public class HTMLFactory {
 
     private boolean isUsage(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
         for (DefUsePair defUsePair : pDefUsePairs) {
-            if (defUsePair.getUseId().equals(pVariable)) {
+            if (CoverageDataStore.getInstance().getProgramVariableMap().get(defUsePair.getUseId()).equals(pVariable)) {
                 return true;
             }
         }
@@ -1138,7 +1138,8 @@ public class HTMLFactory {
     private Set<DefUsePair> getDefUsePairsCoveredForVar(MethodData mData, ProgramVariable pVariable) {
         Set<DefUsePair> result = new HashSet<>();
         for (DefUsePair element : mData.getDUPairsFromStore().values()) {
-                if (element.getDefId().equals(pVariable) || element.getUseId().equals(pVariable)) {
+                if (CoverageDataStore.getInstance().getProgramVariableMap().get(element.getDefId()).equals(pVariable)
+                        || CoverageDataStore.getInstance().getProgramVariableMap().get(element.getUseId()).equals(pVariable)) {
                     result.add(element);
                 }
         }

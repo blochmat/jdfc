@@ -1,5 +1,7 @@
 package data;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -9,7 +11,6 @@ import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.types.ResolvedType;
 import data.singleton.CoverageDataStore;
-import graphs.cfg.LocalVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -44,6 +45,10 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private UUID id;
 
+    private String fqn;
+
+    private String name;
+
     private String relativePath;
 
     private Map<String, String> nestedTypeMap;
@@ -54,9 +59,18 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private Map<UUID, Map<UUID, ProgramVariable>> fieldDefinitions;
 
+    private int total = 0;
+
+    private int covered = 0;
+
+    private double rate = 0.0;
+
+    private int methodCount = 0;
+
     public ClassData(String fqn, String name, UUID id, String pRelativePath, CompilationUnit srcFileAst) {
-        super(fqn, name);
         this.id = id;
+        this.fqn = fqn;
+        this.name = name;
         this.relativePath = pRelativePath;
         this.lineToMethodIdMap = new HashMap<>();
         this.fieldDefinitions = new HashMap<>();
@@ -70,7 +84,12 @@ public class ClassData extends ExecutionData implements Serializable {
     }
 
     public String toString() {
-        return String.format("ParentFqn: %s Fqn: %s RelPath: %s Methods: %d Total: %d Covered: %d Rate: %f", getParentFqn(), getFqn(), relativePath, getMethodCount(), getTotal(), getCovered(), getRate());
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Map<UUID, MethodData> getMethodDataFromStore() {
@@ -187,17 +206,17 @@ public class ClassData extends ExecutionData implements Serializable {
         }
     }
 
-    public LocalVariable findLocalVariable(final String internalMethodName,
-                                           final int pVarIndex) {
-        // TODO
-        if(!internalMethodName.contains("<clinit>")) {
-            Map<Integer, LocalVariable> localVariableTable = this.getMethodByInternalName(internalMethodName)
-                    .getLocalVariableTable();
-            return localVariableTable.get(pVarIndex);
-        } else {
-            return null;
-        }
-    }
+//    public LocalVariable findLocalVariable(final String internalMethodName,
+//                                           final int pVarIndex) {
+//        // TODO
+//        if(!internalMethodName.contains("<clinit>")) {
+//            Map<Integer, LocalVariable> localVariableTable = this.getMethodByInternalName(internalMethodName)
+//                    .getLocalVariableTable();
+//            return localVariableTable.get(pVarIndex);
+//        } else {
+//            return null;
+//        }
+//    }
 
     // --Private Methods------------------------------------------------------------------------------------------------
     private PackageDeclaration extractPackageDeclaration(CompilationUnit cu){
