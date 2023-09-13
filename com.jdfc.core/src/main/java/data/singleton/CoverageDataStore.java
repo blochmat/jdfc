@@ -60,6 +60,7 @@ public class CoverageDataStore implements Serializable {
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
 
+        this.packageDataMap = new HashMap<>();
         this.classDataMap = new HashMap<>();
         this.methodDataMap = new HashMap<>();
         this.defUsePairMap = new HashMap<>();
@@ -67,7 +68,6 @@ public class CoverageDataStore implements Serializable {
         this.coveredPVarIds = new HashSet<>();
         this.coverageDataMap = new HashMap<>();
 
-        this.packageDataMap = new HashMap<>();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
