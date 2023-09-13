@@ -37,7 +37,7 @@ public class CoverageDataStore implements Serializable {
 
     private int total = 0;
     private int covered = 0;
-    private double rate = 0.0;
+    private double ratio = 0.0;
     private int methodCount = 0;
 
     private final Map<String, PackageData> packageDataMap;

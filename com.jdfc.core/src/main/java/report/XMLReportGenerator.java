@@ -41,7 +41,7 @@ public class XMLReportGenerator {
 
             // Project
             Element coverage = doc.createElement("coverage");
-            coverage.setAttribute("pair-rate", String.valueOf(CoverageDataStore.getInstance().getRate()));
+            coverage.setAttribute("pair-rate", String.valueOf(CoverageDataStore.getInstance().getRatio()));
             coverage.setAttribute("pairs-covered", String.valueOf(CoverageDataStore.getInstance().getCovered()));
             coverage.setAttribute("pairs-valid", String.valueOf(CoverageDataStore.getInstance().getTotal()));
             coverage.setAttribute("version", "1.0-SNAPSHOT");
@@ -65,7 +65,7 @@ public class XMLReportGenerator {
                 // create package
                 Element pkg = doc.createElement("package");
                 pkg.setAttribute("name", pkgData.getFqn());
-                pkg.setAttribute("pair-rate", String.valueOf(pkgData.getRate()));
+                pkg.setAttribute("pair-rate", String.valueOf(pkgData.getRatio()));
                 packages.appendChild(pkg);
 
                 // add classes of package
@@ -98,7 +98,7 @@ public class XMLReportGenerator {
                         Element method = doc.createElement("method");
                         method.setAttribute("name", mData.getName());
                         method.setAttribute("signature", mData.getDesc());
-                        method.setAttribute("pair-rate", String.valueOf(mData.getRate()));
+                        method.setAttribute("pair-rate", String.valueOf(mData.getRatio()));
                         methods.appendChild(method);
 
                         Element pairs = doc.createElement("pairs");

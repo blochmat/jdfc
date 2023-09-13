@@ -63,7 +63,7 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private int covered = 0;
 
-    private double rate = 0.0;
+    private double ratio = 0.0;
 
     private int methodCount = 0;
 
@@ -191,9 +191,9 @@ public class ClassData extends ExecutionData implements Serializable {
 
     public void calculateRate() {
         if (getTotal() != 0.0) {
-            this.setRate((double) getCovered() / getTotal());
+            this.setRatio((double) getCovered() / getTotal());
         } else {
-            this.setRate(0.0);
+            this.setRatio(0.0);
         }
     }
 
@@ -261,7 +261,7 @@ public class ClassData extends ExecutionData implements Serializable {
                 ", fieldDefinitions=" + fieldDefinitions +
                 ", total=" + total +
                 ", covered=" + covered +
-                ", rate=" + rate +
+                ", rate=" + ratio +
                 ", methodCount=" + methodCount +
                 '}';
     }

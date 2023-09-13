@@ -40,7 +40,7 @@ public class MethodData implements Serializable {
     /**
      * Rate between total and covered DU-pairs of method
      */
-    private double rate = 0.0;
+    private double ratio = 0.0;
 
     /**
      * Access modifier of method, e.g. 0 = protected, 1 = public, 2 = private
@@ -119,7 +119,7 @@ public class MethodData implements Serializable {
 
     public String toString() {
         return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
-                access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintMap(this.getDUPairsFromStore()));
+                access, name, desc, beginLine, endLine, total, covered, ratio, JDFCUtils.prettyPrintMap(this.getDUPairsFromStore()));
     }
 
     public MethodData(UUID id, String classname, int access, String name, String desc) {
@@ -178,7 +178,7 @@ public class MethodData implements Serializable {
         this.total = duPairIds.size();
         this.covered = (int) this.getDUPairsFromStore().values().stream().filter(DefUsePair::isCovered).count();
         if (total != 0) {
-            this.rate = (double) covered / total;
+            this.ratio = (double) covered / total;
         }
     }
 

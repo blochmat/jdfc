@@ -1,7 +1,6 @@
 import data.singleton.CoverageDataStore;
 import org.apache.commons.cli.*;
-import report.HTMLReportGenerator;
-import report.XMLReportGenerator;
+import report.ReportGenerator;
 import utils.Deserializer;
 import utils.Instrumenter;
 
@@ -60,10 +59,9 @@ public class Main {
                         throw new IllegalArgumentException("Unable do deserialize coverage data.");
                     }
                     CoverageDataStore.setInstance(deserialized);
-                    XMLReportGenerator XMLReportGenerator = new XMLReportGenerator(outputDirAbs);
-                    XMLReportGenerator.create();
-                    HTMLReportGenerator HTMLReportGenerator = new HTMLReportGenerator(outputDirAbs, sourceDirAbs);
-                    HTMLReportGenerator.create();
+
+                    ReportGenerator reportGenerator = new ReportGenerator(outputDirAbs, sourceDirAbs);
+                    reportGenerator.create();
                 } else {
                     System.out.println("Please provide the desired output directory path of the report relative to the project's root e.g. /path/to/report.");
                 }
