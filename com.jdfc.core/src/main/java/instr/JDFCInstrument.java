@@ -41,8 +41,8 @@ public class JDFCInstrument {
         String packageRel = this.getPackage(classNode);
         String className = this.getClassName(classNode);
 
-        if (CoverageDataStore.getInstance().getProjectData().get(packageRel) != null) {
-            ClassData cData = CoverageDataStore.getInstance().getProjectData().get(packageRel).get(className);
+        if (CoverageDataStore.getInstance().getPackageDataMap().get(packageRel) != null) {
+            ClassData cData = CoverageDataStore.getInstance().getPackageDataMap().get(packageRel).getClassDataByName(className);
 
             if (cData != null) {
                 // Always

@@ -1,7 +1,5 @@
 package data;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -51,6 +49,8 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private String relativePath;
 
+    private String fileName;
+
     private Map<String, String> nestedTypeMap;
 
     private Set<UUID> methodDataIds;
@@ -81,15 +81,6 @@ public class ClassData extends ExecutionData implements Serializable {
         this.nestedTypeMap = extractNestedTypes(srcFileAst);
         this.methodDataIds = new HashSet<>();
         this.extractMethodDeclarations(this.ciDecl);
-    }
-
-    public String toString() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public Map<UUID, MethodData> getMethodDataFromStore() {
@@ -250,6 +241,29 @@ public class ClassData extends ExecutionData implements Serializable {
                     result.put(c.getName().getIdentifier(), jvmInternal);
                 });
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ClassData{" +
+                "srcFileAst=" + srcFileAst +
+                ", pkgDecl=" + pkgDecl +
+                ", impDeclList=" + impDeclList +
+                ", ciDecl=" + ciDecl +
+                ", id=" + id +
+                ", fqn='" + fqn + '\'' +
+                ", name='" + name + '\'' +
+                ", relativePath='" + relativePath + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", nestedTypeMap=" + nestedTypeMap +
+                ", methodDataIds=" + methodDataIds +
+                ", lineToMethodIdMap=" + lineToMethodIdMap +
+                ", fieldDefinitions=" + fieldDefinitions +
+                ", total=" + total +
+                ", covered=" + covered +
+                ", rate=" + rate +
+                ", methodCount=" + methodCount +
+                '}';
     }
 
     private void extractMethodDeclarations(ClassOrInterfaceDeclaration ciAst) {

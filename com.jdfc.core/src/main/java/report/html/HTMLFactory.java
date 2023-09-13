@@ -67,7 +67,7 @@ public class HTMLFactory {
      */
     final String SCRIPT = "script.js";
 
-    public void createPkgIndexHTML(File pkg, Map<String, ClassData> classDataMap) throws IOException {
+    public void createPkgIndexHTML(File pkg, Map<UUID, ClassData> classDataMap) throws IOException {
         String indexPath = String.format("%s/index.html", pkg);
         File index = new File(indexPath);
 
@@ -81,7 +81,7 @@ public class HTMLFactory {
         writer.close();
     }
 
-    private HTMLElement createIndexHTML(final Map<String, ClassData> classDataMap,
+    private HTMLElement createIndexHTML(final Map<UUID, ClassData> classDataMap,
                                         final File pkg,
                                         final String styleSheetRel,
                                         final String scriptRel) {
@@ -93,6 +93,7 @@ public class HTMLFactory {
 
         HTMLElement htmlBodyTag = createDefaultHTMLBody(title, pkg, scriptRel, null);
         List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Covered %", "Total", "Covered", "Missed"));
+        // TODO: i think we should pass packageDAta instead of classData
         htmlBodyTag.getContent().add(createClassesTable(columns, classDataMap));
         htmlMainTag.getContent().add(htmlBodyTag);
         return htmlMainTag;
@@ -593,7 +594,7 @@ public class HTMLFactory {
         return tableTag;
     }
 
-    private HTMLElement createClassesTable(final List<String> pColumns, Map<String, ClassData> classDataMap) {
+    private HTMLElement createClassesTable(final List<String> pColumns, Map<UUID, ClassData> classDataMap) {
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
         tableTag.getContent().add(createClassesTableBodyTag(classDataMap));
@@ -648,7 +649,7 @@ public class HTMLFactory {
 
     private HTMLElement createPackagesTableBodyTag() {
         HTMLElement bodyTag = HTMLElement.tbody();
-        for (Map.Entry<String, Map<String, ClassData>> entry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
+        for (Map.Entry<String, PackageData> entry : CoverageDataStore.getInstance().getPackageDataMap().entrySet()) {
             HTMLElement trTag = HTMLElement.tr();
 
             // First link tag
@@ -658,15 +659,11 @@ public class HTMLFactory {
             trTag.getContent().add(tdTag);
 
             // TODO
-            int methodCount = 0;
-            int pairsTotal = 0;
-            int pairsCovered = 0;
             double percentage = 0;
-            trTag.getContent().add(HTMLElement.td(methodCount));
-            trTag.getContent().add(HTMLElement.td("TODO"));
-            trTag.getContent().add(HTMLElement.td(pairsTotal));
-            trTag.getContent().add(HTMLElement.td(pairsCovered));
+            trTag.getContent().add(HTMLElement.td(entry.getValue().getMethodCount()));
             trTag.getContent().add(HTMLElement.td(percentage));
+            trTag.getContent().add(HTMLElement.td(entry.getValue().getTotal()));
+            trTag.getContent().add(HTMLElement.td(entry.getValue().getCovered()));
             bodyTag.getContent().add(trTag);
         }
         return bodyTag;
@@ -690,30 +687,29 @@ public class HTMLFactory {
         return tfootTag;
     }
 
-    private HTMLElement createClassesTableBodyTag(Map<String, ClassData> classDataMap) {
+    private HTMLElement createClassesTableBodyTag(Map<UUID, ClassData> classDataMap) {
         HTMLElement bodyTag = HTMLElement.tbody();
-        for (Map.Entry<String, ClassData> entry : classDataMap.entrySet()) {
-            ClassData data = entry.getValue();
+        for (ClassData cData : classDataMap.values()) {
             HTMLElement trTag = HTMLElement.tr();
 
             // First link tag
             HTMLElement tdTag = HTMLElement.td();
-            String link = String.format("%s.html", entry.getKey());
-            tdTag.getContent().add(HTMLElement.a(link, entry.getKey()));
+            String link = String.format("%s.html", cData.getFqn());
+            tdTag.getContent().add(HTMLElement.a(link, cData.getFqn()));
 
             trTag.getContent().add(tdTag);
-            trTag.getContent().add(HTMLElement.td(data.getMethodCount()));
+            trTag.getContent().add(HTMLElement.td(cData.getMethodCount()));
             // TODO: fill with rate
             trTag.getContent().add(HTMLElement.td("TODO"));
-            trTag.getContent().add(HTMLElement.td(data.getTotal()));
-            trTag.getContent().add(HTMLElement.td(data.getCovered()));
-            trTag.getContent().add(HTMLElement.td(data.getTotal() - data.getCovered()));
+            trTag.getContent().add(HTMLElement.td(cData.getTotal()));
+            trTag.getContent().add(HTMLElement.td(cData.getCovered()));
+            trTag.getContent().add(HTMLElement.td(cData.getTotal() - cData.getCovered()));
             bodyTag.getContent().add(trTag);
         }
         return bodyTag;
     }
 
-    private HTMLElement createClassesTableFootTag(final Map<String, ClassData> classDataMap) {
+    private HTMLElement createClassesTableFootTag(final Map<UUID, ClassData> classDataMap) {
         HTMLElement tfootTag = HTMLElement.tfoot();
         HTMLElement rowTag = HTMLElement.tr();
         tfootTag.getContent().add(rowTag);

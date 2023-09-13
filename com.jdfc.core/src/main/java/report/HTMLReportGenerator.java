@@ -3,6 +3,7 @@ package report;
 import data.ClassData;
 import data.ExecutionData;
 import data.ExecutionDataNode;
+import data.PackageData;
 import data.singleton.CoverageDataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,15 +74,15 @@ public class HTMLReportGenerator {
 
     private void createHTMLFiles(HTMLFactory factory) throws IOException {
         System.out.println("debug");
-        for(Map.Entry<String, Map<String, ClassData>> packageEntry : CoverageDataStore.getInstance().getProjectData().entrySet()) {
+        for(Map.Entry<String, PackageData> packageEntry : CoverageDataStore.getInstance().getPackageDataMap().entrySet()) {
             String packageAbs = String.join(File.separator, outputDir.getAbsolutePath(), packageEntry.getKey());
             File pkg = new File(packageAbs);
             if(pkg.exists() || pkg.mkdirs()) {
-                for(Map.Entry<String, ClassData> classEntry : packageEntry.getValue().entrySet()) {
-                    factory.createClassOverviewHTML(classEntry.getKey(), classEntry.getValue(), pkg);
-                    factory.createClassSourceViewHTML(classEntry.getKey(), classEntry.getValue(), pkg, sourceDir);
+                for(ClassData cData : packageEntry.getValue().getClassDataFromStore().values()) {
+                    factory.createClassOverviewHTML(cData.getFqn(), cData, pkg);
+                    factory.createClassSourceViewHTML(cData.getFqn(), cData, pkg, sourceDir);
                 }
-                factory.createPkgIndexHTML(pkg, packageEntry.getValue());
+                factory.createPkgIndexHTML(pkg, packageEntry.getValue().getClassDataFromStore());
             } else {
                 System.err.println("Directory could not be created: " + packageAbs);
             }

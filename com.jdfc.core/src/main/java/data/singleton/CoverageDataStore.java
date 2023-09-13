@@ -35,8 +35,8 @@ public class CoverageDataStore implements Serializable {
     private File jdfcDebugDevLogDir;
     // Filled after test execution
 
-    private final Map<String, Map<String, ClassData>> projectData;
-    private final Map<String, ClassData> classDataMap;
+    private final Map<String, PackageData> packageDataMap;
+    private final Map<UUID, ClassData> classDataMap;
     private final Map<UUID, MethodData> methodDataMap;
     private final Map<UUID, DefUsePair> defUsePairMap;
     private final Map<UUID, ProgramVariable> programVariableMap;
@@ -67,7 +67,7 @@ public class CoverageDataStore implements Serializable {
         this.coveredPVarIds = new HashSet<>();
         this.coverageDataMap = new HashMap<>();
 
-        this.projectData = new HashMap<>();
+        this.packageDataMap = new HashMap<>();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -236,6 +236,9 @@ public class CoverageDataStore implements Serializable {
         String sourceFileRel = classFileRel.replace(".class", ".java");
         String sourceFileAbs = CoverageDataStore.getInstance().getSourceDirAbs().concat(sourceFileRel);
         String fqn = classFileRelNoType.replace(File.separator, ".");
+        if(fqn.startsWith(".")) {
+            fqn = fqn.substring(1);
+        }
 
         File sourceFile = new File(sourceFileAbs);
         if (sourceFile.exists()) {
@@ -245,15 +248,15 @@ public class CoverageDataStore implements Serializable {
                     UUID id = UUID.randomUUID();
                     untestedClassList.add(classFileRelNoType);
                     ClassData cData = new ClassData(fqn, classFile.getName(), id, classFileRelNoType, cu);
-                    classDataMap.put(fqn, cData);
+                    classDataMap.put(id, cData);
 
                     String nameWithoutType = classFile.getName().split("\\.")[0];
                     if(classFilePackage.equals("")) {
-                        CoverageDataStore.getInstance().projectData.computeIfAbsent("default", k -> new HashMap<>());
-                        projectData.get("default").put(nameWithoutType, cData);
+                        CoverageDataStore.getInstance().packageDataMap.computeIfAbsent("default", k -> new PackageData(classFilePackage));
+                        packageDataMap.get("default").getClassDataIds().add(id);
                     } else {
-                        projectData.computeIfAbsent(classFilePackage, k -> new HashMap<>());
-                        projectData.get(classFilePackage).put(nameWithoutType, cData);
+                        packageDataMap.computeIfAbsent(classFilePackage, k -> new PackageData(classFilePackage));
+                        packageDataMap.get(classFilePackage).getClassDataIds().add(id);
                     }
                 }
             } catch (FileNotFoundException e) {
