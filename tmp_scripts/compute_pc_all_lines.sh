@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Computes the probabilistic coupling for all lines in the code and 
+# saves all of them in a csv file.
+
 if [ -z "$1" ]; then
   echo "Please provide a path to the coverage CSV file."
   exit 1

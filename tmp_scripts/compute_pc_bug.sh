@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Chooses the highest prob coupling for a criteria and saves it 
+# to a csv file with the respective bug id
+
 if [ -z "$1" ]; then
   echo "Please provide a path to the coverage CSV file."
   exit 1

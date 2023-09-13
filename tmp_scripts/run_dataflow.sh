@@ -11,9 +11,9 @@ for bug_id in $bug_ids; do
     repo_dir="/tmp/${project}_${bug_id}_buggy"
     project_output_dir="${pc_analysis_dir}/${project}"
     bug_output_dir="${project_output_dir}/${bug_id}"
-    coverage_file="${bug_output_dir}/branch_coverage.csv"
+    coverage_file="${bug_output_dir}/dataflow_coverage.csv"
 
-    echo "RUNNING BRANCH ANALYSIS:  ${repo_dir}."
+    echo "RUNNING DATAFLOW ANALYSIS:  ${repo_dir}."
     
     # create if directory does not exist
     if [ ! -d "$bug_output_dir" ]; then
@@ -47,10 +47,10 @@ for bug_id in $bug_ids; do
     $(defects4j compile -w "$repo_dir")
     
     # Run all relevant tests
-    echo "$(defects4j coverage -w "$repo_dir" -r)"
+    echo "$(defects4j jdfc -w "$repo_dir" -r)"
     
     # Extract all coverage goals
-    readarray -t line_numbers < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/lines/line" -v "@number" -n "$repo_dir"/coverage.xml | sort -n | uniq)
+    readarray -t pair_ids < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/pairs/pair" -v "@id" -n "$repo_dir"/jdfc-report/coverage.xml | sort -n | uniq)
     
     # Add header row to csv
     echo ",failed,${line_numbers[*]}" | sed 's/ /,/g' > "$coverage_file"
@@ -73,9 +73,9 @@ for bug_id in $bug_ids; do
     for test_method in "${test_methods_sh[@]}"; do
         echo "$test_method"
         # Execute test method
-        echo "$(defects4j coverage -w "$repo_dir" -t "$test_method")"
+        echo "$(defects4j jdfc -w "$repo_dir" -t "$test_method")"
         # Extract covered coverage goals from coverage.xml
-        readarray -t hits < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/lines/line" -v "@hits" -n "$repo_dir"/coverage.xml)
+        readarray -t covered < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/pairs/pair" -v "@covered" -n "$repo_dir"/jdfc-report/coverage.xml)
         coverage=()
         failed=""
     
@@ -87,7 +87,7 @@ for bug_id in $bug_ids; do
         done
     
         for i in "${hits[@]}"; do
-            if [ $i -gt 0 ]; then
+            if [ $i ]; then
                 coverage+=("x")
             else
                 coverage+=("")
