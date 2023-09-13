@@ -3,6 +3,7 @@ package data;
 import data.singleton.CoverageDataStore;
 import lombok.Data;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
@@ -13,6 +14,7 @@ public class PackageData implements Serializable {
 
     private UUID id;
     private String relPath;
+    private String fqn;
     private int total = 0;
     private int covered = 0;
     private double rate = 0.0;
@@ -22,6 +24,7 @@ public class PackageData implements Serializable {
     public PackageData(String relPath) {
         this.id = UUID.randomUUID();
         this.relPath = relPath;
+        this.fqn = relPath.replace(File.separator, ".");
         this.classDataIds = new HashSet<>();
     }
 
