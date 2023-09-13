@@ -91,7 +91,7 @@ public class MethodData implements Serializable {
     /**
      * All DU-pairs of method
      */
-    private Map<UUID, DefUsePair> pairs;
+    private Set<UUID> pairs;
 
     /**
      * All program variables
@@ -120,7 +120,7 @@ public class MethodData implements Serializable {
 
     public String toString() {
         return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
-                access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintMap(pairs));
+                access, name, desc, beginLine, endLine, total, covered, rate, JDFCUtils.prettyPrintMap(this.getDUPairsFromStore()));
     }
 
     public MethodData(UUID id, String classname, int access, String name, String desc) {
@@ -132,7 +132,7 @@ public class MethodData implements Serializable {
         this.declarationStr = "";
         this.beginLine = Integer.MIN_VALUE;
         this.endLine = Integer.MIN_VALUE;
-        this.pairs = new ConcurrentHashMap<>();
+        this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
@@ -148,7 +148,7 @@ public class MethodData implements Serializable {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = new ConcurrentHashMap<>();
+        this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
@@ -164,7 +164,7 @@ public class MethodData implements Serializable {
         this.declarationStr = srcAst.getDeclarationAsString();
         this.beginLine = extractBegin(srcAst);
         this.endLine = extractEnd(srcAst);
-        this.pairs = new ConcurrentHashMap<>();
+        this.pairs = ConcurrentHashMap.newKeySet();
         this.localVariableTable = new HashMap<>();
         this.programVariables = new HashSet<>();
         this.allocatedObjects = new HashMap<>();
@@ -177,7 +177,7 @@ public class MethodData implements Serializable {
 
     public void computeCoverageMetadata() {
         this.total = pairs.size();
-        this.covered = (int) pairs.values().stream().filter(DefUsePair::isCovered).count();
+        this.covered = (int) this.getDUPairsFromStore().values().stream().filter(DefUsePair::isCovered).count();
         if (total != 0) {
             this.rate = (double) covered / total;
         }
@@ -208,15 +208,30 @@ public class MethodData implements Serializable {
         return pVars;
     }
 
+    public Set<UUID> getDUPairIdsFromStore() {
+        return CoverageDataStore.getInstance().getDefUsePairMap().entrySet().stream()
+                .filter(x -> x.getValue().getMethodName().equals(this.buildInternalMethodName()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+
+    public Map<UUID, DefUsePair> getDUPairsFromStore() {
+        Set<UUID> pIds = getDUPairIdsFromStore();
+        Map<UUID, DefUsePair> pVars = new HashMap<>();
+        for(UUID id: pIds) {
+            pVars.put(id, CoverageDataStore.getInstance().getDefUsePairMap().get(id));
+        }
+        return pVars;
+    }
+
     public Set<UUID> getPVarIdsFromStore() {
         return CoverageDataStore.getInstance().getProgramVariableMap().entrySet().stream()
                 .filter(x -> x.getValue().getMethodName().equals(this.buildInternalMethodName()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
     }
-
     public DefUsePair findDefUsePair(DefUsePair pair) {
-        for(DefUsePair p : pairs.values()) {
+        for(DefUsePair p : this.getDUPairsFromStore().values()) {
             if (p.getDefId().equals(pair.getDefId()) && p.getUseId().equals(pair.getUseId())) {
                 return p;
             }
@@ -236,7 +251,15 @@ public class MethodData implements Serializable {
                             && Objects.equals(def.getIsField(), use.getIsField())
                             && !def.getDescriptor().equals("UNKNOWN")) {
                         UUID id = UUID.randomUUID();
-                        this.pairs.put(id, new DefUsePair(def.getId(), use.getId()));
+                        this.pairs.add(id);
+                        CoverageDataStore.getInstance().getDefUsePairMap()
+                                .put(id, new DefUsePair(
+                                        id,
+                                        this.className,
+                                        this.buildInternalMethodName(),
+                                        def.getId(),
+                                        use.getId())
+                                );
                     }
 
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
@@ -246,7 +269,7 @@ public class MethodData implements Serializable {
             }
 
         }
-        JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintMap(this.pairs), "intra_pairs");
+        JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintMap(this.getDUPairsFromStore()), "intra_pairs");
     }
 
     /**
@@ -256,7 +279,7 @@ public class MethodData implements Serializable {
      * @return
      */
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
-        for (DefUsePair pair : pairs.values()) {
+        for (DefUsePair pair : this.getDUPairsFromStore().values()) {
             ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
             ProgramVariable use = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId());
             if ((def.getName().equals(pName) && def.getLineNumber() == pLineNumber)

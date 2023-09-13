@@ -58,8 +58,6 @@ public class JDFCInstrument {
                         mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
                         mData.getCfg().calculateReachingDefinitions();
                         mData.calculateIntraDefUsePairs();
-                        CoverageDataStore.getInstance().getProgramVariableMap().putAll(mData.getPVarsFromStore());
-                        CoverageDataStore.getInstance().getDefUsePairMap().putAll(mData.getPairs());
                     } else {
                         System.err.println("ERROR: MethodData.getCfg() returned null! See /target/jdfc/debug/ERROR_JDFCInstrument.log for more info.");
                         if(log.isDebugEnabled()) {

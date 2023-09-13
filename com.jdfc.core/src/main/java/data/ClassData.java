@@ -276,7 +276,7 @@ public class ClassData extends ExecutionData implements Serializable {
                 continue;
             }
 
-            for (DefUsePair pair : mData.getPairs().values()) {
+            for (DefUsePair pair : mData.getDUPairsFromStore().values()) {
                 ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
                 ProgramVariable use = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId());
 

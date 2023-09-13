@@ -17,11 +17,21 @@ public class DefUsePair implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private UUID id;
+    private String className;
+    private String methodName;
     private UUID defId;
     private UUID useId;
     private boolean isCovered;
 
-    public DefUsePair(UUID defId, UUID useId) {
+    public DefUsePair(UUID id,
+                      String className,
+                      String methodName,
+                      UUID defId,
+                      UUID useId) {
+        this.id = id;
+        this.className = className;
+        this.methodName = methodName;
         this.defId = defId;
         this.useId = useId;
     }
