@@ -2,7 +2,6 @@ package instr;
 
 import data.ClassData;
 import data.MethodData;
-import data.ProgramVariable;
 import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
@@ -21,8 +20,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class JDFCInstrument {
@@ -49,13 +46,13 @@ public class JDFCInstrument {
                 CFGCreator.createCFGsForClass(classReader, classNode, cData);
 
                 // if intra
-                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
-                        .flatMap(inner -> inner.values().stream())
-                        .collect(Collectors.toSet());
-                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
+//                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
+//                        .flatMap(inner -> inner.values().stream())
+//                        .collect(Collectors.toSet());
+//                JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
                 for(MethodData mData : cData.getMethodDataFromStore().values()) {
                     if(mData.getCfg() != null) {
-                        mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
+//                        mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
                         mData.getCfg().calculateReachingDefinitions();
                         mData.calculateIntraDefUsePairs();
                     } else {

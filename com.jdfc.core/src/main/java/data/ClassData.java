@@ -57,7 +57,7 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private Map<Integer, UUID> lineToMethodIdMap;
 
-    private Map<UUID, Map<UUID, ProgramVariable>> fieldDefinitions;
+//    private Map<UUID, Map<UUID, ProgramVariable>> fieldDefinitions;
 
     private int total = 0;
 
@@ -73,7 +73,7 @@ public class ClassData extends ExecutionData implements Serializable {
         this.name = name;
         this.relativePath = pRelativePath;
         this.lineToMethodIdMap = new HashMap<>();
-        this.fieldDefinitions = new HashMap<>();
+//        this.fieldDefinitions = new HashMap<>();
         this.srcFileAst = srcFileAst;
         this.pkgDecl = extractPackageDeclaration(srcFileAst);
         this.impDeclList = extractImportDeclarationList(srcFileAst);
@@ -258,7 +258,7 @@ public class ClassData extends ExecutionData implements Serializable {
                 ", nestedTypeMap=" + nestedTypeMap +
                 ", methodDataIds=" + methodDataIds +
                 ", lineToMethodIdMap=" + lineToMethodIdMap +
-                ", fieldDefinitions=" + fieldDefinitions +
+//                ", fieldDefinitions=" + fieldDefinitions +
                 ", total=" + total +
                 ", covered=" + covered +
                 ", rate=" + ratio +

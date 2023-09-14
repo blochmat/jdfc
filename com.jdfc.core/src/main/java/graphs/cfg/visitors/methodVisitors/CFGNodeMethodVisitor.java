@@ -35,18 +35,24 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private final NavigableMap<Integer, DomainVariable> domain;
     private final MethodData mData;
     private final CFGAnalyzerAdapter aa;
+    private int argCount;
+    private boolean isStatic;
 
     public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
                                 final MethodVisitor pMethodVisitor,
                                 final MethodNode pMethodNode,
                                 final String pInternalMethodName,
-                                final CFGAnalyzerAdapter aa) {
+                                final CFGAnalyzerAdapter aa,
+                                int argCount,
+                                boolean isStatic) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
         this.edges = ArrayListMultimap.create();
         this.nodes = Maps.newTreeMap();
 
         this.mData = pClassVisitor.classData.getMethodByInternalName(internalMethodName);
         this.aa = aa;
+        this.argCount = argCount;
+        this.isStatic = isStatic;
         // TODO: Add fields to domain
         this.domain = new TreeMap<>();
         this.domain.putAll(createDomainVarsFromLocal());
@@ -397,8 +403,8 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
                 );
                 CoverageDataStore.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
                 mData.getPVarIds().add(programVariable.getId());
-                classVisitor.classData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
-                classVisitor.classData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
+//                classVisitor.classData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
+//                classVisitor.classData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
@@ -684,21 +690,23 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
      */
     private Set<ProgramVariable> createDefinitionsFromLocalVars() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
-        for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
-            final ProgramVariable variable =
-                    new ProgramVariable(
-                            UUID.randomUUID(),
-                            localVariable.getIndex(),
-                            mData.getClassName(),
-                            mData.buildInternalMethodName(),
-                            localVariable.getName(),
-                            localVariable.getDescriptor(),
-                            Integer.MIN_VALUE,
-                            Integer.MIN_VALUE,
-                            true,
-                            false,
-                            false);
-            parameters.add(variable);
+        for (Map.Entry<Integer, LocalVariable> entry : mData.getLocalVariableTable().entrySet()) {
+            if ((isStatic && entry.getKey() < argCount) || (!isStatic && entry.getKey() <= argCount)) {
+                final ProgramVariable variable =
+                        new ProgramVariable(
+                                UUID.randomUUID(),
+                                entry.getValue().getIndex(),
+                                mData.getClassName(),
+                                mData.buildInternalMethodName(),
+                                entry.getValue().getName(),
+                                entry.getValue().getDescriptor(),
+                                Integer.MIN_VALUE,
+                                Integer.MIN_VALUE,
+                                true,
+                                false,
+                                false);
+                parameters.add(variable);
+            }
         }
        return parameters;
     }
