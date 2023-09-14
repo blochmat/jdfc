@@ -5,10 +5,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.type.ArrayType;
-import com.github.javaparser.ast.type.ReferenceType;
-import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.ast.type.VoidType;
+import com.github.javaparser.ast.type.*;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedArrayType;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
@@ -442,7 +439,14 @@ public class JavaParserHelper {
     public String toJvmTypeDescriptor(MethodDeclaration method) {
         StringBuilder descriptor = new StringBuilder();
 
-        // Param Types
+        // Type params
+//        descriptor.append('<');
+//        for (TypeParameter typePar : method.getTypeParameters()) {
+//            System.out.println();
+//        }
+//        descriptor.append('>');
+
+        // Types
         descriptor.append('(');
         for (Parameter parameter : method.getParameters()) {
             descriptor.append(toJvmType(parameter.getType()));

@@ -30,8 +30,13 @@ public class SGExitNode extends SGNode {
     @Override
     public String toString() {
         return String.format(
-                "SGExitNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
-                this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(), this.getSucc().size(), this.getDefinitions(), this.getUses());
+                "SGExitNode: %s %s %d %s (%d preds, %d succs)",
+                this.getClassName(),
+                this.getMethodName(),
+                this.getInsnIndex(),
+                JDFCUtils.getOpcode(this.getOpcode()),
+                this.getPred().size(),
+                this.getSucc().size());
     }
 
     @Override

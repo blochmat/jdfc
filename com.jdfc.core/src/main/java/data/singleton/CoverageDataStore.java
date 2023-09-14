@@ -2,6 +2,7 @@ package data.singleton;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import data.*;
 import graphs.cfg.CFG;
@@ -46,7 +47,6 @@ public class CoverageDataStore implements Serializable {
     private final Map<UUID, DefUsePair> defUsePairMap;
     private final Map<UUID, ProgramVariable> programVariableMap;
     private final Set<String> coveredPVarIds;
-    private final Map<UUID, CoverageData> coverageDataMap;
 
 
 //    private final transient ExecutionDataNode<ExecutionData> root;
@@ -71,7 +71,6 @@ public class CoverageDataStore implements Serializable {
         this.defUsePairMap = new HashMap<>();
         this.programVariableMap = new HashMap<>();
         this.coveredPVarIds = new HashSet<>();
-        this.coverageDataMap = new HashMap<>();
 
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -277,8 +276,15 @@ public class CoverageDataStore implements Serializable {
     }
 
     public boolean isGeneric(CompilationUnit cu) {
-        return cu.findAll(ClassOrInterfaceDeclaration.class).stream()
-                .allMatch(d -> d.isClassOrInterfaceDeclaration() && !d.getTypeParameters().isEmpty());
+        List<ClassOrInterfaceDeclaration> list = cu.findAll(ClassOrInterfaceDeclaration.class);
+        for (ClassOrInterfaceDeclaration coi : list) {
+            for (MethodDeclaration m : coi.getMethods()) {
+                if (!m.getTypeParameters().isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public boolean isInterface(CompilationUnit cu) {

@@ -43,9 +43,8 @@ public class SGNode {
 
     @Override
     public String toString() {
-        return String.format(
-                "SGNode: %s %s %d %s (%d preds, %d succs) | definitions %s | uses %s",
-                className, methodName, insnIndex, JDFCUtils.getOpcode(opcode), pred.size(), succ.size(), definitions, uses);
+        return String.format("SGNode: %s %s %d %s (%d preds, %d succs)",
+                className, methodName, insnIndex, JDFCUtils.getOpcode(opcode), pred.size(), succ.size());
     }
 
     @Override

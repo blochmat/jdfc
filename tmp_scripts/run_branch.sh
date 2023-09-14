@@ -5,8 +5,8 @@ if [ ! -d "$pc_analysis_dir" ]; then
 fi
 
 project="Lang"
-bug_ids=(1)
-#bug_ids=$(defects4j query -p "$project")
+#bug_ids=(1)
+bug_ids=$(defects4j query -p "$project")
 for bug_id in $bug_ids; do
     repo_dir="/tmp/${project}_${bug_id}_buggy"
     project_output_dir="${pc_analysis_dir}/${project}"

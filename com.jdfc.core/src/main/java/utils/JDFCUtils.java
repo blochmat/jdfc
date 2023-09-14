@@ -281,11 +281,11 @@ public class JDFCUtils {
         sb.append("{\n");
         for (K key : multimap.keySet()) {
             sb.append("  ").append(key.toString()).append(" => ");
-            sb.append("[\n");
+            sb.append("[");
             for (V value : multimap.get(key)) {
-                sb.append("  ").append(value.toString()).append(", \n");
+                sb.append(value.toString()).append(", ");
             }
-            sb.append("  ").append("]\n");
+            sb.append("]\n");
         }
         sb.append("}\n");
         return sb.toString();

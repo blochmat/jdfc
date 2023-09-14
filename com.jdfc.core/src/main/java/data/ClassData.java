@@ -305,6 +305,7 @@ public class ClassData extends ExecutionData implements Serializable {
             String jvmAsmDesc = jvmAsmExcDesc.equals("") ? jvmAsmTypeDesc : String.format("%s %s", jvmAsmTypeDesc, jvmAsmExcDesc);
 
             UUID id = UUID.randomUUID();
+
             MethodData mData = new MethodData(id, this.relativePath, mAccess, mName, jvmAsmDesc, mDecl);
             CoverageDataStore.getInstance().getMethodDataMap().put(id, mData);
             methodDataIds.add(id);

@@ -5,6 +5,7 @@ import data.MethodData;
 import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
+import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassReader;
@@ -72,7 +73,7 @@ public class JDFCInstrument {
                 }
 
                 // if inter
-//            SGCreator.createSGsForClass(cData);
+            SGCreator.createSGsForClass(cData);
 //            ESGCreator.createESGsForClass(cData);
 
                 // if intra

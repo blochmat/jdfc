@@ -30,8 +30,13 @@ public class SGEntryNode extends SGNode {
     @Override
     public String toString() {
         return String.format(
-                "SGEntryNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
-                this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(), this.getSucc().size(), this.getDefinitions(), this.getUses());
+                "SGEntryNode: %s %s %d %s (%d preds, %d succs)",
+                this.getClassName(),
+                this.getMethodName(),
+                this.getInsnIndex(),
+                JDFCUtils.getOpcode(this.getOpcode()),
+                this.getPred().size(),
+                this.getSucc().size());
     }
 
     @Override

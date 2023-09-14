@@ -20,8 +20,13 @@ public class SGReturnSiteNode extends SGNode {
     @Override
     public String toString() {
         return String.format(
-                "SGReturnSiteNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
-                this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(), this.getSucc().size(), this.getDefinitions(), this.getUses());
+                "SGReturnSiteNode: %s %s %d %s (%d preds, %d succs)",
+                this.getClassName(),
+                this.getMethodName(),
+                this.getInsnIndex(),
+                JDFCUtils.getOpcode(this.getOpcode()),
+                this.getPred().size(),
+                this.getSucc().size());
     }
 
     @Override
