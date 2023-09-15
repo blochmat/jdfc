@@ -2,7 +2,7 @@ import data.singleton.CoverageDataStore;
 import org.apache.commons.cli.*;
 import report.ReportGenerator;
 import utils.Deserializer;
-import utils.Instrumenter;
+import instr.Instrumenter;
 
 import java.io.File;
 import java.util.List;
@@ -37,7 +37,7 @@ public class Main {
                 // Instrument
                 parsePathOptions(cmd, false);
                 CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-                Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
+                Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
                 if(cmd.hasOption("c")) {
                     // Instrument single class
                     String classFileAbs = String.join(File.separator, classesDirAbs, cmd.getOptionValue("c"));

@@ -1,5 +1,6 @@
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import utils.Instrumenter;
+import instr.Instrumenter;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.net.URL;
@@ -7,15 +8,12 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 
 @Slf4j
+@AllArgsConstructor
 public class JDFCClassTransformer implements ClassFileTransformer {
 
     private final String workDirAbs;
     private final String classesDirAbs;
-
-    public JDFCClassTransformer(String workDirAbs, String classesDirAbs) {
-        this.workDirAbs = workDirAbs;
-        this.classesDirAbs = classesDirAbs;
-    }
+    private final String sourceDirAbs;
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
@@ -25,7 +23,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
         }
 
         if(classFileAbs.startsWith(classesDirAbs)) {
-            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
+            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
             return instrumenter.instrumentClass(classfileBuffer, classFileAbs);
         } else {
             return classfileBuffer;

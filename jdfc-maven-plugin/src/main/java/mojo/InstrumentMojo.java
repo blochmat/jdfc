@@ -7,7 +7,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import utils.Instrumenter;
+import instr.Instrumenter;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,15 +29,16 @@ public class InstrumentMojo extends AbstractMojo {
         final String classesDirAbs = project.getBuild().getOutputDirectory();
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
         CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
+        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
         List<File> classFiles = instrumenter.loadClassFiles();
         for (File classFile : classFiles) {
             instrumenter.instrumentClass(classFile.getAbsolutePath());
         }
 
         try {
-            copyDirectoryAndSubdirectories(Paths.get(classesDirAbs), Paths.get(buildDirAbs + "/jdfc-backup"));
-            copyDirectoryAndSubdirectories(Paths.get(workDirAbs + "/.jdfc_instrumented"), Paths.get(classesDirAbs));
+            Path classesDirPath = Paths.get(classesDirAbs);
+            copyDirectoryAndSubdirectories(classesDirPath, Paths.get(buildDirAbs + "/jdfc-backup"));
+            copyDirectoryAndSubdirectories(Paths.get(workDirAbs + "/.jdfc_instrumented"), classesDirPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

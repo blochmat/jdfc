@@ -2,11 +2,11 @@ package instr;
 
 import data.ClassData;
 import data.MethodData;
-import data.io.CoverageDataExport;
 import data.singleton.CoverageDataStore;
 import graphs.cfg.CFGCreator;
 import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -16,21 +16,87 @@ import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import utils.JDFCUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
 
 @Slf4j
-public class JDFCInstrument {
+@AllArgsConstructor
+public class Instrumenter {
 
-    /**
-     * Load classes for shutdown hook
-     */
-    private static final Class<?> exportClass = CoverageDataExport.class;
+    private final String workDirAbs;
+    private final String classesDirAbs;
+    private final String sourceDirAbs;
 
-    public byte[] instrument(final ClassReader classReader) {
+    public void instrumentClass(String classFileAbs) {
+        // Create output directory and file
+        File classFile = new File(classFileAbs);
+        String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
+        File outDir = new File(String.join(File.separator, workDirAbs, ".jdfc_instrumented", packagePath));
+        if(!outDir.exists()) {
+            outDir.mkdirs();
+        }
+
+        // Create classFileInformation
+        String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
+        try (FileOutputStream fos = new FileOutputStream(outPath)){
+            byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
+            ClassReader cr = new ClassReader(classFileBuffer);
+            ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourceDirAbs, classFileAbs);
+            byte[] instrumented = this.instrument(cr, classMetaData);
+            fos.write(instrumented);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public byte[] instrumentClass(byte[] classFileBuffer, String classFileAbs) {
+        CoverageDataStore.getInstance().addClassData(classesDirAbs, classFileAbs);
+        ClassReader cr = new ClassReader(classFileBuffer);
+        ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourceDirAbs, classFileAbs);
+        return this.instrument(cr, classMetaData);
+    }
+
+    public List<File> loadClassFiles() {
+        List<File> classFiles = new ArrayList<>();
+        try {
+            Files.walkFileTree(Paths.get(classesDirAbs), EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, new FileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (file.toString().endsWith(".class")) {
+                        classFiles.add(file.toFile());
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return classFiles;
+    }
+
+    public byte[] instrument(ClassReader classReader, ClassMetaData classMetaData) {
         final ClassNode classNode = new ClassNode();
         classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
@@ -73,7 +139,7 @@ public class JDFCInstrument {
                 }
 
                 // if inter
-            SGCreator.createSGsForClass(cData);
+                SGCreator.createSGsForClass(cData);
 //            ESGCreator.createESGsForClass(cData);
 
                 // if intra

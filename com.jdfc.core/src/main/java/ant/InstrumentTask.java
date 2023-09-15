@@ -4,7 +4,7 @@ import data.singleton.CoverageDataStore;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import utils.Instrumenter;
+import instr.Instrumenter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class InstrumentTask extends Task {
         String classesDirAbs = String.join(File.separator, workDirAbs, classes);
         String sourceDirAbs = String.join(File.separator, workDirAbs, src);
         CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs);
+        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
         for (FileSet fs : filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             for (String includedFile : ds.getIncludedFiles()) {
