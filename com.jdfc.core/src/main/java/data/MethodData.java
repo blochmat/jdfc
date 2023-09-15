@@ -64,14 +64,34 @@ public class MethodData implements Serializable {
     private String desc;
 
     /**
+     * Line of method declaration in source code
+     */
+    private int beginLine;
+
+    /**
+     * Line of method ending in source code (including last closing bracket)
+     */
+    private int endLine;
+
+    /**
      * Method declaration string from source file
      */
     private String declarationStr;
 
     /**
+     * Local variables in class
+     */
+    private transient Map<Integer, LocalVariable> localVariableTable;
+
+    /**
      * CFG of compiled method
      */
     private transient CFG cfg;
+
+    /**
+     * All program variables
+     */
+    private Set<UUID> pVarIds;
 
     /**
      * Inter-procedural SG of compiled method
@@ -84,19 +104,9 @@ public class MethodData implements Serializable {
 //    private transient ESG esg;
 
     /**
-     * Local variables in class
-     */
-    private transient Map<Integer, LocalVariable> localVariableTable;
-
-    /**
      * All DU-pairs of method
      */
     private Set<UUID> duPairIds;
-
-    /**
-     * All program variables
-     */
-    private Set<UUID> pVarIds;
 
     /**
      * Allocated Objects
@@ -108,19 +118,27 @@ public class MethodData implements Serializable {
      */
     private transient Map<Integer, Object> modifiedObjects;
 
-    /**
-     * Line of method declaration in source code
-     */
-    private int beginLine;
-
-    /**
-     * Line of method ending in source code (including last closing bracket)
-     */
-    private int endLine;
 
     public String toString() {
         return String.format("MethodData {%nAccess: %s%nName: %s%nDesc: %s%nBegin: %d%nEnd: %d%nTotal: %d%nCovered: %d%nRate: %f%nPairs: %s%n}%n",
                 access, name, desc, beginLine, endLine, total, covered, ratio, JDFCUtils.prettyPrintMap(this.getDUPairsFromStore()));
+    }
+
+    // New one
+    public MethodData(UUID id, String className, int access, String internalMethodName) {
+        this.id = id;
+        this.className = className;
+        this.access = access;
+        this.name = internalMethodName.split(": ")[0];
+        this.desc = internalMethodName.split(": ")[1];
+        this.declarationStr = "";
+        this.beginLine = Integer.MIN_VALUE;
+        this.endLine = Integer.MIN_VALUE;
+        this.duPairIds = ConcurrentHashMap.newKeySet();
+        this.localVariableTable = new HashMap<>();
+        this.pVarIds = new HashSet<>();
+        this.allocatedObjects = new HashMap<>();
+        this.modifiedObjects = new HashMap<>();
     }
 
     public MethodData(UUID id, String classname, int access, String name, String desc) {

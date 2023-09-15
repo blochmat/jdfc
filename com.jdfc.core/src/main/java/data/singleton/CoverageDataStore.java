@@ -1,15 +1,11 @@
 package data.singleton;
 
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.TypeDeclaration;
 import data.*;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
+import instr.ClassMetaData;
 import lombok.Data;
 import utils.Deserializer;
-import utils.JavaParserHelper;
 
 import java.io.*;
 import java.util.*;
@@ -42,6 +38,7 @@ public class CoverageDataStore implements Serializable {
     private int methodCount = 0;
 
     private final Map<String, PackageData> packageDataMap;
+    private final Map<String, ClassMetaData> classMetaDataMap;
     private final Map<UUID, ClassData> classDataMap;
     private final Map<UUID, MethodData> methodDataMap;
     private final Map<UUID, DefUsePair> defUsePairMap;
@@ -67,6 +64,7 @@ public class CoverageDataStore implements Serializable {
 
         this.packageDataMap = new HashMap<>();
         this.classDataMap = new HashMap<>();
+        this.classMetaDataMap = new HashMap<>();
         this.methodDataMap = new HashMap<>();
         this.defUsePairMap = new HashMap<>();
         this.programVariableMap = new HashMap<>();
@@ -231,83 +229,83 @@ public class CoverageDataStore implements Serializable {
 //        return root.getChildDataRecursive(nodePath);
 //    }
 
-    public void addClassData(String classesAbs, String classFileAbs) {
-        JavaParserHelper javaParserHelper = new JavaParserHelper();
-        File classFile = new File(classFileAbs);
-        String classFileRel = classFileAbs.replace(classesAbs, "");
-        String classFilePackage = classFileRel.replace(classFile.getName(), "").replaceAll("^/|/$", "");
-        String classFileRelNoType = classFileRel.split("\\.")[0].replace(File.separator, "/");
-        String sourceFileRel = classFileRel.replace(".class", ".java");
-        String sourceFileAbs = CoverageDataStore.getInstance().getSourceDirAbs().concat(sourceFileRel);
-        String fqn = classFileRelNoType.replace(File.separator, ".");
-        if(fqn.startsWith(".")) {
-            fqn = fqn.substring(1);
-        }
+//    public void addClassData(String classesAbs, String classFileAbs) {
+//        JavaParserHelper javaParserHelper = new JavaParserHelper();
+//        File classFile = new File(classFileAbs);
+//        String classFileRel = classFileAbs.replace(classesAbs, "");
+//        String classFilePackage = classFileRel.replace(classFile.getName(), "").replaceAll("^/|/$", "");
+//        String classFileRelNoType = classFileRel.split("\\.")[0].replace(File.separator, "/");
+//        String sourceFileRel = classFileRel.replace(".class", ".java");
+//        String sourceFileAbs = CoverageDataStore.getInstance().getSourceDirAbs().concat(sourceFileRel);
+//        String fqn = classFileRelNoType.replace(File.separator, ".");
+//        if(fqn.startsWith(".")) {
+//            fqn = fqn.substring(1);
+//        }
+//
+//        File sourceFile = new File(sourceFileAbs);
+//        if (sourceFile.exists()) {
+//            try {
+//                CompilationUnit cu = javaParserHelper.parse(sourceFile);
+//                if (!isInterface(cu) && !isEnum(cu) && !isGeneric(cu)) {
+//                    UUID id = UUID.randomUUID();
+//                    untestedClassList.add(classFileRelNoType);
+//                    ClassData cData = new ClassData(fqn, classFile.getName(), id, classFileRelNoType, cu);
+//                    classDataMap.put(id, cData);
+//
+//                    String nameWithoutType = classFile.getName().split("\\.")[0];
+//                    if(classFilePackage.equals("")) {
+//                        CoverageDataStore.getInstance().packageDataMap.computeIfAbsent("default", k -> new PackageData(classFilePackage));
+//                        packageDataMap.get("default").getClassDataIds().add(id);
+//                    } else {
+//                        packageDataMap.computeIfAbsent(classFilePackage, k -> new PackageData(classFilePackage));
+//                        packageDataMap.get(classFilePackage).getClassDataIds().add(id);
+//                    }
+//                }
+//            } catch (FileNotFoundException e) {
+//                throw new RuntimeException(e);
+//            }
+//        } else {
+//            if(classFileAbs.contains("$")) {
+//                System.out.println("Instrumentation of inner class was skipped: " + classFileAbs);
+//            } else {
+//                throw new RuntimeException("ERROR: Missing source file for " + classFileAbs);
+//            }
+//        }
+//    }
 
-        File sourceFile = new File(sourceFileAbs);
-        if (sourceFile.exists()) {
-            try {
-                CompilationUnit cu = javaParserHelper.parse(sourceFile);
-                if (!isInterface(cu) && !isEnum(cu) && !isGeneric(cu)) {
-                    UUID id = UUID.randomUUID();
-                    untestedClassList.add(classFileRelNoType);
-                    ClassData cData = new ClassData(fqn, classFile.getName(), id, classFileRelNoType, cu);
-                    classDataMap.put(id, cData);
-
-                    String nameWithoutType = classFile.getName().split("\\.")[0];
-                    if(classFilePackage.equals("")) {
-                        CoverageDataStore.getInstance().packageDataMap.computeIfAbsent("default", k -> new PackageData(classFilePackage));
-                        packageDataMap.get("default").getClassDataIds().add(id);
-                    } else {
-                        packageDataMap.computeIfAbsent(classFilePackage, k -> new PackageData(classFilePackage));
-                        packageDataMap.get(classFilePackage).getClassDataIds().add(id);
-                    }
-                }
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            if(classFileAbs.contains("$")) {
-                System.out.println("Instrumentation of inner class was skipped: " + classFileAbs);
-            } else {
-                throw new RuntimeException("ERROR: Missing source file for " + classFileAbs);
-            }
-        }
-    }
-
-    public boolean isGeneric(CompilationUnit cu) {
-        List<ClassOrInterfaceDeclaration> list = cu.findAll(ClassOrInterfaceDeclaration.class);
-        for (ClassOrInterfaceDeclaration coi : list) {
-            for (MethodDeclaration m : coi.getMethods()) {
-                if (!m.getTypeParameters().isEmpty()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public boolean isInterface(CompilationUnit cu) {
-        // Get a list of all types declared in the file
-        List<TypeDeclaration<?>> types = cu.getTypes();
-        // Check if there's exactly one type
-        if (types.size() == 1) {
-            TypeDeclaration<?> type = types.get(0);
-            // If the single type is an interface
-            return type.isClassOrInterfaceDeclaration() && type.asClassOrInterfaceDeclaration().isInterface();
-        }
-        return false;
-    }
-
-    public boolean isEnum(CompilationUnit cu) {
-        // Get a list of all types declared in the file
-        List<TypeDeclaration<?>> types = cu.getTypes();
-        // Check if there's exactly one type
-        if (types.size() == 1) {
-            TypeDeclaration<?> type = types.get(0);
-            // If the single type is an interface
-            return type.isEnumDeclaration() && type.asClassOrInterfaceDeclaration().isEnumDeclaration();
-        }
-        return false;
-    }
+//    public boolean isGeneric(CompilationUnit cu) {
+//        List<ClassOrInterfaceDeclaration> list = cu.findAll(ClassOrInterfaceDeclaration.class);
+//        for (ClassOrInterfaceDeclaration coi : list) {
+//            for (MethodDeclaration m : coi.getMethods()) {
+//                if (!m.getTypeParameters().isEmpty()) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
+//
+//    public boolean isInterface(CompilationUnit cu) {
+//        // Get a list of all types declared in the file
+//        List<TypeDeclaration<?>> types = cu.getTypes();
+//        // Check if there's exactly one type
+//        if (types.size() == 1) {
+//            TypeDeclaration<?> type = types.get(0);
+//            // If the single type is an interface
+//            return type.isClassOrInterfaceDeclaration() && type.asClassOrInterfaceDeclaration().isInterface();
+//        }
+//        return false;
+//    }
+//
+//    public boolean isEnum(CompilationUnit cu) {
+//        // Get a list of all types declared in the file
+//        List<TypeDeclaration<?>> types = cu.getTypes();
+//        // Check if there's exactly one type
+//        if (types.size() == 1) {
+//            TypeDeclaration<?> type = types.get(0);
+//            // If the single type is an interface
+//            return type.isEnumDeclaration() && type.asClassOrInterfaceDeclaration().isEnumDeclaration();
+//        }
+//        return false;
+//    }
 }

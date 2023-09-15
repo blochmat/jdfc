@@ -3,7 +3,7 @@ package instr;
 import data.ClassData;
 import data.MethodData;
 import data.singleton.CoverageDataStore;
-import graphs.cfg.CFGCreator;
+import data.visitors.CreateClassDataVisitor;
 import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.AllArgsConstructor;
@@ -20,9 +20,9 @@ import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @AllArgsConstructor
@@ -41,12 +41,15 @@ public class Instrumenter {
             outDir.mkdirs();
         }
 
-        // Create classFileInformation
+        // Create class meta data
+        ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourceDirAbs, classFileAbs);
+        CoverageDataStore.getInstance().getClassMetaDataMap().put(classMetaData.getFqn(), classMetaData);
+
+        // Instrument and write to file
         String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
         try (FileOutputStream fos = new FileOutputStream(outPath)){
             byte[] classFileBuffer = Files.readAllBytes(classFile.toPath());
             ClassReader cr = new ClassReader(classFileBuffer);
-            ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourceDirAbs, classFileAbs);
             byte[] instrumented = this.instrument(cr, classMetaData);
             fos.write(instrumented);
         } catch (IOException e) {
@@ -55,7 +58,7 @@ public class Instrumenter {
     }
 
     public byte[] instrumentClass(byte[] classFileBuffer, String classFileAbs) {
-        CoverageDataStore.getInstance().addClassData(classesDirAbs, classFileAbs);
+//        CoverageDataStore.getInstance().addClassData(classesDirAbs, classFileAbs);
         ClassReader cr = new ClassReader(classFileBuffer);
         ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourceDirAbs, classFileAbs);
         return this.instrument(cr, classMetaData);
@@ -102,15 +105,28 @@ public class Instrumenter {
 
         // cw
         final ClassWriter cw = new ClassWriter(classReader, ClassWriter.COMPUTE_FRAMES);
-        String packageRel = this.getPackage(classNode);
-        String className = this.getClassName(classNode);
+        String packageRel = classMetaData.getClassFilePackageRel();
+        String className = classMetaData.getName();
+
+        // TODO: skip nested classes
+
+        CreateClassDataVisitor createClassDataVisitor = new CreateClassDataVisitor(classNode, classMetaData);
+        classReader.accept(createClassDataVisitor, 0);
+
+        UUID classDataId = CoverageDataStore.getInstance().getClassMetaDataMap()
+                .get(classMetaData.getFqn()).getClassDataId();
+        ClassData classData = CoverageDataStore.getInstance().getClassDataMap().get(classDataId);
+
+
+//        this.getLocalVariables(classReader, classNode);
+
+//        CFGCreator.createCFGsForClass(classReader, classNode, cData);
 
         if (CoverageDataStore.getInstance().getPackageDataMap().get(packageRel) != null) {
             ClassData cData = CoverageDataStore.getInstance().getPackageDataMap().get(packageRel).getClassDataByName(className);
 
             if (cData != null) {
                 // Always
-                CFGCreator.createCFGsForClass(classReader, classNode, cData);
 
                 // if intra
 //                Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
@@ -214,16 +230,5 @@ public class Instrumenter {
             }
         }
         return cw.toByteArray();
-    }
-
-    private String getPackage(ClassNode classNode) {
-        String[] components = classNode.name.split("/");
-        String[] packageComponents = Arrays.copyOf(components, components.length - 1);
-        return String.join("/", packageComponents);
-    }
-
-    private String getClassName(ClassNode classNode) {
-        String[] components = classNode.name.split("/");
-        return components[components.length - 1];
     }
 }

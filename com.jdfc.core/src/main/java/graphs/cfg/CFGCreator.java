@@ -20,9 +20,6 @@ import java.io.IOException;
 @Slf4j
 public class CFGCreator {
 
-    private CFGCreator() {
-    }
-
     /**
      * Creates the {@link CFG}s for each method of a class and returns a map of method name to {@link
      * CFG}.
