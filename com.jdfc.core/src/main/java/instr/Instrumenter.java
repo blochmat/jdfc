@@ -4,6 +4,7 @@ import data.ClassData;
 import data.MethodData;
 import data.singleton.CoverageDataStore;
 import data.visitors.CreateClassDataVisitor;
+import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
 import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.AllArgsConstructor;
@@ -110,12 +111,23 @@ public class Instrumenter {
 
         // TODO: skip nested classes
 
+        // Create ClassData and MethodData
         CreateClassDataVisitor createClassDataVisitor = new CreateClassDataVisitor(classNode, classMetaData);
         classReader.accept(createClassDataVisitor, 0);
 
         UUID classDataId = CoverageDataStore.getInstance().getClassMetaDataMap()
                 .get(classMetaData.getFqn()).getClassDataId();
         ClassData classData = CoverageDataStore.getInstance().getClassDataMap().get(classDataId);
+
+        // Find local variables for MethodData
+        LocalVariableClassVisitor localVariableVisitor =
+                new LocalVariableClassVisitor(classNode, classData);
+        classReader.accept(localVariableVisitor, 0);
+
+        // Create CFGs
+//        final CFGClassVisitor cfgClassVisitor =
+//                new CFGClassVisitor(classNode, classData);
+//        classReader.accept(cfgClassVisitor, ClassReader.EXPAND_FRAMES);
 
 
 //        this.getLocalVariables(classReader, classNode);

@@ -3,8 +3,8 @@ package graphs.cfg;
 import com.google.common.base.Preconditions;
 import data.ClassData;
 import data.MethodData;
-import graphs.cfg.visitors.classVisitors.CFGLocalVariableClassVisitor;
-import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
+import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
+import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
@@ -51,14 +51,14 @@ public class CFGCreator {
                 "We need a non-null class execution data to generate CFGs from.");
 
         // Get local variable information for all methods in the class
-        final CFGLocalVariableClassVisitor localVariableVisitor =
-                new CFGLocalVariableClassVisitor(pClassNode, pClassData);
+        final LocalVariableClassVisitor localVariableVisitor =
+                new LocalVariableClassVisitor(pClassNode, pClassData);
         pClassReader.accept(localVariableVisitor, 0);
 
         // Build CFG for all methods in the class
-        final CFGNodeClassVisitor CFGNodeClassVisitor =
-                new CFGNodeClassVisitor(pClassNode, pClassData);
-        pClassReader.accept(CFGNodeClassVisitor, ClassReader.EXPAND_FRAMES);
+        final CFGClassVisitor CFGClassVisitor =
+                new CFGClassVisitor(pClassNode, pClassData);
+        pClassReader.accept(CFGClassVisitor, ClassReader.EXPAND_FRAMES);
 
         if(log.isDebugEnabled()) {
             // Log all relative paths of files in the classpath

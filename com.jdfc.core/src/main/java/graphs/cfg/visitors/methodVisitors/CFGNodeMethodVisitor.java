@@ -14,7 +14,7 @@ import graphs.cfg.nodes.CFGCallNode;
 import graphs.cfg.nodes.CFGEntryNode;
 import graphs.cfg.nodes.CFGExitNode;
 import graphs.cfg.nodes.CFGNode;
-import graphs.cfg.visitors.classVisitors.CFGNodeClassVisitor;
+import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import instr.methodVisitors.JDFCMethodVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.Handle;
@@ -38,7 +38,7 @@ public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
     private int argCount;
     private boolean isStatic;
 
-    public CFGNodeMethodVisitor(final CFGNodeClassVisitor pClassVisitor,
+    public CFGNodeMethodVisitor(final CFGClassVisitor pClassVisitor,
                                 final MethodVisitor pMethodVisitor,
                                 final MethodNode pMethodNode,
                                 final String pInternalMethodName,

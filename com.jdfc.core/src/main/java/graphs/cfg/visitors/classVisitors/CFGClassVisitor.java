@@ -13,14 +13,14 @@ import org.objectweb.asm.tree.MethodNode;
 import utils.ASMHelper;
 
 @Slf4j
-public class CFGNodeClassVisitor extends JDFCClassVisitor {
+public class CFGClassVisitor extends JDFCClassVisitor {
 
     private final ASMHelper asmHelper = new ASMHelper();
 
     public String className;
 
-    public CFGNodeClassVisitor(final ClassNode pClassNode,
-                               final ClassData pClassData) {
+    public CFGClassVisitor(final ClassNode pClassNode,
+                           final ClassData pClassData) {
         super(Opcodes.ASM5, pClassNode, pClassData);
     }
 

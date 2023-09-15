@@ -165,7 +165,7 @@ CFGLocalVariableClassVisitor extends JDFCClassVisitor {
 
 CFGLocalVariableMethodVisitor extends JDFCMethodVisitor {}
 
-CFGNodeClassVisitor extends JDFCClassVisitor {
+CFGClassVisitor extends JDFCClassVisitor {
     logger: Logger,
     methodCFGs: Map<String, CFG>                                    // Map<internalMethodName, CFG> (!!) is empty here
 }
@@ -239,7 +239,7 @@ NOTE: Classes with tests get loaded by class loader
         - visitMethod: CFGLocalVariableMethodVisitor
             - local variable information for all methods in the class: Map<*internalMName, <idx, LocalVariable>>*
 
-    - CFGNodeClassVisitor.visit
+    - CFGClassVisitor.visit
         - visitMethod: create cfg if not interface or inner class
             - CFGNodeMethodVisitor
                 - visitEnd
