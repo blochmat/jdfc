@@ -9,7 +9,6 @@ import org.objectweb.asm.tree.MethodNode;
 public abstract class JDFCClassVisitor extends ClassVisitor {
 
     public final ClassNode classNode;
-
     public final ClassData classData;
 
     public JDFCClassVisitor(final int pApi,

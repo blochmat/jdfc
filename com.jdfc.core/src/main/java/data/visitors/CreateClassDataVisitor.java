@@ -1,12 +1,14 @@
 package data.visitors;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import data.ClassData;
 import data.MethodData;
 import data.singleton.CoverageDataStore;
 import instr.ClassMetaData;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import utils.ASMHelper;
@@ -14,9 +16,11 @@ import utils.JDFCUtils;
 import utils.JavaParserHelper;
 
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ASM5;
 
 public class CreateClassDataVisitor extends ClassVisitor {
@@ -69,26 +73,36 @@ public class CreateClassDataVisitor extends ClassVisitor {
 
     @Override
     public void visitEnd() {
-        // todo: setup line to method map
-        if (this.classData.getMethodDataFromStore().values().stream().noneMatch(mData -> mData.getName().equals("<init>"))) {
-            UUID id = UUID.randomUUID();
-            MethodData methodData = new MethodData(id, this.classData.getFqn(), ACC_PUBLIC, "<init>", "()V;");
-            CoverageDataStore.getInstance().getMethodDataMap().put(id, methodData);
-            this.classData.getMethodDataIds().add(id);
-        }
-
         CoverageDataStore.getInstance().getClassDataMap().put(this.classData.getId(), this.classData);
         super.visitEnd();
     }
 
     // --- Private Methods ---------------------------------------------------------------------------------------------
     private ClassOrInterfaceDeclaration extractClassDeclaration(CompilationUnit compilationUnit) {
-        Optional<ClassOrInterfaceDeclaration> ciOptional = compilationUnit.getClassByName(this.classMetaData.getName());
-        if (ciOptional.isPresent()) {
-            return ciOptional.get();
-        } else {
+        Optional<ClassOrInterfaceDeclaration> ciOptional;
+        if(this.classMetaData.isInnerClass()) {
+            ciOptional = compilationUnit.getClassByName(this.classMetaData.getOuterName());
+            if (ciOptional.isPresent()) {
+                ClassOrInterfaceDeclaration ci = ciOptional.get();
+                for (BodyDeclaration<?> body : ci.getMembers()) {
+                    if (body.isClassOrInterfaceDeclaration()) {
+                        ClassOrInterfaceDeclaration ciInner = (ClassOrInterfaceDeclaration) body;
+                        if(ciInner.getName().asString().equals(this.classMetaData.getName())) {
+                            return ciInner;
+                        }
+                    }
+                }
+            }
             throw new IllegalArgumentException(String.format("Class \"%s\" is not present in file \"%s\".",
                     classMetaData, classMetaData.getClassFileRel()));
+        } else {
+            ciOptional = compilationUnit.getClassByName(this.classMetaData.getName());
+            if (ciOptional.isPresent()) {
+                return ciOptional.get();
+            } else {
+                throw new IllegalArgumentException(String.format("Class \"%s\" is not present in file \"%s\".",
+                        classMetaData, classMetaData.getClassFileRel()));
+            }
         }
     }
 

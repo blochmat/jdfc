@@ -34,11 +34,6 @@ public class CreateMethodDataVisitor extends MethodVisitor {
         MethodDeclaration methodDeclaration = this.findMethodDeclaration();
         ConstructorDeclaration constructorDeclaration = this.findConstructorDeclaration();
 
-        if (methodDeclaration == null && constructorDeclaration == null) {
-            throw new IllegalArgumentException(String.format("Missing method declaration in class %s: %s",
-                    classData.getClassMetaData().getClassFileRel(), methodData.buildInternalMethodName()));
-        }
-
         if (methodDeclaration != null) {
             this.methodData.setBeginLine(this.extractBegin(methodDeclaration));
             this.methodData.setEndLine(this.extractEnd(methodDeclaration));
@@ -51,9 +46,23 @@ public class CreateMethodDataVisitor extends MethodVisitor {
             this.methodData.setDeclarationStr(constructorDeclaration.getDeclarationAsString());
         }
 
+        // Add lines of method to map
         for(int i = this.methodData.getBeginLine(); i <= this.methodData.getEndLine(); i++) {
             this.classData.getLineToMethodIdMap().put(i, this.methodData.getId());
         }
+
+        // Special case: Default constructor
+        if (methodDeclaration == null && constructorDeclaration == null && this.methodData.buildInternalMethodName().equals("<init>: ()V;")) {
+            this.methodData.setBeginLine(Integer.MIN_VALUE);
+            this.methodData.setEndLine(Integer.MIN_VALUE);
+            this.classData.getLineToMethodIdMap().put(Integer.MIN_VALUE, methodData.getId());
+        }
+
+        if (methodDeclaration == null && constructorDeclaration == null && !this.methodData.buildInternalMethodName().equals("<init>: ()V;")) {
+            throw new IllegalArgumentException(String.format("Missing method declaration in class %s: %s",
+                    classData.getClassMetaData().getClassFileRel(), methodData.buildInternalMethodName()));
+        }
+
         this.classData.getMethodDataIds().add(this.methodData.getId());
         CoverageDataStore.getInstance().getMethodDataMap().put(this.methodData.getId(), this.methodData);
         super.visitEnd();

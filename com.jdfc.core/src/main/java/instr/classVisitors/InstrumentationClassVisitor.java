@@ -32,6 +32,18 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         this.className = name;
+//        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+//        CustomClassLoader customClassLoader = new CustomClassLoader(systemClassLoader);
+//        Class<?> loadedClass = customClassLoader.findLoadedClassPublic(superName);
+//
+//        if (loadedClass == null) {
+//            try {
+//                String superFqn = superName.replace("/", ".");
+//                Class.forName(superFqn);
+//            } catch (ClassNotFoundException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
@@ -49,5 +61,15 @@ public class InstrumentationClassVisitor extends JDFCClassVisitor {
         }
 
         return mv;
+    }
+
+    private static class CustomClassLoader extends ClassLoader{
+        public CustomClassLoader(ClassLoader parent) {
+            super(parent);
+        }
+
+        public Class<?> findLoadedClassPublic(String name) {
+            return findLoadedClass(name);
+        }
     }
 }

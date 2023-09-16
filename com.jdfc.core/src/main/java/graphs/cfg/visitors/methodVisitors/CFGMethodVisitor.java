@@ -29,22 +29,22 @@ import java.util.*;
 import static org.objectweb.asm.Opcodes.*;
 
 @Slf4j
-public class CFGNodeMethodVisitor extends JDFCMethodVisitor {
+public class CFGMethodVisitor extends JDFCMethodVisitor {
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, CFGNode> nodes;
     private final NavigableMap<Integer, DomainVariable> domain;
     private final MethodData mData;
     private final CFGAnalyzerAdapter aa;
-    private int argCount;
-    private boolean isStatic;
+    private final int argCount;
+    private final boolean isStatic;
 
-    public CFGNodeMethodVisitor(final CFGClassVisitor pClassVisitor,
-                                final MethodVisitor pMethodVisitor,
-                                final MethodNode pMethodNode,
-                                final String pInternalMethodName,
-                                final CFGAnalyzerAdapter aa,
-                                int argCount,
-                                boolean isStatic) {
+    public CFGMethodVisitor(final CFGClassVisitor pClassVisitor,
+                            final MethodVisitor pMethodVisitor,
+                            final MethodNode pMethodNode,
+                            final String pInternalMethodName,
+                            final CFGAnalyzerAdapter aa,
+                            int argCount,
+                            boolean isStatic) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
         this.edges = ArrayListMultimap.create();
         this.nodes = Maps.newTreeMap();
