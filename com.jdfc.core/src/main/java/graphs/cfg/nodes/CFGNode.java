@@ -139,15 +139,13 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGNode: %d %s %s %s (%d preds, %d succs) | definitions %s | uses %s",
+                "CFGNode: %d %s %s %s (%d preds, %d succs)",
                 insnIndex,
                 JDFCUtils.getOpcode(opcode),
                 className,
                 methodName,
                 pred.size(),
-                succ.size(),
-                definitions,
-                uses);
+                succ.size());
     }
 
     @Override

@@ -47,9 +47,9 @@ public class CFGEntryNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGEntryNode: %d %s (%d preds, %d succs) | definitions %s | uses %s",
+                "CFGEntryNode: %d %s (%d preds, %d succs)",
                 this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(),
-                this.getSucc().size(), this.getDefinitions(), this.getUses());
+                this.getSucc().size());
     }
 
     @Override
