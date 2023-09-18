@@ -23,17 +23,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SGCreator {
 
-    public static void createSGsForClass(ClassData cData) {
+    public void createSGsForClass(ClassData cData) {
         for(MethodData mData : cData.getMethodDataFromStore().values()) {
-            mData.setSg(SGCreator.createSGForMethod(cData, mData, new HashMap<>(), 0, new ArrayList<>()));
+            mData.setSg(this.createSGForMethod(cData, mData, new HashMap<>(), 0, new ArrayList<>()));
         }
     }
 
-    public static SG createSGForMethod(ClassData cData,
-                                       MethodData mData,
-                                       Map<String, CFG> cfgMap,
-                                       int startIndex,
-                                       List<String> callSequence) {
+    public SG createSGForMethod(ClassData cData,
+                                MethodData mData,
+                                Map<String, CFG> cfgMap,
+                                int startIndex,
+                                List<String> callSequence) {
         String internalMethodName = mData.buildInternalMethodName();
         cfgMap.put(internalMethodName, mData.getCfg());
         NavigableMap<Integer, CFGNode> localCfgNodes = Maps.newTreeMap(mData.getCfg().getNodes());
@@ -147,7 +147,7 @@ public class SGCreator {
                             if(Collections.frequency(callSequence, calledMethodName) < 3) {
                                 sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
                                 callSequence.add(calledMethodName);
-                                calledSG = SGCreator.createSGForMethod(
+                                calledSG = this.createSGForMethod(
                                         cData,
                                         calledMethodData,
                                         cfgMap,

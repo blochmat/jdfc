@@ -190,7 +190,11 @@ public class Instrumenter {
             }
         }
 
-//        SGCreator.createSGsForClass(classData);
+        // Create SGs for all methods of class
+//        SGCreator sgCreator = new SGCreator();
+//        sgCreator.createSGsForClass(classData);
+
+        // Create ESGs for all methods of class
 //        ESGCreator.createESGsForClass(cData);
 
         // Tracking instrumentation
@@ -266,37 +270,37 @@ public class Instrumenter {
         return cw.toByteArray();
     }
 
-    private void loadAllRequiredClasses(ClassMetaData classMetaData) {
-        try {
-            String classPath = System.getProperty("java.class.path");
-            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-            Class<?> clazz = Class.forName(classMetaData.getFqn(), true, getClass().getClassLoader());
-//            Constructor<?> constructor = clazz.getDeclaredConstructor();
-//            constructor.setAccessible(true);
-//            constructor.newInstance();
-
-            Class<?>[] innerClasses = clazz.getDeclaredClasses();
-            for (Class<?> innerClass : innerClasses) {
-                Class<?> loadedInnerClass = Class.forName(innerClass.getName(), true, systemClassLoader);
-                this.loadSuperClasses(loadedInnerClass);
-            }
-
-            Class<?> superClass = clazz.getSuperclass();
-            this.loadSuperClasses(superClass);
-
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void loadSuperClasses(Class<?> clazz) throws ClassNotFoundException {
-        Class<?> superClass = clazz.getSuperclass();
-        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-        while (superClass != null) {
-            Class<?> loadedSuperClass = Class.forName(superClass.getName(), true, systemClassLoader);
-            superClass = loadedSuperClass.getSuperclass();
-        }
-    }
+//    private void loadAllRequiredClasses(ClassMetaData classMetaData) {
+//        try {
+//            String classPath = System.getProperty("java.class.path");
+//            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+//            Class<?> clazz = Class.forName(classMetaData.getFqn(), true, getClass().getClassLoader());
+////            Constructor<?> constructor = clazz.getDeclaredConstructor();
+////            constructor.setAccessible(true);
+////            constructor.newInstance();
+//
+//            Class<?>[] innerClasses = clazz.getDeclaredClasses();
+//            for (Class<?> innerClass : innerClasses) {
+//                Class<?> loadedInnerClass = Class.forName(innerClass.getName(), true, systemClassLoader);
+//                this.loadSuperClasses(loadedInnerClass);
+//            }
+//
+//            Class<?> superClass = clazz.getSuperclass();
+//            this.loadSuperClasses(superClass);
+//
+//        } catch (ClassNotFoundException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    private void loadSuperClasses(Class<?> clazz) throws ClassNotFoundException {
+//        Class<?> superClass = clazz.getSuperclass();
+//        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+//        while (superClass != null) {
+//            Class<?> loadedSuperClass = Class.forName(superClass.getName(), true, systemClassLoader);
+//            superClass = loadedSuperClass.getSuperclass();
+//        }
+//    }
 
     private boolean isAnonymousInnerClass(String fqn) {
         String[] parts = fqn.split("\\$");
