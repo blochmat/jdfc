@@ -54,9 +54,6 @@ public class ReportGenerator {
             boolean defIsCovered = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId()).getIsCovered();
             boolean useIsCovered = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId()).getIsCovered();
             pair.setCovered(defIsCovered && useIsCovered);
-            if (pair.isCovered()) {
-                System.out.println();
-            }
         }
     }
 

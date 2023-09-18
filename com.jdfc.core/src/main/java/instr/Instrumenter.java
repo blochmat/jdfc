@@ -2,6 +2,7 @@ package instr;
 
 import data.ClassData;
 import data.MethodData;
+import data.PackageData;
 import data.singleton.CoverageDataStore;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
@@ -49,6 +50,7 @@ public class Instrumenter {
 
         // Create class meta data
         ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourceDirAbs, classFileAbs);
+
 
         // Instrument and write to file
         String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
@@ -142,6 +144,13 @@ public class Instrumenter {
 
         // Add class meta data
         CoverageDataStore.getInstance().getClassMetaDataMap().put(classMetaData.getFqn(), classMetaData);
+
+        // Create PackageData of class
+        String packageRel = classMetaData.getClassFilePackageRel();
+        if (CoverageDataStore.getInstance().getPackageDataMap().get(packageRel) == null) {
+            PackageData packageData = new PackageData(packageRel);
+            CoverageDataStore.getInstance().getPackageDataMap().put(packageRel, packageData);
+        }
 
         // Create ClassData and MethodData of class
         CreateClassDataVisitor createClassDataVisitor = new CreateClassDataVisitor(classNode, classMetaData);

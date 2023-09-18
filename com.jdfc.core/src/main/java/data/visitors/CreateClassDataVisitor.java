@@ -74,6 +74,7 @@ public class CreateClassDataVisitor extends ClassVisitor {
     @Override
     public void visitEnd() {
         CoverageDataStore.getInstance().getClassDataMap().put(this.classData.getId(), this.classData);
+        CoverageDataStore.getInstance().getPackageDataMap().get(this.classMetaData.getClassFilePackageRel()).getClassDataIds().add(this.classData.getId());
         super.visitEnd();
     }
 

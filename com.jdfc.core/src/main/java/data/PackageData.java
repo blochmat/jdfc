@@ -24,7 +24,7 @@ public class PackageData implements Serializable {
     public PackageData(String relPath) {
         this.id = UUID.randomUUID();
         this.relPath = relPath;
-        this.fqn = relPath.replace(File.separator, ".");
+        this.fqn = relPath.replace(File.separator, ".").substring(1);
         this.classDataIds = new HashSet<>();
     }
 
