@@ -182,7 +182,7 @@ public class SGCreator {
                                 SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                         index + shift,
                                         new CFGNode(
-                                                cData.getRelativePath(),
+                                                cData.getClassMetaData().getClassFileRel(),
                                                 internalMethodName,
                                                 Sets.newLinkedHashSet(),
                                                 Sets.newLinkedHashSet(),
@@ -249,7 +249,7 @@ public class SGCreator {
             // Log all relative paths of files in the classpath
             File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
             try (FileWriter writer = new FileWriter(transformFile, true)) {
-                writer.write("Class: " + cData.getRelativePath() + "\n");
+                writer.write("Class: " + cData.getClassMetaData().getClassFileRel() + "\n");
                 writer.write("Method: " + internalMethodName);
                 writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
                 if(mData.getCfg() != null) {
@@ -264,7 +264,7 @@ public class SGCreator {
         }
 
         return new SG(
-                cData.getRelativePath(),
+                cData.getClassMetaData().getClassFileRel(),
                 internalMethodName,
                 cfgMap,
                 sgNodes,

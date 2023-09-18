@@ -179,7 +179,7 @@ public class Instrumenter {
                 if(log.isDebugEnabled()) {
                     File file = JDFCUtils.createFileInDebugDir("ERROR_JDFCInstrument.log", false);
                     try (FileWriter writer = new FileWriter(file, true)) {
-                        writer.write(String.format("Class: %s\n", classData.getName()));
+                        writer.write(String.format("Class: %s\n", classData.getClassMetaData().getName()));
                         writer.write(String.format("Method: %s\n", mData.buildInternalMethodName()));
                         writer.write("==============================\n");
                         writer.write("\n");

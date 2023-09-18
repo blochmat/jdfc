@@ -35,14 +35,4 @@ public class PackageData implements Serializable {
         }
         return classDataMap;
     }
-
-    public ClassData getClassDataByName(String name) {
-        Map<UUID, ClassData> classDataMap = this.getClassDataFromStore();
-        for(ClassData cData : classDataMap.values()) {
-            if(cData.getName().replace(".class", "").equals(name)) {
-                return cData;
-            }
-        }
-        return null;
-    }
 }

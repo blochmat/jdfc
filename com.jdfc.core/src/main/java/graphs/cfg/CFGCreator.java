@@ -65,7 +65,7 @@ public class CFGCreator {
             File transformFile = JDFCUtils.createFileInDebugDir("4_createCFGsForClass.txt", false);
             try (FileWriter writer = new FileWriter(transformFile, true)) {
                 for(MethodData mData : pClassData.getMethodDataFromStore().values()) {
-                    writer.write("Class: " + pClassData.getRelativePath());
+                    writer.write("Class: " + pClassData.getClassMetaData().getClassFileRel());
                     writer.write("Method: " + mData.buildInternalMethodName());
                     writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
                     if(mData.getCfg() != null) {

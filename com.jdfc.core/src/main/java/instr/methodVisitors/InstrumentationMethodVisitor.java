@@ -185,7 +185,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         } else {
             if(log.isDebugEnabled()) {
                 String error = String.format("%s::%s : mId == null\n%s%s",
-                        classVisitor.classData.getRelativePath(),
+                        classVisitor.classData.getClassMetaData().getClassFileRel(),
                         internalMethodName,
                         JDFCUtils.prettyPrintMap(classVisitor.classData.getMethodDataFromStore()),
                         JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
@@ -216,7 +216,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         } else {
             if(log.isDebugEnabled()) {
                 String error = String.format("%s::%s : mId == null\n%s%s",
-                        classVisitor.classData.getRelativePath(),
+                        classVisitor.classData.getClassMetaData().getClassFileRel(),
                         internalMethodName,
                         JDFCUtils.prettyPrintMap(classVisitor.classData.getMethodDataFromStore()),
                         JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
@@ -255,7 +255,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         File file = JDFCUtils.createFileInDebugDir("ERROR_insertFieldTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: ProgramVariableId is null.\n");
-                            writer.write(String.format("  Class: %s\n", classVisitor.classData.getName()));
+                            writer.write(String.format("  Class: %s\n", classVisitor.classData.getClassMetaData().getName()));
                             writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                             writer.write(String.format("  ProgramVariable: %s\n", localPVar));
                             writer.write("==============================\n");
@@ -279,7 +279,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
             } else {
                 if(log.isDebugEnabled()) {
                     String error = String.format("%s::%s : mId == null\n%s%s",
-                            classVisitor.classData.getRelativePath(),
+                            classVisitor.classData.getClassMetaData().getClassFileRel(),
                             internalMethodName,
                             JDFCUtils.prettyPrintMap(classVisitor.classData.getMethodDataFromStore()),
                             JDFCUtils.prettyPrintMap(classVisitor.classData.getLineToMethodIdMap())
@@ -307,7 +307,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
                     try (FileWriter writer = new FileWriter(file, true)) {
                         writer.write("Error: LocalVariable is null.\n");
-                        writer.write(String.format("  Class: %s\n", classVisitor.classData.getName()));
+                        writer.write(String.format("  Class: %s\n", classVisitor.classData.getClassMetaData().getName()));
                         writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                         writer.write(String.format("  localVarIdx: %d\n", localVarIdx));
                         writer.write("==============================\n");
@@ -338,7 +338,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                         File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
                         try (FileWriter writer = new FileWriter(file, true)) {
                             writer.write("Error: ProgramVariableId is null.\n");
-                            writer.write(String.format("  Class: %s\n", classVisitor.classData.getName()));
+                            writer.write(String.format("  Class: %s\n", classVisitor.classData.getClassMetaData().getName()));
                             writer.write(String.format("  Method: %s\n", mData.buildInternalMethodName()));
                             writer.write(String.format("  ProgramVariable: %s\n", localPVar));
                             writer.write("==============================\n");

@@ -79,8 +79,8 @@ public class HTMLReportGenerator {
             File pkg = new File(packageAbs);
             if(pkg.exists() || pkg.mkdirs()) {
                 for(ClassData cData : packageEntry.getValue().getClassDataFromStore().values()) {
-                    factory.createClassOverviewHTML(cData.getFqn(), cData, pkg);
-                    factory.createClassSourceViewHTML(cData.getFqn(), cData, pkg, sourceDir);
+                    factory.createClassOverviewHTML(cData.getClassMetaData().getFqn(), cData, pkg);
+                    factory.createClassSourceViewHTML(cData.getClassMetaData().getFqn(), cData, pkg, sourceDir);
                 }
                 factory.createPkgIndexHTML(pkg, packageEntry.getValue().getClassDataFromStore());
             } else {

@@ -78,8 +78,8 @@ public class XMLReportGenerator {
 //                            .collect(Collectors.toSet());
 //                    JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
                     Element clazz = doc.createElement("class");
-                    clazz.setAttribute("name", cData.getFqn());
-                    clazz.setAttribute("filename", cData.getRelativePath());
+                    clazz.setAttribute("name", cData.getClassMetaData().getFqn());
+                    clazz.setAttribute("filename", cData.getClassMetaData().getClassFileRel());
                     classes.appendChild(clazz);
 
                     Element methods = doc.createElement("methods");
@@ -133,7 +133,7 @@ public class XMLReportGenerator {
 
                     int idCounter = 0;
                     for (DefUsePair pairData : CoverageDataStore.getInstance().getDefUsePairMap().values()) {
-                        if(cData.getRelativePath().equals(pairData.getClassName())) {
+                        if(cData.getClassMetaData().getFqn().equals(pairData.getClassName())) {
                             Element pair = doc.createElement("pair");
                             pair.setAttribute("id", String.valueOf(idCounter));
                             pair.setAttribute("covered", String.valueOf(pairData.isCovered()));

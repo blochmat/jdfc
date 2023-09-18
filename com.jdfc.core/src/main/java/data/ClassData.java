@@ -37,14 +37,6 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private ClassMetaData classMetaData;
 
-    private String fqn;
-
-    private String name;
-
-    private String relativePath;
-
-    private String fileName;
-
     private Map<String, String> nestedTypeMap;
 
     private Set<UUID> methodDataIds;
@@ -253,10 +245,6 @@ public class ClassData extends ExecutionData implements Serializable {
 //                ", impDeclList=" + impDeclList +
                 ", ciDecl=" + ciDecl +
                 ", id=" + id +
-                ", fqn='" + fqn + '\'' +
-                ", name='" + name + '\'' +
-                ", relativePath='" + relativePath + '\'' +
-                ", fileName='" + fileName + '\'' +
                 ", nestedTypeMap=" + nestedTypeMap +
                 ", methodDataIds=" + methodDataIds +
                 ", lineToMethodIdMap=" + lineToMethodIdMap +

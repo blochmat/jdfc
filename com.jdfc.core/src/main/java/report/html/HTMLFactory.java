@@ -204,7 +204,7 @@ public class HTMLFactory {
             String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), SCRIPT);
 
             // load class file
-            String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassData) pData).getRelativePath());
+            String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassData) pData).getClassMetaData().getClassFileRel());
             File classFile = new File(classFilePath);
 
             // build html
@@ -694,8 +694,8 @@ public class HTMLFactory {
 
             // First link tag
             HTMLElement tdTag = HTMLElement.td();
-            String link = String.format("%s.html", cData.getFqn());
-            tdTag.getContent().add(HTMLElement.a(link, cData.getFqn()));
+            String link = String.format("%s.html", cData.getClassMetaData().getFqn());
+            tdTag.getContent().add(HTMLElement.a(link, cData.getClassMetaData().getFqn()));
 
             trTag.getContent().add(tdTag);
             trTag.getContent().add(HTMLElement.td(cData.getMethodCount()));
