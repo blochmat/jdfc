@@ -52,13 +52,13 @@ public class CreateMethodDataVisitor extends MethodVisitor {
         }
 
         // Special case: Default constructor
-        if (methodDeclaration == null && constructorDeclaration == null && this.methodData.buildInternalMethodName().equals("<init>: ()V;")) {
+        if (methodDeclaration == null && constructorDeclaration == null && this.methodData.getName().equals("<init>")) {
             this.methodData.setBeginLine(Integer.MIN_VALUE);
             this.methodData.setEndLine(Integer.MIN_VALUE);
             this.classData.getLineToMethodIdMap().put(Integer.MIN_VALUE, methodData.getId());
         }
 
-        if (methodDeclaration == null && constructorDeclaration == null && !this.methodData.buildInternalMethodName().equals("<init>: ()V;")) {
+        if (methodDeclaration == null && constructorDeclaration == null && !this.methodData.getName().equals("<init>")) {
             throw new IllegalArgumentException(String.format("Missing method declaration in class %s: %s",
                     classData.getClassMetaData().getClassFileRel(), methodData.buildInternalMethodName()));
         }

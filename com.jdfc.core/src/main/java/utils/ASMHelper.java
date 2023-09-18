@@ -54,6 +54,7 @@ public class ASMHelper {
         boolean isDefaultConstructor = internalMethodName.equals("<init>: ()V;");
         boolean isSynthetic = ((methodNode.access & Opcodes.ACC_SYNTHETIC) != 0);
         boolean isBridge = ((methodNode.access & Opcodes.ACC_BRIDGE) != 0);
+        boolean isAbstract = ((methodNode.access & Opcodes.ACC_ABSTRACT) != 0);
         boolean isJacocoInstrumentation = methodNode.name.contains("$jacoco");
         boolean isLambdaExpression = methodNode.name.contains("$lambda");
         boolean isStaticInitializer = internalMethodName.contains("<clinit>");
@@ -61,6 +62,7 @@ public class ASMHelper {
                 && !isLambdaExpression
                 && !isSynthetic
                 && !isBridge
+                && !isAbstract
                 && !isStaticInitializer;
 
         return  isDefaultConstructor || isSourceCodeMethod;

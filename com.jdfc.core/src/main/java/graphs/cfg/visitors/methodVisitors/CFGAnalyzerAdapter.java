@@ -533,7 +533,7 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
                 } else if (value1 == Opcodes.NULL) {
                     push(value1);
                 } else {
-                    push("java/lang/Object");
+                    push("[Ljava/lang/Object");
                 }
                 break;
             case Opcodes.ISTORE:
