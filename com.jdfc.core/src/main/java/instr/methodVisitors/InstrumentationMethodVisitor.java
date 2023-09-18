@@ -8,6 +8,7 @@ import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.MethodNode;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.io.File;
@@ -24,6 +25,7 @@ import static utils.Constants.*;
 public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
     private final String className;
+    private final ASMHelper asmHelper;
 
     private static final String COVERAGE_DATA_STORE = Type.getInternalName(CoverageDataStore.class);
 
@@ -32,6 +34,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
     private static final String TRACK_MODIFIED_OBJECT = "trackModifiedObject";
     private static final String TRACK_MODIFIED_OBJECT_DESC = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
+
 
     private final Set<Integer> trackObject = new HashSet<>();
 //    private final CFGAnalyzerAdapter aa;
@@ -42,6 +45,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                                         String internalMethodName) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, internalMethodName);
         this.className = pClassVisitor.getClassName();
+        this.asmHelper = new ASMHelper();
 //        this.aa = aa;
     }
 
@@ -301,7 +305,12 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
 
         if(mId != null) {
             MethodData mData = classVisitor.classData.getMethodDataFromStore().get(mId);
-            LocalVariable localVariable = mData.getLocalVariableTable().get(localVarIdx);
+            LocalVariable localVariable;
+            if (asmHelper.isStatic(mData.getAccess())) {
+                localVariable = mData.getLocalVariableTable().get(localVarIdx - 1);
+            } else {
+                localVariable = mData.getLocalVariableTable().get(localVarIdx);
+            }
             if(localVariable == null) {
                 if(log.isDebugEnabled()) {
                     File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);
