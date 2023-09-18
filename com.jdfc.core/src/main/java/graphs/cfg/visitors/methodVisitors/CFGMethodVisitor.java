@@ -144,6 +144,9 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 null);
         MethodData cmData = classVisitor.classData.getMethodByShortInternalName(shortCalledMethodName);
         if (owner.equals(classVisitor.classNode.name) && cmData != null) {
+            if (this.classVisitor.classData.getClassMetaData().getFqn().contains("TimedSemaphore")) {
+                System.out.println();
+            }
             CFGCallNode node = new CFGCallNode(
                     currentInstructionIndex,
                     opcode,
@@ -519,11 +522,18 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
         Collections.reverse(popList);
         // Add "this"
-        result.put(0, createProgramVariableFromLocalVar(currentInstructionIndex));
-
-        for (Object o : popList) {
-            if (o instanceof ProgramVariable) {
-                result.put(popList.indexOf(o) + 1, (ProgramVariable) o);
+        if (!this.isStatic) {
+            result.put(0, createProgramVariableFromLocalVar(currentInstructionIndex));
+            for (Object o : popList) {
+                if (o instanceof ProgramVariable) {
+                    result.put(popList.indexOf(o) + 1, (ProgramVariable) o);
+                }
+            }
+        } else {
+            for (Object o : popList) {
+                if (o instanceof ProgramVariable) {
+                    result.put(popList.indexOf(o), (ProgramVariable) o);
+                }
             }
         }
 
@@ -693,8 +703,14 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
      */
     private Set<ProgramVariable> createDefinitionsFromLocalVars() {
         final Set<ProgramVariable> parameters = Sets.newLinkedHashSet();
+        int threshold = argCount;
+        for (LocalVariable localVariable : mData.getLocalVariableTable().values()) {
+            if(localVariable.getDescriptor().equals("J") || localVariable.getDescriptor().equals("D")) {
+                threshold++;
+            }
+        }
         for (Map.Entry<Integer, LocalVariable> entry : mData.getLocalVariableTable().entrySet()) {
-            if ((isStatic && entry.getKey() < argCount) || (!isStatic && entry.getKey() <= argCount)) {
+            if ((isStatic && entry.getKey() < threshold) || (!isStatic && entry.getKey() <= threshold)) {
                 final ProgramVariable variable =
                         new ProgramVariable(
                                 UUID.randomUUID(),

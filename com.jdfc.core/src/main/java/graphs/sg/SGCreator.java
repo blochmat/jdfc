@@ -25,15 +25,15 @@ public class SGCreator {
 
     public void createSGsForClass(ClassData cData) {
         for(MethodData mData : cData.getMethodDataFromStore().values()) {
-            mData.setSg(this.createSGForMethod(cData, mData, new HashMap<>(), 0, new ArrayList<>()));
+            mData.setSg(this.createSGForMethodRecursive(cData, mData, new HashMap<>(), 0, new ArrayList<>()));
         }
     }
 
-    public SG createSGForMethod(ClassData cData,
-                                MethodData mData,
-                                Map<String, CFG> cfgMap,
-                                int startIndex,
-                                List<String> callSequence) {
+    public SG createSGForMethodRecursive(ClassData cData,
+                                         MethodData mData,
+                                         Map<String, CFG> cfgMap,
+                                         int startIndex,
+                                         List<String> callSequence) {
         String internalMethodName = mData.buildInternalMethodName();
         cfgMap.put(internalMethodName, mData.getCfg());
         NavigableMap<Integer, CFGNode> localCfgNodes = Maps.newTreeMap(mData.getCfg().getNodes());
@@ -147,7 +147,7 @@ public class SGCreator {
                             if(Collections.frequency(callSequence, calledMethodName) < 3) {
                                 sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
                                 callSequence.add(calledMethodName);
-                                calledSG = this.createSGForMethod(
+                                calledSG = this.createSGForMethodRecursive(
                                         cData,
                                         calledMethodData,
                                         cfgMap,
@@ -243,7 +243,7 @@ public class SGCreator {
             }
         }
 
-        SGCreator.addPredSuccRelation(sgNodes, sgEdges);
+        this.addPredSuccRelation(sgNodes, sgEdges);
 
         if(log.isDebugEnabled()) {
             // Log all relative paths of files in the classpath
@@ -274,7 +274,7 @@ public class SGCreator {
                 sgCallersMap);
     }
 
-    private static void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
+    private void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
         for (Map.Entry<Integer, Integer> edge : edges.entries()) {
             final SGNode first = nodes.get(edge.getKey());
             final SGNode second = nodes.get(edge.getValue());
