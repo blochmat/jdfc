@@ -37,6 +37,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
     private final CFGAnalyzerAdapter aa;
     private final int argCount;
     private final boolean isStatic;
+    private ASMHelper asmHelper;
 
     public CFGMethodVisitor(final CFGClassVisitor pClassVisitor,
                             final MethodVisitor pMethodVisitor,
@@ -53,6 +54,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         this.aa = aa;
         this.argCount = argCount;
         this.isStatic = isStatic;
+        this.asmHelper = new ASMHelper();
         // TODO: Add fields to domain
         this.domain = new TreeMap<>();
         this.domain.putAll(createDomainVarsFromLocal());
@@ -144,9 +146,15 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 null);
         MethodData cmData = classVisitor.classData.getMethodByShortInternalName(shortCalledMethodName);
         if (owner.equals(classVisitor.classNode.name) && cmData != null) {
-            if (this.classVisitor.classData.getClassMetaData().getFqn().contains("TimedSemaphore")) {
+            if (this.internalMethodName.equals("appendInternal: (Ljava/lang/StringBuffer;Ljava/lang/String;Ljava/lang/Object;Z)V;")) {
                 System.out.println();
             }
+            Map<Integer, ProgramVariable> pVarMap = this.createPVarMap(aa.getPopList(), cmData);
+            if (!pVarMap.isEmpty()) {
+                pVarMap = this.cleanupPVarMap(pVarMap, cmData);
+            }
+            Map<Integer, DomainVariable> dVarMap = this.createDVarMap(aa.getPopList(), cmData);
+
             CFGCallNode node = new CFGCallNode(
                     currentInstructionIndex,
                     opcode,
@@ -155,8 +163,8 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                     owner,
                     cmData.buildInternalMethodName(),
                     isInterface,
-                    this.createPVarMap(aa.getPopList()),
-                    this.createDVarMap(aa.getPopList()));
+                    pVarMap,
+                    dVarMap);
             nodes.put(currentInstructionIndex, node);
         } else {
             final CFGNode node = new CFGNode(
@@ -166,6 +174,36 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                     opcode);
             nodes.put(currentInstructionIndex, node);
         }
+    }
+
+    private Map<Integer, ProgramVariable> cleanupPVarMap(Map<Integer, ProgramVariable> pVarMap, MethodData called) {
+        Map<Integer, ProgramVariable> newMap = new HashMap<>();
+        Optional<LocalVariable> firstOptional = called.getLocalVariableTable().values().stream().findFirst();
+        if (firstOptional.isPresent()) {
+            LocalVariable first = firstOptional.get();
+            String descriptor = first.getDescriptor();
+            int key = -1;
+            boolean foundFirst = false;
+            for (Map.Entry<Integer, ProgramVariable> entry : pVarMap.entrySet()) {
+                if (!foundFirst && entry.getValue().getDescriptor().equals(descriptor)) {
+                    foundFirst = true;
+                    key = entry.getKey();
+                }
+            }
+
+            int removed = 0;
+            for (int i = 0; i < key; i++) {
+                if (pVarMap.get(i) != null) {
+                    pVarMap.remove(i);
+                    removed++;
+                }
+            }
+
+            for (Map.Entry<Integer, ProgramVariable> entry : pVarMap.entrySet()) {
+                newMap.put(entry.getKey() - removed, entry.getValue());
+            }
+        }
+        return newMap;
     }
 
     @Override
@@ -517,16 +555,19 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         nodes.put(pIndex, node);
     }
 
-    private Map<Integer, ProgramVariable> createPVarMap(List<Object> popList) {
+    private Map<Integer, ProgramVariable> createPVarMap(List<Object> popList, MethodData called) {
         Map<Integer, ProgramVariable> result = new HashMap<>();
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
         Collections.reverse(popList);
-        // Add "this"
-        if (!this.isStatic) {
-            result.put(0, createProgramVariableFromLocalVar(currentInstructionIndex));
-            for (Object o : popList) {
-                if (o instanceof ProgramVariable) {
-                    result.put(popList.indexOf(o) + 1, (ProgramVariable) o);
+        // Add "this" if called procedure is not static
+        if (!asmHelper.isStatic(called.getAccess())) {
+            ProgramVariable p = createPVarThis(currentInstructionIndex);
+            if (p != null) {
+                result.put(0, p);
+                for (Object o : popList) {
+                    if (o instanceof ProgramVariable) {
+                        result.put(popList.indexOf(o) + 1, (ProgramVariable) o);
+                    }
                 }
             }
         } else {
@@ -667,7 +708,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
-    private ProgramVariable createProgramVariableFromLocalVar(int insnIndex) {
+    private ProgramVariable createPVarThis(int insnIndex) {
         ProgramVariable var = null;
         for(ProgramVariable p : mData.getPVarsFromStore().values()) {
             if(var == null  && p.getName().equals("this")) {
