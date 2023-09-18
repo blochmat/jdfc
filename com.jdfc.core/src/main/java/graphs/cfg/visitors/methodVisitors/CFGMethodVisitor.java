@@ -273,7 +273,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         this.setPredecessorSuccessorRelation();
         CFG cfg = new CFG(classVisitor.classNode.name, internalMethodName, nodes, edges, domain);
 
-        if (false) {
+        if (true) {
             JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintMap(domain), "domain");
             JDFCUtils.logThis(JDFCUtils.prettyPrintMap(nodes), String.format("cfg_%s::%s", classVisitor.classData.getClassMetaData().getName(), methodNode.name));
             JDFCUtils.logThis(JDFCUtils.prettyPrintMultimap(edges), String.format("cfg_%s::%s", classVisitor.classData.getClassMetaData().getName(), methodNode.name));

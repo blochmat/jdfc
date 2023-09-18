@@ -7,6 +7,7 @@ import data.singleton.CoverageDataStore;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
+import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,6 @@ public class Instrumenter {
 
         // Create class meta data
         ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourceDirAbs, classFileAbs);
-
 
         // Instrument and write to file
         String outPath = String.join(File.separator, outDir.getAbsolutePath(), classFile.getName());
@@ -191,8 +191,8 @@ public class Instrumenter {
         }
 
         // Create SGs for all methods of class
-//        SGCreator sgCreator = new SGCreator();
-//        sgCreator.createSGsForClass(classData);
+        SGCreator sgCreator = new SGCreator();
+        sgCreator.createSGsForClass(classData);
 
         // Create ESGs for all methods of class
 //        ESGCreator.createESGsForClass(cData);
