@@ -534,7 +534,9 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
         Collections.reverse(popList);
 
-        result.put(0, createDomainVariableFromLocalVar(0));
+        if (!isStatic) {
+            result.put(0, createDomainVariableFromLocalVar(0));
+        }
 
         for (Object o : popList) {
             if (o instanceof ProgramVariable) {

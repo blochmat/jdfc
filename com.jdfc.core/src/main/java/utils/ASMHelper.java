@@ -1,6 +1,5 @@
 package utils;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
@@ -8,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Objects;
+
+import static org.objectweb.asm.Opcodes.*;
 
 public class ASMHelper {
 
@@ -50,11 +51,15 @@ public class ASMHelper {
         return result.toString();
     }
 
+    public boolean isStatic(int access) {
+        return (access & ACC_STATIC) != 0;
+    }
+
     public boolean isInstrumentationRequired(MethodNode methodNode, String internalMethodName) {
         boolean isDefaultConstructor = internalMethodName.equals("<init>: ()V;");
-        boolean isSynthetic = ((methodNode.access & Opcodes.ACC_SYNTHETIC) != 0);
-        boolean isBridge = ((methodNode.access & Opcodes.ACC_BRIDGE) != 0);
-        boolean isAbstract = ((methodNode.access & Opcodes.ACC_ABSTRACT) != 0);
+        boolean isSynthetic = ((methodNode.access & ACC_SYNTHETIC) != 0);
+        boolean isBridge = ((methodNode.access & ACC_BRIDGE) != 0);
+        boolean isAbstract = ((methodNode.access & ACC_ABSTRACT) != 0);
         boolean isJacocoInstrumentation = methodNode.name.contains("$jacoco");
         boolean isLambdaExpression = methodNode.name.contains("$lambda");
         boolean isStaticInitializer = internalMethodName.contains("<clinit>");
