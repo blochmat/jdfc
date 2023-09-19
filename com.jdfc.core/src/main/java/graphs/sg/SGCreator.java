@@ -100,10 +100,6 @@ public class SGCreator {
                 MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getCalledMethodName());
 
                 if (calledMethodData != null) {
-
-                    if(internalMethodName.equals("appendInternal: (Ljava/lang/StringBuffer;Ljava/lang/String;Ljava/lang/Object;Z)V;")) {
-                        System.out.println();
-                    }
                     // method is defined in same class
                     CFGEntryNode cfgEntryNode = calledMethodData.getCfg().getEntryNode();
 

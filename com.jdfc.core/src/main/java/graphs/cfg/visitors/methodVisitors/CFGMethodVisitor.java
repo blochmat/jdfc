@@ -146,14 +146,14 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 null);
         MethodData cmData = classVisitor.classData.getMethodByShortInternalName(shortCalledMethodName);
         if (owner.equals(classVisitor.classNode.name) && cmData != null) {
-            if (this.internalMethodName.equals("appendInternal: (Ljava/lang/StringBuffer;Ljava/lang/String;Ljava/lang/Object;Z)V;")) {
-                System.out.println();
-            }
             Map<Integer, ProgramVariable> pVarMap = this.createPVarMap(aa.getPopList(), cmData);
             if (!pVarMap.isEmpty()) {
                 pVarMap = this.cleanupPVarMap(pVarMap, cmData);
             }
             Map<Integer, DomainVariable> dVarMap = this.createDVarMap(aa.getPopList(), cmData);
+            if (!dVarMap.isEmpty()) {
+                dVarMap = this.cleanupDVarMap(dVarMap, cmData);
+            }
 
             CFGCallNode node = new CFGCallNode(
                     currentInstructionIndex,
@@ -176,6 +176,19 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         }
     }
 
+    /**
+     * This method exists, because on some occasions more than just the method parameters are popped from the operand
+     * stack, which leads to issues when we want to match parameters on call and entry nodes.
+     * Therefore we want to delete all ProgramVariables that are not part of the called methods scope.
+     * We use the first local variable from the called methods variable table and compare its type to the type of
+     * the variables in the pop list.
+     * As soon as these types match we assume that the matching element is the first parameter to match followed by all
+     * other parameters, which require matching.
+     * This is not sure to work at all times.
+     * @param pVarMap
+     * @param called
+     * @return
+     */
     private Map<Integer, ProgramVariable> cleanupPVarMap(Map<Integer, ProgramVariable> pVarMap, MethodData called) {
         Map<Integer, ProgramVariable> newMap = new HashMap<>();
         Optional<LocalVariable> firstOptional = called.getLocalVariableTable().values().stream().findFirst();
@@ -200,6 +213,49 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             }
 
             for (Map.Entry<Integer, ProgramVariable> entry : pVarMap.entrySet()) {
+                newMap.put(entry.getKey() - removed, entry.getValue());
+            }
+        }
+        return newMap;
+    }
+
+    /**
+     * This method exists, because on some occasions more than just the method parameters are popped from the operand
+     * stack, which leads to issues when we want to match parameters on call and entry nodes.
+     * Therefore we want to delete all ProgramVariables that are not part of the called methods scope.
+     * We use the first local variable from the called methods variable table and compare its type to the type of
+     * the variables in the pop list.
+     * As soon as these types match we assume that the matching element is the first parameter to match followed by all
+     * other parameters, which require matching.
+     * This is not sure to work at all times.
+     * @param dVarMap
+     * @param called
+     * @return
+     */
+    private Map<Integer, DomainVariable> cleanupDVarMap(Map<Integer, DomainVariable> dVarMap, MethodData called) {
+        Map<Integer, DomainVariable> newMap = new HashMap<>();
+        Optional<LocalVariable> firstOptional = called.getLocalVariableTable().values().stream().findFirst();
+        if (firstOptional.isPresent()) {
+            LocalVariable first = firstOptional.get();
+            String descriptor = first.getDescriptor();
+            int key = -1;
+            boolean foundFirst = false;
+            for (Map.Entry<Integer, DomainVariable> entry : dVarMap.entrySet()) {
+                if (!foundFirst && entry.getValue().getDescriptor().equals(descriptor)) {
+                    foundFirst = true;
+                    key = entry.getKey();
+                }
+            }
+
+            int removed = 0;
+            for (int i = 0; i < key; i++) {
+                if (dVarMap.get(i) != null) {
+                    dVarMap.remove(i);
+                    removed++;
+                }
+            }
+
+            for (Map.Entry<Integer, DomainVariable> entry : dVarMap.entrySet()) {
                 newMap.put(entry.getKey() - removed, entry.getValue());
             }
         }
@@ -556,24 +612,27 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
     }
 
     private Map<Integer, ProgramVariable> createPVarMap(List<Object> popList, MethodData called) {
+        List<Object> local = new ArrayList<>(popList);
         Map<Integer, ProgramVariable> result = new HashMap<>();
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
-        Collections.reverse(popList);
+        Collections.reverse(local);
         // Add "this" if called procedure is not static
-        if (!asmHelper.isStatic(called.getAccess())) {
+        if (!asmHelper.isStatic(called.getAccess()) && !isStatic) {
             ProgramVariable p = createPVarThis(currentInstructionIndex);
             if (p != null) {
                 result.put(0, p);
-                for (Object o : popList) {
+                for (Object o : local) {
                     if (o instanceof ProgramVariable) {
-                        result.put(popList.indexOf(o) + 1, (ProgramVariable) o);
+                        result.put(local.indexOf(o) + 1, (ProgramVariable) o);
                     }
                 }
+            } else {
+                System.err.println("ERROR createPVarMap: p is null.");
             }
         } else {
-            for (Object o : popList) {
+            for (Object o : local) {
                 if (o instanceof ProgramVariable) {
-                    result.put(popList.indexOf(o), (ProgramVariable) o);
+                    result.put(local.indexOf(o), (ProgramVariable) o);
                 }
             }
         }
@@ -581,25 +640,38 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         return result;
     }
 
-    private Map<Integer, DomainVariable> createDVarMap(List<Object> popList) {
+    private Map<Integer, DomainVariable> createDVarMap(List<Object> popList, MethodData called) {
+        List<Object> local = new ArrayList<>(popList);
         Map<Integer, DomainVariable> result = new HashMap<>();
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
-        Collections.reverse(popList);
+        Collections.reverse(local);
 
-        if (!isStatic) {
-            result.put(0, createDomainVariableFromLocalVar(0));
-        }
-
-        for (Object o : popList) {
-            if (o instanceof ProgramVariable) {
-                result.put(popList.indexOf(o) + 1, new DomainVariable(
-                        ((ProgramVariable) o).getLocalVarIdx(),
-                        classVisitor.classNode.name,
-                        internalMethodName,
-                        ((ProgramVariable) o).getName(),
-                        ((ProgramVariable) o).getDescriptor()));
+        if (!asmHelper.isStatic(called.getAccess()) && !isStatic) {
+            DomainVariable d = createDomainVariableFromLocalVar(0);
+            result.put(0, d);
+            for (Object o : local) {
+                if (o instanceof ProgramVariable) {
+                    result.put(local.indexOf(o) + 1, new DomainVariable(
+                            ((ProgramVariable) o).getLocalVarIdx(),
+                            classVisitor.classNode.name,
+                            internalMethodName,
+                            ((ProgramVariable) o).getName(),
+                            ((ProgramVariable) o).getDescriptor()));
+                }
+            }
+        } else {
+            for (Object o : local) {
+                if (o instanceof ProgramVariable) {
+                    result.put(local.indexOf(o), new DomainVariable(
+                            ((ProgramVariable) o).getLocalVarIdx(),
+                            classVisitor.classNode.name,
+                            internalMethodName,
+                            ((ProgramVariable) o).getName(),
+                            ((ProgramVariable) o).getDescriptor()));
+                }
             }
         }
+
 
         return result;
     }

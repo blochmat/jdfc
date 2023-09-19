@@ -73,7 +73,6 @@ public class HTMLReportGenerator {
 //    }
 
     private void createHTMLFiles(HTMLFactory factory) throws IOException {
-        System.out.println("debug");
         for(Map.Entry<String, PackageData> packageEntry : CoverageDataStore.getInstance().getPackageDataMap().entrySet()) {
             String packageAbs = String.join(File.separator, outputDir.getAbsolutePath(), packageEntry.getKey());
             File pkg = new File(packageAbs);

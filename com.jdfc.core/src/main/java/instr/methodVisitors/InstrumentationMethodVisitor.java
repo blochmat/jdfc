@@ -306,11 +306,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
         if(mId != null) {
             MethodData mData = classVisitor.classData.getMethodDataFromStore().get(mId);
             LocalVariable localVariable;
-            if (asmHelper.isStatic(mData.getAccess())) {
-                localVariable = mData.getLocalVariableTable().get(localVarIdx - 1);
-            } else {
-                localVariable = mData.getLocalVariableTable().get(localVarIdx);
-            }
+            localVariable = mData.getLocalVariableTable().get(localVarIdx);
             if(localVariable == null) {
                 if(log.isDebugEnabled()) {
                     File file = JDFCUtils.createFileInDebugDir("ERROR_insertLocalVarTracking.txt", false);

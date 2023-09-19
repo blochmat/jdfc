@@ -162,7 +162,7 @@ public class Instrumenter {
 
         // Find local variables for all methods
         LocalVariableClassVisitor localVariableVisitor = new LocalVariableClassVisitor(classNode, classData);
-        classReader.accept(localVariableVisitor, 0);
+        classReader.accept(localVariableVisitor, ClassReader.EXPAND_FRAMES);
 
         // Create CFGs for all methods
         final CFGClassVisitor cfgClassVisitor = new CFGClassVisitor(classNode, classData);
