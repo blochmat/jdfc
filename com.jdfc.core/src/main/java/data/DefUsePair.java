@@ -2,6 +2,7 @@ package data;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import data.singleton.CoverageDataStore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,6 +35,14 @@ public class DefUsePair implements Serializable {
         this.methodName = methodName;
         this.defId = defId;
         this.useId = useId;
+    }
+
+    public ProgramVariable getDefFromStore() {
+        return CoverageDataStore.getInstance().getProgramVariableMap().get(defId);
+    }
+
+    public ProgramVariable getUseFromStore() {
+        return CoverageDataStore.getInstance().getProgramVariableMap().get(useId);
     }
 
     @Override

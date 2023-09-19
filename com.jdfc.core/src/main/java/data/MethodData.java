@@ -7,6 +7,7 @@ import data.singleton.CoverageDataStore;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
+import graphs.esg.ESG;
 import graphs.sg.SG;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -98,10 +99,10 @@ public class MethodData implements Serializable {
      */
     private transient SG sg;
 
-//    /**
-//     * Inter-procedural ESG of compiled method
-//     */
-//    private transient ESG esg;
+    /**
+     * Inter-procedural ESG of compiled method
+     */
+    private transient ESG esg;
 
     /**
      * All DU-pairs of method

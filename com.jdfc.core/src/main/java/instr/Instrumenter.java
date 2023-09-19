@@ -7,6 +7,7 @@ import data.singleton.CoverageDataStore;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
+import graphs.esg.ESGCreator;
 import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.AllArgsConstructor;
@@ -195,7 +196,10 @@ public class Instrumenter {
         sgCreator.createSGsForClass(classData);
 
         // Create ESGs for all methods of class
-//        ESGCreator.createESGsForClass(cData);
+        ESGCreator esgCreator = new ESGCreator();
+        esgCreator.createESGsForClass(classData);
+
+        // TODO: Calculate inter-procedural pairs
 
         // Tracking instrumentation
         if (log.isDebugEnabled()) {
