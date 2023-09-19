@@ -19,7 +19,7 @@ public class BeginLineMethodVisitor extends MethodVisitor {
 
     @Override
     public void visitLineNumber(int line, Label start) {
-        if (this.beginLine == 0 || this.beginLine > line) {
+        if (this.beginLine == 0) {
             this.beginLine = line;
         }
         super.visitLineNumber(line, start);
