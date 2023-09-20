@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static utils.Constants.JUMP_OPCODES;
+
 @Slf4j
 public class SGCreator {
 
@@ -203,6 +205,23 @@ public class SGCreator {
                                 sgReturnSiteNode.setCallNodeIdx(sgCallNodeIdx);
                                 sgReturnSiteNode.setEntryNodeIdx(sgEntryNodeIdx);
                                 sgReturnSiteNode.setExitNodeIdx(sgExitNodeIdx);
+
+                                // Search for jump nodes in sg and update second edge by shift
+                                for (int i = 0; i < index; i++) {
+                                    SGNode sgNode = sgNodes.get(i);
+                                    if (JUMP_OPCODES.contains(sgNode.getOpcode())) {
+                                        List<Integer> targets = new ArrayList<>(sgEdges.get(i));
+                                        for (Integer target : targets) {
+                                            boolean jumpGtOne = target - i > 1;
+                                            boolean jumpGtIndex = target > sgCallNodeIdx;
+                                            if (jumpGtOne && jumpGtIndex) {
+                                                sgEdges.remove(i, target);
+                                                sgEdges.put(i, target + calledSG.getNodes().size());
+                                            }
+                                        }
+                                    }
+                                }
+                                System.out.println();
                             }
                         }
                     }
