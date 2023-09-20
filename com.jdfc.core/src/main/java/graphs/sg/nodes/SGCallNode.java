@@ -8,8 +8,6 @@ import graphs.cfg.nodes.CFGCallNode;
 import lombok.Data;
 import utils.JDFCUtils;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 @Data
@@ -19,8 +17,8 @@ public class SGCallNode extends SGNode {
     private String calledMethodName;
     private boolean isInterface;
     private boolean isCalledSGPresent;
-    private BiMap<ProgramVariable, ProgramVariable> useDefMap;
-    private Map<DomainVariable, DomainVariable> dVarMap;
+    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
+    private BiMap<DomainVariable, DomainVariable> dVarMap;
     private int entryNodeIdx;
     private int exitNodeIdx;
     private int returnSiteNodeIdx;
@@ -31,20 +29,20 @@ public class SGCallNode extends SGNode {
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.isCalledSGPresent = true;
-        this.useDefMap = HashBiMap.create();
-        this.dVarMap = new HashMap<>();
+        this.pVarMap = HashBiMap.create();
+        this.dVarMap = HashBiMap.create();
     }
 
     public SGCallNode(int index,
                       CFGCallNode node,
-                      BiMap<ProgramVariable, ProgramVariable> useDefMap,
-                      Map<DomainVariable, DomainVariable> dVarMap) {
+                      BiMap<ProgramVariable, ProgramVariable> pVarMap,
+                      BiMap<DomainVariable, DomainVariable> dVarMap) {
         super(index, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.isCalledSGPresent = true;
-        this.useDefMap = useDefMap;
+        this.pVarMap = pVarMap;
         this.dVarMap = dVarMap;
     }
 

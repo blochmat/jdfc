@@ -118,7 +118,7 @@ public class ESGCreator {
         }
 
         for(ProgramVariable use : usages) {
-            ProgramVariable defMatch = sgNode.getUseDefMap().get(use);
+            ProgramVariable defMatch = sgNode.getPVarMap().get(use);
             if(defMatch != null) {
                 return defMatch;
             }
@@ -135,7 +135,7 @@ public class ESGCreator {
         }
 
         for(ProgramVariable use : usages) {
-            ProgramVariable defMatch = sgNode.getUseDefMap().get(use);
+            ProgramVariable defMatch = sgNode.getPVarMap().get(use);
             if(defMatch != null) {
                 return defMatch;
             }
@@ -373,7 +373,7 @@ public class ESGCreator {
             String calledMethodId = this.buildMethodIdentifier(sgCallNode.getCalledClassName(), sgCallNode.getCalledMethodName());
             String pVarMId = this.buildMethodIdentifier(pVar.buildClassNodeName(), pVar.getMethodName());
             if(Objects.equals(calledMethodId, pVarMId)) {
-                if(!sgCallNode.getUseDefMap().containsValue(pVar)
+                if(!sgCallNode.getPVarMap().containsValue(pVar)
                     && sgTargetNode.getDefinitions().contains(pVar)) {
                     edges.add(new ESGEdge(
                             sgNode.getIndex(),

@@ -18,24 +18,26 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static utils.Constants.JUMP_OPCODES;
 
 @Slf4j
 public class SGCreator {
 
+
     public void createSGsForClass(ClassData cData) {
         for(MethodData mData : cData.getMethodDataFromStore().values()) {
-            mData.setSg(this.createSGForMethodRecursive(cData, mData, new HashMap<>(), 0, new ArrayList<>()));
+            MethodSGCreator methodSGCreator = new MethodSGCreator();
+            SG sg = methodSGCreator.createSGForMethod(cData, mData);
+            mData.setSg(sg);
         }
     }
 
-    public SG createSGForMethodRecursive(ClassData cData,
-                                         MethodData mData,
-                                         Map<String, CFG> cfgMap,
-                                         int startIndex,
-                                         List<String> callSequence) {
+    private static class MethodSGCreator {
+
+        Stack<AbstractMap.SimpleImmutableEntry<Integer, CFGNode>> nodeStack = new Stack<>();
+        Stack<Integer> indexShiftStack = new Stack<>();
+        Stack<Integer> sgCallNodeIdxStack = new Stack<>();
+        Stack<Integer> sgEntryNodeIdxStack = new Stack<>();
+
         // setup sg structures for method
         NavigableMap<Integer, SGNode> sgNodes = Maps.newTreeMap();
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
@@ -44,264 +46,212 @@ public class SGCreator {
         // keep track of return sites
         Map<SGCallNode, SGReturnSiteNode> sgReturnSiteNodeMap = new HashMap<>();
         Map<Integer, Integer> sgReturnSiteIndexMap = new HashMap<>();
-        // setup index and shift for sg creation
-        int index = startIndex; // increase for node from own cfg
-        int shift = 0; // increase for node from other cfg
+        Map<String, CFG> cfgMap = new HashMap<>();
+        List<String> callSequence = new ArrayList<>();
+        int index = 0;
+        int addedNodesSum = 0;
 
-        // Put current cfg into map and copy nodes and edges
-        String internalMethodName = mData.buildInternalMethodName();
-        cfgMap.put(internalMethodName, mData.getCfg());
-        NavigableMap<Integer, CFGNode> cfgNodesCopy = Maps.newTreeMap(mData.getCfg().getNodes());
-        Multimap<Integer, Integer> cfgEdgesCopy = ArrayListMultimap.create(mData.getCfg().getEdges());
-        if (index != 0) {
-            // we are in a called procedure and need to update all indexes according to the start index
-            this.updateCFGIndices(index, cfgNodesCopy, cfgEdgesCopy);
-        }
+        public SG createSGForMethod(ClassData cData, MethodData mData) {
 
-        // iterate though local cfg and create according sg nodes
-        for(Map.Entry<Integer, CFGNode> nodeEntry : cfgNodesCopy.entrySet()) {
-            Integer cfgNodeIdx = nodeEntry.getKey();
-            CFGNode cfgNode = nodeEntry.getValue();
+            // Put current cfg into map and copy nodes and edges
+            String internalMethodName = mData.buildInternalMethodName();
+            this.addCFG(mData);
 
-            if (cfgNode instanceof CFGEntryNode) {
-                sgNodes.put(index + shift, new SGEntryNode(index + shift, cfgNode));
-                int finalShift = shift;
-                List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
-                sgEdges.putAll(index + shift, edges);
-                index++;
-            } else if (cfgNode instanceof CFGExitNode) {
-                SGExitNode sgExitNode = new SGExitNode(index + shift, cfgNode);
-                sgNodes.put(index + shift, sgExitNode);
-                int finalShift = shift;
-//                domainVarMap.computeIfAbsent(sgExitNode.getIndex(), k -> HashBiMap.create());
-//                domainVarMap.get(sgExitNode.getIndex()).put(cEntry.getValue().getIndex(), cEntry.getKey());
-                List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
-                sgEdges.putAll(index + shift, edges);
-                index++;
-            } else if (cfgNode instanceof CFGCallNode) {
-                CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
-                MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getCalledMethodName());
+//        NavigableMap<Integer, CFGNode> cfgNodesCopy = Maps.newTreeMap(mData.getCfg().getNodes());
+//        Multimap<Integer, Integer> cfgEdgesCopy = ArrayListMultimap.create(mData.getCfg().getEdges());
+//        if (index != 0) {
+//            // we are in a called procedure and need to update all indexes according to the start index
+//            this.updateCFGIndices(index, cfgNodesCopy, cfgEdgesCopy);
+//        }
 
-                if (calledMethodData != null) {
-                    // method is defined in same class
-                    CFGEntryNode cfgEntryNode = calledMethodData.getCfg().getEntryNode();
+            // setup index and shift for sg creation
+            while (!nodeStack.isEmpty()) {
+                AbstractMap.SimpleImmutableEntry<Integer, CFGNode> stackEntry = this.nodeStack.pop();
+                int cfgIndex = stackEntry.getKey();
+                CFGNode cfgNode = stackEntry.getValue();
+                Collection<Integer> targets = this.getEdgeTargets(cfgIndex, cfgNode.getMethodName());
 
-                    if (cfgEntryNode != null) {
-                        Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarMap();
-                        Map<Integer, ProgramVariable> pVarsEntry = cfgEntryNode.getPVarMap();
+                if (cfgNode instanceof CFGEntryNode) {
+                    SGEntryNode sgEntryNode = new SGEntryNode(index, cfgNode);
+                    if (!sgCallNodeIdxStack.isEmpty()) {
+                        // node is part of subroutine
+                        this.sgEntryNodeIdxStack.push(index);
+                        SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdxStack.peek());
+                        sgEntryNode.setPVarMap(sgCallNode.getPVarMap());
+                        sgEntryNode.setDVarMap(sgCallNode.getDVarMap().inverse());
+                    }
+                    this.addSGNode(sgEntryNode, targets);
+                } else if (cfgNode instanceof CFGExitNode) {
+                    SGExitNode sgExitNode = new SGExitNode(index, cfgNode);
+                    if (!sgEntryNodeIdxStack.isEmpty()) {
+                        // node is part of subroutine
+                        int sgExitNodeIdx = index;
+                        SGEntryNode sgEntryNode = (SGEntryNode) sgNodes.get(sgEntryNodeIdxStack.peek());
+                        sgExitNode.setPVarMap(sgEntryNode.getPVarMap());
+                        sgExitNode.setDVarMap(sgEntryNode.getDVarMap().inverse());
+                        // Connect exit to return site node
+                        Collection<Integer> exitTargets = Collections.singletonList(cfgIndex + 1);
+                        this.addSGNode(sgExitNode, exitTargets);
+                        indexShiftStack.pop();
 
-                        if(pVarsCall != null && pVarsEntry != null) {
-                            // Create program variable mapping
-                            BiMap<ProgramVariable, ProgramVariable> pVarMap = HashBiMap.create();
-                            for(Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
-                                pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
-                            }
+                        // Create return site node
+                        int sgReturnSiteNodeIdx = index;
+                        SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
+                                index,
+                                new CFGNode(
+                                        cData.getClassMetaData().getClassNodeName(),
+                                        internalMethodName,
+                                        Sets.newLinkedHashSet(),
+                                        Sets.newLinkedHashSet(),
+                                        Integer.MIN_VALUE,
+                                        Integer.MIN_VALUE,
+                                        Sets.newLinkedHashSet(),
+                                        Sets.newLinkedHashSet(),
+                                        cfgNode.getReach(),
+                                        cfgNode.getReachOut()));
+                        Collection<Integer> returnSiteTargets = Collections.singletonList(index + 1);
+                        this.addSGNode(new SGReturnSiteNode(index, cfgNode), returnSiteTargets);
+                        this.addedNodesSum = addedNodesSum + (index - sgEntryNodeIdxStack.peek());
 
-                            // Create domain variable mapping
-                            Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
-                            Map<Integer, DomainVariable> dVarsEntry = cfgEntryNode.getDVarMap();
-                            BiMap<DomainVariable, DomainVariable> dVarMap = HashBiMap.create();
-                            for(Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
-                                if(cEntry.getValue().getIndex() != 0) {
-                                    JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsCall), "SGCreator_dVarsCall");
-                                    JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarsEntry), "SGCreator_dVarsEntry");
-                                    dVarMap.put(cEntry.getValue(), calledMethodData.getCfg().getDomain().get(cEntry.getKey()));
-                                    JDFCUtils.logThis(JDFCUtils.prettyPrintMap(dVarMap), "SGCreator_domainVarMap");
-                                }
-                            }
+                        int sgCallNodeIdx = sgCallNodeIdxStack.pop();
+                        int sgEntryNodeIdx = sgEntryNodeIdxStack.pop();
 
-                            // Add call node
-                            SGCallNode sgCallNode = new SGCallNode(index + shift, (CFGCallNode) cfgNode, pVarMap, dVarMap);
-                            sgNodes.put(index + shift, sgCallNode);
+                        SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdx);
+                        sgReturnSiteNodeMap.put(sgCallNode, sgReturnSiteNode);
+                        sgReturnSiteIndexMap.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
+                        // Connect call and return site node
+//                        sgEdges.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
 
-                            // Save callNode index
-                            int sgCallNodeIdx = index + shift;
+                        sgCallNode.setEntryNodeIdx(sgEntryNodeIdx);
+                        sgCallNode.setExitNodeIdx(sgExitNodeIdx);
+                        sgCallNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
 
-                            // Connect call and entry node
-                            int finalShift = shift;
-                            List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
-                            sgEdges.putAll(index + shift, edges);
-                            index++;
+                        sgEntryNode.setCallNodeIdx(sgCallNodeIdx);
+                        sgEntryNode.setExitNodeIdx(sgExitNodeIdx);
+                        sgEntryNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
 
-                            // Create sg for called procedure
-                            SG calledSG = null;
-                            String calledMethodName = calledMethodData.buildInternalMethodName();
+                        sgExitNode.setCallNodeIdx(sgCallNodeIdx);
+                        sgExitNode.setEntryNodeIdx(sgEntryNodeIdx);
+                        sgExitNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
 
-                            if(Collections.frequency(callSequence, calledMethodName) < 3) {
-                                sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
-                                callSequence.add(calledMethodName);
-                                calledSG = this.createSGForMethodRecursive(
-                                        cData,
-                                        calledMethodData,
-                                        cfgMap,
-                                        index + shift,
-                                        callSequence);
-                            } else {
-                                sgCallNode.setCalledSGPresent(false);
-                            }
+                        sgReturnSiteNode.setCallNodeIdx(sgCallNodeIdx);
+                        sgReturnSiteNode.setEntryNodeIdx(sgEntryNodeIdx);
+                        sgReturnSiteNode.setExitNodeIdx(sgExitNodeIdx);
+                    } else {
+                        this.addSGNode(sgExitNode, targets);
+                    }
+                } else if (cfgNode instanceof CFGCallNode) {
+                    // Add call node
+                    SGCallNode sgCallNode = new SGCallNode(index, (CFGCallNode) cfgNode);
+                    this.sgCallNodeIdxStack.push(index);
+                    this.addSGNode(sgCallNode, targets);
+                    this.indexShiftStack.push(index);
 
-                            if (calledSG != null) {
-                                // Add all nodes, edges
-                                sgNodes.putAll(calledSG.getNodes());
-                                sgEdges.putAll(calledSG.getEdges());
+                    // Add called method cfg if possible
+                    CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
+                    MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getCalledMethodName());
+                    String calledMethodName = calledMethodData.buildInternalMethodName();
+                    if(Collections.frequency(callSequence, calledMethodName) < 3) {
+                        sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+                        this.callSequence.add(calledMethodName);
+                        this.addCFG(calledMethodData);
+                    } else {
+                        sgCallNode.setCalledSGPresent(false);
+                    }
 
-                                // Add pVarMap and dVarMap to entryNode
-                                int sgEntryNodeIdx = index + shift;
-                                SGEntryNode sgEntryNode = (SGEntryNode)  sgNodes.get(index + shift);
-                                sgEntryNode.setUseDefMap(pVarMap);
-                                sgEntryNode.setDVarMap(dVarMap.inverse());
+                    AbstractMap.SimpleImmutableEntry<Integer, CFGNode> pop = this.nodeStack.peek();
+                    CFGEntryNode cfgEntryNode = (CFGEntryNode) pop.getValue();
+                    Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarMap();
+                    Map<Integer, ProgramVariable> pVarsEntry = cfgEntryNode.getPVarMap();
+                    if(pVarsCall != null && pVarsEntry != null) {
+                        // Create program variable mapping
+                        BiMap<ProgramVariable, ProgramVariable> pVarMap = HashBiMap.create();
+                        for (Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
+                            pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
+                        }
 
-                                // Update index shift
-                                shift = shift + calledSG.getNodes().size();
-
-                                // Add pVarMap and dVarMap to exit node
-                                int sgExitNodeIdx = index + shift - 1;
-                                SGExitNode sgExitNode = (SGExitNode) sgNodes.get(index + shift - 1);
-                                sgExitNode.setPVarMap(pVarMap);
-                                sgExitNode.setDVarMap(dVarMap.inverse());
-
-                                // Add returnSite node
-                                int sgReturnSiteNodeIdx = index + shift;
-                                SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
-                                        index + shift,
-                                        new CFGNode(
-                                                cData.getClassMetaData().getClassNodeName(),
-                                                internalMethodName,
-                                                Sets.newLinkedHashSet(),
-                                                Sets.newLinkedHashSet(),
-                                                Integer.MIN_VALUE,
-                                                Integer.MIN_VALUE,
-                                                Sets.newLinkedHashSet(),
-                                                Sets.newLinkedHashSet(),
-                                                cfgNode.getReach(),
-                                                cfgNode.getReachOut()));
-                                sgNodes.put(index + shift, sgReturnSiteNode);
-                                sgReturnSiteNodeMap.put(sgCallNode, sgReturnSiteNode);
-                                sgReturnSiteIndexMap.put(sgCallNodeIdx, index + shift);
-
-                                // Connect exit and return site node
-                                sgEdges.put(index + shift - 1, index + shift);
-
-                                // Connect call and return site node
-//                                sgEdges.put(sgCallNodeIdx, index + shift);
-
-                                // Connect return site node with next node
-                                sgEdges.put(index + shift, index + shift + 1);
-                                shift++;
-
-                                // Set indices in all relevant nodes
-                                sgCallNode.setEntryNodeIdx(sgEntryNodeIdx);
-                                sgCallNode.setExitNodeIdx(sgExitNodeIdx);
-                                sgCallNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
-
-                                sgEntryNode.setCallNodeIdx(sgCallNodeIdx);
-                                sgEntryNode.setExitNodeIdx(sgExitNodeIdx);
-                                sgEntryNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
-
-                                sgExitNode.setCallNodeIdx(sgCallNodeIdx);
-                                sgExitNode.setEntryNodeIdx(sgEntryNodeIdx);
-                                sgExitNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
-
-                                sgReturnSiteNode.setCallNodeIdx(sgCallNodeIdx);
-                                sgReturnSiteNode.setEntryNodeIdx(sgEntryNodeIdx);
-                                sgReturnSiteNode.setExitNodeIdx(sgExitNodeIdx);
-
-                                // Search for jump nodes in sg and update second edge by shift
-                                for (int i = 0; i < index; i++) {
-                                    SGNode sgNode = sgNodes.get(i);
-                                    if (JUMP_OPCODES.contains(sgNode.getOpcode())) {
-                                        List<Integer> targets = new ArrayList<>(sgEdges.get(i));
-                                        for (Integer target : targets) {
-                                            boolean jumpGtOne = target - i > 1;
-                                            boolean jumpGtIndex = target > sgCallNodeIdx;
-                                            if (jumpGtOne && jumpGtIndex) {
-                                                sgEdges.remove(i, target);
-                                                sgEdges.put(i, target + calledSG.getNodes().size());
-                                            }
-                                        }
-                                    }
-                                }
-                                System.out.println();
+                        // Create domain variable mapping
+                        Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
+                        BiMap<DomainVariable, DomainVariable> dVarMap = HashBiMap.create();
+                        for (Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
+                            if (cEntry.getValue().getIndex() != 0) {
+                                dVarMap.put(cEntry.getValue(), calledMethodData.getCfg().getDomain().get(cEntry.getKey()));
                             }
                         }
+
+                        sgCallNode.getPVarMap().putAll(pVarMap);
+                        sgCallNode.getDVarMap().putAll(dVarMap);
                     }
                 } else {
-                    // Add call node
-                    SGCallNode sgCallNode = new SGCallNode(index + shift, (CFGCallNode) cfgNode);
-                    sgNodes.put(index + shift, sgCallNode);
-                    int finalShift = shift;
-                    List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
-                    sgEdges.putAll(index + shift, edges);
-                    index++;
+                    this.addSGNode(new SGNode(index, cfgNode), targets);
                 }
-            } else {
-                sgNodes.put(index + shift, new SGNode(index + shift, cfgNode));
-                int finalShift = shift;
-                List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
-                sgEdges.putAll(index + shift, edges);
-                index++;
+            }
+
+            this.addPredSuccRelation(sgNodes, sgEdges);
+
+            if(log.isDebugEnabled()) {
+                // Log all relative paths of files in the classpath
+                File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
+                try (FileWriter writer = new FileWriter(transformFile, true)) {
+                    writer.write("Class: " + cData.getClassMetaData().getClassFileRel() + "\n");
+                    writer.write("Method: " + internalMethodName);
+                    writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
+                    if(mData.getCfg() != null) {
+                        writer.write(JDFCUtils.prettyPrintMap(sgNodes));
+                        writer.write(JDFCUtils.prettyPrintMultimap(sgEdges));
+                    }
+                    writer.write("\n");
+                    writer.write("\n");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+
+            return new SG(
+                    cData.getClassMetaData().getClassFileRel(),
+                    internalMethodName,
+                    cfgMap,
+                    sgNodes,
+                    sgEdges,
+                    sgReturnSiteNodeMap,
+                    sgReturnSiteIndexMap,
+                    sgCallersMap);
+        }
+
+        private void pushNodes(Map<Integer, CFGNode> cfgNodes) {
+            for (int i = cfgNodes.size() - 1; i > -1; i--) {
+                nodeStack.push(new AbstractMap.SimpleImmutableEntry<>(i, cfgNodes.get(i)));
             }
         }
 
-        this.addPredSuccRelation(sgNodes, sgEdges);
+        private void addCFG(MethodData methodData) {
+            this.cfgMap.put(methodData.buildInternalMethodName(), methodData.getCfg());
+            this.pushNodes(methodData.getCfg().getNodes());
+        }
 
-        if(log.isDebugEnabled()) {
-            // Log all relative paths of files in the classpath
-            File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
-            try (FileWriter writer = new FileWriter(transformFile, true)) {
-                writer.write("Class: " + cData.getClassMetaData().getClassFileRel() + "\n");
-                writer.write("Method: " + internalMethodName);
-                writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
-                if(mData.getCfg() != null) {
-                    writer.write(JDFCUtils.prettyPrintMap(sgNodes));
-                    writer.write(JDFCUtils.prettyPrintMultimap(sgEdges));
-                }
-                writer.write("\n");
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
+        private void addSGNode(SGNode sgNode, Collection<Integer> targets) {
+            sgNodes.put(index, sgNode);
+//            List<Integer> edges;
+//            if(indexShiftStack.isEmpty()) {
+//                edges = targets.stream().map(x -> x + addedNodesSum).collect(Collectors.toList());
+//            } else {
+//                edges = targets.stream().map(x -> x + indexShiftStack.peek() + addedNodesSum).collect(Collectors.toList());
+//            }
+//            sgEdges.putAll(index, edges);
+            index++;
+        }
+
+        private Collection<Integer> getEdgeTargets(int cfgIndex, String internalMethodName) {
+            return this.cfgMap.get(internalMethodName).getEdges().get(cfgIndex);
+        }
+
+        private void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
+            for (Map.Entry<Integer, Integer> edge : edges.entries()) {
+                final SGNode first = nodes.get(edge.getKey());
+                final SGNode second = nodes.get(edge.getValue());
+                first.getSucc().add(second);
+                second.getPred().add(first);
             }
-        }
-
-        return new SG(
-                cData.getClassMetaData().getClassFileRel(),
-                internalMethodName,
-                cfgMap,
-                sgNodes,
-                sgEdges,
-                sgReturnSiteNodeMap,
-                sgReturnSiteIndexMap,
-                sgCallersMap);
-    }
-
-    private void updateCFGIndices(int index, NavigableMap<Integer, CFGNode> cfgNodesCopy, Multimap<Integer, Integer> cfgEdgesCopy) {
-        // Copy cfg nodes
-        NavigableMap<Integer, CFGNode> tempNodes = Maps.newTreeMap();
-        tempNodes.putAll(cfgNodesCopy);
-        cfgNodesCopy.clear();
-
-        // Put cfg nodes with updated sg index
-        for(Map.Entry<Integer, CFGNode> entry : tempNodes.entrySet()) {
-            cfgNodesCopy.put(entry.getKey()+ index, entry.getValue());
-        }
-
-        // Copy edges
-        Multimap<Integer, Integer> tempEdges = ArrayListMultimap.create();
-        tempEdges.putAll(cfgEdgesCopy);
-        cfgEdgesCopy.clear();
-
-        // Put edges
-        for(Map.Entry<Integer, Integer> entry : tempEdges.entries()) {
-            cfgEdgesCopy.put(entry.getKey()+ index, entry.getValue()+ index);
-        }
-    }
-
-    private void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
-        for (Map.Entry<Integer, Integer> edge : edges.entries()) {
-            final SGNode first = nodes.get(edge.getKey());
-            final SGNode second = nodes.get(edge.getValue());
-            first.getSucc().add(second);
-            second.getPred().add(first);
         }
     }
 }

@@ -8,23 +8,21 @@ import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
 import utils.JDFCUtils;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 @Data
 public class SGEntryNode extends SGNode {
 
-    private BiMap<ProgramVariable, ProgramVariable> useDefMap;
-    private Map<DomainVariable, DomainVariable> dVarMap;
+    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
+    private BiMap<DomainVariable, DomainVariable> dVarMap;
     private int callNodeIdx;
     private int exitNodeIdx;
     private int returnSiteNodeIdx;
 
     public SGEntryNode(int index, CFGNode node) {
         super(index, node);
-        this.useDefMap = HashBiMap.create();
-        this.dVarMap = new HashMap<>();
+        this.pVarMap = HashBiMap.create();
+        this.dVarMap = HashBiMap.create();
     }
 
     @Override
