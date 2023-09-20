@@ -52,6 +52,10 @@ public class ProgramVariable implements Comparable<Object>, Serializable {
        }
     }
 
+    public String buildClassNodeName() {
+        return this.className.replace(".", "/");
+    }
+
     @Override
     public String toString() {
         try {

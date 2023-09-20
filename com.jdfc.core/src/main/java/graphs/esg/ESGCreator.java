@@ -40,7 +40,7 @@ public class ESGCreator {
     private NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> CALLEE_TO_CALLER_DEFINITION_MAP;
 
     public void createESGsForClass(ClassData cData) {
-        MAIN_METHOD_CLASS_NAME = cData.getClassMetaData().getClassFileRel();
+        MAIN_METHOD_CLASS_NAME = cData.getClassMetaData().getClassNodeName();
         for(MethodData mData : cData.getMethodDataFromStore().values()) {
             METHOD_DATA = mData;
             SUPER_GRAPH = mData.getSg();
@@ -184,16 +184,18 @@ public class ESGCreator {
                 ));
             }
         } else if (sgNode instanceof SGExitNode) {
-            ProgramVariable m = CALLEE_TO_CALLER_DEFINITION_MAP.get(sgNode.getIndex()).get(pVar);
-            if(m != null) {
-                edges.add(new ESGEdge(
-                        sgNode.getIndex(),
-                        sgTargetNode.getIndex(),
-                        sgNodeMId,
-                        sgTargetNodeMId,
-                        pVar,
-                        m
-                ));
+            if(CALLEE_TO_CALLER_DEFINITION_MAP.get(sgNode.getIndex()) != null) {
+                ProgramVariable m = CALLEE_TO_CALLER_DEFINITION_MAP.get(sgNode.getIndex()).get(pVar);
+                if(m != null) {
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            sgNodeMId,
+                            sgTargetNodeMId,
+                            pVar,
+                            m
+                    ));
+                }
             }
         } else {
             ProgramVariable newDef = findMatch(sgNode.getDefinitions(), pVar);
@@ -369,7 +371,7 @@ public class ESGCreator {
         if(sgNode instanceof SGCallNode) {
             SGCallNode sgCallNode = (SGCallNode) sgNode;
             String calledMethodId = this.buildMethodIdentifier(sgCallNode.getCalledClassName(), sgCallNode.getCalledMethodName());
-            String pVarMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+            String pVarMId = this.buildMethodIdentifier(pVar.buildClassNodeName(), pVar.getMethodName());
             if(Objects.equals(calledMethodId, pVarMId)) {
                 if(!sgCallNode.getUseDefMap().containsValue(pVar)
                     && sgTargetNode.getDefinitions().contains(pVar)) {
@@ -397,7 +399,7 @@ public class ESGCreator {
         }
         else if (sgNode instanceof SGEntryNode) {
             if(LIVE_VARIABLES.get(pVar)) {
-                String pVarMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                String pVarMId = this.buildMethodIdentifier(pVar.buildClassNodeName(), pVar.getMethodName());
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -410,7 +412,7 @@ public class ESGCreator {
         }
         else if (sgNode instanceof SGExitNode) {
             if(LIVE_VARIABLES.get(pVar)) {
-                String pVarMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                String pVarMId = this.buildMethodIdentifier(pVar.buildClassNodeName(), pVar.getMethodName());
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -422,7 +424,7 @@ public class ESGCreator {
             }
         }
         else if (sgNode instanceof SGReturnSiteNode) {
-            String pVarMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+            String pVarMId = this.buildMethodIdentifier(pVar.buildClassNodeName(), pVar.getMethodName());
             edges.add(new ESGEdge(
                     sgNode.getIndex(),
                     sgTargetNode.getIndex(),
@@ -434,7 +436,7 @@ public class ESGCreator {
         }
         else {
             if(LIVE_VARIABLES.get(pVar)) {
-                String pVarMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                String pVarMId = this.buildMethodIdentifier(pVar.buildClassNodeName(), pVar.getMethodName());
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -487,6 +489,9 @@ public class ESGCreator {
     }
 
     public ESG createESGForMethod() {
+        if (MAIN_METHOD_NAME.equals("defineA: ()V;") || MAIN_METHOD_NAME.contains("defineB")) {
+            System.out.println();
+        }
         //--- CREATE DOMAIN --------------------------------------------------------------------------------------------
         Map<String, Map<UUID, ProgramVariable>> domain = createDomain();
 
@@ -494,7 +499,7 @@ public class ESGCreator {
         debugDomain(ImmutableMap.copyOf(domain));
 
         //--- CREATE NODES ---------------------------------------------------------------------------------------------
-        NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> esgNodes = createESGNode(ImmutableMap.copyOf(domain));
+        NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> esgNodes = createESGNodes(ImmutableMap.copyOf(domain));
 
         // --- DEBUG NODES ---------------------------------------------------------------------------------------------
         debugNodes(esgNodes);
@@ -653,7 +658,7 @@ public class ESGCreator {
         }
     }
 
-    public NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> createESGNode(Map<String, Map<UUID, ProgramVariable>> domain) {
+    public NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> createESGNodes(Map<String, Map<UUID, ProgramVariable>> domain) {
         NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> esgNodes = Maps.newTreeMap();
 
         // create nodes for SG nodes

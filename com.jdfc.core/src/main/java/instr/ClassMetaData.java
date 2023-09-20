@@ -17,6 +17,7 @@ public class ClassMetaData implements Serializable {
     private String classFileRel;
     private String classFileRelNoType;
     private String classFilePackageRel;
+    private String classNodeName;
     private String sourceFileAbs;
     private String sourceFileRel;
     private File sourceFile;
@@ -33,6 +34,7 @@ public class ClassMetaData implements Serializable {
         this.classFileRel = classFileAbs.replace(classesDirAbs, "");
         this.classFilePackageRel = classFileRel.replace(classFile.getName(), "").replaceAll("/$", "");
         this.classFileRelNoType = classFileRel.split("\\.")[0].replace(File.separator, "/");
+        this.classNodeName = classFileRel.split("\\.")[0].replace(File.separator, "/").substring(1);
         if (isInnerClass) {
             this.sourceFileRel = convertPath(classFileRel.replace(".class", ".java"));
         } else {

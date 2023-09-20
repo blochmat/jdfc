@@ -34,56 +34,37 @@ public class SGCreator {
                                          Map<String, CFG> cfgMap,
                                          int startIndex,
                                          List<String> callSequence) {
-        String internalMethodName = mData.buildInternalMethodName();
-        cfgMap.put(internalMethodName, mData.getCfg());
-        NavigableMap<Integer, CFGNode> localCfgNodes = Maps.newTreeMap(mData.getCfg().getNodes());
-        Multimap<Integer, Integer> localCfgEdges = ArrayListMultimap.create(mData.getCfg().getEdges());
-
+        // setup sg structures for method
         NavigableMap<Integer, SGNode> sgNodes = Maps.newTreeMap();
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
-
-        // returnSite
+        // keep track of callers
+        Multimap<String, SGCallNode> sgCallersMap = ArrayListMultimap.create();
+        // keep track of return sites
         Map<SGCallNode, SGReturnSiteNode> sgReturnSiteNodeMap = new HashMap<>();
         Map<Integer, Integer> sgReturnSiteIndexMap = new HashMap<>();
-
-        // callers
-        Multimap<String, SGCallNode> sgCallersMap = ArrayListMultimap.create();
-
+        // setup index and shift for sg creation
         int index = startIndex; // increase for node from own cfg
         int shift = 0; // increase for node from other cfg
 
+        // Put current cfg into map and copy nodes and edges
+        String internalMethodName = mData.buildInternalMethodName();
+        cfgMap.put(internalMethodName, mData.getCfg());
+        NavigableMap<Integer, CFGNode> cfgNodesCopy = Maps.newTreeMap(mData.getCfg().getNodes());
+        Multimap<Integer, Integer> cfgEdgesCopy = ArrayListMultimap.create(mData.getCfg().getEdges());
         if (index != 0) {
             // we are in a called procedure and need to update all indexes according to the start index
-            // Copy cfg nodes
-            NavigableMap<Integer, CFGNode> tempNodes = Maps.newTreeMap();
-            tempNodes.putAll(localCfgNodes);
-            localCfgNodes.clear();
-
-            // Put cfg nodes with updated sg index
-            for(Map.Entry<Integer, CFGNode> entry : tempNodes.entrySet()) {
-                localCfgNodes.put(entry.getKey()+index, entry.getValue());
-            }
-
-            // Copy edges
-            Multimap<Integer, Integer> tempEdges = ArrayListMultimap.create();
-            tempEdges.putAll(localCfgEdges);
-            localCfgEdges.clear();
-
-            // Put edges
-            for(Map.Entry<Integer, Integer> entry : tempEdges.entries()) {
-                localCfgEdges.put(entry.getKey()+index, entry.getValue()+index);
-            }
+            this.updateCFGIndices(index, cfgNodesCopy, cfgEdgesCopy);
         }
 
         // iterate though local cfg and create according sg nodes
-        for(Map.Entry<Integer, CFGNode> nodeEntry : localCfgNodes.entrySet()) {
+        for(Map.Entry<Integer, CFGNode> nodeEntry : cfgNodesCopy.entrySet()) {
             Integer cfgNodeIdx = nodeEntry.getKey();
             CFGNode cfgNode = nodeEntry.getValue();
 
             if (cfgNode instanceof CFGEntryNode) {
                 sgNodes.put(index + shift, new SGEntryNode(index + shift, cfgNode));
                 int finalShift = shift;
-                List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
+                List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
                 index++;
             } else if (cfgNode instanceof CFGExitNode) {
@@ -92,7 +73,7 @@ public class SGCreator {
                 int finalShift = shift;
 //                domainVarMap.computeIfAbsent(sgExitNode.getIndex(), k -> HashBiMap.create());
 //                domainVarMap.get(sgExitNode.getIndex()).put(cEntry.getValue().getIndex(), cEntry.getKey());
-                List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
+                List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
                 index++;
             } else if (cfgNode instanceof CFGCallNode) {
@@ -136,7 +117,7 @@ public class SGCreator {
 
                             // Connect call and entry node
                             int finalShift = shift;
-                            List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
+                            List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                             sgEdges.putAll(index + shift, edges);
                             index++;
 
@@ -182,7 +163,7 @@ public class SGCreator {
                                 SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                         index + shift,
                                         new CFGNode(
-                                                cData.getClassMetaData().getClassFileRel(),
+                                                cData.getClassMetaData().getClassNodeName(),
                                                 internalMethodName,
                                                 Sets.newLinkedHashSet(),
                                                 Sets.newLinkedHashSet(),
@@ -230,14 +211,14 @@ public class SGCreator {
                     SGCallNode sgCallNode = new SGCallNode(index + shift, (CFGCallNode) cfgNode);
                     sgNodes.put(index + shift, sgCallNode);
                     int finalShift = shift;
-                    List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
+                    List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                     sgEdges.putAll(index + shift, edges);
                     index++;
                 }
             } else {
                 sgNodes.put(index + shift, new SGNode(index + shift, cfgNode));
                 int finalShift = shift;
-                List<Integer> edges = localCfgEdges.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
+                List<Integer> edges = cfgEdgesCopy.get(cfgNodeIdx).stream().map(x -> x + finalShift).collect(Collectors.toList());
                 sgEdges.putAll(index + shift, edges);
                 index++;
             }
@@ -272,6 +253,28 @@ public class SGCreator {
                 sgReturnSiteNodeMap,
                 sgReturnSiteIndexMap,
                 sgCallersMap);
+    }
+
+    private void updateCFGIndices(int index, NavigableMap<Integer, CFGNode> cfgNodesCopy, Multimap<Integer, Integer> cfgEdgesCopy) {
+        // Copy cfg nodes
+        NavigableMap<Integer, CFGNode> tempNodes = Maps.newTreeMap();
+        tempNodes.putAll(cfgNodesCopy);
+        cfgNodesCopy.clear();
+
+        // Put cfg nodes with updated sg index
+        for(Map.Entry<Integer, CFGNode> entry : tempNodes.entrySet()) {
+            cfgNodesCopy.put(entry.getKey()+ index, entry.getValue());
+        }
+
+        // Copy edges
+        Multimap<Integer, Integer> tempEdges = ArrayListMultimap.create();
+        tempEdges.putAll(cfgEdgesCopy);
+        cfgEdgesCopy.clear();
+
+        // Put edges
+        for(Map.Entry<Integer, Integer> entry : tempEdges.entries()) {
+            cfgEdgesCopy.put(entry.getKey()+ index, entry.getValue()+ index);
+        }
     }
 
     private void addPredSuccRelation(NavigableMap<Integer, SGNode> nodes, Multimap<Integer, Integer> edges) {
