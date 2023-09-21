@@ -29,14 +29,16 @@ public class SGExitNode extends SGNode {
 
     @Override
     public String toString() {
-        return String.format(
-                "SGExitNode: %s %s %d %s (%d preds, %d succs)",
-                this.getClassName(),
-                this.getMethodName(),
-                this.getInsnIndex(),
-                JDFCUtils.getOpcode(this.getOpcode()),
-                this.getPred().size(),
-                this.getSucc().size());
+        return String.format("%d:%d SGExitNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                getIndex(),
+                getCfgIndex(),
+                getLineNumber(),
+                getInsnIndex(),
+                JDFCUtils.getOpcode(getOpcode()),
+                getClassName(),
+                getMethodName(),
+                getPred().size(),
+                getSucc().size());
     }
 
     @Override
@@ -45,6 +47,7 @@ public class SGExitNode extends SGNode {
         if (o == null || getClass() != o.getClass()) return false;
         SGExitNode that = (SGExitNode) o;
         return getIndex() == that.getIndex()
+                && getLineNumber() == that.getLineNumber()
                 && getCfgIndex() == that.getCfgIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()

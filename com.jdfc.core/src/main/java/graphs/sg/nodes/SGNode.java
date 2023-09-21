@@ -21,6 +21,7 @@ public class SGNode {
     private int opcode;
     private String className;
     private String methodName;
+    private int lineNumber;
     private Set<ProgramVariable> definitions;
     private Set<ProgramVariable> uses;
     private Set<SGNode> pred;
@@ -45,8 +46,16 @@ public class SGNode {
 
     @Override
     public String toString() {
-        return String.format("SGNode: %s %s %d %s (%d preds, %d succs)",
-                className, methodName, insnIndex, JDFCUtils.getOpcode(opcode), pred.size(), succ.size());
+        return String.format("%d:%d SGNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                index,
+                cfgIndex,
+                lineNumber,
+                insnIndex,
+                JDFCUtils.getOpcode(opcode),
+                className,
+                methodName,
+                pred.size(),
+                succ.size());
     }
 
     @Override
@@ -59,7 +68,8 @@ public class SGNode {
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
-                && Objects.equals(getMethodName(), that.getMethodName());
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && getLineNumber() == that.getLineNumber();
     }
 
     @Override
@@ -70,7 +80,8 @@ public class SGNode {
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),
-                getMethodName());
+                getMethodName(),
+                getLineNumber());
     }
 
     public Set<ProgramVariable> getCfgReach() {

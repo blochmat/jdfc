@@ -33,32 +33,20 @@ public class SGCallNode extends SGNode {
         this.dVarMap = HashBiMap.create();
     }
 
-    public SGCallNode(int index,
-                      int cfgIndex,
-                      CFGCallNode node,
-                      BiMap<ProgramVariable, ProgramVariable> pVarMap,
-                      BiMap<DomainVariable, DomainVariable> dVarMap) {
-        super(index, cfgIndex, node);
-        this.calledClassName = node.getCalledClassName();
-        this.calledMethodName = node.getCalledMethodName();
-        this.isInterface = node.isCalledIsInterface();
-        this.isCalledSGPresent = true;
-        this.pVarMap = pVarMap;
-        this.dVarMap = dVarMap;
-    }
-
     @Override
     public String toString() {
-        return String.format(
-                "SGCallNode: %s %s %d %s %s %s (%d preds, %d succs)",
-                this.getClassName(),
-                this.getMethodName(),
-                this.getInsnIndex(),
-                JDFCUtils.getOpcode(this.getOpcode()),
-                this.getCalledClassName(),
-                this.getCalledMethodName(),
-                this.getPred().size(),
-                this.getSucc().size());
+        return String.format("%d:%d SGCallNode: lio(%d,%d,%s) (%s::%s) (%s::%s) ps(%d,%d)",
+                getIndex(),
+                getCfgIndex(),
+                getLineNumber(),
+                getInsnIndex(),
+                JDFCUtils.getOpcode(getOpcode()),
+                getClassName(),
+                getMethodName(),
+                getCalledClassName(),
+                getCalledMethodName(),
+                getPred().size(),
+                getSucc().size());
     }
 
     @Override
@@ -68,6 +56,7 @@ public class SGCallNode extends SGNode {
         if (!super.equals(o)) return false;
         SGCallNode that = (SGCallNode) o;
         return getIndex() == that.getIndex()
+                && getLineNumber() == that.getLineNumber()
                 && getCfgIndex() == that.getCfgIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
@@ -83,6 +72,7 @@ public class SGCallNode extends SGNode {
     public int hashCode() {
         return Objects.hash(
                 getIndex(),
+                getLineNumber(),
                 getCfgIndex(),
                 getInsnIndex(),
                 getOpcode(),
