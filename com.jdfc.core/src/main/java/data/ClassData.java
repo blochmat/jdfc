@@ -25,12 +25,6 @@ public class ClassData extends ExecutionData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-//    private transient CompilationUnit srcFileAst;
-
-//    private transient PackageDeclaration pkgDecl;
-
-//    private transient List<ImportDeclaration> impDeclList;
-
     private transient ClassOrInterfaceDeclaration ciDecl;
 
     private UUID id;
