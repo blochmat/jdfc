@@ -1,0 +1,15 @@
+ThreadName: main, ThreadId: 12023-09-21 15:19:02 - {
+  0 => CFGEntryNode: -2147483648 UNKNOWN_OPCODE (0 preds, 1 succs)
+  1 => CFGNode: 0 ALOAD com/jdfc/Calculator <init>: ()V; (1 preds, 1 succs)
+  2 => CFGNode: 1 INVOKESPECIAL com/jdfc/Calculator <init>: ()V; (1 preds, 1 succs)
+  3 => CFGNode: 2 RETURN com/jdfc/Calculator <init>: ()V; (1 preds, 1 succs)
+  4 => CFGExitNode: -2147483648 UNKNOWN_OPCODE (1 preds, 0 succs)
+}
+
+ThreadName: main, ThreadId: 12023-09-21 15:19:02 - {
+  0 => [1, ]
+  1 => [2, ]
+  2 => [3, ]
+  3 => [4, ]
+}
+

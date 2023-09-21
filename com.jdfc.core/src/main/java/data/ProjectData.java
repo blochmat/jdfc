@@ -40,7 +40,7 @@ public class ProjectData implements Serializable {
     private final Map<String, ClassMetaData> classMetaDataMap;
     private final Map<UUID, ClassData> classDataMap;
     private final Map<UUID, MethodData> methodDataMap;
-    private final Map<UUID, DefUsePair> defUsePairMap;
+    private final Map<UUID, PairData> defUsePairMap;
     private final Map<UUID, ProgramVariable> programVariableMap;
     private final Set<String> coveredPVarIds;
 
@@ -50,7 +50,7 @@ public class ProjectData implements Serializable {
     private final Set<String> untestedClassList;
 
     private static final Class<?> deserializerClass = Deserializer.class;
-    private static final Class<?> defUsePairClass = DefUsePair.class;
+    private static final Class<?> defUsePairClass = PairData.class;
     private static final Class<?> programVariableClass = ProgramVariable.class;
     private static final Class<?> localVariableClass = LocalVariable.class;
     private static final Class<?> cfgClass = CFG.class;

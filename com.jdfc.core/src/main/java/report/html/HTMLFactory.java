@@ -366,7 +366,7 @@ public class HTMLFactory {
                         // is a variable present in the data
 
                         // check if associated uses or defs are covered and highlight
-                        Set<DefUsePair> pairSet = getDefUsePairsCoveredForVar(mData, programVariable);
+                        Set<PairData> pairSet = getDefUsePairsCoveredForVar(mData, programVariable);
                         String backgroundColor = getVariableBackgroundColor(programVariable.getIsCovered(), pairSet);
                         divTagLine.getContent().add(
                                 createVariableInformation(pClassFile, pClassName, pairSet, programVariable, backgroundColor));
@@ -732,7 +732,7 @@ public class HTMLFactory {
 
     private HTMLElement createVariableInformation(final File cFile,
                                                   final String cName,
-                                                  final Set<DefUsePair> pairs,
+                                                  final Set<PairData> pairs,
                                                   final ProgramVariable var,
                                                   final String color) {
         HTMLElement variableSpan = createVariableSpan(var, color);
@@ -757,7 +757,7 @@ public class HTMLFactory {
 
     private HTMLElement createVariableTooltipContent(final File cFile,
                                                      final String cName,
-                                                     final Set<DefUsePair> pairs,
+                                                     final Set<PairData> pairs,
                                                      final ProgramVariable var) {
         // Is var def / use / both?
         boolean isDefinition = isDefinition(var, pairs);
@@ -800,7 +800,7 @@ public class HTMLFactory {
     private HTMLElement createTabInfoTable(final File cFile,
                                            final String cName,
                                            final ProgramVariable var,
-                                           final Set<DefUsePair> pairs,
+                                           final Set<PairData> pairs,
                                            final boolean isDefTab) {
         HTMLElement row = HTMLElement.tr();
         HTMLElement cell = HTMLElement.td();
@@ -936,10 +936,10 @@ public class HTMLFactory {
         return row;
     }
 
-    private Set<ProgramVariable> extractsAssociates(final Set<DefUsePair> pairs,
+    private Set<ProgramVariable> extractsAssociates(final Set<PairData> pairs,
                                                     final ProgramVariable var) {
         Set<ProgramVariable> result = new HashSet<>();
-        for (DefUsePair element : pairs) {
+        for (PairData element : pairs) {
             ProgramVariable def = ProjectData.getInstance().getProgramVariableMap().get(element.getDefId());
             if (!def.equals(var)) {
                 result.add(def);
@@ -1040,10 +1040,10 @@ public class HTMLFactory {
         return Arrays.asList(TYPE_KEYWORDS).contains(pWord);
     }
 
-    private String getVariableBackgroundColor(boolean pIsVarCovered, Set<DefUsePair> pairSet) {
-        if (!pIsVarCovered || pairSet.size() == 0 || pairSet.stream().noneMatch(DefUsePair::isCovered)) {
+    private String getVariableBackgroundColor(boolean pIsVarCovered, Set<PairData> pairSet) {
+        if (!pIsVarCovered || pairSet.size() == 0 || pairSet.stream().noneMatch(PairData::isCovered)) {
             return "red";
-        } else if (pairSet.stream().allMatch(DefUsePair::isCovered)) {
+        } else if (pairSet.stream().allMatch(PairData::isCovered)) {
             return "green";
         } else {
             return "yellow";
@@ -1092,7 +1092,7 @@ public class HTMLFactory {
     }
 
     private boolean isRedefined(MethodData mData, int pLineNumber, String pName) {
-        for (DefUsePair pair : mData.getDUPairsFromStore().values()) {
+        for (PairData pair : mData.getDUPairsFromStore().values()) {
             ProgramVariable def = ProjectData.getInstance().getProgramVariableMap().get(pair.getDefId());
             // if another definition with the same name, but greater line number exists and
             // the current variable is not part of an active pair we know, that it must have been redefined
@@ -1104,18 +1104,18 @@ public class HTMLFactory {
         return false;
     }
 
-    private boolean isDefinition(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
-        for (DefUsePair defUsePair : pDefUsePairs) {
-            if (ProjectData.getInstance().getProgramVariableMap().get(defUsePair.getDefId()).equals(pVariable)) {
+    private boolean isDefinition(ProgramVariable pVariable, Set<PairData> pPairData) {
+        for (PairData pairData : pPairData) {
+            if (ProjectData.getInstance().getProgramVariableMap().get(pairData.getDefId()).equals(pVariable)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isUsage(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
-        for (DefUsePair defUsePair : pDefUsePairs) {
-            if (ProjectData.getInstance().getProgramVariableMap().get(defUsePair.getUseId()).equals(pVariable)) {
+    private boolean isUsage(ProgramVariable pVariable, Set<PairData> pPairData) {
+        for (PairData pairData : pPairData) {
+            if (ProjectData.getInstance().getProgramVariableMap().get(pairData.getUseId()).equals(pVariable)) {
                 return true;
             }
         }
@@ -1123,9 +1123,9 @@ public class HTMLFactory {
     }
 
     // find all uses for one particular definition
-    private Set<DefUsePair> getDefUsePairsCoveredForVar(MethodData mData, ProgramVariable pVariable) {
-        Set<DefUsePair> result = new HashSet<>();
-        for (DefUsePair element : mData.getDUPairsFromStore().values()) {
+    private Set<PairData> getDefUsePairsCoveredForVar(MethodData mData, ProgramVariable pVariable) {
+        Set<PairData> result = new HashSet<>();
+        for (PairData element : mData.getDUPairsFromStore().values()) {
                 if (ProjectData.getInstance().getProgramVariableMap().get(element.getDefId()).equals(pVariable)
                         || ProjectData.getInstance().getProgramVariableMap().get(element.getUseId()).equals(pVariable)) {
                     result.add(element);

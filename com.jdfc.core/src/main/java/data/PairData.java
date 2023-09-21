@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DefUsePair implements Serializable {
+public class PairData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -24,11 +24,11 @@ public class DefUsePair implements Serializable {
     private UUID useId;
     private boolean isCovered;
 
-    public DefUsePair(UUID id,
-                      String className,
-                      String methodName,
-                      UUID defId,
-                      UUID useId) {
+    public PairData(UUID id,
+                    String className,
+                    String methodName,
+                    UUID defId,
+                    UUID useId) {
         this.id = id;
         this.className = className;
         this.methodName = methodName;
@@ -58,7 +58,7 @@ public class DefUsePair implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DefUsePair pair = (DefUsePair) o;
+        PairData pair = (PairData) o;
         return isCovered() == pair.isCovered()  && Objects.equals(getDefId(), pair.getDefId()) && Objects.equals(getUseId(), pair.getUseId());
     }
 

@@ -50,7 +50,7 @@ public class ReportGenerator {
     }
 
     private void computePairCoverage() {
-        for (DefUsePair pair : ProjectData.getInstance().getDefUsePairMap().values()) {
+        for (PairData pair : ProjectData.getInstance().getDefUsePairMap().values()) {
             boolean defIsCovered = ProjectData.getInstance().getProgramVariableMap().get(pair.getDefId()).getIsCovered();
             boolean useIsCovered = ProjectData.getInstance().getProgramVariableMap().get(pair.getUseId()).getIsCovered();
             pair.setCovered(defIsCovered && useIsCovered);
@@ -61,7 +61,7 @@ public class ReportGenerator {
         for (MethodData methodData : ProjectData.getInstance().getMethodDataMap().values()) {
             int total = methodData.getDUPairsFromStore().size();
             int covered = methodData.getDUPairsFromStore().values().stream()
-                    .filter(DefUsePair::isCovered)
+                    .filter(PairData::isCovered)
                     .collect(Collectors.toSet()).size();
             double ratio = 0;
             if(total != 0) {

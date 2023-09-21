@@ -195,7 +195,7 @@ public class MethodData implements Serializable {
 
     public void computeCoverageMetadata() {
         this.total = duPairIds.size();
-        this.covered = (int) this.getDUPairsFromStore().values().stream().filter(DefUsePair::isCovered).count();
+        this.covered = (int) this.getDUPairsFromStore().values().stream().filter(PairData::isCovered).count();
         if (total != 0) {
             this.ratio = (double) covered / total;
         }
@@ -225,16 +225,16 @@ public class MethodData implements Serializable {
         return pVars;
     }
 
-    public Map<UUID, DefUsePair> getDUPairsFromStore() {
-        Map<UUID, DefUsePair> pVars = new HashMap<>();
+    public Map<UUID, PairData> getDUPairsFromStore() {
+        Map<UUID, PairData> pVars = new HashMap<>();
         for(UUID id: this.duPairIds) {
             pVars.put(id, ProjectData.getInstance().getDefUsePairMap().get(id));
         }
         return pVars;
     }
 
-    public DefUsePair findDefUsePair(DefUsePair pair) {
-        for(DefUsePair p : this.getDUPairsFromStore().values()) {
+    public PairData findDefUsePair(PairData pair) {
+        for(PairData p : this.getDUPairsFromStore().values()) {
             if (p.getDefId().equals(pair.getDefId()) && p.getUseId().equals(pair.getUseId())) {
                 return p;
             }
@@ -256,7 +256,7 @@ public class MethodData implements Serializable {
                         UUID id = UUID.randomUUID();
                         this.duPairIds.add(id);
                         ProjectData.getInstance().getDefUsePairMap()
-                                .put(id, new DefUsePair(
+                                .put(id, new PairData(
                                         id,
                                         this.className,
                                         this.buildInternalMethodName(),
@@ -282,7 +282,7 @@ public class MethodData implements Serializable {
      * @return
      */
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
-        for (DefUsePair pair : this.getDUPairsFromStore().values()) {
+        for (PairData pair : this.getDUPairsFromStore().values()) {
             ProgramVariable def = ProjectData.getInstance().getProgramVariableMap().get(pair.getDefId());
             ProgramVariable use = ProjectData.getInstance().getProgramVariableMap().get(pair.getUseId());
             if ((def.getName().equals(pName) && def.getLineNumber() == pLineNumber)

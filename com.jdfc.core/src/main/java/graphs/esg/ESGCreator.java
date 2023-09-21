@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.ClassData;
-import data.DefUsePair;
+import data.PairData;
 import data.MethodData;
 import data.ProgramVariable;
 import graphs.esg.nodes.ESGNode;
@@ -112,7 +112,7 @@ public class ESGCreator {
 
     public ProgramVariable findDefMatch(SGCallNode sgNode, ProgramVariable def) {
         List<ProgramVariable> usages = new ArrayList<>();
-        for(DefUsePair pair : METHOD_DATA.getDUPairsFromStore().values()) {
+        for(PairData pair : METHOD_DATA.getDUPairsFromStore().values()) {
             if(Objects.equals(pair.getDefFromStore(), def)) {
                usages.add(pair.getUseFromStore());
             }
@@ -129,7 +129,7 @@ public class ESGCreator {
 
     public ProgramVariable findDefMatch(SGEntryNode sgNode, ProgramVariable def) {
         List<ProgramVariable> usages = new ArrayList<>();
-        for(DefUsePair pair : METHOD_DATA.getDUPairsFromStore().values()) {
+        for(PairData pair : METHOD_DATA.getDUPairsFromStore().values()) {
             if(Objects.equals(pair.getDefFromStore(), def)) {
                 usages.add(pair.getUseFromStore());
             }

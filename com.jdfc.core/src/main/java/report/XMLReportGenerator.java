@@ -104,7 +104,7 @@ public class XMLReportGenerator {
                         Element pairs = doc.createElement("pairs");
                         method.appendChild(pairs);
 
-                        for (DefUsePair pData : mData.getDUPairsFromStore().values()) {
+                        for (PairData pData : mData.getDUPairsFromStore().values()) {
                             ProgramVariable d = ProjectData.getInstance().getProgramVariableMap().get(pData.getDefId());
                             ProgramVariable u = ProjectData.getInstance().getProgramVariableMap().get(pData.getUseId());
 
@@ -132,7 +132,7 @@ public class XMLReportGenerator {
                     clazz.appendChild(pairs);
 
                     int idCounter = 0;
-                    for (DefUsePair pairData : ProjectData.getInstance().getDefUsePairMap().values()) {
+                    for (PairData pairData : ProjectData.getInstance().getDefUsePairMap().values()) {
                         if(cData.getClassMetaData().getFqn().equals(pairData.getClassName())) {
                             Element pair = doc.createElement("pair");
                             pair.setAttribute("id", String.valueOf(idCounter));
