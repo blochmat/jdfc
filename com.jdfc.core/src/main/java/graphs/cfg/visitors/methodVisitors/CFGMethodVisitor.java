@@ -68,6 +68,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 getFrameOpcode(type));
         nodes.put(currentInstructionIndex, node);
@@ -80,6 +81,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 opcode);
         nodes.put(currentInstructionIndex, node);
@@ -95,6 +97,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 opcode);
         nodes.put(currentInstructionIndex, node);
@@ -118,6 +121,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 opcode);
         nodes.put(currentInstructionIndex, node);
@@ -160,6 +164,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                     opcode,
                     classVisitor.classNode.name,
                     internalMethodName,
+                    currentLineNumber,
                     owner,
                     cmData.buildInternalMethodName(),
                     isInterface,
@@ -170,6 +175,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             final CFGNode node = new CFGNode(
                     classVisitor.classNode.name,
                     internalMethodName,
+                    currentLineNumber,
                     currentInstructionIndex,
                     opcode);
             nodes.put(currentInstructionIndex, node);
@@ -271,6 +277,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 INVOKEDYNAMIC);
         JDFCUtils.logThis(String.format("%s %s %s %s %s", "invokedynamic", name, descriptor, bootstrapMethodHandle, Arrays.toString(bootstrapMethodArguments)), "dynamic_insn");
@@ -289,6 +296,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 opcode);
         nodes.put(currentInstructionIndex, node);
@@ -303,6 +311,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 LDC);
         nodes.put(currentInstructionIndex, node);
@@ -327,6 +336,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 TABLESWITCH);
         nodes.put(currentInstructionIndex, node);
@@ -341,6 +351,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 LOOKUPSWITCH);
         nodes.put(currentInstructionIndex, node);
@@ -355,6 +366,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 currentInstructionIndex,
                 MULTIANEWARRAY);
         nodes.put(currentInstructionIndex, node);
@@ -419,6 +431,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             final CFGNode node = new CFGNode(
                     classVisitor.classNode.name,
                     internalMethodName,
+                    currentLineNumber,
                     currentInstructionIndex,
                     F_NEW);
             nodes.put(currentInstructionIndex, node);
@@ -506,6 +519,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        currentLineNumber,
                         Sets.newHashSet(programVariable),
                         Sets.newLinkedHashSet(),
                         insnIdx,
@@ -531,6 +545,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        currentLineNumber,
                         Sets.newLinkedHashSet(),
                         Sets.newHashSet(programVariable),
                         insnIdx,
@@ -540,6 +555,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        currentLineNumber,
                         insnIdx,
                         opcode);
                 break;
@@ -567,6 +583,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        currentLineNumber,
                         Sets.newHashSet(programVariable),
                         Sets.newLinkedHashSet(),
                         insnIdx,
@@ -581,6 +598,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        currentLineNumber,
                         Sets.newLinkedHashSet(),
                         Sets.newHashSet(programVariable),
                         insnIdx,
@@ -590,6 +608,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        currentLineNumber,
                         insnIdx,
                         opcode);
                 break;
@@ -604,6 +623,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        currentLineNumber,
                         Sets.newHashSet(programVariable),
                         Sets.newHashSet(programVariable),
                         pIndex,
@@ -724,6 +744,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode entryNode = new CFGEntryNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 definitions,
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
@@ -741,6 +762,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode exitNode = new CFGExitNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                currentLineNumber,
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
                 Sets.newHashSet(),

@@ -20,15 +20,9 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class CFGNode {
 
-    /**
-     * Name of the method's owner class (relative path).
-     */
     private String className;
-
-    /**
-     * Name of the enclosing method (ASM internal name).
-     */
     private String methodName;
+    private int lineNumber;
     private Set<ProgramVariable> definitions;
     private Set<ProgramVariable> uses;
     private int insnIndex;
@@ -41,44 +35,42 @@ public class CFGNode {
     public CFGNode(
             final String className,
             final String methodName,
-            final int pIndex,
-            final int pOpcode) {
-        this(
-                className,
-                methodName,
-                Sets.newLinkedHashSet(),
-                Sets.newLinkedHashSet(),
-                pIndex,
-                pOpcode,
-                Sets.newLinkedHashSet(),
+            final int lineNumber,
+            final int index,
+            final int opcode) {
+        this(className, methodName, lineNumber, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), index, opcode,
+                Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+    }
+
+    public CFGNode(
+            final String className,
+            final String methodName,
+            final int lineNumber,
+            final Set<ProgramVariable> definitions,
+            final Set<ProgramVariable> uses,
+            final int index,
+            final int opcode) {
+        this(className, methodName, lineNumber, definitions, uses, index, opcode, Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet());
     }
 
     public CFGNode(
             final String className,
             final String methodName,
-            final Set<ProgramVariable> pDefinitions,
-            final Set<ProgramVariable> pUses,
-            final int pIndex,
-            final int pOpcode) {
-        this(className, methodName, pDefinitions, pUses, pIndex, pOpcode, Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
-    }
-
-    public CFGNode(
-            final String className,
-            final String methodName,
-            final Set<ProgramVariable> pDefinitions,
-            final Set<ProgramVariable> pUses,
-            final int pIndex,
-            final int pOpcode,
+            final int lineNumber,
+            final Set<ProgramVariable> definitions,
+            final Set<ProgramVariable> uses,
+            final int index,
+            final int opcode,
             final Set<CFGNode> pPredecessors,
             final Set<CFGNode> pSuccessors) {
         this.className = className;
         this.methodName = methodName;
-        definitions = pDefinitions;
-        uses = pUses;
-        insnIndex = pIndex;
-        opcode = pOpcode;
+        this.lineNumber = lineNumber;
+        this.definitions = definitions;
+        this.uses = uses;
+        insnIndex = index;
+        this.opcode = opcode;
         pred = pPredecessors;
         succ = pSuccessors;
 
@@ -89,22 +81,24 @@ public class CFGNode {
     public CFGNode(
             final String className,
             final String methodName,
-            final Set<ProgramVariable> pDefinitions,
-            final Set<ProgramVariable> pUses,
-            final int pIndex,
-            final int pOpcode,
-            final Set<CFGNode> pPredecessors,
-            final Set<CFGNode> pSuccessors,
+            final int lineNumber,
+            final Set<ProgramVariable> definitions,
+            final Set<ProgramVariable> uses,
+            final int index,
+            final int opcode,
+            final Set<CFGNode> predecessors,
+            final Set<CFGNode> successors,
             final Set<ProgramVariable> reach,
             final Set<ProgramVariable> reachOut) {
         this.className = className;
         this.methodName = methodName;
-        this.definitions = pDefinitions;
-        this.uses = pUses;
-        this.insnIndex = pIndex;
-        this.opcode = pOpcode;
-        this.pred = pPredecessors;
-        this.succ = pSuccessors;
+        this.lineNumber = lineNumber;
+        this.definitions = definitions;
+        this.uses = uses;
+        this.insnIndex = index;
+        this.opcode = opcode;
+        this.pred = predecessors;
+        this.succ = successors;
 
         this.reachOut = reach;
         this.reach = reachOut;
@@ -139,7 +133,8 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGNode: %d %s %s %s (%d preds, %d succs)",
+                "CFGNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                lineNumber,
                 insnIndex,
                 JDFCUtils.getOpcode(opcode),
                 className,
@@ -153,7 +148,8 @@ public class CFGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CFGNode that = (CFGNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        return getLineNumber() == that.getLineNumber()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName());
@@ -162,6 +158,7 @@ public class CFGNode {
     @Override
     public int hashCode() {
         return Objects.hash(
+                getLineNumber(),
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),

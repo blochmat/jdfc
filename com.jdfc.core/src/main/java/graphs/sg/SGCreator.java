@@ -215,6 +215,7 @@ public class SGCreator {
                                 new CFGNode(
                                         cData.getClassMetaData().getClassNodeName(),
                                         methodCallStack.peek(),
+                                        cfgNode.getLineNumber(),
                                         Sets.newLinkedHashSet(),
                                         Sets.newLinkedHashSet(),
                                         Integer.MIN_VALUE,

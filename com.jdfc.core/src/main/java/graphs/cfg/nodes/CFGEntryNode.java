@@ -28,13 +28,14 @@ public class CFGEntryNode extends CFGNode {
     public CFGEntryNode(
             String className,
             String methodName,
-            Set<ProgramVariable> pDefinitions,
-            Set<ProgramVariable> pUses,
-            Set<CFGNode> pPredecessors,
-            Set<CFGNode> pSuccessors,
+            int lineNumber,
+            Set<ProgramVariable> definitions,
+            Set<ProgramVariable> uses,
+            Set<CFGNode> predecessors,
+            Set<CFGNode> successors,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
-        super(className, methodName, pDefinitions, pUses, Integer.MIN_VALUE, Integer.MIN_VALUE, pPredecessors, pSuccessors);
+        super(className, methodName, lineNumber, definitions, uses, Integer.MIN_VALUE, Integer.MIN_VALUE, predecessors, successors);
         this.pVarMap = pVarMap;
         this.dVarMap = dVarMap;
     }
@@ -47,8 +48,13 @@ public class CFGEntryNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGEntryNode: %d %s (%d preds, %d succs)",
-                this.getInsnIndex(), JDFCUtils.getOpcode(this.getOpcode()), this.getPred().size(),
+                "CFGEntryNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                getLineNumber(),
+                this.getInsnIndex(),
+                JDFCUtils.getOpcode(this.getOpcode()),
+                this.getClassName(),
+                this.getMethodName(),
+                this.getPred().size(),
                 this.getSucc().size());
     }
 
@@ -57,7 +63,8 @@ public class CFGEntryNode extends CFGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CFGEntryNode that = (CFGEntryNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        return getLineNumber() == that.getLineNumber()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName());

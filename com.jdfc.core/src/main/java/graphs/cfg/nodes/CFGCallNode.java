@@ -55,12 +55,13 @@ public class CFGCallNode extends CFGNode {
             int opcode,
             String className,
             String methodName,
+            int lineNumber,
             String calledClassName,
             String calledMethodName,
             boolean calledIsInterface,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
-       super(className, methodName, index, opcode);
+       super(className, methodName, lineNumber, index, opcode);
        this.calledClassName = calledClassName;
        this.calledMethodName = calledMethodName;
        this.calledIsInterface = calledIsInterface;
@@ -71,7 +72,8 @@ public class CFGCallNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGCallNode: %d %s %s %s %s %s (%d preds, %d succs) | definitions %s | uses %s",
+                "CFGCallNode: lio(%d,%d,%s) (%s::%s) (%s::%s) ps(%d,%d)",
+                this.getLineNumber(),
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),
                 this.getClassName(),
@@ -79,9 +81,7 @@ public class CFGCallNode extends CFGNode {
                 this.calledClassName,
                 this.calledMethodName,
                 this.getPred().size(),
-                this.getSucc().size(),
-                this.getDefinitions(),
-                this.getUses());
+                this.getSucc().size());
     }
 
     @Override
@@ -90,7 +90,8 @@ public class CFGCallNode extends CFGNode {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         CFGCallNode that = (CFGCallNode) o;
-        return getInsnIndex() == that.getInsnIndex()
+        return getLineNumber() == that.getLineNumber()
+                && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
@@ -102,6 +103,7 @@ public class CFGCallNode extends CFGNode {
     @Override
     public int hashCode() {
         return Objects.hash(
+                getLineNumber(),
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),
