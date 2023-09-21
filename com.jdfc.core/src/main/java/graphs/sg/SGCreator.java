@@ -270,28 +270,30 @@ public class SGCreator {
 
                     this.addSGNode(sgCallNode, targets);
 
-                    AbstractMap.SimpleImmutableEntry<Integer, CFGNode> pop = this.workStack.peek();
-                    CFGEntryNode cfgEntryNode = (CFGEntryNode) pop.getValue();
-                    Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarMap();
-                    Map<Integer, ProgramVariable> pVarsEntry = cfgEntryNode.getPVarMap();
-                    if(pVarsCall != null && pVarsEntry != null) {
-                        // Create program variable mapping
-                        BiMap<ProgramVariable, ProgramVariable> pVarMap = HashBiMap.create();
-                        for (Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
-                            pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
-                        }
-
-                        // Create domain variable mapping
-                        Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
-                        BiMap<DomainVariable, DomainVariable> dVarMap = HashBiMap.create();
-                        for (Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
-                            if (cEntry.getValue().getIndex() != 0) {
-                                dVarMap.put(cEntry.getValue(), calledMethodData.getCfg().getDomain().get(cEntry.getKey()));
+                    AbstractMap.SimpleImmutableEntry<Integer, CFGNode> nextEntry = this.workStack.peek();
+                    if (nextEntry.getValue() instanceof CFGEntryNode) {
+                        CFGEntryNode cfgEntryNode = (CFGEntryNode) nextEntry.getValue();
+                        Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarMap();
+                        Map<Integer, ProgramVariable> pVarsEntry = cfgEntryNode.getPVarMap();
+                        if(pVarsCall != null && pVarsEntry != null) {
+                            // Create program variable mapping
+                            BiMap<ProgramVariable, ProgramVariable> pVarMap = HashBiMap.create();
+                            for (Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
+                                pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
                             }
-                        }
 
-                        sgCallNode.getPVarMap().putAll(pVarMap);
-                        sgCallNode.getDVarMap().putAll(dVarMap);
+                            // Create domain variable mapping
+                            Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
+                            BiMap<DomainVariable, DomainVariable> dVarMap = HashBiMap.create();
+                            for (Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
+                                if (cEntry.getValue().getIndex() != 0) {
+                                    dVarMap.put(cEntry.getValue(), calledMethodData.getCfg().getDomain().get(cEntry.getKey()));
+                                }
+                            }
+
+                            sgCallNode.getPVarMap().putAll(pVarMap);
+                            sgCallNode.getDVarMap().putAll(dVarMap);
+                        }
                     }
                 } else {
                     this.addSGNode(new SGNode(index, cfgIndex, cfgNode), targets);
