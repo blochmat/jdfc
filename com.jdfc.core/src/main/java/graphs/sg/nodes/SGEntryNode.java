@@ -19,8 +19,8 @@ public class SGEntryNode extends SGNode {
     private int exitNodeIdx;
     private int returnSiteNodeIdx;
 
-    public SGEntryNode(int index, CFGNode node) {
-        super(index, node);
+    public SGEntryNode(int index, int cfgIndex, CFGNode node) {
+        super(index, cfgIndex, node);
         this.pVarMap = HashBiMap.create();
         this.dVarMap = HashBiMap.create();
     }
@@ -43,6 +43,7 @@ public class SGEntryNode extends SGNode {
         if (o == null || getClass() != o.getClass()) return false;
         SGEntryNode that = (SGEntryNode) o;
         return getIndex() == that.getIndex()
+                && getCfgIndex() == that.getCfgIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())

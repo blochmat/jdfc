@@ -51,19 +51,42 @@ public class SGCreator {
         int addedNodesSum = 0;
 
         public SG createSGForMethod(ClassData cData, MethodData mData) {
-
             // Put current cfg into map and copy nodes and edges
             String internalMethodName = mData.buildInternalMethodName();
             this.addCFG(mData);
+            this.createNodes(cData, internalMethodName);
 
-//        NavigableMap<Integer, CFGNode> cfgNodesCopy = Maps.newTreeMap(mData.getCfg().getNodes());
-//        Multimap<Integer, Integer> cfgEdgesCopy = ArrayListMultimap.create(mData.getCfg().getEdges());
-//        if (index != 0) {
-//            // we are in a called procedure and need to update all indexes according to the start index
-//            this.updateCFGIndices(index, cfgNodesCopy, cfgEdgesCopy);
-//        }
 
-            // create nodes
+            this.addPredSuccRelation(sgNodes, sgEdges);
+
+            if(log.isDebugEnabled()) {
+                // Log all relative paths of files in the classpath
+                File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
+                try (FileWriter writer = new FileWriter(transformFile, true)) {
+                    writer.write("Class: " + cData.getClassMetaData().getClassFileRel() + "\n");
+                    writer.write("Method: " + internalMethodName);
+                    writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
+                    if(mData.getCfg() != null) {
+                        writer.write(JDFCUtils.prettyPrintMap(sgNodes));
+                        writer.write(JDFCUtils.prettyPrintMultimap(sgEdges));
+                    }
+                    writer.write("\n");
+                    writer.write("\n");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+
+            return new SG(cData.getClassMetaData().getClassFileRel(),
+                    internalMethodName,
+                    cfgMap,
+                    sgNodes,
+                    sgEdges,
+                    sgReturnSiteIndexMap,
+                    sgCallersMap);
+        }
+
+        private void createNodes(ClassData cData, String internalMethodName) {
             while (!nodeStack.isEmpty()) {
                 AbstractMap.SimpleImmutableEntry<Integer, CFGNode> stackEntry = this.nodeStack.pop();
                 int cfgIndex = stackEntry.getKey();
@@ -71,7 +94,7 @@ public class SGCreator {
                 Collection<Integer> targets = this.getEdgeTargets(cfgIndex, cfgNode.getMethodName());
 
                 if (cfgNode instanceof CFGEntryNode) {
-                    SGEntryNode sgEntryNode = new SGEntryNode(index, cfgNode);
+                    SGEntryNode sgEntryNode = new SGEntryNode(index, cfgIndex, cfgNode);
                     if (!sgCallNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
                         this.sgEntryNodeIdxStack.push(index);
@@ -81,7 +104,7 @@ public class SGCreator {
                     }
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
-                    SGExitNode sgExitNode = new SGExitNode(index, cfgNode);
+                    SGExitNode sgExitNode = new SGExitNode(index, cfgIndex, cfgNode);
                     if (!sgEntryNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
                         int sgExitNodeIdx = index;
@@ -97,6 +120,7 @@ public class SGCreator {
                         int sgReturnSiteNodeIdx = index;
                         SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                 index,
+                                cfgIndex,
                                 new CFGNode(
                                         cData.getClassMetaData().getClassNodeName(),
                                         internalMethodName,
@@ -109,7 +133,7 @@ public class SGCreator {
                                         cfgNode.getReach(),
                                         cfgNode.getReachOut()));
                         Collection<Integer> returnSiteTargets = Collections.singletonList(index + 1);
-                        this.addSGNode(new SGReturnSiteNode(index, cfgNode), returnSiteTargets);
+                        this.addSGNode(sgReturnSiteNode, returnSiteTargets);
                         this.addedNodesSum = addedNodesSum + (index - sgEntryNodeIdxStack.peek());
 
                         int sgCallNodeIdx = sgCallNodeIdxStack.pop();
@@ -140,7 +164,7 @@ public class SGCreator {
                     }
                 } else if (cfgNode instanceof CFGCallNode) {
                     // Add call node
-                    SGCallNode sgCallNode = new SGCallNode(index, (CFGCallNode) cfgNode);
+                    SGCallNode sgCallNode = new SGCallNode(index, cfgIndex, (CFGCallNode) cfgNode);
                     this.sgCallNodeIdxStack.push(index);
                     // Add called method cfg if possible
                     CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
@@ -181,37 +205,9 @@ public class SGCreator {
                         sgCallNode.getDVarMap().putAll(dVarMap);
                     }
                 } else {
-                    this.addSGNode(new SGNode(index, cfgNode), targets);
+                    this.addSGNode(new SGNode(index, cfgIndex, cfgNode), targets);
                 }
             }
-
-            this.addPredSuccRelation(sgNodes, sgEdges);
-
-            if(log.isDebugEnabled()) {
-                // Log all relative paths of files in the classpath
-                File transformFile = JDFCUtils.createFileInDebugDir("5_createSGsForClass.txt", false);
-                try (FileWriter writer = new FileWriter(transformFile, true)) {
-                    writer.write("Class: " + cData.getClassMetaData().getClassFileRel() + "\n");
-                    writer.write("Method: " + internalMethodName);
-                    writer.write(JDFCUtils.prettyPrintMap(mData.getLocalVariableTable()));
-                    if(mData.getCfg() != null) {
-                        writer.write(JDFCUtils.prettyPrintMap(sgNodes));
-                        writer.write(JDFCUtils.prettyPrintMultimap(sgEdges));
-                    }
-                    writer.write("\n");
-                    writer.write("\n");
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
-            }
-
-            return new SG(cData.getClassMetaData().getClassFileRel(),
-                    internalMethodName,
-                    cfgMap,
-                    sgNodes,
-                    sgEdges,
-                    sgReturnSiteIndexMap,
-                    sgCallersMap);
         }
 
         private void pushNodes(Map<Integer, CFGNode> cfgNodes) {

@@ -21,8 +21,8 @@ public class SGExitNode extends SGNode {
     private int entryNodeIdx;
     private int returnSiteNodeIdx;
 
-    public SGExitNode(int index, CFGNode node) {
-        super(index, node);
+    public SGExitNode(int index, int cfgIndex, CFGNode node) {
+        super(index, cfgIndex, node);
         this.pVarMap = HashBiMap.create();
         this.dVarMap = new HashMap<>();
     }
@@ -45,6 +45,7 @@ public class SGExitNode extends SGNode {
         if (o == null || getClass() != o.getClass()) return false;
         SGExitNode that = (SGExitNode) o;
         return getIndex() == that.getIndex()
+                && getCfgIndex() == that.getCfgIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())

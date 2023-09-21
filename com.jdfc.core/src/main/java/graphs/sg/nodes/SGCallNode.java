@@ -23,8 +23,8 @@ public class SGCallNode extends SGNode {
     private int exitNodeIdx;
     private int returnSiteNodeIdx;
 
-    public SGCallNode(int index, CFGCallNode node) {
-        super(index, node);
+    public SGCallNode(int index, int cfgIndex, CFGCallNode node) {
+        super(index, cfgIndex, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
@@ -34,10 +34,11 @@ public class SGCallNode extends SGNode {
     }
 
     public SGCallNode(int index,
+                      int cfgIndex,
                       CFGCallNode node,
                       BiMap<ProgramVariable, ProgramVariable> pVarMap,
                       BiMap<DomainVariable, DomainVariable> dVarMap) {
-        super(index, node);
+        super(index, cfgIndex, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
@@ -67,6 +68,7 @@ public class SGCallNode extends SGNode {
         if (!super.equals(o)) return false;
         SGCallNode that = (SGCallNode) o;
         return getIndex() == that.getIndex()
+                && getCfgIndex() == that.getCfgIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
@@ -81,6 +83,7 @@ public class SGCallNode extends SGNode {
     public int hashCode() {
         return Objects.hash(
                 getIndex(),
+                getCfgIndex(),
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),

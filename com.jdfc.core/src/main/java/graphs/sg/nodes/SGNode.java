@@ -16,6 +16,7 @@ import java.util.Set;
 public class SGNode {
 
     private int index;
+    private int cfgIndex;
     private int insnIndex;
     private int opcode;
     private String className;
@@ -27,8 +28,9 @@ public class SGNode {
     private Set<ProgramVariable> cfgReachOut;
     private Set<ProgramVariable> cfgReach;
 
-    public SGNode(int index, CFGNode node) {
+    public SGNode(int index, int cfgIndex, CFGNode node) {
         this.index = index;
+        this.cfgIndex = cfgIndex;
         this.className = node.getClassName();
         this.methodName = node.getMethodName();
         this.definitions = node.getDefinitions();
@@ -53,6 +55,7 @@ public class SGNode {
         if (o == null || getClass() != o.getClass()) return false;
         SGNode that = (SGNode) o;
         return getIndex() == that.getIndex()
+                && getCfgIndex() == that.getCfgIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
@@ -63,6 +66,7 @@ public class SGNode {
     public int hashCode() {
         return Objects.hash(
                 getIndex(),
+                getCfgIndex(),
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),

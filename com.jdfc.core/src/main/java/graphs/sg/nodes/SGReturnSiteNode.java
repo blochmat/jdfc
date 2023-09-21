@@ -13,8 +13,8 @@ public class SGReturnSiteNode extends SGNode {
     private int entryNodeIdx;
     private int exitNodeIdx;
 
-    public SGReturnSiteNode(int index, CFGNode node) {
-        super(index, node);
+    public SGReturnSiteNode(int index, int cfgIndex, CFGNode node) {
+        super(index, cfgIndex, node);
     }
 
     @Override
@@ -35,6 +35,7 @@ public class SGReturnSiteNode extends SGNode {
         if (o == null || getClass() != o.getClass()) return false;
         SGReturnSiteNode that = (SGReturnSiteNode) o;
         return getIndex() == that.getIndex()
+                && getCfgIndex() == that.getCfgIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
