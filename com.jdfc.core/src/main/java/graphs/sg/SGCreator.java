@@ -112,35 +112,65 @@ public class SGCreator {
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
                 } else if (sgNode instanceof SGReturnSiteNode) {
                     indexShiftStack.pop();
-                    this.updateAddedNodesSum(sgNodeIdx);
-                    this.sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
-                } else if (JUMP_OPCODES.contains(sgNode.getOpcode())) {
-                    // todo: calculate new jump range
-                } else {
-                    Collection<Integer> sgEdgeTargets;
-                    int addedNodesSum = this.getAddedNodesSum(sgNode);
-                    if (!indexShiftStack.isEmpty()) {
-                        sgEdgeTargets = cfgEdgeTargets
-                                .stream()
-                                .map(t -> t + indexShiftStack.peek() + addedNodesSum)
-                                .collect(Collectors.toList());
-                    } else {
-                        sgEdgeTargets = cfgEdgeTargets
-                                .stream()
-                                .map(t -> t + addedNodesSum)
-                                .collect(Collectors.toList());
+                    if (addedNodesSumMap.get(sgNode.getMethodName()) == null) {
+                        this.createAddedNodeSumEntry(sgNodeIdx);
                     }
+                    this.sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
+                } else if (!JUMP_OPCODES.contains(sgNode.getOpcode())) {
+                    Collection<Integer> sgEdgeTargets = this.computeSGEdgeTargets(sgNode, cfgEdgeTargets);
                     sgEdges.putAll(sgNodeIdx, sgEdgeTargets);
+                }
+            }
+
+            // create jumps
+            for (Map.Entry<Integer, SGNode> sgNodeEntry : this.sgNodes.entrySet()) {
+                int sgNodeIdx = sgNodeEntry.getKey();
+                SGNode sgNode = sgNodeEntry.getValue();
+                Collection<Integer> cfgEdgeTargets = cfgMap.get(sgNode.getMethodName()).getEdges().get(sgNode.getCfgIndex());
+
+                if (JUMP_OPCODES.contains(sgNode.getOpcode())) {
+                    Collection<Integer> updated = new ArrayList<>();
+                    for (Integer cfgEdgeTarget : cfgEdgeTargets) {
+                        int jumpDistance = cfgEdgeTarget - sgNode.getCfgIndex();
+                        if (jumpDistance > 1) {
+                            int jumpTargetIndex = 0;
+                            for (int i = 1; i <= jumpDistance; i++) {
+                                jumpTargetIndex = sgNodeIdx + i;
+                                SGNode jumpTarget = sgNodes.get(jumpTargetIndex);
+                                if (jumpTarget instanceof SGEntryNode) {
+                                    jumpDistance += cfgMap.get(jumpTarget.getMethodName()).getNodes().size() + 1;
+                                }
+                            }
+                            updated.add(jumpTargetIndex);
+                        } else {
+                            updated.add(cfgEdgeTarget);
+                        }
+                    }
+                    sgEdges.putAll(sgNodeIdx, updated);
                 }
             }
         }
 
-        private void updateAddedNodesSum(int sgNodeIdx) {
+        private Collection<Integer> computeSGEdgeTargets(SGNode sgNode, Collection<Integer> cfgEdgeTargets) {
+            int addedNodesSum = this.getAddedNodesSum(sgNode);
+            if (!indexShiftStack.isEmpty()) {
+                return cfgEdgeTargets
+                        .stream()
+                        .map(t -> t + indexShiftStack.peek() + addedNodesSum)
+                        .collect(Collectors.toList());
+            } else {
+                return cfgEdgeTargets
+                        .stream()
+                        .map(t -> t + addedNodesSum)
+                        .collect(Collectors.toList());
+            }
+        }
+
+        private void createAddedNodeSumEntry(int sgNodeIdx) {
             SGExitNode sgExitNode = (SGExitNode) sgNodes.get(sgNodeIdx - 1);
             SGReturnSiteNode sgReturnSiteNode = (SGReturnSiteNode) sgNodes.get(sgNodeIdx);
-            int newSum = this.getAddedNodesSum(sgExitNode) + this.getAddedNodesSum(sgReturnSiteNode)
-                    + cfgMap.get(sgExitNode.getMethodName()).getNodes().size() + 1;
-            addedNodesSumMap.put(sgReturnSiteNode.getMethodName(), newSum);
+            int sum = this.getAddedNodesSum(sgExitNode) + cfgMap.get(sgExitNode.getMethodName()).getNodes().size() + 1;
+            addedNodesSumMap.put(sgReturnSiteNode.getMethodName(), sum);
         }
 
         private int getAddedNodesSum(SGNode sgNode) {
