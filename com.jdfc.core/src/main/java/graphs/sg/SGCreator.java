@@ -42,9 +42,8 @@ public class SGCreator {
         NavigableMap<Integer, SGNode> sgNodes = Maps.newTreeMap();
         Multimap<Integer, Integer> sgEdges = ArrayListMultimap.create();
         // keep track of callers
-        Multimap<String, SGCallNode> sgCallersMap = ArrayListMultimap.create();
+        Multimap<String, Integer> sgCallersMap = ArrayListMultimap.create();
         // keep track of return sites
-        Map<SGCallNode, SGReturnSiteNode> sgReturnSiteNodeMap = new HashMap<>();
         Map<Integer, Integer> sgReturnSiteIndexMap = new HashMap<>();
         Map<String, CFG> cfgMap = new HashMap<>();
         List<String> callSequence = new ArrayList<>();
@@ -64,7 +63,7 @@ public class SGCreator {
 //            this.updateCFGIndices(index, cfgNodesCopy, cfgEdgesCopy);
 //        }
 
-            // setup index and shift for sg creation
+            // create nodes
             while (!nodeStack.isEmpty()) {
                 AbstractMap.SimpleImmutableEntry<Integer, CFGNode> stackEntry = this.nodeStack.pop();
                 int cfgIndex = stackEntry.getKey();
@@ -117,7 +116,6 @@ public class SGCreator {
                         int sgEntryNodeIdx = sgEntryNodeIdxStack.pop();
 
                         SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdx);
-                        sgReturnSiteNodeMap.put(sgCallNode, sgReturnSiteNode);
                         sgReturnSiteIndexMap.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
                         // Connect call and return site node
 //                        sgEdges.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
@@ -144,20 +142,20 @@ public class SGCreator {
                     // Add call node
                     SGCallNode sgCallNode = new SGCallNode(index, (CFGCallNode) cfgNode);
                     this.sgCallNodeIdxStack.push(index);
-                    this.addSGNode(sgCallNode, targets);
-                    this.indexShiftStack.push(index);
-
                     // Add called method cfg if possible
                     CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
                     MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getCalledMethodName());
                     String calledMethodName = calledMethodData.buildInternalMethodName();
                     if(Collections.frequency(callSequence, calledMethodName) < 3) {
-                        sgCallersMap.put(calledMethodData.buildInternalMethodName(), sgCallNode);
+                        sgCallersMap.put(calledMethodData.buildInternalMethodName(), index);
                         this.callSequence.add(calledMethodName);
                         this.addCFG(calledMethodData);
                     } else {
                         sgCallNode.setCalledSGPresent(false);
                     }
+
+                    this.addSGNode(sgCallNode, targets);
+                    this.indexShiftStack.push(index);
 
                     AbstractMap.SimpleImmutableEntry<Integer, CFGNode> pop = this.nodeStack.peek();
                     CFGEntryNode cfgEntryNode = (CFGEntryNode) pop.getValue();
@@ -207,13 +205,11 @@ public class SGCreator {
                 }
             }
 
-            return new SG(
-                    cData.getClassMetaData().getClassFileRel(),
+            return new SG(cData.getClassMetaData().getClassFileRel(),
                     internalMethodName,
                     cfgMap,
                     sgNodes,
                     sgEdges,
-                    sgReturnSiteNodeMap,
                     sgReturnSiteIndexMap,
                     sgCallersMap);
         }

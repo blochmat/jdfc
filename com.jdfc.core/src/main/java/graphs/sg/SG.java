@@ -2,10 +2,8 @@ package graphs.sg;
 
 import com.google.common.collect.Multimap;
 import graphs.cfg.CFG;
-import graphs.sg.nodes.SGCallNode;
 import graphs.sg.nodes.SGEntryNode;
 import graphs.sg.nodes.SGNode;
-import graphs.sg.nodes.SGReturnSiteNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,9 +22,8 @@ public class SG {
     private Map<String, CFG> cfgMap;
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
-    private Map<SGCallNode, SGReturnSiteNode> returnSiteNodeMap;
     private Map<Integer, Integer> returnSiteIndexMap;
-    private Multimap<String, SGCallNode> callersMap;
+    private Multimap<String, Integer> callersMap;
 
     public SGEntryNode getEntryNode() {
         return (SGEntryNode) this.nodes.get(0);
