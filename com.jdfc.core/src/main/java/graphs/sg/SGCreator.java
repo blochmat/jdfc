@@ -18,6 +18,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static utils.Constants.JUMP_OPCODES;
 
 @Slf4j
 public class SGCreator {
@@ -33,7 +36,8 @@ public class SGCreator {
 
     private static class MethodSGCreator {
 
-        Stack<AbstractMap.SimpleImmutableEntry<Integer, CFGNode>> nodeStack = new Stack<>();
+        Stack<AbstractMap.SimpleImmutableEntry<Integer, CFGNode>> workStack = new Stack<>();
+        Stack<String> methodCallStack = new Stack<>();
         Stack<Integer> indexShiftStack = new Stack<>();
         Stack<Integer> sgCallNodeIdxStack = new Stack<>();
         Stack<Integer> sgEntryNodeIdxStack = new Stack<>();
@@ -46,17 +50,25 @@ public class SGCreator {
         // keep track of return sites
         Map<Integer, Integer> sgReturnSiteIndexMap = new HashMap<>();
         Map<String, CFG> cfgMap = new HashMap<>();
+        Map<String, Integer> addedNodesSumMap = new HashMap<>();
         List<String> callSequence = new ArrayList<>();
         int index = 0;
-        int addedNodesSum = 0;
+
+        private boolean nextIsEntry(int sgNodeIndex) {
+            SGNode sgNode = sgNodes.get(sgNodeIndex + 1);
+            return Objects.nonNull(sgNode) && sgNode instanceof SGEntryNode;
+        }
+
+        private boolean nextIsReturnSite(int sgNodeIndex) {
+            SGNode sgNode = sgNodes.get(sgNodeIndex + 1);
+            return Objects.nonNull(sgNode) && sgNode instanceof SGReturnSiteNode;
+        }
 
         public SG createSGForMethod(ClassData cData, MethodData mData) {
-            // Put current cfg into map and copy nodes and edges
             String internalMethodName = mData.buildInternalMethodName();
             this.addCFG(mData);
-            this.createNodes(cData, internalMethodName);
-
-
+            this.createNodes(cData);
+            this.createEdges();
             this.addPredSuccRelation(sgNodes, sgEdges);
 
             if(log.isDebugEnabled()) {
@@ -86,15 +98,65 @@ public class SGCreator {
                     sgCallersMap);
         }
 
-        private void createNodes(ClassData cData, String internalMethodName) {
-            while (!nodeStack.isEmpty()) {
-                AbstractMap.SimpleImmutableEntry<Integer, CFGNode> stackEntry = this.nodeStack.pop();
+        private void createEdges() {
+            for (Map.Entry<Integer, SGNode> sgNodeEntry : this.sgNodes.entrySet()) {
+                int sgNodeIdx = sgNodeEntry.getKey();
+                SGNode sgNode = sgNodeEntry.getValue();
+                Collection<Integer> cfgEdgeTargets = cfgMap.get(sgNode.getMethodName()).getEdges().get(sgNode.getCfgIndex());
+
+                // Shift edge targets according to current index and inserted cfg nodes
+                if (sgNode instanceof SGCallNode && this.nextIsEntry(sgNodeIdx)) {
+                    indexShiftStack.push(sgNodeIdx + 1);
+                    sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
+                } else if (sgNode instanceof SGExitNode && this.nextIsReturnSite(sgNodeIdx)) {
+                    sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
+                } else if (sgNode instanceof SGReturnSiteNode) {
+                    indexShiftStack.pop();
+                    this.updateAddedNodesSum(sgNodeIdx);
+                    this.sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
+                } else if (JUMP_OPCODES.contains(sgNode.getOpcode())) {
+                    // todo: calculate new jump range
+                } else {
+                    Collection<Integer> sgEdgeTargets;
+                    int addedNodesSum = this.getAddedNodesSum(sgNode);
+                    if (!indexShiftStack.isEmpty()) {
+                        sgEdgeTargets = cfgEdgeTargets
+                                .stream()
+                                .map(t -> t + indexShiftStack.peek() + addedNodesSum)
+                                .collect(Collectors.toList());
+                    } else {
+                        sgEdgeTargets = cfgEdgeTargets
+                                .stream()
+                                .map(t -> t + addedNodesSum)
+                                .collect(Collectors.toList());
+                    }
+                    sgEdges.putAll(sgNodeIdx, sgEdgeTargets);
+                }
+            }
+        }
+
+        private void updateAddedNodesSum(int sgNodeIdx) {
+            SGExitNode sgExitNode = (SGExitNode) sgNodes.get(sgNodeIdx - 1);
+            SGReturnSiteNode sgReturnSiteNode = (SGReturnSiteNode) sgNodes.get(sgNodeIdx);
+            int newSum = this.getAddedNodesSum(sgExitNode) + this.getAddedNodesSum(sgReturnSiteNode)
+                    + cfgMap.get(sgExitNode.getMethodName()).getNodes().size() + 1;
+            addedNodesSumMap.put(sgReturnSiteNode.getMethodName(), newSum);
+        }
+
+        private int getAddedNodesSum(SGNode sgNode) {
+            return addedNodesSumMap.get(sgNode.getMethodName()) == null ? 0 : addedNodesSumMap.get(sgNode.getMethodName());
+        }
+
+        private void createNodes(ClassData cData) {
+            while (!workStack.isEmpty()) {
+                AbstractMap.SimpleImmutableEntry<Integer, CFGNode> stackEntry = this.workStack.pop();
                 int cfgIndex = stackEntry.getKey();
                 CFGNode cfgNode = stackEntry.getValue();
                 Collection<Integer> targets = this.getEdgeTargets(cfgIndex, cfgNode.getMethodName());
 
                 if (cfgNode instanceof CFGEntryNode) {
                     SGEntryNode sgEntryNode = new SGEntryNode(index, cfgIndex, cfgNode);
+                    this.methodCallStack.push(sgEntryNode.getMethodName());
                     if (!sgCallNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
                         this.sgEntryNodeIdxStack.push(index);
@@ -105,6 +167,7 @@ public class SGCreator {
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
                     SGExitNode sgExitNode = new SGExitNode(index, cfgIndex, cfgNode);
+                    methodCallStack.pop();
                     if (!sgEntryNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
                         int sgExitNodeIdx = index;
@@ -114,7 +177,6 @@ public class SGCreator {
                         // Connect exit to return site node
                         Collection<Integer> exitTargets = Collections.singletonList(cfgIndex + 1);
                         this.addSGNode(sgExitNode, exitTargets);
-                        indexShiftStack.pop();
 
                         // Create return site node
                         int sgReturnSiteNodeIdx = index;
@@ -123,7 +185,7 @@ public class SGCreator {
                                 cfgIndex,
                                 new CFGNode(
                                         cData.getClassMetaData().getClassNodeName(),
-                                        internalMethodName,
+                                        methodCallStack.peek(),
                                         Sets.newLinkedHashSet(),
                                         Sets.newLinkedHashSet(),
                                         Integer.MIN_VALUE,
@@ -134,7 +196,6 @@ public class SGCreator {
                                         cfgNode.getReachOut()));
                         Collection<Integer> returnSiteTargets = Collections.singletonList(index + 1);
                         this.addSGNode(sgReturnSiteNode, returnSiteTargets);
-                        this.addedNodesSum = addedNodesSum + (index - sgEntryNodeIdxStack.peek());
 
                         int sgCallNodeIdx = sgCallNodeIdxStack.pop();
                         int sgEntryNodeIdx = sgEntryNodeIdxStack.pop();
@@ -171,7 +232,7 @@ public class SGCreator {
                     MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getCalledMethodName());
                     String calledMethodName = calledMethodData.buildInternalMethodName();
                     if(Collections.frequency(callSequence, calledMethodName) < 3) {
-                        sgCallersMap.put(calledMethodData.buildInternalMethodName(), index);
+                        sgCallersMap.put(calledMethodName, index);
                         this.callSequence.add(calledMethodName);
                         this.addCFG(calledMethodData);
                     } else {
@@ -179,9 +240,8 @@ public class SGCreator {
                     }
 
                     this.addSGNode(sgCallNode, targets);
-                    this.indexShiftStack.push(index);
 
-                    AbstractMap.SimpleImmutableEntry<Integer, CFGNode> pop = this.nodeStack.peek();
+                    AbstractMap.SimpleImmutableEntry<Integer, CFGNode> pop = this.workStack.peek();
                     CFGEntryNode cfgEntryNode = (CFGEntryNode) pop.getValue();
                     Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarMap();
                     Map<Integer, ProgramVariable> pVarsEntry = cfgEntryNode.getPVarMap();
@@ -212,7 +272,7 @@ public class SGCreator {
 
         private void pushNodes(Map<Integer, CFGNode> cfgNodes) {
             for (int i = cfgNodes.size() - 1; i > -1; i--) {
-                nodeStack.push(new AbstractMap.SimpleImmutableEntry<>(i, cfgNodes.get(i)));
+                workStack.push(new AbstractMap.SimpleImmutableEntry<>(i, cfgNodes.get(i)));
             }
         }
 
