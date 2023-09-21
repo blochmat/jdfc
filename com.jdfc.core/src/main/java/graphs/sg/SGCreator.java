@@ -112,9 +112,7 @@ public class SGCreator {
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
                 } else if (sgNode instanceof SGReturnSiteNode) {
                     indexShiftStack.pop();
-                    if (addedNodesSumMap.get(sgNode.getMethodName()) == null) {
-                        this.createAddedNodeSumEntry(sgNodeIdx);
-                    }
+                    this.updateAddedNodesSumMap(sgNodeIdx);
                     this.sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
                 } else if (!JUMP_OPCODES.contains(sgNode.getOpcode())) {
                     Collection<Integer> sgEdgeTargets = this.computeSGEdgeTargets(sgNode, cfgEdgeTargets);
@@ -143,7 +141,7 @@ public class SGCreator {
                             }
                             updated.add(jumpTargetIndex);
                         } else {
-                            updated.add(cfgEdgeTarget);
+                            updated.add(sgNodeIdx + 1);
                         }
                     }
                     sgEdges.putAll(sgNodeIdx, updated);
@@ -166,11 +164,12 @@ public class SGCreator {
             }
         }
 
-        private void createAddedNodeSumEntry(int sgNodeIdx) {
+        private void updateAddedNodesSumMap(int sgNodeIdx) {
             SGExitNode sgExitNode = (SGExitNode) sgNodes.get(sgNodeIdx - 1);
             SGReturnSiteNode sgReturnSiteNode = (SGReturnSiteNode) sgNodes.get(sgNodeIdx);
-            int sum = this.getAddedNodesSum(sgExitNode) + cfgMap.get(sgExitNode.getMethodName()).getNodes().size() + 1;
+            int sum = this.getAddedNodesSum(sgExitNode) + this.getAddedNodesSum(sgReturnSiteNode)+ cfgMap.get(sgExitNode.getMethodName()).getNodes().size() + 1;
             addedNodesSumMap.put(sgReturnSiteNode.getMethodName(), sum);
+            addedNodesSumMap.remove(sgExitNode.getMethodName());
         }
 
         private int getAddedNodesSum(SGNode sgNode) {

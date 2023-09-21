@@ -489,9 +489,6 @@ public class ESGCreator {
     }
 
     public ESG createESGForMethod() {
-        if (MAIN_METHOD_NAME.equals("defineA: ()V;") || MAIN_METHOD_NAME.contains("defineB")) {
-            System.out.println();
-        }
         //--- CREATE DOMAIN --------------------------------------------------------------------------------------------
         Map<String, Map<UUID, ProgramVariable>> domain = createDomain();
 
