@@ -128,25 +128,21 @@ public class HTMLFactory {
     }
 
     public void createClassOverviewHTML(final String pClassName,
-                                        final ExecutionData pData,
+                                        final ClassData classData,
                                         final File pWorkDir) throws IOException {
         logger.debug(String.format("createClassOverviewHTML(%s, <ExecutionData>, %s)", pClassName, pWorkDir));
-        if (pData instanceof ClassData) {
-            String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
-            File classFile = new File(filePath);
+        String filePath = String.format("%s/%s.html", pWorkDir, pClassName);
+        File classFile = new File(filePath);
 
-            String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), STYLE_SHEET);
-            String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), SCRIPT);
+        String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), STYLE_SHEET);
+        String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), SCRIPT);
 
-            HTMLElement classOverviewHTML =
-                    createClassOverviewHTML((ClassData) pData, classFile, pClassName, styleSheetPath, scriptPath);
+        HTMLElement classOverviewHTML =
+                createClassOverviewHTML((ClassData) classData, classFile, pClassName, styleSheetPath, scriptPath);
 
-            Writer writer = new FileWriter(classFile);
-            writer.write(classOverviewHTML.render());
-            writer.close();
-        } else {
-            throw new IllegalArgumentException("Class Overview can not be created from ExecutionData instance.");
-        }
+        Writer writer = new FileWriter(classFile);
+        writer.write(classOverviewHTML.render());
+        writer.close();
     }
 
     private HTMLElement createClassOverviewHTML(final ClassData pData,
@@ -191,33 +187,29 @@ public class HTMLFactory {
     }
 
     public void createClassSourceViewHTML(final String pClassName,
-                                          final ExecutionData pData,
+                                          final ClassData classData,
                                           final File pWorkDir,
                                           final File pSourceDir)
             throws IOException {
         logger.debug(String.format("createClassSourceViewHTML(%s, <ExecutionData>, %s, %s)", pClassName, pWorkDir.toString(), pSourceDir.toString()));
-        if (pData instanceof ClassData) {
-            String sourceViewPath = String.format("%s/%s.java.html", pWorkDir, pClassName);
-            File sourceViewHTML = new File(sourceViewPath);
+        String sourceViewPath = String.format("%s/%s.java.html", pWorkDir, pClassName);
+        File sourceViewHTML = new File(sourceViewPath);
 
-            String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), STYLE_SHEET);
-            String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), SCRIPT);
+        String styleSheetPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), STYLE_SHEET);
+        String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), SCRIPT);
 
-            // load class file
-            String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassData) pData).getClassMetaData().getClassFileRel());
-            File classFile = new File(classFilePath);
+        // load class file
+        String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassData) classData).getClassMetaData().getClassFileRel());
+        File classFile = new File(classFilePath);
 
-            // build html
-            HTMLElement classSourceViewHTML =
-                    createClassSourceViewHTML(classFile, (ClassData) pData, pClassName, styleSheetPath, scriptPath);
+        // build html
+        HTMLElement classSourceViewHTML =
+                createClassSourceViewHTML(classFile, (ClassData) classData, pClassName, styleSheetPath, scriptPath);
 
-            // save file
-            Writer writer = new FileWriter(sourceViewHTML);
-            writer.write(classSourceViewHTML.render());
-            writer.close();
-        } else {
-            throw new IllegalArgumentException("Class Overview can not be created from ExecutionData instance.");
-        }
+        // save file
+        Writer writer = new FileWriter(sourceViewHTML);
+        writer.write(classSourceViewHTML.render());
+        writer.close();
     }
 
     private HTMLElement createClassSourceViewHTML(final File pClassFile,

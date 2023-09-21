@@ -1,8 +1,6 @@
 package report;
 
 import data.ClassData;
-import data.ExecutionData;
-import data.ExecutionDataNode;
 import data.PackageData;
 import data.singleton.CoverageDataStore;
 import org.slf4j.Logger;
@@ -13,8 +11,6 @@ import report.html.Resources;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class HTMLReportGenerator {
 
@@ -77,9 +73,9 @@ public class HTMLReportGenerator {
             String packageAbs = String.join(File.separator, outputDir.getAbsolutePath(), packageEntry.getKey());
             File pkg = new File(packageAbs);
             if(pkg.exists() || pkg.mkdirs()) {
-                for(ClassData cData : packageEntry.getValue().getClassDataFromStore().values()) {
-                    factory.createClassOverviewHTML(cData.getClassMetaData().getFqn(), cData, pkg);
-                    factory.createClassSourceViewHTML(cData.getClassMetaData().getFqn(), cData, pkg, sourceDir);
+                for(ClassData classData : packageEntry.getValue().getClassDataFromStore().values()) {
+                    factory.createClassOverviewHTML(classData.getClassMetaData().getFqn(), classData, pkg);
+                    factory.createClassSourceViewHTML(classData.getClassMetaData().getFqn(), classData, pkg, sourceDir);
                 }
                 factory.createPkgIndexHTML(pkg, packageEntry.getValue().getClassDataFromStore());
             } else {
@@ -115,13 +111,13 @@ public class HTMLReportGenerator {
 //        return packageExecutionDataNodeMap;
 //    }
 
-    private Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1,
-                                                                    Map<String, ExecutionDataNode<ExecutionData>> map2) {
-        return Stream.of(map1, map2)
-                .flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                ));
-    }
+//    private Map<String, ExecutionDataNode<ExecutionData>> mergeMaps(Map<String, ExecutionDataNode<ExecutionData>> map1,
+//                                                                    Map<String, ExecutionDataNode<ExecutionData>> map2) {
+//        return Stream.of(map1, map2)
+//                .flatMap(map -> map.entrySet().stream())
+//                .collect(Collectors.toMap(
+//                        Map.Entry::getKey,
+//                        Map.Entry::getValue
+//                ));
+//    }
 }

@@ -18,10 +18,10 @@ import java.util.*;
 
 @Slf4j
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClassData extends ExecutionData implements Serializable {
+public class ClassData implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
