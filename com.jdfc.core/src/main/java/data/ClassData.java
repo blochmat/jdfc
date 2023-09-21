@@ -1,7 +1,6 @@
 package data;
 
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import data.singleton.CoverageDataStore;
 import instr.ClassMetaData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -74,7 +73,7 @@ public class ClassData implements Serializable {
     public Map<UUID, MethodData> getMethodDataFromStore() {
         Map<UUID, MethodData> methodDataMap = new HashMap<>();
         for (UUID id : this.methodDataIds) {
-            methodDataMap.put(id, CoverageDataStore.getInstance().getMethodDataMap().get(id));
+            methodDataMap.put(id, ProjectData.getInstance().getMethodDataMap().get(id));
         }
         return methodDataMap;
     }

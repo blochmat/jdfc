@@ -7,7 +7,7 @@ import com.google.common.collect.Sets;
 import data.DomainVariable;
 import data.MethodData;
 import data.ProgramVariable;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGCallNode;
@@ -448,7 +448,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 false,
                 false
         );
-        CoverageDataStore.getInstance().getProgramVariableMap().put(id, var);
+        ProjectData.getInstance().getProgramVariableMap().put(id, var);
         mData.getPVarIds().add(id);
         aa.setPVar(var);
         return var;
@@ -499,7 +499,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                         false,
                         true
                 );
-                CoverageDataStore.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
+                ProjectData.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
                 mData.getPVarIds().add(programVariable.getId());
 //                classVisitor.classData.getFieldDefinitions().computeIfAbsent(mData.getId(), k -> new HashMap<>());
 //                classVisitor.classData.getFieldDefinitions().get(mData.getId()).put(programVariable.getId(), programVariable);
@@ -526,7 +526,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                         false,
                         true
                 );
-                CoverageDataStore.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
+                ProjectData.getInstance().getProgramVariableMap().put(programVariable.getId(), programVariable);
                 mData.getPVarIds().add(programVariable.getId());
                 node = new CFGNode(
                         classVisitor.classNode.name,
@@ -701,7 +701,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         Map<Integer, DomainVariable> dVarMap = new HashMap<>();
         int idx = 0;
         for(ProgramVariable def : definitions) {
-            CoverageDataStore.getInstance().getProgramVariableMap().put(def.getId(), def);
+            ProjectData.getInstance().getProgramVariableMap().put(def.getId(), def);
             mData.getPVarIds().add(def.getId());
 
             pVarMap.put(idx, def);

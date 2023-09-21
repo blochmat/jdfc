@@ -1,6 +1,5 @@
-package data.singleton;
+package data;
 
-import data.*;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import instr.ClassMetaData;
@@ -17,10 +16,10 @@ import static utils.Constants.JDFC_SERIALIZATION_FILE;
  * instance represent the project structure of the project under test
  */
 @Data
-public class CoverageDataStore implements Serializable {
+public class ProjectData implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static CoverageDataStore instance;
+    private static ProjectData instance;
     private File workDir;
     private File buildDir;
     private File classesDir;
@@ -56,7 +55,7 @@ public class CoverageDataStore implements Serializable {
     private static final Class<?> localVariableClass = LocalVariable.class;
     private static final Class<?> cfgClass = CFG.class;
 
-    private CoverageDataStore() {
+    private ProjectData() {
 //        ExecutionData executionData = new ExecutionData("", "");
 //        this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new HashSet<>();
@@ -82,7 +81,7 @@ public class CoverageDataStore implements Serializable {
 
                     // workdir is not set for "mvn test"
 //                    String fileInAbs = String.join(File.separator, workDir.getAbsolutePath(), JDFC_SERIALIZATION_FILE);
-                    CoverageDataStore deserialized = Deserializer.deserializeCoverageData(JDFC_SERIALIZATION_FILE);
+                    ProjectData deserialized = Deserializer.deserializeCoverageData(JDFC_SERIALIZATION_FILE);
 
                     String fileAbs = JDFC_SERIALIZATION_FILE;
                     FileOutputStream fileOut = new FileOutputStream(fileAbs);
@@ -90,10 +89,10 @@ public class CoverageDataStore implements Serializable {
                     // Create an ObjectOutputStream to write the object
                     ObjectOutputStream out = new ObjectOutputStream(fileOut);
                     if (deserialized != null) {
-                        deserialized.getCoveredPVarIds().addAll(CoverageDataStore.getInstance().coveredPVarIds);
+                        deserialized.getCoveredPVarIds().addAll(ProjectData.getInstance().coveredPVarIds);
                         out.writeObject(deserialized);
                     } else {
-                        out.writeObject(CoverageDataStore.getInstance());
+                        out.writeObject(ProjectData.getInstance());
                     }
 
                     // Close the streams
@@ -109,14 +108,14 @@ public class CoverageDataStore implements Serializable {
         });
     }
 
-    public static CoverageDataStore getInstance() {
+    public static ProjectData getInstance() {
         if(instance == null) {
-            instance = new CoverageDataStore();
+            instance = new ProjectData();
         }
         return instance;
     }
 
-    public static void setInstance(CoverageDataStore deserialized) {
+    public static void setInstance(ProjectData deserialized) {
         if(instance == null) {
             instance = deserialized;
         }
@@ -150,7 +149,7 @@ public class CoverageDataStore implements Serializable {
 //    }
 
     public static void trackVar(final String pId) {
-        CoverageDataStore.getInstance().getCoveredPVarIds().add(pId);
+        ProjectData.getInstance().getCoveredPVarIds().add(pId);
 //        CoverageTracker.getInstance().addVarCoveredEntry(pId);
     }
 

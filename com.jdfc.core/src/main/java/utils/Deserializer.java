@@ -1,6 +1,6 @@
 package utils;
 
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,8 +9,8 @@ import java.io.ObjectInputStream;
 
 public class Deserializer {
 
-    public static CoverageDataStore deserializeCoverageData(String fileAbs) {
-        CoverageDataStore obj = null;
+    public static ProjectData deserializeCoverageData(String fileAbs) {
+        ProjectData obj = null;
         try {
             // Create a file input stream
             File file = new File(fileAbs);
@@ -22,7 +22,7 @@ public class Deserializer {
                 ObjectInputStream in = new ObjectInputStream(fileIn);
 
                 // Read the object
-                obj = (CoverageDataStore) in.readObject();
+                obj = (ProjectData) in.readObject();
 
                 // Close the streams
                 in.close();

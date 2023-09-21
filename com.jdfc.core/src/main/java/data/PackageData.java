@@ -1,6 +1,5 @@
 package data;
 
-import data.singleton.CoverageDataStore;
 import lombok.Data;
 
 import java.io.File;
@@ -31,7 +30,7 @@ public class PackageData implements Serializable {
     public Map<UUID, ClassData> getClassDataFromStore() {
         Map<UUID, ClassData> classDataMap = new HashMap<>();
         for(UUID id : classDataIds) {
-            classDataMap.put(id, CoverageDataStore.getInstance().getClassDataMap().get(id));
+            classDataMap.put(id, ProjectData.getInstance().getClassDataMap().get(id));
         }
         return classDataMap;
     }

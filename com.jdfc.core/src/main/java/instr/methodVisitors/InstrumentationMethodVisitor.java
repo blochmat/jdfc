@@ -2,7 +2,7 @@ package instr.methodVisitors;
 
 import data.MethodData;
 import data.ProgramVariable;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import graphs.cfg.LocalVariable;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
     private final String className;
     private final ASMHelper asmHelper;
 
-    private static final String COVERAGE_DATA_STORE = Type.getInternalName(CoverageDataStore.class);
+    private static final String COVERAGE_DATA_STORE = Type.getInternalName(ProjectData.class);
 
     private static final String TRACK_NEW_OBJECT = "trackNewObject";
     private static final String TRACK_NEW_OBJECT_DESC = "(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V";
@@ -359,7 +359,7 @@ public class InstrumentationMethodVisitor extends JDFCMethodVisitor {
                     mv.visitLdcInsn(pId.toString());
                     mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
-                            Type.getInternalName(CoverageDataStore.class),
+                            Type.getInternalName(ProjectData.class),
                             "trackVar",
                             "(Ljava/lang/String;)V",
                             false);

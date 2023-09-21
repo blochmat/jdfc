@@ -6,7 +6,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.google.common.collect.Multimap;
 import data.ProgramVariable;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -422,23 +422,23 @@ public class JDFCUtils {
     }
 
     public static File createFileInJDFCDir(String fileName, boolean isDir) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDir(), fileName, isDir);
+        return JDFCUtils.createFileIn(ProjectData.getInstance().getJdfcDir(), fileName, isDir);
     }
 
     public static File createFileInDebugDir(String fileName, boolean isDir) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugDir(), fileName, isDir);
+        return JDFCUtils.createFileIn(ProjectData.getInstance().getJdfcDebugDir(), fileName, isDir);
     }
 
     public static File createFileInInstrDir(String fileName, boolean isDir) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugInstrDir(), fileName, isDir);
+        return JDFCUtils.createFileIn(ProjectData.getInstance().getJdfcDebugInstrDir(), fileName, isDir);
     }
 
     public static File createFileInErrorDir(String fileName, boolean isDir) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugErrorDir(), fileName, isDir);
+        return JDFCUtils.createFileIn(ProjectData.getInstance().getJdfcDebugErrorDir(), fileName, isDir);
     }
 
     public static File createFileInDebugDevLogDir(String fileName, boolean isDir) {
-        return JDFCUtils.createFileIn(CoverageDataStore.getInstance().getJdfcDebugDevLogDir(), fileName, isDir);
+        return JDFCUtils.createFileIn(ProjectData.getInstance().getJdfcDebugDevLogDir(), fileName, isDir);
     }
 
     public static File createFileIn(String dir, String fileName, boolean isDir) {

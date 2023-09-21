@@ -5,7 +5,7 @@ import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import data.ClassData;
 import data.MethodData;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import instr.ClassMetaData;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -73,8 +73,8 @@ public class CreateClassDataVisitor extends ClassVisitor {
 
     @Override
     public void visitEnd() {
-        CoverageDataStore.getInstance().getClassDataMap().put(this.classData.getId(), this.classData);
-        CoverageDataStore.getInstance().getPackageDataMap().get(this.classMetaData.getClassFilePackageRel()).getClassDataIds().add(this.classData.getId());
+        ProjectData.getInstance().getClassDataMap().put(this.classData.getId(), this.classData);
+        ProjectData.getInstance().getPackageDataMap().get(this.classMetaData.getClassFilePackageRel()).getClassDataIds().add(this.classData.getId());
         super.visitEnd();
     }
 

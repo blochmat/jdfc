@@ -3,7 +3,7 @@ package instr;
 import data.ClassData;
 import data.MethodData;
 import data.PackageData;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
@@ -144,13 +144,13 @@ public class Instrumenter {
         }
 
         // Add class meta data
-        CoverageDataStore.getInstance().getClassMetaDataMap().put(classMetaData.getFqn(), classMetaData);
+        ProjectData.getInstance().getClassMetaDataMap().put(classMetaData.getFqn(), classMetaData);
 
         // Create PackageData of class
         String packageRel = classMetaData.getClassFilePackageRel();
-        if (CoverageDataStore.getInstance().getPackageDataMap().get(packageRel) == null) {
+        if (ProjectData.getInstance().getPackageDataMap().get(packageRel) == null) {
             PackageData packageData = new PackageData(packageRel);
-            CoverageDataStore.getInstance().getPackageDataMap().put(packageRel, packageData);
+            ProjectData.getInstance().getPackageDataMap().put(packageRel, packageData);
         }
 
         // Create ClassData and MethodData of class
@@ -158,8 +158,8 @@ public class Instrumenter {
         classReader.accept(createClassDataVisitor, 0);
 
         // Get ClassData
-        UUID classDataId = CoverageDataStore.getInstance().getClassMetaDataMap().get(classMetaData.getFqn()).getClassDataId();
-        ClassData classData = CoverageDataStore.getInstance().getClassDataMap().get(classDataId);
+        UUID classDataId = ProjectData.getInstance().getClassMetaDataMap().get(classMetaData.getFqn()).getClassDataId();
+        ClassData classData = ProjectData.getInstance().getClassDataMap().get(classDataId);
 
         // Find local variables for all methods
         LocalVariableClassVisitor localVariableVisitor = new LocalVariableClassVisitor(classNode, classData);

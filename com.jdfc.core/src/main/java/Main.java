@@ -1,4 +1,4 @@
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.apache.commons.cli.*;
 import report.ReportGenerator;
 import utils.Deserializer;
@@ -36,7 +36,7 @@ public class Main {
             if(cmd.hasOption("i")) {
                 // Instrument
                 parsePathOptions(cmd, false);
-                CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+                ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
                 Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
                 if(cmd.hasOption("c")) {
                     // Instrument single class
@@ -54,11 +54,11 @@ public class Main {
                 if(cmd.hasOption("O")) {
                     parsePathOptions(cmd, true);
                     String fileInAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
-                    CoverageDataStore deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+                    ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
                     if(deserialized == null) {
                         throw new IllegalArgumentException("Unable do deserialize coverage data.");
                     }
-                    CoverageDataStore.setInstance(deserialized);
+                    ProjectData.setInstance(deserialized);
 
                     ReportGenerator reportGenerator = new ReportGenerator(outputDirAbs, sourceDirAbs);
                     reportGenerator.create();

@@ -1,7 +1,7 @@
 package report;
 
 import data.*;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,36 +29,36 @@ public class ReportGenerator {
         this.computeClassCoverage();
         this.computePackageCoverage();
 
-        int methodCount = CoverageDataStore.getInstance().getPackageDataMap().values().stream().map(PackageData::getMethodCount).reduce(0, Integer::sum);
-        int total = CoverageDataStore.getInstance().getPackageDataMap().values().stream().map(PackageData::getTotal).reduce(0, Integer::sum);
-        int covered = CoverageDataStore.getInstance().getPackageDataMap().values().stream().map(PackageData::getCovered).reduce(0, Integer::sum);
+        int methodCount = ProjectData.getInstance().getPackageDataMap().values().stream().map(PackageData::getMethodCount).reduce(0, Integer::sum);
+        int total = ProjectData.getInstance().getPackageDataMap().values().stream().map(PackageData::getTotal).reduce(0, Integer::sum);
+        int covered = ProjectData.getInstance().getPackageDataMap().values().stream().map(PackageData::getCovered).reduce(0, Integer::sum);
         double ratio = 0;
         if(total != 0) {
             ratio = (double) covered / total;
         }
 
-        CoverageDataStore.getInstance().setMethodCount(methodCount);
-        CoverageDataStore.getInstance().setTotal(total);
-        CoverageDataStore.getInstance().setCovered(covered);
-        CoverageDataStore.getInstance().setRatio(ratio);
+        ProjectData.getInstance().setMethodCount(methodCount);
+        ProjectData.getInstance().setTotal(total);
+        ProjectData.getInstance().setCovered(covered);
+        ProjectData.getInstance().setRatio(ratio);
     }
 
     private void computeVarCoverage() {
-        for (String id : CoverageDataStore.getInstance().getCoveredPVarIds()) {
-            CoverageDataStore.getInstance().getProgramVariableMap().get(UUID.fromString(id)).setIsCovered(true);
+        for (String id : ProjectData.getInstance().getCoveredPVarIds()) {
+            ProjectData.getInstance().getProgramVariableMap().get(UUID.fromString(id)).setIsCovered(true);
         }
     }
 
     private void computePairCoverage() {
-        for (DefUsePair pair : CoverageDataStore.getInstance().getDefUsePairMap().values()) {
-            boolean defIsCovered = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId()).getIsCovered();
-            boolean useIsCovered = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId()).getIsCovered();
+        for (DefUsePair pair : ProjectData.getInstance().getDefUsePairMap().values()) {
+            boolean defIsCovered = ProjectData.getInstance().getProgramVariableMap().get(pair.getDefId()).getIsCovered();
+            boolean useIsCovered = ProjectData.getInstance().getProgramVariableMap().get(pair.getUseId()).getIsCovered();
             pair.setCovered(defIsCovered && useIsCovered);
         }
     }
 
     private void computeMethodCoverage() {
-        for (MethodData methodData : CoverageDataStore.getInstance().getMethodDataMap().values()) {
+        for (MethodData methodData : ProjectData.getInstance().getMethodDataMap().values()) {
             int total = methodData.getDUPairsFromStore().size();
             int covered = methodData.getDUPairsFromStore().values().stream()
                     .filter(DefUsePair::isCovered)
@@ -74,7 +74,7 @@ public class ReportGenerator {
     }
 
     private void computeClassCoverage() {
-        for (ClassData classData : CoverageDataStore.getInstance().getClassDataMap().values()) {
+        for (ClassData classData : ProjectData.getInstance().getClassDataMap().values()) {
             int methodCount = classData.getMethodDataFromStore().size();
             int total = classData.getMethodDataFromStore().values().stream().map(MethodData::getTotal).reduce(0, Integer::sum);
             int covered = classData.getMethodDataFromStore().values().stream().map(MethodData::getCovered).reduce(0, Integer::sum);
@@ -91,7 +91,7 @@ public class ReportGenerator {
     }
 
     private void computePackageCoverage() {
-        for (PackageData packageData : CoverageDataStore.getInstance().getPackageDataMap().values()) {
+        for (PackageData packageData : ProjectData.getInstance().getPackageDataMap().values()) {
             int methodCount = packageData.getClassDataFromStore().values().stream().map(ClassData::getMethodCount).reduce(0, Integer::sum);
             int total = packageData.getClassDataFromStore().values().stream().map(ClassData::getTotal).reduce(0, Integer::sum);
             int covered = packageData.getClassDataFromStore().values().stream().map(ClassData::getCovered).reduce(0, Integer::sum);

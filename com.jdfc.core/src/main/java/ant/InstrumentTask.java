@@ -1,6 +1,6 @@
 package ant;
 
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
@@ -42,7 +42,7 @@ public class InstrumentTask extends Task {
         String buildDirAbs = String.format("%s%starget", workDirAbs, File.separator);
         String classesDirAbs = String.join(File.separator, workDirAbs, classes);
         String sourceDirAbs = String.join(File.separator, workDirAbs, src);
-        CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+        ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
         Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
         for (FileSet fs : filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());

@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import data.ClassData;
 import data.MethodData;
 import data.PackageData;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.nodes.CFGEntryNode;
 import graphs.cfg.nodes.CFGExitNode;
@@ -40,7 +40,7 @@ public class CFGCreatorTest {
         this.buildDirAbs = resources + "/logging";
         this.classesDirAbs = resources + "/classes";
         this.sourcesDirAbs = resources + "/sources";
-        CoverageDataStore.getInstance().saveProjectInfo(this.cwd, this.buildDirAbs, this.classesDirAbs, this.sourcesDirAbs);
+        ProjectData.getInstance().saveProjectInfo(this.cwd, this.buildDirAbs, this.classesDirAbs, this.sourcesDirAbs);
     }
 
     @Test
@@ -75,16 +75,16 @@ public class CFGCreatorTest {
         this.classReader.accept(classNode, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         // Create ClassMetaData
         ClassMetaData classMetaData = new ClassMetaData(classesDirAbs, sourcesDirAbs, classFileAbs);
-        CoverageDataStore.getInstance().getClassMetaDataMap().put(classMetaData.getFqn(), classMetaData);
+        ProjectData.getInstance().getClassMetaDataMap().put(classMetaData.getFqn(), classMetaData);
         // Create PackageData
         String packageRel = classMetaData.getClassFilePackageRel();
-        CoverageDataStore.getInstance().getPackageDataMap().put(packageRel, new PackageData(packageRel));
+        ProjectData.getInstance().getPackageDataMap().put(packageRel, new PackageData(packageRel));
         // Create ClassData and MethodData
         CreateClassDataVisitor createClassDataVisitor = new CreateClassDataVisitor(classNode, classMetaData);
         classReader.accept(createClassDataVisitor, 0);
         // Get ClassData
-        UUID classDataId = CoverageDataStore.getInstance().getClassMetaDataMap().get(classMetaData.getFqn()).getClassDataId();
-        ClassData classData = CoverageDataStore.getInstance().getClassDataMap().get(classDataId);
+        UUID classDataId = ProjectData.getInstance().getClassMetaDataMap().get(classMetaData.getFqn()).getClassDataId();
+        ClassData classData = ProjectData.getInstance().getClassDataMap().get(classDataId);
         // Find local variables for all methods
         LocalVariableClassVisitor localVariableVisitor = new LocalVariableClassVisitor(classNode, classData);
         classReader.accept(localVariableVisitor, 0);
@@ -97,7 +97,7 @@ public class CFGCreatorTest {
         // Assert
         assertEquals(3, classData.getMethodDataIds().size());
         for (UUID methodId : classData.getMethodDataIds()) {
-            MethodData methodData = CoverageDataStore.getInstance().getMethodDataMap().get(methodId);
+            MethodData methodData = ProjectData.getInstance().getMethodDataMap().get(methodId);
             if (methodData.getName().equals("<init>")) {
                 assertEquals(5, methodData.getCfg().getNodes().size());
                 assertEquals(1, methodData.getCfg().getNodes().values()

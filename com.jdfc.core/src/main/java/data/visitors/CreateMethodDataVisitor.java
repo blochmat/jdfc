@@ -6,7 +6,7 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import data.ClassData;
 import data.MethodData;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Optional;
@@ -64,7 +64,7 @@ public class CreateMethodDataVisitor extends MethodVisitor {
         }
 
         this.classData.getMethodDataIds().add(this.methodData.getId());
-        CoverageDataStore.getInstance().getMethodDataMap().put(this.methodData.getId(), this.methodData);
+        ProjectData.getInstance().getMethodDataMap().put(this.methodData.getId(), this.methodData);
         super.visitEnd();
     }
 

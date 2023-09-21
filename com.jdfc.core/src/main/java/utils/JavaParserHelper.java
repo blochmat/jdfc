@@ -6,7 +6,7 @@ import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +22,8 @@ public class JavaParserHelper {
     public JavaParserHelper() {
         this.combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(new ReflectionTypeSolver()); // For java standard library types
-        if(CoverageDataStore.getInstance() != null) {
-            combinedTypeSolver.add(new JavaParserTypeSolver(new File(CoverageDataStore.getInstance().getSourceDirAbs()))); // For source code
+        if(ProjectData.getInstance() != null) {
+            combinedTypeSolver.add(new JavaParserTypeSolver(new File(ProjectData.getInstance().getSourceDirAbs()))); // For source code
         }
         // NOTE: in case libraries are required for the source code add
         // combinedTypeSolver.add(new JarTypeSolver("lib/your-library.jar")); // For library types

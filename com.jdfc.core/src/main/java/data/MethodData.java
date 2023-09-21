@@ -3,7 +3,6 @@ package data;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import data.singleton.CoverageDataStore;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import graphs.cfg.nodes.CFGNode;
@@ -204,7 +203,7 @@ public class MethodData implements Serializable {
 
     public UUID findVarId(ProgramVariable var) {
         for (UUID id : this.pVarIds) {
-            ProgramVariable v = CoverageDataStore.getInstance().getProgramVariableMap().get(id);
+            ProgramVariable v = ProjectData.getInstance().getProgramVariableMap().get(id);
             if (Objects.equals(v.getClassName(), var.getClassName())
                     && Objects.equals(v.getMethodName(), var.getMethodName())
                     && Objects.equals(v.getName(), var.getName())
@@ -221,7 +220,7 @@ public class MethodData implements Serializable {
     public Map<UUID, ProgramVariable> getPVarsFromStore() {
         Map<UUID, ProgramVariable> pVars = new HashMap<>();
         for(UUID id: this.pVarIds) {
-            pVars.put(id, CoverageDataStore.getInstance().getProgramVariableMap().get(id));
+            pVars.put(id, ProjectData.getInstance().getProgramVariableMap().get(id));
         }
         return pVars;
     }
@@ -229,7 +228,7 @@ public class MethodData implements Serializable {
     public Map<UUID, DefUsePair> getDUPairsFromStore() {
         Map<UUID, DefUsePair> pVars = new HashMap<>();
         for(UUID id: this.duPairIds) {
-            pVars.put(id, CoverageDataStore.getInstance().getDefUsePairMap().get(id));
+            pVars.put(id, ProjectData.getInstance().getDefUsePairMap().get(id));
         }
         return pVars;
     }
@@ -256,7 +255,7 @@ public class MethodData implements Serializable {
                             && !def.getDescriptor().equals("UNKNOWN")) {
                         UUID id = UUID.randomUUID();
                         this.duPairIds.add(id);
-                        CoverageDataStore.getInstance().getDefUsePairMap()
+                        ProjectData.getInstance().getDefUsePairMap()
                                 .put(id, new DefUsePair(
                                         id,
                                         this.className,
@@ -284,8 +283,8 @@ public class MethodData implements Serializable {
      */
     public boolean isAnalyzedVariable(String pName, int pLineNumber) {
         for (DefUsePair pair : this.getDUPairsFromStore().values()) {
-            ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
-            ProgramVariable use = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getUseId());
+            ProgramVariable def = ProjectData.getInstance().getProgramVariableMap().get(pair.getDefId());
+            ProgramVariable use = ProjectData.getInstance().getProgramVariableMap().get(pair.getUseId());
             if ((def.getName().equals(pName) && def.getLineNumber() == pLineNumber)
                     || use.getName().equals(pName) && use.getLineNumber() == pLineNumber) {
                 return true;

@@ -2,7 +2,7 @@ package report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import data.*;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import utils.JDFCUtils;
@@ -41,9 +41,9 @@ public class XMLReportGenerator {
 
             // Project
             Element coverage = doc.createElement("coverage");
-            coverage.setAttribute("pair-rate", String.valueOf(CoverageDataStore.getInstance().getRatio()));
-            coverage.setAttribute("pairs-covered", String.valueOf(CoverageDataStore.getInstance().getCovered()));
-            coverage.setAttribute("pairs-valid", String.valueOf(CoverageDataStore.getInstance().getTotal()));
+            coverage.setAttribute("pair-rate", String.valueOf(ProjectData.getInstance().getRatio()));
+            coverage.setAttribute("pairs-covered", String.valueOf(ProjectData.getInstance().getCovered()));
+            coverage.setAttribute("pairs-valid", String.valueOf(ProjectData.getInstance().getTotal()));
             coverage.setAttribute("version", "1.0-SNAPSHOT");
             coverage.setAttribute("timestamp", String.valueOf(System.currentTimeMillis()));
             doc.appendChild(coverage);
@@ -51,9 +51,9 @@ public class XMLReportGenerator {
             // Sources
             Element sources = doc.createElement("sources");
             coverage.appendChild(sources);
-            File projectDirString = CoverageDataStore.getInstance().getWorkDir();
+            File projectDirString = ProjectData.getInstance().getWorkDir();
             Element source = doc.createElement("source");
-            String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), CoverageDataStore.getInstance().getSourceDirAbs()).substring(1);
+            String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), ProjectData.getInstance().getSourceDirAbs()).substring(1);
             source.setTextContent(relPath);
             sources.appendChild(source);
 
@@ -61,7 +61,7 @@ public class XMLReportGenerator {
             Element packages = doc.createElement("packages");
             coverage.appendChild(packages);
 
-            for(PackageData pkgData : CoverageDataStore.getInstance().getPackageDataMap().values()) {
+            for(PackageData pkgData : ProjectData.getInstance().getPackageDataMap().values()) {
                 // create package
                 Element pkg = doc.createElement("package");
                 pkg.setAttribute("name", pkgData.getFqn());
@@ -105,8 +105,8 @@ public class XMLReportGenerator {
                         method.appendChild(pairs);
 
                         for (DefUsePair pData : mData.getDUPairsFromStore().values()) {
-                            ProgramVariable d = CoverageDataStore.getInstance().getProgramVariableMap().get(pData.getDefId());
-                            ProgramVariable u = CoverageDataStore.getInstance().getProgramVariableMap().get(pData.getUseId());
+                            ProgramVariable d = ProjectData.getInstance().getProgramVariableMap().get(pData.getDefId());
+                            ProgramVariable u = ProjectData.getInstance().getProgramVariableMap().get(pData.getUseId());
 
                             Element pair = doc.createElement("pair");
                             pair.setAttribute("uuid", String.valueOf(pData.getId()));
@@ -132,7 +132,7 @@ public class XMLReportGenerator {
                     clazz.appendChild(pairs);
 
                     int idCounter = 0;
-                    for (DefUsePair pairData : CoverageDataStore.getInstance().getDefUsePairMap().values()) {
+                    for (DefUsePair pairData : ProjectData.getInstance().getDefUsePairMap().values()) {
                         if(cData.getClassMetaData().getFqn().equals(pairData.getClassName())) {
                             Element pair = doc.createElement("pair");
                             pair.setAttribute("id", String.valueOf(idCounter));

@@ -2,7 +2,7 @@ package report;
 
 import data.ClassData;
 import data.PackageData;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import report.html.HTMLFactory;
@@ -69,7 +69,7 @@ public class HTMLReportGenerator {
 //    }
 
     private void createHTMLFiles(HTMLFactory factory) throws IOException {
-        for(Map.Entry<String, PackageData> packageEntry : CoverageDataStore.getInstance().getPackageDataMap().entrySet()) {
+        for(Map.Entry<String, PackageData> packageEntry : ProjectData.getInstance().getPackageDataMap().entrySet()) {
             String packageAbs = String.join(File.separator, outputDir.getAbsolutePath(), packageEntry.getKey());
             File pkg = new File(packageAbs);
             if(pkg.exists() || pkg.mkdirs()) {

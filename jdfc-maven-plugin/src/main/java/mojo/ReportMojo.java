@@ -1,6 +1,6 @@
 package mojo;
 
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -23,12 +23,12 @@ public class ReportMojo extends AbstractMojo {
     public void execute() {
         final String workDirAbs = project.getBasedir().toString();
         String fileInAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
-        CoverageDataStore deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+        ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
         if(deserialized == null) {
             throw new IllegalArgumentException("Unable do deserialize coverage data.");
         }
-        CoverageDataStore.setInstance(deserialized);
-        final String outDirAbs = String.format("%s%sjdfc-report", CoverageDataStore.getInstance().getBuildDir().getAbsolutePath(), File.separator);
+        ProjectData.setInstance(deserialized);
+        final String outDirAbs = String.format("%s%sjdfc-report", ProjectData.getInstance().getBuildDir().getAbsolutePath(), File.separator);
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
 
         ReportGenerator reportGenerator = new ReportGenerator(outDirAbs, sourceDirAbs);

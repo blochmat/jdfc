@@ -1,6 +1,6 @@
 package mojo;
 
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -28,7 +28,7 @@ public class InstrumentMojo extends AbstractMojo {
         final String buildDirAbs = project.getBuild().getDirectory();
         final String classesDirAbs = project.getBuild().getOutputDirectory();
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
-        CoverageDataStore.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+        ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
         Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
         List<File> classFiles = instrumenter.loadClassFiles();
         for (File classFile : classFiles) {

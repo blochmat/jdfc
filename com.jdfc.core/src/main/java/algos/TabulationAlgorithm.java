@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.ClassData;
 import data.ProgramVariable;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import graphs.esg.ESG;
 import graphs.esg.ESGEdge;
 import graphs.esg.nodes.ESGNode;
@@ -158,8 +158,8 @@ public class TabulationAlgorithm {
                                     if (!summaryEdgeSet.contains(e)) {
                                         summaryEdgeSet.add(e);
 
-                                        ClassMetaData classMetaData = CoverageDataStore.getInstance().getClassMetaDataMap().get(c.getClassName());
-                                        ClassData cData = CoverageDataStore.getInstance().getClassDataMap().get(classMetaData.getClassDataId());
+                                        ClassMetaData classMetaData = ProjectData.getInstance().getClassMetaDataMap().get(c.getClassName());
+                                        ClassData cData = ProjectData.getInstance().getClassDataMap().get(classMetaData.getClassDataId());
                                         SGEntryNode cEntryNode = cData.getMethodByInternalName(c.getMethodName())
                                                 .getSg()
                                                 .getEntryNode();
@@ -219,8 +219,8 @@ public class TabulationAlgorithm {
         for(Map.Entry<Integer, Map<String, Map<UUID, ESGNode>>> esgLineSectionEntry : esg.getNodes().entrySet()) {
             SGNode sgNode = sg.getNodes().get(esgLineSectionEntry.getKey());
             int sgIdx = sgNode.getIndex();
-            ClassMetaData classMetaData = CoverageDataStore.getInstance().getClassMetaDataMap().get(sgNode.getClassName().replace("/", "."));
-            ClassData classData = CoverageDataStore.getInstance().getClassDataMap().get(classMetaData.getClassDataId());
+            ClassMetaData classMetaData = ProjectData.getInstance().getClassMetaDataMap().get(sgNode.getClassName().replace("/", "."));
+            ClassData classData = ProjectData.getInstance().getClassDataMap().get(classMetaData.getClassDataId());
             SGEntryNode sgEntryNode = classData.getMethodByInternalName(sgNode.getMethodName()).getSg().getEntryNode();
             int sgEntryIdx = sgEntryNode.getIndex();
 

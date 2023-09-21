@@ -1,7 +1,7 @@
 package report.html;
 
 import data.*;
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -641,7 +641,7 @@ public class HTMLFactory {
 
     private HTMLElement createPackagesTableBodyTag() {
         HTMLElement bodyTag = HTMLElement.tbody();
-        for (Map.Entry<String, PackageData> entry : CoverageDataStore.getInstance().getPackageDataMap().entrySet()) {
+        for (Map.Entry<String, PackageData> entry : ProjectData.getInstance().getPackageDataMap().entrySet()) {
             HTMLElement trTag = HTMLElement.tr();
 
             // First link tag
@@ -817,7 +817,7 @@ public class HTMLFactory {
                     var.getLineNumber(), var.getInstructionIndex());
             div.getAttributes().add(defTab);
             Set<ProgramVariable> useList = pairs.stream()
-                    .map(x -> CoverageDataStore.getInstance().getProgramVariableMap().get(x.getUseId()))
+                    .map(x -> ProjectData.getInstance().getProgramVariableMap().get(x.getUseId()))
                     .collect(Collectors.toSet());
             for (ProgramVariable use : useList) {
                 try {
@@ -831,7 +831,7 @@ public class HTMLFactory {
                     var.getLineNumber(), var.getInstructionIndex());
             div.getAttributes().add(useTab);
             Set<ProgramVariable> defList = pairs.stream()
-                    .map(x -> CoverageDataStore.getInstance().getProgramVariableMap().get(x.getDefId()))
+                    .map(x -> ProjectData.getInstance().getProgramVariableMap().get(x.getDefId()))
                     .collect(Collectors.toSet());
             for (ProgramVariable def : defList) {
                 try {
@@ -940,7 +940,7 @@ public class HTMLFactory {
                                                     final ProgramVariable var) {
         Set<ProgramVariable> result = new HashSet<>();
         for (DefUsePair element : pairs) {
-            ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(element.getDefId());
+            ProgramVariable def = ProjectData.getInstance().getProgramVariableMap().get(element.getDefId());
             if (!def.equals(var)) {
                 result.add(def);
             }
@@ -1093,7 +1093,7 @@ public class HTMLFactory {
 
     private boolean isRedefined(MethodData mData, int pLineNumber, String pName) {
         for (DefUsePair pair : mData.getDUPairsFromStore().values()) {
-            ProgramVariable def = CoverageDataStore.getInstance().getProgramVariableMap().get(pair.getDefId());
+            ProgramVariable def = ProjectData.getInstance().getProgramVariableMap().get(pair.getDefId());
             // if another definition with the same name, but greater line number exists and
             // the current variable is not part of an active pair we know, that it must have been redefined
             if (def.getLineNumber() > pLineNumber && def.getName().equals(pName)
@@ -1106,7 +1106,7 @@ public class HTMLFactory {
 
     private boolean isDefinition(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
         for (DefUsePair defUsePair : pDefUsePairs) {
-            if (CoverageDataStore.getInstance().getProgramVariableMap().get(defUsePair.getDefId()).equals(pVariable)) {
+            if (ProjectData.getInstance().getProgramVariableMap().get(defUsePair.getDefId()).equals(pVariable)) {
                 return true;
             }
         }
@@ -1115,7 +1115,7 @@ public class HTMLFactory {
 
     private boolean isUsage(ProgramVariable pVariable, Set<DefUsePair> pDefUsePairs) {
         for (DefUsePair defUsePair : pDefUsePairs) {
-            if (CoverageDataStore.getInstance().getProgramVariableMap().get(defUsePair.getUseId()).equals(pVariable)) {
+            if (ProjectData.getInstance().getProgramVariableMap().get(defUsePair.getUseId()).equals(pVariable)) {
                 return true;
             }
         }
@@ -1126,8 +1126,8 @@ public class HTMLFactory {
     private Set<DefUsePair> getDefUsePairsCoveredForVar(MethodData mData, ProgramVariable pVariable) {
         Set<DefUsePair> result = new HashSet<>();
         for (DefUsePair element : mData.getDUPairsFromStore().values()) {
-                if (CoverageDataStore.getInstance().getProgramVariableMap().get(element.getDefId()).equals(pVariable)
-                        || CoverageDataStore.getInstance().getProgramVariableMap().get(element.getUseId()).equals(pVariable)) {
+                if (ProjectData.getInstance().getProgramVariableMap().get(element.getDefId()).equals(pVariable)
+                        || ProjectData.getInstance().getProgramVariableMap().get(element.getUseId()).equals(pVariable)) {
                     result.add(element);
                 }
         }

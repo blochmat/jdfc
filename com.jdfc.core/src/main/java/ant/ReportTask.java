@@ -1,6 +1,6 @@
 package ant;
 
-import data.singleton.CoverageDataStore;
+import data.ProjectData;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import report.ReportGenerator;
@@ -27,14 +27,14 @@ public class ReportTask extends Task {
     @Override
     public void execute() throws BuildException {
         String fileInAbs = String.join(File.separator, work, JDFC_SERIALIZATION_FILE);
-        CoverageDataStore deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+        ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
         if(deserialized == null) {
             throw new IllegalArgumentException("Unable do deserialize coverage data.");
         }
-        CoverageDataStore.setInstance(deserialized);
-        String outAbs = String.join(File.separator, CoverageDataStore.getInstance().getWorkDir().getAbsolutePath(), out);
+        ProjectData.setInstance(deserialized);
+        String outAbs = String.join(File.separator, ProjectData.getInstance().getWorkDir().getAbsolutePath(), out);
 
-        ReportGenerator reportGenerator = new ReportGenerator(outAbs, CoverageDataStore.getInstance().getSourceDirAbs());
+        ReportGenerator reportGenerator = new ReportGenerator(outAbs, ProjectData.getInstance().getSourceDirAbs());
         reportGenerator.create();
     }
 }
