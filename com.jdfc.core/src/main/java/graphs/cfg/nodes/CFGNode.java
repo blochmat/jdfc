@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class CFGNode {
 
+    private int index;
     private String className;
     private String methodName;
     private int lineNumber;
@@ -133,7 +134,8 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                "%d CFGNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                index,
                 lineNumber,
                 insnIndex,
                 JDFCUtils.getOpcode(opcode),

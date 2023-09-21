@@ -72,7 +72,8 @@ public class CFGCallNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGCallNode: lio(%d,%d,%s) (%s::%s) (%s::%s) ps(%d,%d)",
+                "%d CFGCallNode: lio(%d,%d,%s) (%s::%s) (%s::%s) ps(%d,%d)",
+                this.getIndex(),
                 this.getLineNumber(),
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),

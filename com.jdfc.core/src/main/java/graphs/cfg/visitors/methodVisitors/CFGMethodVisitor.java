@@ -751,11 +751,15 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 Sets.newLinkedHashSet(),
                 pVarMap,
                 dVarMap);
+        entryNode.setIndex(0);
         nodes.put(0, entryNode);
 
         // Put all other nodes
         for(Map.Entry<Integer, CFGNode> entry : tempNodes.entrySet()) {
-            nodes.put(entry.getKey()+1, entry.getValue());
+            int index = entry.getKey() + 1;
+            CFGNode cfgNode = entry.getValue();
+            cfgNode.setIndex(index);
+            nodes.put(index, cfgNode);
         }
 
         // Put exit node
@@ -769,7 +773,9 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 Sets.newLinkedHashSet(),
                 pVarMap,
                 dVarMap);
-        nodes.put(nodes.size(), exitNode);
+        int index = nodes.size();
+        exitNode.setIndex(index);
+        nodes.put(index, exitNode);
 
         // Copy edges
         Multimap<Integer, Integer> tempEdges = ArrayListMultimap.create();

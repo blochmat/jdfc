@@ -48,7 +48,8 @@ public class CFGEntryNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGEntryNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                "%d CFGEntryNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                getIndex(),
                 getLineNumber(),
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),

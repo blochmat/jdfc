@@ -43,7 +43,8 @@ public class CFGExitNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "CFGExitNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                "%d CFGExitNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                this.getIndex(),
                 this.getLineNumber(),
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),
