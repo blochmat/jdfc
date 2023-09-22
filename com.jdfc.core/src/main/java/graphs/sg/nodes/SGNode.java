@@ -34,6 +34,7 @@ public class SGNode {
         this.cfgIndex = cfgIndex;
         this.className = node.getClassName();
         this.methodName = node.getMethodName();
+        this.lineNumber = node.getLineNumber();
         this.definitions = node.getDefinitions();
         this.uses = node.getUses();
         this.insnIndex = node.getInsnIndex();
