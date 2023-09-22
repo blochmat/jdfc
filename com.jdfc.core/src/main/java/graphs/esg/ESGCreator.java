@@ -1,13 +1,12 @@
 package graphs.esg;
 
-import algos.TabulationAlgorithm;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.ClassData;
-import data.PairData;
 import data.MethodData;
+import data.PairData;
 import data.ProgramVariable;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
@@ -57,13 +56,6 @@ public class ESGCreator {
 
             ESG esg = this.createESGForMethod();
             mData.setEsg(esg);
-            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(esg);
-            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
-            String debug = String.format("%s :: %s\n%s",
-                    cData.getClassMetaData().getClassFileRelNoType(),
-                    mData.buildInternalMethodName(),
-                    JDFCUtils.prettyPrintMultimap(MVP));
-            JDFCUtils.logThis(debug, "MVP");
         }
     }
 

@@ -1,9 +1,9 @@
 package instr;
 
-import data.ClassData;
-import data.MethodData;
-import data.PackageData;
-import data.ProjectData;
+import algos.TabulationAlgorithm;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import data.*;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
@@ -23,10 +23,7 @@ import utils.JDFCUtils;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -199,7 +196,20 @@ public class Instrumenter {
         ESGCreator esgCreator = new ESGCreator();
         esgCreator.createESGsForClass(classData);
 
-        // TODO: Calculate inter-procedural pairs
+        // Compute inter-procedural pairs
+        for (MethodData methodData : classData.getMethodDataFromStore().values()) {
+            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(methodData.getEsg());
+            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
+            Multimap<Integer, UUID> mvpUUID = ArrayListMultimap.create();
+            for (Map.Entry<Integer, ProgramVariable> entry : MVP.entries()) {
+                mvpUUID.put(entry.getKey(), entry.getValue().getId());
+            }
+            String debug = String.format("%s :: %s\n%s",
+                    classData.getClassMetaData().getClassFileRelNoType(),
+                    methodData.buildInternalMethodName(),
+                    JDFCUtils.prettyPrintMultimap(mvpUUID));
+            JDFCUtils.logThis(debug, "MVP");
+        }
 
         // Tracking instrumentation
         if (log.isDebugEnabled()) {
