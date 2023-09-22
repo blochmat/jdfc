@@ -200,9 +200,10 @@ public class Instrumenter {
         for (MethodData methodData : classData.getMethodDataFromStore().values()) {
             TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(methodData.getEsg());
             Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
-            Multimap<Integer, UUID> mvpUUID = ArrayListMultimap.create();
+            Multimap<Integer, String> mvpUUID = ArrayListMultimap.create();
             for (Map.Entry<Integer, ProgramVariable> entry : MVP.entries()) {
-                mvpUUID.put(entry.getKey(), entry.getValue().getId());
+                String str = String.format("%s:%d", entry.getValue().getName(), entry.getValue().getInstructionIndex());
+                mvpUUID.put(entry.getKey(), str);
             }
             String debug = String.format("%s :: %s\n%s",
                     classData.getClassMetaData().getClassFileRelNoType(),

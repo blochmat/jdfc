@@ -119,34 +119,17 @@ public class ESGCreator {
         return null;
     }
 
-    public ProgramVariable findDefMatch(SGEntryNode sgNode, ProgramVariable def) {
-        List<ProgramVariable> usages = new ArrayList<>();
-        for(PairData pair : METHOD_DATA.getDUPairsFromStore().values()) {
-            if(Objects.equals(pair.getDefFromStore(), def)) {
-                usages.add(pair.getUseFromStore());
-            }
-        }
-
-        for(ProgramVariable use : usages) {
-            ProgramVariable defMatch = sgNode.getPVarMap().get(use);
-            if(defMatch != null) {
-                return defMatch;
-            }
-        }
-        return null;
-    }
-
     public Set<ESGEdge> handleGlobal(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
         Set<ESGEdge> edges = new HashSet<>();
         String sgNodeMId = this.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
         String sgTargetNodeMId = this.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch(((SGCallNode) sgNode), pVar);
-            CALLER_TO_CALLEE_DEFINITION_MAP.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
-            CALLER_TO_CALLEE_DEFINITION_MAP.get(sgNode.getIndex()).put(pVar, m);
-            CALLEE_TO_CALLER_DEFINITION_MAP.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
-            CALLEE_TO_CALLER_DEFINITION_MAP.get(((SGCallNode) sgNode).getExitNodeIdx()).put(m, pVar);
             if(m != null) {
+                CALLER_TO_CALLEE_DEFINITION_MAP.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
+                CALLER_TO_CALLEE_DEFINITION_MAP.get(sgNode.getIndex()).put(pVar, m);
+                CALLEE_TO_CALLER_DEFINITION_MAP.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
+                CALLEE_TO_CALLER_DEFINITION_MAP.get(((SGCallNode) sgNode).getExitNodeIdx()).put(m, pVar);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),
@@ -223,6 +206,10 @@ public class ESGCreator {
         if(sgNode instanceof SGCallNode) {
             ProgramVariable m = findDefMatch((SGCallNode) sgNode, pVar);
             if(m != null) {
+                CALLER_TO_CALLEE_DEFINITION_MAP.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
+                CALLER_TO_CALLEE_DEFINITION_MAP.get(sgNode.getIndex()).put(pVar, m);
+                CALLEE_TO_CALLER_DEFINITION_MAP.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
+                CALLEE_TO_CALLER_DEFINITION_MAP.get(((SGCallNode) sgNode).getExitNodeIdx()).put(m, pVar);
                 edges.add(new ESGEdge(
                         sgNode.getIndex(),
                         sgTargetNode.getIndex(),

@@ -13,7 +13,6 @@ import graphs.sg.SG;
 import graphs.sg.nodes.*;
 import instr.ClassMetaData;
 import lombok.Data;
-import utils.JDFCUtils;
 
 import java.util.*;
 
@@ -37,8 +36,8 @@ public class TabulationAlgorithm {
 
     public Multimap<Integer, ProgramVariable> execute() {
         SG sg = this.esg.getSg();
-        String mainMId = String.format("%s :: %s", sg.getClassName(), sg.getMethodName());
-        ProgramVariable ZERO = new ProgramVariable.ZeroVariable(sg.getClassName(), sg.getMethodName());
+        String mainMId = String.format("%s :: %s", sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
+        ProgramVariable ZERO = new ProgramVariable.ZeroVariable(sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
 
         //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
         ESGEdge initialEdge = new ESGEdge(
@@ -52,13 +51,10 @@ public class TabulationAlgorithm {
         this.pathEdgeSet.add(initialEdge);
         this.workList.add(initialEdge);
 
-        int iteration = 0;
-
+        if (mainMId.contains("defineA")) {
+            System.out.println();
+        }
         while(!workList.isEmpty()) {
-            if (mainMId.contains("callFoo")) {
-                JDFCUtils.logThis(iteration + "\n" + JDFCUtils.prettyPrintArray(workList.toArray(new ESGEdge[0])), "worklist");
-            }
-            iteration++;
             ESGEdge currPathEdge = workList.pop();
 
             // Source
@@ -79,8 +75,8 @@ public class TabulationAlgorithm {
                     boolean basicEdgeExits = Objects.equals(peSrcMethodId, esgEdge.getSourceMethodId())
                             && Objects.equals(peSrcVar, esgEdge.getSourceVar());
                     boolean matchEdgeExists = false;
-                    if (esg.getCallerToCalleeDefinitionMap().containsKey(peTargetNodeIdx)) {
-                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(peTargetNodeIdx).containsKey(peSrcVar);
+                    if (esg.getCallerToCalleeDefinitionMap().containsKey(esgEdge.getSgnSourceIdx())) {
+                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(esgEdge.getSgnSourceIdx()).containsKey(peSrcVar);
                     }
                     if (basicEdgeExits || matchEdgeExists) {
                         int mIdx = esgEdge.getSgnTargetIdx();
