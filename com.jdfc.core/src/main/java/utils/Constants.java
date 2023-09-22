@@ -23,13 +23,14 @@ public class Constants {
     public static final String JDFC_SERIALIZATION_FILE = "jdfc_data.ser";
 
     public static final List<Integer> JUMP_OPCODES = Arrays.asList(
-        IFEQ, IFNE, IFLT, IFGE, IFGT, IFLE,
-        IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPGE, IF_ICMPGT, IF_ICMPLE,
-        IF_ACMPEQ, IF_ACMPNE,
-        GOTO,
-        JSR, // Deprecated but still a jump opcode
-        TABLESWITCH,
-        LOOKUPSWITCH
+            IFEQ, IFNE, IFLT, IFGE, IFGT, IFLE,
+            IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPGE, IF_ICMPGT, IF_ICMPLE,
+            IF_ACMPEQ, IF_ACMPNE,
+            GOTO,
+            JSR, // Deprecated but still a jump opcode
+            TABLESWITCH,
+            LOOKUPSWITCH,
+            F_NEW
     );
 
     public static final List<Integer> RETURN_OPCODES = Arrays.asList(

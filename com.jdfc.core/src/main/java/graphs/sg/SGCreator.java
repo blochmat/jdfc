@@ -212,7 +212,7 @@ public class SGCreator {
                         int sgReturnSiteNodeIdx = index;
                         SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                 index,
-                                cfgIndex,
+                                sgNodes.get(sgEntryNodeIdxStack.peek()-1).getCfgIndex(),
                                 new CFGNode(
                                         cData.getClassMetaData().getClassNodeName(),
                                         methodCallStack.peek(),

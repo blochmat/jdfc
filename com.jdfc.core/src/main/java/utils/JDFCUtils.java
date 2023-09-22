@@ -24,7 +24,8 @@ public class JDFCUtils {
 
     public static String getOpcode(int value) {
         switch (value) {
-            case 0: return "NOP";
+            case -1: return "F_NEW";
+            case 0: return " NOP ";
             case 1: return "ACONST_NULL";
             case 2: return "ICONST_M1";
             case 3: return "ICONST_0";
