@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static utils.Constants.JUMP_OPCODES;
+import static utils.Constants.RETURN_OPCODES;
 
 @Slf4j
 public class SGCreator {
@@ -114,7 +115,7 @@ public class SGCreator {
                     indexShiftStack.pop();
                     this.updateAddedNodesSumMap(sgNodeIdx);
                     this.sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
-                } else if (!JUMP_OPCODES.contains(sgNode.getOpcode())) {
+                } else if (!(JUMP_OPCODES.contains(sgNode.getOpcode()) || RETURN_OPCODES.contains(sgNode.getOpcode()))) {
                     Collection<Integer> sgEdgeTargets = this.computeSGEdgeTargets(sgNode, cfgEdgeTargets);
                     sgEdges.putAll(sgNodeIdx, sgEdgeTargets);
                 }
@@ -126,7 +127,7 @@ public class SGCreator {
                 SGNode sgNode = sgNodeEntry.getValue();
                 Collection<Integer> cfgEdgeTargets = cfgMap.get(sgNode.getMethodName()).getEdges().get(sgNode.getCfgIndex());
 
-                if (JUMP_OPCODES.contains(sgNode.getOpcode())) {
+                if (JUMP_OPCODES.contains(sgNode.getOpcode()) || RETURN_OPCODES.contains(sgNode.getOpcode())) {
                     Collection<Integer> updated = new ArrayList<>();
                     for (Integer cfgEdgeTarget : cfgEdgeTargets) {
                         int jumpDistance = cfgEdgeTarget - sgNode.getCfgIndex();

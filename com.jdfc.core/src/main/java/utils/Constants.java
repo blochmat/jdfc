@@ -31,4 +31,13 @@ public class Constants {
         TABLESWITCH,
         LOOKUPSWITCH
     );
+
+    public static final List<Integer> RETURN_OPCODES = Arrays.asList(
+            IRETURN, // Return int from method
+            LRETURN, // Return long from method
+            FRETURN, // Return float from method
+            DRETURN, // Return double from method
+            ARETURN, // Return reference from method
+            RETURN  // Return void from method
+    );
 }
