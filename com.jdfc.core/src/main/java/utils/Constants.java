@@ -26,6 +26,7 @@ public class Constants {
             IFEQ, IFNE, IFLT, IFGE, IFGT, IFLE,
             IF_ICMPEQ, IF_ICMPNE, IF_ICMPLT, IF_ICMPGE, IF_ICMPGT, IF_ICMPLE,
             IF_ACMPEQ, IF_ACMPNE,
+            IFNULL, IFNONNULL,
             GOTO,
             JSR, // Deprecated but still a jump opcode
             TABLESWITCH,
