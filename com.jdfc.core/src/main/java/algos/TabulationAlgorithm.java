@@ -28,10 +28,10 @@ public class TabulationAlgorithm {
     private LinkedList<ESGEdge> workList;
 
     public TabulationAlgorithm(ESG esg) {
-        this.esg = esg;
+        this.esg = esg; // [1]
         this.pathEdgeSet = Sets.newLinkedHashSet();
         this.workList = new LinkedList<>();
-        this.summaryEdgeSet = new HashSet<>();
+        this.summaryEdgeSet = new HashSet<>(); // [4]
     }
 
     public Multimap<Integer, ProgramVariable> execute() {
@@ -39,7 +39,6 @@ public class TabulationAlgorithm {
         String mainMId = String.format("%s :: %s", sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
         ProgramVariable ZERO = new ProgramVariable.ZeroVariable(sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
 
-        //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
         ESGEdge initialEdge = new ESGEdge(
                 0,
                 0,
@@ -48,27 +47,30 @@ public class TabulationAlgorithm {
                 ZERO,
                 ZERO
         );
-        this.pathEdgeSet.add(initialEdge);
-        this.workList.add(initialEdge);
+        this.pathEdgeSet.add(initialEdge); // [2]
+        this.workList.add(initialEdge); // [3]
 
         if (mainMId.contains("defineA")) {
             System.out.println();
         }
-        while(!workList.isEmpty()) {
-            ESGEdge currPathEdge = workList.pop();
 
-            // Source
+        //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
+        while(!workList.isEmpty()) { // [10]
+            ESGEdge currPathEdge = workList.pop(); // [11]
+
+            // Path Edge Source
             SGNode peSrcNode = sg.getNodes().get(currPathEdge.getSgnSourceIdx());
             int peSrcNodeIdx = currPathEdge.getSgnSourceIdx();
             String peSrcMethodId = currPathEdge.getSourceMethodId();
             ProgramVariable peSrcVar = currPathEdge.getSourceVar();
 
-            // Target
+            // Path Edge Target
             SGNode peTargetNode = sg.getNodes().get(currPathEdge.getSgnTargetIdx());
             int peTargetNodeIdx = currPathEdge.getSgnTargetIdx();
             String peTargetMethodId = currPathEdge.getTargetMethodId();
             ProgramVariable peTargetVar = currPathEdge.getTargetVar();
 
+            // [13] - [20]
             if (peTargetNode instanceof SGCallNode) {
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(peTargetNodeIdx);
                 for (ESGEdge esgEdge : esgEdges) {
@@ -76,7 +78,7 @@ public class TabulationAlgorithm {
                             && Objects.equals(peSrcVar, esgEdge.getSourceVar());
                     boolean matchEdgeExists = false;
                     if (esg.getCallerToCalleeDefinitionMap().containsKey(esgEdge.getSgnSourceIdx())) {
-                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(esgEdge.getSgnSourceIdx()).containsKey(peSrcVar);
+                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(esgEdge.getSgnSourceIdx()).containsKey(peTargetVar);
                     }
                     if (basicEdgeExits || matchEdgeExists) {
                         int mIdx = esgEdge.getSgnTargetIdx();
@@ -126,6 +128,7 @@ public class TabulationAlgorithm {
                         }
                     }
                 }
+            // [21] - [32]
             } else if (peTargetNode instanceof SGExitNode && !Objects.equals(peTargetNode, sg.getExitNode())) {
                 Collection<Integer> callers = sg.getCallersMap().get(peTargetNode.getMethodName());
                 for (Integer idx : callers) {
@@ -189,20 +192,31 @@ public class TabulationAlgorithm {
                         }
                     }
                 }
+            // [33] - [37]
+            // if node is not call p or exit p
+            //      propagate a path edge from entry p to target of edge
             } else {
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(peTargetNode.getIndex());
                 for (ESGEdge e : esgEdges) {
-                    int eSgnTargetIdx = e.getSgnTargetIdx();
-                    String eTargetMethodId = e.getTargetMethodId();
-                    ProgramVariable eTargetVar = e.getTargetVar();
+                    SGNode sgTargetNode = sg.getNodes().get(e.getSgnTargetIdx());
+
+                    // Path edge source
+                    int newPeSgnSourceIdx = sgTargetNode.getEntryNodeIdx();
+                    String newPeSourceMethodId = e.getTargetMethodId();
+                    ProgramVariable newPeSourceVar = e.getTargetVar();
+
+                    // Path edge target
+                    int newPeSgnTargetIdx = e.getSgnTargetIdx();
+                    String newPeTargetMethodId = e.getTargetMethodId();
+                    ProgramVariable newPeTargetVar = e.getTargetVar();
 
                     propagate(new ESGEdge(
-                            peSrcNodeIdx,
-                            eSgnTargetIdx,
-                            peSrcMethodId,
-                            eTargetMethodId,
-                            peSrcVar,
-                            eTargetVar)
+                            newPeSgnSourceIdx,
+                            newPeSgnTargetIdx,
+                            newPeSourceMethodId,
+                            newPeTargetMethodId,
+                            newPeSourceVar,
+                            newPeTargetVar)
                     );
                 }
 //            }

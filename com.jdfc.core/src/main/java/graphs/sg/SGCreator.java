@@ -41,6 +41,7 @@ public class SGCreator {
         Stack<String> methodCallStack = new Stack<>();
         Stack<Integer> indexShiftStack = new Stack<>();
         Stack<Integer> addedNodesSumStack = new Stack<>();
+        Stack<Integer> entryNodeIdxStack = new Stack<>();
         Stack<Integer> sgCallNodeIdxStack = new Stack<>();
         Stack<Integer> sgEntryNodeIdxStack = new Stack<>();
 
@@ -187,6 +188,7 @@ public class SGCreator {
                 if (cfgNode instanceof CFGEntryNode) {
                     SGEntryNode sgEntryNode = new SGEntryNode(index, cfgIndex, cfgNode);
                     this.methodCallStack.push(sgEntryNode.getMethodName());
+                    this.entryNodeIdxStack.push(index);
                     if (!sgCallNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
                         this.sgEntryNodeIdxStack.push(index);
@@ -196,7 +198,7 @@ public class SGCreator {
                     }
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
-                    SGExitNode sgExitNode = new SGExitNode(index, cfgIndex, cfgNode);
+                    SGExitNode sgExitNode = new SGExitNode(index, cfgIndex, entryNodeIdxStack.pop(), cfgNode);
                     methodCallStack.pop();
                     if (!sgEntryNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
@@ -213,6 +215,7 @@ public class SGCreator {
                         SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                 index,
                                 sgNodes.get(sgEntryNodeIdxStack.peek()-1).getCfgIndex(),
+                                entryNodeIdxStack.peek(),
                                 new CFGNode(
                                         cData.getClassMetaData().getClassNodeName(),
                                         methodCallStack.peek(),
@@ -256,7 +259,7 @@ public class SGCreator {
                     }
                 } else if (cfgNode instanceof CFGCallNode) {
                     // Add call node
-                    SGCallNode sgCallNode = new SGCallNode(index, cfgIndex, (CFGCallNode) cfgNode);
+                    SGCallNode sgCallNode = new SGCallNode(index, cfgIndex, entryNodeIdxStack.peek(),(CFGCallNode) cfgNode);
                     this.sgCallNodeIdxStack.push(index);
                     // Add called method cfg if possible
                     CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
@@ -298,7 +301,7 @@ public class SGCreator {
                         }
                     }
                 } else {
-                    this.addSGNode(new SGNode(index, cfgIndex, cfgNode), targets);
+                    this.addSGNode(new SGNode(index, cfgIndex, entryNodeIdxStack.peek(), cfgNode), targets);
                 }
             }
         }

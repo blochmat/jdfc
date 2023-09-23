@@ -17,6 +17,7 @@ public class SGNode {
 
     private int index;
     private int cfgIndex;
+    private int entryNodeIdx;
     private int insnIndex;
     private int opcode;
     private String className;
@@ -29,9 +30,10 @@ public class SGNode {
     private Set<ProgramVariable> cfgReachOut;
     private Set<ProgramVariable> cfgReach;
 
-    public SGNode(int index, int cfgIndex, CFGNode node) {
+    public SGNode(int index, int cfgIndex, int entryNodeIdx, CFGNode node) {
         this.index = index;
         this.cfgIndex = cfgIndex;
+        this.entryNodeIdx = entryNodeIdx;
         this.className = node.getClassName();
         this.methodName = node.getMethodName();
         this.lineNumber = node.getLineNumber();
@@ -66,6 +68,7 @@ public class SGNode {
         SGNode that = (SGNode) o;
         return getIndex() == that.getIndex()
                 && getCfgIndex() == that.getCfgIndex()
+                && getEntryNodeIdx() == that.getEntryNodeIdx()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
@@ -78,6 +81,7 @@ public class SGNode {
         return Objects.hash(
                 getIndex(),
                 getCfgIndex(),
+                getEntryNodeIdx(),
                 getInsnIndex(),
                 getOpcode(),
                 getClassName(),

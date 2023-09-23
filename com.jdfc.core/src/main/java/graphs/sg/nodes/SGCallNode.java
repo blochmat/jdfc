@@ -19,12 +19,11 @@ public class SGCallNode extends SGNode {
     private boolean isCalledSGPresent;
     private BiMap<ProgramVariable, ProgramVariable> pVarMap;
     private BiMap<DomainVariable, DomainVariable> dVarMap;
-    private int entryNodeIdx;
     private int exitNodeIdx;
     private int returnSiteNodeIdx;
 
-    public SGCallNode(int index, int cfgIndex, CFGCallNode node) {
-        super(index, cfgIndex, node);
+    public SGCallNode(int index, int cfgIndex, int entryNodeIdx, CFGCallNode node) {
+        super(index, cfgIndex, entryNodeIdx, node);
         this.calledClassName = node.getCalledClassName();
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
@@ -58,6 +57,7 @@ public class SGCallNode extends SGNode {
         return getIndex() == that.getIndex()
                 && getLineNumber() == that.getLineNumber()
                 && getCfgIndex() == that.getCfgIndex()
+                && getEntryNodeIdx() == that.getEntryNodeIdx()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
@@ -73,6 +73,7 @@ public class SGCallNode extends SGNode {
         return Objects.hash(
                 getIndex(),
                 getLineNumber(),
+                getEntryNodeIdx(),
                 getCfgIndex(),
                 getInsnIndex(),
                 getOpcode(),

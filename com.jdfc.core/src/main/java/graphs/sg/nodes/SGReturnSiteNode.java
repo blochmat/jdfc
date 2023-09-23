@@ -10,11 +10,10 @@ import java.util.Objects;
 public class SGReturnSiteNode extends SGNode {
 
     private int callNodeIdx;
-    private int entryNodeIdx;
     private int exitNodeIdx;
 
-    public SGReturnSiteNode(int index, int cfgIndex, CFGNode node) {
-        super(index, cfgIndex, node);
+    public SGReturnSiteNode(int index, int cfgIndex, int entryNodeIdx, CFGNode node) {
+        super(index, cfgIndex, entryNodeIdx, node);
     }
 
     @Override
@@ -39,6 +38,7 @@ public class SGReturnSiteNode extends SGNode {
         return getIndex() == that.getIndex()
                 && getLineNumber() == that.getLineNumber()
                 && getCfgIndex() == that.getCfgIndex()
+                && getEntryNodeIdx() == that.getEntryNodeIdx()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())

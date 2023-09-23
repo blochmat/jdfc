@@ -20,7 +20,7 @@ public class SGEntryNode extends SGNode {
     private int returnSiteNodeIdx;
 
     public SGEntryNode(int index, int cfgIndex, CFGNode node) {
-        super(index, cfgIndex, node);
+        super(index, cfgIndex, index, node);
         this.pVarMap = HashBiMap.create();
         this.dVarMap = HashBiMap.create();
     }
@@ -47,6 +47,7 @@ public class SGEntryNode extends SGNode {
         return getIndex() == that.getIndex()
                 && getLineNumber() == that.getLineNumber()
                 && getCfgIndex() == that.getCfgIndex()
+                && getEntryNodeIdx() == that.getEntryNodeIdx()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())

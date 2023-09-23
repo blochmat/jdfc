@@ -18,11 +18,10 @@ public class SGExitNode extends SGNode {
     private BiMap<ProgramVariable, ProgramVariable> pVarMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
     private int callNodeIdx;
-    private int entryNodeIdx;
     private int returnSiteNodeIdx;
 
-    public SGExitNode(int index, int cfgIndex, CFGNode node) {
-        super(index, cfgIndex, node);
+    public SGExitNode(int index, int cfgIndex, int entryNodeIdx, CFGNode node) {
+        super(index, cfgIndex, entryNodeIdx, node);
         this.pVarMap = HashBiMap.create();
         this.dVarMap = new HashMap<>();
     }
@@ -47,8 +46,9 @@ public class SGExitNode extends SGNode {
         if (o == null || getClass() != o.getClass()) return false;
         SGExitNode that = (SGExitNode) o;
         return getIndex() == that.getIndex()
-                && getLineNumber() == that.getLineNumber()
                 && getCfgIndex() == that.getCfgIndex()
+                && getEntryNodeIdx() == that.getEntryNodeIdx()
+                && getLineNumber() == that.getLineNumber()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
