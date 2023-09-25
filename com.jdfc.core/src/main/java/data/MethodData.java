@@ -3,8 +3,11 @@ package data;
 import com.github.javaparser.Position;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
+import graphs.cfg.nodes.CFGCallNode;
 import graphs.cfg.nodes.CFGNode;
 import graphs.esg.ESG;
 import graphs.sg.SG;
@@ -17,6 +20,7 @@ import utils.JDFCUtils;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -291,6 +295,29 @@ public class MethodData implements Serializable {
             }
         }
         return false;
+    }
+
+    public void createIndexDefinitionsMap() {
+        for (Map.Entry<Integer, CFGNode> entry : this.cfg.getNodes().entrySet()) {
+            CFGNode node = entry.getValue();
+
+            if (node instanceof CFGCallNode) {
+                Multimap<Integer, ProgramVariable> indexDefinitionsMap = ArrayListMultimap.create();
+                CFGCallNode cfgCallNode = (CFGCallNode) node;
+                for (Map.Entry<Integer, ProgramVariable> paramEntry : cfgCallNode.getIndexUseMap().entrySet()) {
+                    ProgramVariable usage = paramEntry.getValue();
+                    Set<PairData> duPairs = ProjectData.getInstance().getDefUsePairMap().values()
+                            .stream()
+                            .filter(x -> x.getUseId().equals(usage.getId()))
+                            .collect(Collectors.toSet());
+                    Set<UUID> defIds = duPairs.stream().map(PairData::getDefId).collect(Collectors.toSet());
+                    for (UUID defId : defIds) {
+                        indexDefinitionsMap.put(paramEntry.getKey(), ProjectData.getInstance().getProgramVariableMap().get(defId));
+                    }
+                }
+                cfgCallNode.setIndexDefinitionsMap(indexDefinitionsMap);
+            }
+        }
     }
 
 

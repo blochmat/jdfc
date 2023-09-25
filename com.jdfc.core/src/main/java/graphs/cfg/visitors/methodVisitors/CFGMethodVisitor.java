@@ -150,9 +150,9 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 null);
         MethodData cmData = classVisitor.classData.getMethodByShortInternalName(shortCalledMethodName);
         if (owner.equals(classVisitor.classNode.name) && cmData != null) {
-            Map<Integer, ProgramVariable> pVarMap = this.createPVarMap(aa.getPopList(), cmData);
-            if (!pVarMap.isEmpty()) {
-                pVarMap = this.cleanupPVarMap(pVarMap, cmData);
+            Map<Integer, ProgramVariable> paramPositionMap = this.createIndexUseMap(aa.getPopList(), cmData);
+            if (!paramPositionMap.isEmpty()) {
+                paramPositionMap = this.cleanupPVarMap(paramPositionMap, cmData);
             }
             Map<Integer, DomainVariable> dVarMap = this.createDVarMap(aa.getPopList(), cmData);
             if (!dVarMap.isEmpty()) {
@@ -168,7 +168,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                     owner,
                     cmData.buildInternalMethodName(),
                     isInterface,
-                    pVarMap,
+                    paramPositionMap,
                     dVarMap);
             nodes.put(currentInstructionIndex, node);
         } else {
@@ -632,7 +632,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         nodes.put(pIndex, node);
     }
 
-    private Map<Integer, ProgramVariable> createPVarMap(List<Object> popList, MethodData called) {
+    private Map<Integer, ProgramVariable> createIndexUseMap(List<Object> popList, MethodData called) {
         List<Object> local = new ArrayList<>(popList);
         Map<Integer, ProgramVariable> result = new HashMap<>();
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
@@ -648,13 +648,11 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                     }
                 }
             } else {
-                System.err.println("ERROR createPVarMap: p is null.");
+                System.err.println("ERROR createIndexUseMap: p is null.");
             }
         } else {
             for (Object o : local) {
                 if (o instanceof ProgramVariable) {
-                    // todo: just safe position and usage
-                    // create pVarMap when definition use pairs are computed
                     result.put(local.indexOf(o), (ProgramVariable) o);
                 }
             }

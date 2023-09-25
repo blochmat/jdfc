@@ -193,8 +193,13 @@ public class SGCreator {
                         // node is part of subroutine
                         this.sgEntryNodeIdxStack.push(index);
                         SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdxStack.peek());
-                        sgEntryNode.setPVarMap(sgCallNode.getPVarMap());
                         sgEntryNode.setDVarMap(sgCallNode.getDVarMap().inverse());
+
+                        Multimap<ProgramVariable, ProgramVariable> calleeMap = ArrayListMultimap.create();
+                        for (Map.Entry<ProgramVariable, ProgramVariable> pVarMapEntry : sgCallNode.getDefinitionsMap().entrySet()) {
+                            calleeMap.put(pVarMapEntry.getValue(), pVarMapEntry.getKey());
+                        }
+                        sgEntryNode.setDefinitionsMap(calleeMap);
                     }
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
@@ -204,7 +209,7 @@ public class SGCreator {
                         // node is part of subroutine
                         int sgExitNodeIdx = index;
                         SGEntryNode sgEntryNode = (SGEntryNode) sgNodes.get(sgEntryNodeIdxStack.peek());
-                        sgExitNode.setPVarMap(sgEntryNode.getPVarMap());
+                        sgExitNode.setDefinitionsMap(sgEntryNode.getDefinitionsMap());
                         sgExitNode.setDVarMap(sgEntryNode.getDVarMap().inverse());
                         // Connect exit to return site node
                         Collection<Integer> exitTargets = Collections.singletonList(cfgIndex + 1);
@@ -212,29 +217,28 @@ public class SGCreator {
 
                         // Create return site node
                         int sgReturnSiteNodeIdx = index;
+                        int sgCallNodeIdx = sgCallNodeIdxStack.pop();
+                        int sgEntryNodeIdx = sgEntryNodeIdxStack.pop();
+                        SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdx);
                         SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                 index,
-                                sgNodes.get(sgEntryNodeIdxStack.peek()-1).getCfgIndex(),
+                                sgCallNode.getCfgIndex(),
                                 entryNodeIdxStack.peek(),
                                 new CFGNode(
                                         cData.getClassMetaData().getClassNodeName(),
                                         methodCallStack.peek(),
-                                        cfgNode.getLineNumber(),
+                                        sgCallNode.getLineNumber(),
                                         Sets.newLinkedHashSet(),
                                         Sets.newLinkedHashSet(),
                                         Integer.MIN_VALUE,
                                         Integer.MIN_VALUE,
                                         Sets.newLinkedHashSet(),
                                         Sets.newLinkedHashSet(),
-                                        cfgNode.getReach(),
-                                        cfgNode.getReachOut()));
+                                        sgCallNode.getCfgReach(),
+                                        sgCallNode.getCfgReachOut()));
                         Collection<Integer> returnSiteTargets = Collections.singletonList(index + 1);
                         this.addSGNode(sgReturnSiteNode, returnSiteTargets);
-
-                        int sgCallNodeIdx = sgCallNodeIdxStack.pop();
-                        int sgEntryNodeIdx = sgEntryNodeIdxStack.pop();
-
-                        SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdx);
+                        sgReturnSiteNode.setDefinitionsMap(sgCallNode.getDefinitionsMap());
                         sgReturnSiteIndexMap.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
                         // Connect call and return site node
 //                        sgEdges.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
@@ -278,13 +282,13 @@ public class SGCreator {
                     AbstractMap.SimpleImmutableEntry<Integer, CFGNode> nextEntry = this.workStack.peek();
                     if (nextEntry.getValue() instanceof CFGEntryNode) {
                         CFGEntryNode cfgEntryNode = (CFGEntryNode) nextEntry.getValue();
-                        Map<Integer, ProgramVariable> pVarsCall = cfgCallNode.getPVarMap();
-                        Map<Integer, ProgramVariable> pVarsEntry = cfgEntryNode.getPVarMap();
-                        if(pVarsCall != null && pVarsEntry != null) {
+                        Multimap<Integer, ProgramVariable> positionParamMapCall = cfgCallNode.getIndexDefinitionsMap();
+                        Map<Integer, ProgramVariable> positionParamMapEntry = cfgEntryNode.getPVarMap();
+                        if(positionParamMapCall != null && positionParamMapEntry != null) {
                             // Create program variable mapping
-                            BiMap<ProgramVariable, ProgramVariable> pVarMap = HashBiMap.create();
-                            for (Map.Entry<Integer, ProgramVariable> cEntry : pVarsCall.entrySet()) {
-                                pVarMap.put(cEntry.getValue(), pVarsEntry.get(cEntry.getKey()));
+                            Map<ProgramVariable, ProgramVariable> callerMap = new HashMap<>();
+                            for (Map.Entry<Integer, ProgramVariable> cEntry : positionParamMapCall.entries()) {
+                                callerMap.put(cEntry.getValue(), positionParamMapEntry.get(cEntry.getKey()));
                             }
 
                             // Create domain variable mapping
@@ -296,7 +300,7 @@ public class SGCreator {
                                 }
                             }
 
-                            sgCallNode.getPVarMap().putAll(pVarMap);
+                            sgCallNode.getDefinitionsMap().putAll(callerMap);
                             sgCallNode.getDVarMap().putAll(dVarMap);
                         }
                     }

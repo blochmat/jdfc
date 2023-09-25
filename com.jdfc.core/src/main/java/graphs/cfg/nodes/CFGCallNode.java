@@ -1,5 +1,6 @@
 package graphs.cfg.nodes;
 
+import com.google.common.collect.Multimap;
 import data.DomainVariable;
 import data.ProgramVariable;
 import lombok.Data;
@@ -27,29 +28,25 @@ public class CFGCallNode extends CFGNode {
     private final boolean calledIsInterface;
 
     /**
-     * Mapping of all program variables (value) with position in the method call (key). <br>
-     * NOTE: Might contain viewer params than defined for the method, because constant params are not included.
+     * The key of this map represents the index of a parameter of the method.
+     * The value is the use associated with the index in the method invocation.
+     * We use this map to be able to create {@code indexDefinitionMap}.
      */
-    private final Map<Integer, ProgramVariable> pVarMap;
+    private final Map<Integer, ProgramVariable> indexUseMap;
 
     /**
-     * Mapping of all domain variables (value) with position in the method call (key). <br>
-     * NOTE: Might contain viewer params than defined for the method, because constant params are not included.
+     * The key of this map represents the index of a parameter of the method.
+     * The value is a list of definitions of the current procedure that are associated with an index
+     * due to a method invocation.
+     * <p>
+     * e.g. {0, [defA, defB]} represents the information that there are two possible invocations, namely
+     *  1. int some = method(defA);
+     *  2. int some = method(defB);
      */
+    private Multimap<Integer, ProgramVariable> indexDefinitionsMap;
+
     private final Map<Integer, DomainVariable> dVarMap;
 
-    /**
-     *
-     * @param index index in the control flow graph
-     * @param opcode opcode of the instruction
-     * @param className name of the enclosing method's owner class (relative path)
-     * @param methodName name of the enclosing method (ASM internal name)
-     * @param calledClassName name of the called method's owner class (relative path)
-     * @param calledMethodName name of the called method (ASM internal name)
-     * @param calledIsInterface if the called methods owner class is an interface
-     * @param pVarMap mapping of passed program variables (value) with position in method call (key)
-     * @param dVarMap mapping of passed domain variables (value) with position in method call (key)
-     */
     public CFGCallNode(
             int index,
             int opcode,
@@ -59,13 +56,13 @@ public class CFGCallNode extends CFGNode {
             String calledClassName,
             String calledMethodName,
             boolean calledIsInterface,
-            Map<Integer, ProgramVariable> pVarMap,
+            Map<Integer, ProgramVariable> indexUseMap,
             Map<Integer, DomainVariable> dVarMap) {
        super(className, methodName, lineNumber, index, opcode);
        this.calledClassName = calledClassName;
        this.calledMethodName = calledMethodName;
        this.calledIsInterface = calledIsInterface;
-       this.pVarMap = pVarMap;
+       this.indexUseMap = indexUseMap;
        this.dVarMap = dVarMap;
     }
 

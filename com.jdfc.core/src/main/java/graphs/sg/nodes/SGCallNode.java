@@ -8,6 +8,8 @@ import graphs.cfg.nodes.CFGCallNode;
 import lombok.Data;
 import utils.JDFCUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Data
@@ -17,7 +19,12 @@ public class SGCallNode extends SGNode {
     private String calledMethodName;
     private boolean isInterface;
     private boolean isCalledSGPresent;
-    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
+
+    /**
+     * The key is a definition of the current procedure.
+     * The value is a definition of the invoked procedure.
+     */
+    private Map<ProgramVariable, ProgramVariable> definitionsMap;
     private BiMap<DomainVariable, DomainVariable> dVarMap;
     private int exitNodeIdx;
     private int returnSiteNodeIdx;
@@ -28,7 +35,7 @@ public class SGCallNode extends SGNode {
         this.calledMethodName = node.getCalledMethodName();
         this.isInterface = node.isCalledIsInterface();
         this.isCalledSGPresent = true;
-        this.pVarMap = HashBiMap.create();
+        this.definitionsMap = new HashMap<>();
         this.dVarMap = HashBiMap.create();
     }
 

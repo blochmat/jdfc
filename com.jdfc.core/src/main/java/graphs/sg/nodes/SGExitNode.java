@@ -1,7 +1,7 @@
 package graphs.sg.nodes;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
@@ -15,14 +15,18 @@ import java.util.Objects;
 @Data
 public class SGExitNode extends SGNode {
 
-    private BiMap<ProgramVariable, ProgramVariable> pVarMap;
+    /**
+     * The key is a definition of the current procedure.
+     * The value is a list of definitions of the invoking procedure.
+     */
+    private Multimap<ProgramVariable, ProgramVariable> definitionsMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
     private int callNodeIdx;
     private int returnSiteNodeIdx;
 
     public SGExitNode(int index, int cfgIndex, int entryNodeIdx, CFGNode node) {
         super(index, cfgIndex, entryNodeIdx, node);
-        this.pVarMap = HashBiMap.create();
+        this.definitionsMap = ArrayListMultimap.create();
         this.dVarMap = new HashMap<>();
     }
 

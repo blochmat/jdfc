@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import data.ClassData;
 import data.MethodData;
-import data.PairData;
 import data.ProgramVariable;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
@@ -177,28 +176,20 @@ public class ClassEsgCreator {
                         SGNode sgTargetNode = superGraph.getNodes().get(currSGNodeTargetIdx);
 
                         if(Objects.equals(pVar, ZERO)) {
+                            // Special case ZERO
                             ESGEdge edge = handleZero(currSGNode, sgTargetNode, pVar);
                             esgEdges.put(currSGNodeIdx, edge);
+                        } else if (Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
+                            // Special case this and fields
+                            Set<ESGEdge> edges = handleGlobal(currSGNode, sgTargetNode, pVar);
+                            esgEdges.putAll(currSGNodeIdx, edges);
                         } else {
+                            // Local variables
                             if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
-                                Set<ESGEdge> edges;
-                                if(Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
-                                    edges = handleGlobal(currSGNode, sgTargetNode, pVar);
-                                } else {
-                                    edges = handleLocal(currSGNode, sgTargetNode, pVar);
-                                }
-                                if(!edges.isEmpty()) {
-                                    esgEdges.putAll(currSGNodeIdx, edges);
-                                }
-//                            } else if (!Objects.equals(pVar.getName(), "this")
-//                                    && !pVar.getIsField()){
-//                                Set<ESGEdge> edges = handleOtherScope(currSGNode, sgTargetNode, pVar);
-//                                if(!edges.isEmpty()) {
-//                                    esgEdges.putAll(currSGNodeIdx, edges);
-//                                }
+                                Set<ESGEdge> edges = handleLocal(currSGNode, sgTargetNode, pVar);
+                                esgEdges.putAll(currSGNodeIdx, edges);
                             }
                         }
-
                     }
                 }
             }
@@ -247,43 +238,37 @@ public class ClassEsgCreator {
             }
         }
 
-        public ProgramVariable findDefMatch(SGCallNode sgNode, ProgramVariable def) {
-            List<ProgramVariable> usages = new ArrayList<>();
-            for(PairData pair : methodData.getDUPairsFromStore().values()) {
-                if(Objects.equals(pair.getDefFromStore(), def)) {
-                    usages.add(pair.getUseFromStore());
-                }
-            }
-
-            for(ProgramVariable use : usages) {
-                ProgramVariable defMatch = sgNode.getPVarMap().get(use);
-                if(defMatch != null) {
-                    return defMatch;
-                }
-            }
-            return null;
-        }
-
         public Set<ESGEdge> handleGlobal(SGNode sgNode, SGNode sgTargetNode, ProgramVariable pVar) {
             Set<ESGEdge> edges = new HashSet<>();
             String sgNodeMId = this.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
             String sgTargetNodeMId = this.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
             if(sgNode instanceof SGCallNode) {
-                ProgramVariable m = findDefMatch(((SGCallNode) sgNode), pVar);
-                if(m != null) {
-                    callerToCalleeDefMap.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
-                    callerToCalleeDefMap.get(sgNode.getIndex()).put(pVar, m);
-                    calleeToCallerDefMap.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
-                    calleeToCallerDefMap.get(((SGCallNode) sgNode).getExitNodeIdx()).put(m, pVar);
-                    edges.add(new ESGEdge(
-                            sgNode.getIndex(),
-                            sgTargetNode.getIndex(),
-                            sgNodeMId,
-                            sgTargetNodeMId,
-                            pVar,
-                            m
-                    ));
-                }
+//                ProgramVariable match = ((SGCallNode) sgNode).getDefinitionsMap().get(pVar);
+//                if(match != null) {
+//                    // if match exists connect to subroutine
+//                    callerToCalleeDefMap.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
+//                    callerToCalleeDefMap.get(sgNode.getIndex()).put(pVar, match);
+//                    calleeToCallerDefMap.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
+//                    calleeToCallerDefMap.get(((SGCallNode) sgNode).getExitNodeIdx()).put(match, pVar);
+//                    edges.add(new ESGEdge(
+//                            sgNode.getIndex(),
+//                            sgTargetNode.getIndex(),
+//                            sgNodeMId,
+//                            sgTargetNodeMId,
+//                            pVar,
+//                            match
+//                    ));
+//                }
+//
+                // similar to ZERO
+                edges.add(new ESGEdge(
+                        sgNode.getIndex(),
+                        sgTargetNode.getIndex(),
+                        sgNodeMId,
+                        sgNodeMId,
+                        pVar,
+                        pVar
+                ));
             } else if(sgNode instanceof SGEntryNode) {
                 if(!liveVariables.get(pVar) || sgNode.getIndex() == 0) {
                     edges.add(new ESGEdge(
@@ -349,7 +334,7 @@ public class ClassEsgCreator {
             String sgNodeMId = this.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
             String sgTargetNodeMId = this.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
             if(sgNode instanceof SGCallNode) {
-                ProgramVariable match = findDefMatch((SGCallNode) sgNode, pVar);
+                ProgramVariable match = ((SGCallNode) sgNode).getDefinitionsMap().get(pVar);
                 if(match != null) {
                     // match caller var to callee var
                     callerToCalleeDefMap.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
@@ -389,15 +374,16 @@ public class ClassEsgCreator {
                     ));
                 }
             } else if (sgNode instanceof SGExitNode) {
-                ProgramVariable m = ((SGExitNode) sgNode).getPVarMap().inverse().get(pVar);
-                if(m != null) {
+                Collection<ProgramVariable> matches = ((SGExitNode) sgNode).getDefinitionsMap().get(pVar);
+                for (ProgramVariable match : matches) {
+                    // match back do definition on caller site
                     edges.add(new ESGEdge(
                             sgNode.getIndex(),
                             sgTargetNode.getIndex(),
                             sgNodeMId,
                             sgTargetNodeMId,
                             pVar,
-                            m
+                            match
                     ));
                 }
             } else {
@@ -484,7 +470,7 @@ public class ClassEsgCreator {
                 String calledMethodId = this.buildMethodIdentifier(sgCallNode.getCalledClassName(), sgCallNode.getCalledMethodName());
                 String pVarMId = this.buildMethodIdentifier(pVar.buildClassNodeName(), pVar.getMethodName());
                 if(Objects.equals(calledMethodId, pVarMId)) {
-                    if(!sgCallNode.getPVarMap().containsValue(pVar)
+                    if(!sgCallNode.getDefinitionsMap().containsValue(pVar)
                             && sgTargetNode.getDefinitions().contains(pVar)) {
                         edges.add(new ESGEdge(
                                 sgNode.getIndex(),

@@ -188,6 +188,15 @@ public class Instrumenter {
             }
         }
 
+        // Create pVarMaps
+        for(MethodData mData : classData.getMethodDataFromStore().values()) {
+            if(mData.getCfg() != null) {
+                mData.createIndexDefinitionsMap();
+            } else {
+                System.err.println("ERROR: MethodData.getCfg() returned null! See /target/jdfc/debug/ERROR_JDFCInstrument.log for more info.");
+            }
+        }
+
         // Create SGs for all methods of class
         SGCreator sgCreator = new SGCreator();
         sgCreator.createSGsForClass(classData);

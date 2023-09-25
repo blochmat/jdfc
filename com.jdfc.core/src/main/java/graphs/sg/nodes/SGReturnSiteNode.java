@@ -1,9 +1,11 @@
 package graphs.sg.nodes;
 
+import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
 import utils.JDFCUtils;
 
+import java.util.Map;
 import java.util.Objects;
 
 @Data
@@ -11,6 +13,11 @@ public class SGReturnSiteNode extends SGNode {
 
     private int callNodeIdx;
     private int exitNodeIdx;
+    /**
+     * The key is a definition of the current procedure.
+     * The value is a definition of the invoked procedure.
+     */
+    private Map<ProgramVariable, ProgramVariable> definitionsMap;
 
     public SGReturnSiteNode(int index, int cfgIndex, int entryNodeIdx, CFGNode node) {
         super(index, cfgIndex, entryNodeIdx, node);
