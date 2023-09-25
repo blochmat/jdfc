@@ -200,7 +200,7 @@ public class TabulationAlgorithm {
             } else {
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(peTargetNode.getIndex());
                 for (ESGEdge e : esgEdges) {
-                    SGNode sgTargetNode = sg.getNodes().get(e.getSgnTargetIdx());
+                    SGNode sgTargetNode = sg.getNodes().get(peTargetNodeIdx);
 
                     // Path edge source
                     int newPeSgnSourceIdx = sgTargetNode.getEntryNodeIdx();

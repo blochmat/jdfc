@@ -379,6 +379,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
 
         edges.putAll(createEdges());
         this.addEntryAndExitNode();
+
         this.setPredecessorSuccessorRelation();
         CFG cfg = new CFG(classVisitor.classNode.name, internalMethodName, nodes, edges, domain);
 
@@ -652,6 +653,8 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         } else {
             for (Object o : local) {
                 if (o instanceof ProgramVariable) {
+                    // todo: just safe position and usage
+                    // create pVarMap when definition use pairs are computed
                     result.put(local.indexOf(o), (ProgramVariable) o);
                 }
             }

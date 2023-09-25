@@ -7,7 +7,7 @@ import data.*;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
-import graphs.esg.ESGCreator;
+import graphs.esg.ClassEsgCreator;
 import graphs.sg.SGCreator;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.AllArgsConstructor;
@@ -193,8 +193,8 @@ public class Instrumenter {
         sgCreator.createSGsForClass(classData);
 
         // Create ESGs for all methods of class
-        ESGCreator esgCreator = new ESGCreator();
-        esgCreator.createESGsForClass(classData);
+        ClassEsgCreator classEsgCreator = new ClassEsgCreator();
+        classEsgCreator.createESGsForClass(classData);
 
         // Compute inter-procedural pairs
         for (MethodData methodData : classData.getMethodDataFromStore().values()) {
