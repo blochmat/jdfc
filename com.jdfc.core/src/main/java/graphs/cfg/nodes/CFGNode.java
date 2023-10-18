@@ -6,6 +6,7 @@ import data.ProgramVariable;
 import graphs.cfg.CFG;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Objects;
@@ -23,6 +24,7 @@ public class CFGNode {
     private int index;
     private String className;
     private String methodName;
+    private int methodAccess;
     private int lineNumber;
     private Set<ProgramVariable> definitions;
     private Set<ProgramVariable> uses;
@@ -33,31 +35,36 @@ public class CFGNode {
     private Set<ProgramVariable> reachOut;
     private Set<ProgramVariable> reach;
 
+    private ASMHelper asmHelper = new ASMHelper();
+
     public CFGNode(
             final String className,
             final String methodName,
+            final int methodAccess,
             final int lineNumber,
             final int index,
             final int opcode) {
-        this(className, methodName, lineNumber, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), index, opcode,
+        this(className, methodName, methodAccess, lineNumber, Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), index, opcode,
                 Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
     }
 
     public CFGNode(
             final String className,
             final String methodName,
+            final int methodAccess,
             final int lineNumber,
             final Set<ProgramVariable> definitions,
             final Set<ProgramVariable> uses,
             final int index,
             final int opcode) {
-        this(className, methodName, lineNumber, definitions, uses, index, opcode, Sets.newLinkedHashSet(),
+        this(className, methodName, methodAccess, lineNumber, definitions, uses, index, opcode, Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet());
     }
 
     public CFGNode(
             final String className,
             final String methodName,
+            final int methodAccess,
             final int lineNumber,
             final Set<ProgramVariable> definitions,
             final Set<ProgramVariable> uses,
@@ -67,6 +74,7 @@ public class CFGNode {
             final Set<CFGNode> pSuccessors) {
         this.className = className;
         this.methodName = methodName;
+        this.methodAccess = methodAccess;
         this.lineNumber = lineNumber;
         this.definitions = definitions;
         this.uses = uses;
@@ -74,7 +82,6 @@ public class CFGNode {
         this.opcode = opcode;
         pred = pPredecessors;
         succ = pSuccessors;
-
         reachOut = Sets.newLinkedHashSet();
         reach = Sets.newLinkedHashSet();
     }
@@ -82,6 +89,7 @@ public class CFGNode {
     public CFGNode(
             final String className,
             final String methodName,
+            final int methodAccess,
             final int lineNumber,
             final Set<ProgramVariable> definitions,
             final Set<ProgramVariable> uses,
@@ -93,6 +101,7 @@ public class CFGNode {
             final Set<ProgramVariable> reachOut) {
         this.className = className;
         this.methodName = methodName;
+        this.methodAccess = methodAccess;
         this.lineNumber = lineNumber;
         this.definitions = definitions;
         this.uses = uses;
@@ -100,7 +109,6 @@ public class CFGNode {
         this.opcode = opcode;
         this.pred = predecessors;
         this.succ = successors;
-
         this.reachOut = reach;
         this.reach = reachOut;
     }
@@ -134,15 +142,16 @@ public class CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "%d CFGNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
-                index,
-                lineNumber,
-                insnIndex,
+                "%d CFGNode: lio(%d,%d,%s) (%s::%s%s) ps(%d,%d)",
+                this.index,
+                this.lineNumber,
+                this.insnIndex,
                 JDFCUtils.getOpcode(opcode),
-                className,
-                methodName,
-                pred.size(),
-                succ.size());
+                this.className,
+                this.methodName,
+                this.asmHelper.isStatic(methodAccess) ? "::static" : "",
+                this.pred.size(),
+                this.succ.size());
     }
 
     @Override
@@ -150,21 +159,26 @@ public class CFGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CFGNode that = (CFGNode) o;
-        return getLineNumber() == that.getLineNumber()
+        return getIndex() == that.getIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
+                && getLineNumber() == that.getLineNumber()
                 && Objects.equals(getClassName(), that.getClassName())
-                && Objects.equals(getMethodName(), that.getMethodName());
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && getMethodAccess() == that.getMethodAccess();
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                getLineNumber(),
+                getIndex(),
                 getInsnIndex(),
                 getOpcode(),
+                getLineNumber(),
                 getClassName(),
-                getMethodName());
+                getMethodName(),
+                getMethodAccess()
+        );
     }
 
     public Set<ProgramVariable> getDefinitions() {

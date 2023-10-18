@@ -3,6 +3,7 @@ package graphs.cfg.nodes;
 import data.DomainVariable;
 import data.ProgramVariable;
 import lombok.Data;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Map;
@@ -25,9 +26,12 @@ public class CFGExitNode extends CFGNode {
      */
     private final Map<Integer, DomainVariable> dVarMap;
 
+    private ASMHelper asmHelper = new ASMHelper();
+
     public CFGExitNode(
             String className,
             String methodName,
+            int methodAccess,
             int lineNumber,
             Set<ProgramVariable> definitions,
             Set<ProgramVariable> uses,
@@ -35,7 +39,7 @@ public class CFGExitNode extends CFGNode {
             Set<CFGNode> successors,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
-        super(className, methodName, lineNumber, definitions, uses, Integer.MIN_VALUE, Integer.MIN_VALUE, predecessors, successors);
+        super(className, methodName, methodAccess, lineNumber, definitions, uses, Integer.MIN_VALUE, Integer.MIN_VALUE, predecessors, successors);
         this.pVarMap = pVarMap;
         this.dVarMap = dVarMap;
     }
@@ -43,13 +47,14 @@ public class CFGExitNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "%d CFGExitNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                "%d CFGExitNode: lio(%d,%d,%s) (%s::%s%s) ps(%d,%d)",
                 this.getIndex(),
                 this.getLineNumber(),
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),
                 this.getClassName(),
                 this.getMethodName(),
+                this.asmHelper.isStatic(this.getMethodAccess()) ? "::static" : "",
                 this.getPred().size(),
                 this.getSucc().size());
     }

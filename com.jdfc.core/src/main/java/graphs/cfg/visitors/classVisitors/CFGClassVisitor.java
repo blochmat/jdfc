@@ -34,12 +34,11 @@ public class CFGClassVisitor extends JDFCClassVisitor {
         final MethodNode methodNode = this.asmHelper.getMethodNode(this.classNode, name, descriptor, signature);
         final String internalMethodName = this.asmHelper.computeInternalMethodName(name, descriptor, signature, exceptions);
         final Type[] argTypes = Type.getArgumentTypes(descriptor);
-        final boolean isStatic = this.asmHelper.isStatic(access);
 
         if (methodNode != null && this.asmHelper.isInstrumentationRequired(methodNode, internalMethodName)) {
             CFGAnalyzerAdapter aa = new CFGAnalyzerAdapter(ASM5,
                     this.classData.getClassMetaData().getClassFileRelNoType(), access, name, descriptor, null);
-            return new CFGMethodVisitor(this, mv, methodNode, internalMethodName, aa, argTypes.length, isStatic);
+            return new CFGMethodVisitor(this, mv, methodNode, internalMethodName, aa, argTypes.length);
         }
 
         return mv;

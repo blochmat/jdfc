@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import data.DomainVariable;
 import data.ProgramVariable;
 import lombok.Data;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Map;
@@ -47,18 +48,21 @@ public class CFGCallNode extends CFGNode {
 
     private final Map<Integer, DomainVariable> dVarMap;
 
+    private ASMHelper asmHelper = new ASMHelper();
+
     public CFGCallNode(
             int index,
             int opcode,
             String className,
             String methodName,
+            int methodAccess,
             int lineNumber,
             String calledClassName,
             String calledMethodName,
             boolean calledIsInterface,
             Map<Integer, ProgramVariable> indexUseMap,
             Map<Integer, DomainVariable> dVarMap) {
-       super(className, methodName, lineNumber, index, opcode);
+       super(className, methodName, methodAccess, lineNumber, index, opcode);
        this.calledClassName = calledClassName;
        this.calledMethodName = calledMethodName;
        this.calledIsInterface = calledIsInterface;
@@ -69,13 +73,14 @@ public class CFGCallNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "%d CFGCallNode: lio(%d,%d,%s) (%s::%s) (%s::%s) ps(%d,%d)",
+                "%d CFGCallNode: lio(%d,%d,%s) (%s::%s%s) (%s::%s) ps(%d,%d)",
                 this.getIndex(),
                 this.getLineNumber(),
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),
                 this.getClassName(),
                 this.getMethodName(),
+                this.asmHelper.isStatic(this.getMethodAccess()) ? "::static" : "",
                 this.calledClassName,
                 this.calledMethodName,
                 this.getPred().size(),
@@ -88,11 +93,13 @@ public class CFGCallNode extends CFGNode {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         CFGCallNode that = (CFGCallNode) o;
-        return getLineNumber() == that.getLineNumber()
+        return getIndex() == that.getIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
+                && getLineNumber() == that.getLineNumber()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getMethodAccess(), that.getMethodAccess())
                 && Objects.equals(isCalledIsInterface(), that.isCalledIsInterface())
                 && Objects.equals(getCalledClassName(), that.getCalledClassName())
                 && Objects.equals(getCalledMethodName(), that.getCalledMethodName());
@@ -101,11 +108,13 @@ public class CFGCallNode extends CFGNode {
     @Override
     public int hashCode() {
         return Objects.hash(
-                getLineNumber(),
+                getIndex(),
                 getInsnIndex(),
                 getOpcode(),
+                getLineNumber(),
                 getClassName(),
                 getMethodName(),
+                getMethodAccess(),
                 isCalledIsInterface(),
                 getCalledClassName(),
                 getCalledMethodName());

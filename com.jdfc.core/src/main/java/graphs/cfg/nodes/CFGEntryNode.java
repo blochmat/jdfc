@@ -3,6 +3,7 @@ package graphs.cfg.nodes;
 import data.DomainVariable;
 import data.ProgramVariable;
 import lombok.Data;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Map;
@@ -25,9 +26,12 @@ public class CFGEntryNode extends CFGNode {
      */
     private final Map<Integer, DomainVariable> dVarMap;
 
+    private ASMHelper asmHelper = new ASMHelper();
+
     public CFGEntryNode(
             String className,
             String methodName,
+            int methodAccess,
             int lineNumber,
             Set<ProgramVariable> definitions,
             Set<ProgramVariable> uses,
@@ -35,7 +39,7 @@ public class CFGEntryNode extends CFGNode {
             Set<CFGNode> successors,
             Map<Integer, ProgramVariable> pVarMap,
             Map<Integer, DomainVariable> dVarMap) {
-        super(className, methodName, lineNumber, definitions, uses, Integer.MIN_VALUE, Integer.MIN_VALUE, predecessors, successors);
+        super(className, methodName, methodAccess, lineNumber, definitions, uses, Integer.MIN_VALUE, Integer.MIN_VALUE, predecessors, successors);
         this.pVarMap = pVarMap;
         this.dVarMap = dVarMap;
     }
@@ -48,13 +52,14 @@ public class CFGEntryNode extends CFGNode {
     @Override
     public String toString() {
         return String.format(
-                "%d CFGEntryNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+                "%d CFGEntryNode: lio(%d,%d,%s) (%s::%s%s) ps(%d,%d)",
                 getIndex(),
                 getLineNumber(),
                 this.getInsnIndex(),
                 JDFCUtils.getOpcode(this.getOpcode()),
                 this.getClassName(),
                 this.getMethodName(),
+                this.asmHelper.isStatic(this.getMethodAccess()) ? "::static" : "",
                 this.getPred().size(),
                 this.getSucc().size());
     }
@@ -64,9 +69,10 @@ public class CFGEntryNode extends CFGNode {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CFGEntryNode that = (CFGEntryNode) o;
-        return getLineNumber() == that.getLineNumber()
+        return getIndex() == that.getIndex()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
+                && getLineNumber() == that.getLineNumber()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName());
     }
@@ -75,8 +81,4 @@ public class CFGEntryNode extends CFGNode {
     public int hashCode() {
         return super.hashCode();
     }
-
-    // --- Getters, Setters --------------------------------------------------------------------------------------------
-
-    // --- Helper Methods ----------------------------------------------------------------------------------------------
 }

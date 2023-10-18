@@ -44,8 +44,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                             final MethodNode pMethodNode,
                             final String pInternalMethodName,
                             final CFGAnalyzerAdapter aa,
-                            int argCount,
-                            boolean isStatic) {
+                            int argCount) {
         super(ASM5, pClassVisitor, pMethodVisitor, pMethodNode, pInternalMethodName);
         this.edges = ArrayListMultimap.create();
         this.nodes = Maps.newTreeMap();
@@ -53,8 +52,11 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         this.mData = pClassVisitor.classData.getMethodByInternalName(internalMethodName);
         this.aa = aa;
         this.argCount = argCount;
-        this.isStatic = isStatic;
+        if (pInternalMethodName.contains("useAStatic")) {
+            System.out.println();
+        }
         this.asmHelper = new ASMHelper();
+        this.isStatic = this.asmHelper.isStatic(mData.getAccess());
         // TODO: Add fields to domain
         this.domain = new TreeMap<>();
         this.domain.putAll(createDomainVarsFromLocal());
@@ -68,6 +70,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 getFrameOpcode(type));
@@ -81,6 +84,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 opcode);
@@ -97,6 +101,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 opcode);
@@ -121,6 +126,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 opcode);
@@ -164,6 +170,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                     opcode,
                     classVisitor.classNode.name,
                     internalMethodName,
+                    this.mData.getAccess(),
                     currentLineNumber,
                     owner,
                     cmData.buildInternalMethodName(),
@@ -175,6 +182,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             final CFGNode node = new CFGNode(
                     classVisitor.classNode.name,
                     internalMethodName,
+                    this.mData.getAccess(),
                     currentLineNumber,
                     currentInstructionIndex,
                     opcode);
@@ -277,6 +285,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 INVOKEDYNAMIC);
@@ -296,6 +305,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 opcode);
@@ -311,6 +321,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 LDC);
@@ -336,6 +347,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 TABLESWITCH);
@@ -351,6 +363,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 LOOKUPSWITCH);
@@ -366,6 +379,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode node = new CFGNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 currentInstructionIndex,
                 MULTIANEWARRAY);
@@ -432,6 +446,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             final CFGNode node = new CFGNode(
                     classVisitor.classNode.name,
                     internalMethodName,
+                    this.mData.getAccess(),
                     currentLineNumber,
                     currentInstructionIndex,
                     F_NEW);
@@ -520,6 +535,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        this.mData.getAccess(),
                         currentLineNumber,
                         Sets.newHashSet(programVariable),
                         Sets.newLinkedHashSet(),
@@ -546,6 +562,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        this.mData.getAccess(),
                         currentLineNumber,
                         Sets.newLinkedHashSet(),
                         Sets.newHashSet(programVariable),
@@ -556,6 +573,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        this.mData.getAccess(),
                         currentLineNumber,
                         insnIdx,
                         opcode);
@@ -584,6 +602,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        this.mData.getAccess(),
                         currentLineNumber,
                         Sets.newHashSet(programVariable),
                         Sets.newLinkedHashSet(),
@@ -599,6 +618,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        this.mData.getAccess(),
                         currentLineNumber,
                         Sets.newLinkedHashSet(),
                         Sets.newHashSet(programVariable),
@@ -609,6 +629,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        this.mData.getAccess(),
                         currentLineNumber,
                         insnIdx,
                         opcode);
@@ -624,6 +645,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
+                        this.mData.getAccess(),
                         currentLineNumber,
                         Sets.newHashSet(programVariable),
                         Sets.newHashSet(programVariable),
@@ -745,6 +767,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode entryNode = new CFGEntryNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 definitions,
                 Sets.newLinkedHashSet(),
@@ -767,6 +790,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         final CFGNode exitNode = new CFGExitNode(
                 classVisitor.classNode.name,
                 internalMethodName,
+                this.mData.getAccess(),
                 currentLineNumber,
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),

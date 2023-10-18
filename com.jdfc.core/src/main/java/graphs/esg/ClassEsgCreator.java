@@ -181,6 +181,9 @@ public class ClassEsgCreator {
                             esgEdges.put(currSGNodeIdx, edge);
                         } else if (Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
                             // Special case this and fields
+                            if (currSGNodeMethodIdentifier.contains("useAStatic")) {
+                                System.out.println();
+                            }
                             Set<ESGEdge> edges = handleGlobal(currSGNode, sgTargetNode, pVar);
                             esgEdges.putAll(currSGNodeIdx, edges);
                         } else {

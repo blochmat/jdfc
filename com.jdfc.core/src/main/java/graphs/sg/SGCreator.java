@@ -204,7 +204,6 @@ public class SGCreator {
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
                     SGExitNode sgExitNode = new SGExitNode(index, cfgIndex, entryNodeIdxStack.pop(), cfgNode);
-                    methodCallStack.pop();
                     if (!sgEntryNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
                         int sgExitNodeIdx = index;
@@ -227,6 +226,7 @@ public class SGCreator {
                                 new CFGNode(
                                         cData.getClassMetaData().getClassNodeName(),
                                         methodCallStack.peek(),
+                                        cData.getMethodByInternalName(methodCallStack.peek()).getAccess(),
                                         sgCallNode.getLineNumber(),
                                         Sets.newLinkedHashSet(),
                                         Sets.newLinkedHashSet(),
