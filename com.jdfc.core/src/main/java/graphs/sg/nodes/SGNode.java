@@ -6,6 +6,7 @@ import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Objects;
@@ -15,6 +16,8 @@ import java.util.Set;
 @NoArgsConstructor
 public class SGNode {
 
+    private ASMHelper asmHelper = new ASMHelper();
+
     private int index;
     private int cfgIndex;
     private int entryNodeIdx;
@@ -22,6 +25,7 @@ public class SGNode {
     private int opcode;
     private String className;
     private String methodName;
+    private int methodAccess;
     private int lineNumber;
     private Set<ProgramVariable> definitions;
     private Set<ProgramVariable> uses;
@@ -36,6 +40,7 @@ public class SGNode {
         this.entryNodeIdx = entryNodeIdx;
         this.className = node.getClassName();
         this.methodName = node.getMethodName();
+        this.methodAccess = node.getMethodAccess();
         this.lineNumber = node.getLineNumber();
         this.definitions = node.getDefinitions();
         this.uses = node.getUses();
@@ -49,7 +54,7 @@ public class SGNode {
 
     @Override
     public String toString() {
-        return String.format("%d:%d SGNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+        return String.format("%d:%d SGNode: lio(%d,%d,%s) (%s::%s%s) ps(%d,%d)",
                 index,
                 cfgIndex,
                 lineNumber,
@@ -57,6 +62,7 @@ public class SGNode {
                 JDFCUtils.getOpcode(opcode),
                 className,
                 methodName,
+                asmHelper.isStatic(methodAccess) ? "::static" : "",
                 pred.size(),
                 succ.size());
     }
@@ -69,11 +75,12 @@ public class SGNode {
         return getIndex() == that.getIndex()
                 && getCfgIndex() == that.getCfgIndex()
                 && getEntryNodeIdx() == that.getEntryNodeIdx()
+                && getLineNumber() == that.getLineNumber()
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
-                && getLineNumber() == that.getLineNumber();
+                && Objects.equals(getMethodAccess(), that.getMethodAccess());
     }
 
     @Override
@@ -86,6 +93,7 @@ public class SGNode {
                 getOpcode(),
                 getClassName(),
                 getMethodName(),
+                getMethodAccess(),
                 getLineNumber());
     }
 

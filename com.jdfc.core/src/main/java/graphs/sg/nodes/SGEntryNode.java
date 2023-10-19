@@ -8,12 +8,15 @@ import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Objects;
 
 @Data
 public class SGEntryNode extends SGNode {
+
+    private ASMHelper asmHelper = new ASMHelper();
 
     /**
      * The key is a definition of the current procedure.
@@ -33,7 +36,7 @@ public class SGEntryNode extends SGNode {
 
     @Override
     public String toString() {
-        return String.format("%d:%d SGEntryNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+        return String.format("%d:%d SGEntryNode: lio(%d,%d,%s) (%s::%s%s) ps(%d,%d)",
                 getIndex(),
                 getCfgIndex(),
                 getLineNumber(),
@@ -41,6 +44,7 @@ public class SGEntryNode extends SGNode {
                 JDFCUtils.getOpcode(getOpcode()),
                 getClassName(),
                 getMethodName(),
+                asmHelper.isStatic(getMethodAccess()) ? "::static" : "",
                 getPred().size(),
                 getSucc().size());
     }
@@ -57,7 +61,8 @@ public class SGEntryNode extends SGNode {
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
-                && Objects.equals(getMethodName(), that.getMethodName());
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getMethodAccess(), that.getMethodAccess());
     }
 
     @Override

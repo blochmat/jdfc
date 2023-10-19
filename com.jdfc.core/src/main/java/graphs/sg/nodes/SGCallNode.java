@@ -6,6 +6,7 @@ import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGCallNode;
 import lombok.Data;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.HashMap;
@@ -14,6 +15,8 @@ import java.util.Objects;
 
 @Data
 public class SGCallNode extends SGNode {
+
+    private ASMHelper asmHelper = new ASMHelper();
 
     private String calledClassName;
     private String calledMethodName;
@@ -41,7 +44,7 @@ public class SGCallNode extends SGNode {
 
     @Override
     public String toString() {
-        return String.format("%d:%d SGCallNode: lio(%d,%d,%s) (%s::%s) (%s::%s) ps(%d,%d)",
+        return String.format("%d:%d SGCallNode: lio(%d,%d,%s) (%s::%s%s) (%s::%s) ps(%d,%d)",
                 getIndex(),
                 getCfgIndex(),
                 getLineNumber(),
@@ -49,6 +52,7 @@ public class SGCallNode extends SGNode {
                 JDFCUtils.getOpcode(getOpcode()),
                 getClassName(),
                 getMethodName(),
+                this.asmHelper.isStatic(getMethodAccess()) ? "::static" : "",
                 getCalledClassName(),
                 getCalledMethodName(),
                 getPred().size(),
@@ -69,6 +73,7 @@ public class SGCallNode extends SGNode {
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
                 && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getMethodAccess(), that.getMethodAccess())
                 && Objects.equals(isInterface(), that.isInterface())
                 && Objects.equals(isCalledSGPresent(), that.isCalledSGPresent())
                 && Objects.equals(getCalledClassName(), that.getCalledClassName())
@@ -86,6 +91,7 @@ public class SGCallNode extends SGNode {
                 getOpcode(),
                 getClassName(),
                 getMethodName(),
+                getMethodAccess(),
                 isInterface(),
                 isCalledSGPresent(),
                 getCalledClassName(),

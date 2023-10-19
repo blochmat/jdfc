@@ -3,6 +3,7 @@ package graphs.sg.nodes;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.Map;
@@ -10,6 +11,8 @@ import java.util.Objects;
 
 @Data
 public class SGReturnSiteNode extends SGNode {
+
+    private ASMHelper asmHelper = new ASMHelper();
 
     private int callNodeIdx;
     private int exitNodeIdx;
@@ -25,7 +28,7 @@ public class SGReturnSiteNode extends SGNode {
 
     @Override
     public String toString() {
-        return String.format("%d:%d SGReturnSiteNode: lio(%d,%d,%s) (%s::%s) ps(%d,%d)",
+        return String.format("%d:%d SGReturnSiteNode: lio(%d,%d,%s) (%s::%s%s) ps(%d,%d)",
                 getIndex(),
                 getCfgIndex(),
                 getLineNumber(),
@@ -33,6 +36,7 @@ public class SGReturnSiteNode extends SGNode {
                 JDFCUtils.getOpcode(getOpcode()),
                 getClassName(),
                 getMethodName(),
+                asmHelper.isStatic(getMethodAccess()) ? "::static" : "",
                 getPred().size(),
                 getSucc().size());
     }
@@ -49,7 +53,8 @@ public class SGReturnSiteNode extends SGNode {
                 && getInsnIndex() == that.getInsnIndex()
                 && getOpcode() == that.getOpcode()
                 && Objects.equals(getClassName(), that.getClassName())
-                && Objects.equals(getMethodName(), that.getMethodName());
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getMethodAccess(), that.getMethodAccess());
     }
 
     @Override
