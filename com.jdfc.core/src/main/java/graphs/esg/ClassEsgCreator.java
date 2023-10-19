@@ -11,6 +11,7 @@ import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
 import graphs.sg.nodes.*;
 import lombok.extern.slf4j.Slf4j;
+import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.*;
@@ -28,6 +29,9 @@ public class ClassEsgCreator {
     }
 
     private static class MethodEsgCreator {
+
+        private final ASMHelper asmHelper = new ASMHelper();
+
         private final ProgramVariable ZERO;
 
         private final String className;
@@ -170,20 +174,20 @@ public class ClassEsgCreator {
                 String currVariableMethodIdentifier = activeDomainMethodSection.getKey();
                 Map<UUID, ProgramVariable> programVariables = activeDomainMethodSection.getValue();
 
+                if (currVariableMethodIdentifier.contains("useAStatic") && currSGNodeIdx == 10) {
+                    System.out.println();
+                }
+
                 for (ProgramVariable pVar : programVariables.values()) {
                     Collection<Integer> currSGNodeTargets = superGraph.getEdges().get(currSGNodeIdx);
                     for (Integer currSGNodeTargetIdx : currSGNodeTargets) {
                         SGNode sgTargetNode = superGraph.getNodes().get(currSGNodeTargetIdx);
-
                         if(Objects.equals(pVar, ZERO)) {
                             // Special case ZERO
                             ESGEdge edge = handleZero(currSGNode, sgTargetNode, pVar);
                             esgEdges.put(currSGNodeIdx, edge);
-                        } else if (Objects.equals(pVar.getName(), "this") || pVar.getIsField()) {
+                        } else if (!asmHelper.isStatic(currSGNode.getMethodAccess()) && (Objects.equals(pVar.getName(), "this") || pVar.getIsField())) {
                             // Special case this and fields
-                            if (currSGNodeMethodIdentifier.contains("useAStatic")) {
-                                System.out.println();
-                            }
                             Set<ESGEdge> edges = handleGlobal(currSGNode, sgTargetNode, pVar);
                             esgEdges.putAll(currSGNodeIdx, edges);
                         } else {
@@ -377,17 +381,20 @@ public class ClassEsgCreator {
                     ));
                 }
             } else if (sgNode instanceof SGExitNode) {
-                Collection<ProgramVariable> matches = ((SGExitNode) sgNode).getDefinitionsMap().get(pVar);
-                for (ProgramVariable match : matches) {
-                    // match back do definition on caller site
-                    edges.add(new ESGEdge(
-                            sgNode.getIndex(),
-                            sgTargetNode.getIndex(),
-                            sgNodeMId,
-                            sgTargetNodeMId,
-                            pVar,
-                            match
-                    ));
+                if(!asmHelper.isCallByValue(pVar.getDescriptor())) {
+                    // if var is object
+                    Collection<ProgramVariable> matches = ((SGExitNode) sgNode).getDefinitionsMap().get(pVar);
+                    for (ProgramVariable match : matches) {
+                        // match back do definition on caller site
+                        edges.add(new ESGEdge(
+                                sgNode.getIndex(),
+                                sgTargetNode.getIndex(),
+                                sgNodeMId,
+                                sgTargetNodeMId,
+                                pVar,
+                                match
+                        ));
+                    }
                 }
             } else {
                 ProgramVariable newDef = findMatch(sgTargetNode.getDefinitions(), pVar);

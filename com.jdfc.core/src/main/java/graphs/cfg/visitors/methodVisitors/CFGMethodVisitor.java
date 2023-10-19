@@ -52,9 +52,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         this.mData = pClassVisitor.classData.getMethodByInternalName(internalMethodName);
         this.aa = aa;
         this.argCount = argCount;
-        if (pInternalMethodName.contains("useAStatic")) {
-            System.out.println();
-        }
         this.asmHelper = new ASMHelper();
         this.isStatic = this.asmHelper.isStatic(mData.getAccess());
         // TODO: Add fields to domain

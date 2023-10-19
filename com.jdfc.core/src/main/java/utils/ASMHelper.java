@@ -86,4 +86,17 @@ public class ASMHelper {
         }
         return null;
     }
+
+    public boolean isCallByValue(String desc) {
+        // Primitive type descriptors in ASM are single characters:
+        // B (byte), C (char), D (double), F (float), I (int), J (long), S (short), Z (boolean)
+        String primitives = "BCDFIJSZ";
+
+        if (desc.length() == 1 && primitives.contains(desc)) {
+            return true;
+        }
+
+        // Arrays and Objects are not primitive and so are not call-by-value.
+        return false;
+    }
 }
