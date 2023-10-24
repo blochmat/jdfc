@@ -67,10 +67,6 @@ public class ClassEsgCreator {
         }
 
         public ESG createESG() {
-            if(mainMethodName.contains("defineA")) {
-                System.out.println();
-            }
-
             //--- CREATE DOMAIN --------------------------------------------------------------------------------------------
             Map<String, Map<UUID, ProgramVariable>> domain = createDomain();
 
@@ -174,10 +170,6 @@ public class ClassEsgCreator {
                 String currVariableMethodIdentifier = activeDomainMethodSection.getKey();
                 Map<UUID, ProgramVariable> programVariables = activeDomainMethodSection.getValue();
 
-                if (currVariableMethodIdentifier.contains("useAStatic") && currSGNodeIdx == 10) {
-                    System.out.println();
-                }
-
                 for (ProgramVariable pVar : programVariables.values()) {
                     Collection<Integer> currSGNodeTargets = superGraph.getEdges().get(currSGNodeIdx);
                     for (Integer currSGNodeTargetIdx : currSGNodeTargets) {
@@ -188,13 +180,31 @@ public class ClassEsgCreator {
                             esgEdges.put(currSGNodeIdx, edge);
                         } else if (!asmHelper.isStatic(currSGNode.getMethodAccess()) && (Objects.equals(pVar.getName(), "this") || pVar.getIsField())) {
                             // Special case this and fields
-                            Set<ESGEdge> edges = handleGlobal(currSGNode, sgTargetNode, pVar);
-                            esgEdges.putAll(currSGNodeIdx, edges);
+                            if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
+                                Set<ESGEdge> edges = handleGlobal(currSGNode, sgTargetNode, pVar);
+                                esgEdges.putAll(currSGNodeIdx, edges);
+                            }
                         } else {
                             // Local variables
                             if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
                                 Set<ESGEdge> edges = handleLocal(currSGNode, sgTargetNode, pVar);
                                 esgEdges.putAll(currSGNodeIdx, edges);
+                            } else {
+                                // TODO:
+                                if (!(currSGNode instanceof SGCallNode) && asmHelper.isCallByValue(pVar.getDescriptor())) {
+                                    // we basically want to create an edge that connects the variable in its own method
+                                    String sgNodeMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                                    String sgTargetNodeMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                                    ESGEdge edge = new ESGEdge(
+                                            currSGNodeIdx,
+                                            currSGNodeTargetIdx,
+                                            sgNodeMId,
+                                            sgTargetNodeMId,
+                                            pVar,
+                                            pVar
+                                    );
+                                    esgEdges.put(currSGNodeIdx, edge);
+                                }
                             }
                         }
                     }
@@ -250,32 +260,37 @@ public class ClassEsgCreator {
             String sgNodeMId = this.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
             String sgTargetNodeMId = this.buildMethodIdentifier(sgTargetNode.getClassName(), sgTargetNode.getMethodName());
             if(sgNode instanceof SGCallNode) {
-//                ProgramVariable match = ((SGCallNode) sgNode).getDefinitionsMap().get(pVar);
-//                if(match != null) {
-//                    // if match exists connect to subroutine
-//                    callerToCalleeDefMap.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
-//                    callerToCalleeDefMap.get(sgNode.getIndex()).put(pVar, match);
-//                    calleeToCallerDefMap.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
-//                    calleeToCallerDefMap.get(((SGCallNode) sgNode).getExitNodeIdx()).put(match, pVar);
-//                    edges.add(new ESGEdge(
-//                            sgNode.getIndex(),
-//                            sgTargetNode.getIndex(),
-//                            sgNodeMId,
-//                            sgTargetNodeMId,
-//                            pVar,
-//                            match
-//                    ));
-//                }
-//
-                // similar to ZERO
-                edges.add(new ESGEdge(
-                        sgNode.getIndex(),
-                        sgTargetNode.getIndex(),
-                        sgNodeMId,
-                        sgNodeMId,
-                        pVar,
-                        pVar
-                ));
+                ProgramVariable match = ((SGCallNode) sgNode).getDefinitionsMap().get(pVar);
+                if(match != null) {
+                    // if match exists connect to subroutine
+                    callerToCalleeDefMap.computeIfAbsent(sgNode.getIndex(), k -> new HashMap<>());
+                    callerToCalleeDefMap.get(sgNode.getIndex()).put(pVar, match);
+                    calleeToCallerDefMap.computeIfAbsent(((SGCallNode) sgNode).getExitNodeIdx(), k -> new HashMap<>());
+                    calleeToCallerDefMap.get(((SGCallNode) sgNode).getExitNodeIdx()).put(match, pVar);
+                    edges.add(new ESGEdge(
+                            sgNode.getIndex(),
+                            sgTargetNode.getIndex(),
+                            sgNodeMId,
+                            sgTargetNodeMId,
+                            pVar,
+                            match
+                    ));
+                } else {
+                    // field that has no match
+                    // "this" when a static method is invoked
+                    String pVarMId = this.buildMethodIdentifier(pVar.getClassName(), pVar.getMethodName());
+                    if (pVarMId.equals(mainMethodId)) {
+                        // similar to ZERO
+                        edges.add(new ESGEdge(
+                                sgNode.getIndex(),
+                                sgTargetNode.getIndex(),
+                                sgNodeMId,
+                                sgNodeMId,
+                                pVar,
+                                pVar
+                        ));
+                    }
+                }
             } else if(sgNode instanceof SGEntryNode) {
                 if(!liveVariables.get(pVar) || sgNode.getIndex() == 0) {
                     edges.add(new ESGEdge(
@@ -684,7 +699,7 @@ public class ClassEsgCreator {
         }
 
         private String buildMethodIdentifier(String className, String methodName) {
-            return String.format("%s :: %s", className, methodName);
+            return String.format("%s :: %s", className.replace("/", "."), methodName);
         }
 
         private ProgramVariable findMatch(Set<ProgramVariable> set, ProgramVariable pVar) {

@@ -218,6 +218,7 @@ public class SGCreator {
                         int sgReturnSiteNodeIdx = index;
                         int sgCallNodeIdx = sgCallNodeIdxStack.pop();
                         int sgEntryNodeIdx = sgEntryNodeIdxStack.pop();
+                        String sgExitNodeMId = methodCallStack.pop();
                         SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdx);
                         SGReturnSiteNode sgReturnSiteNode = new SGReturnSiteNode(
                                 index,

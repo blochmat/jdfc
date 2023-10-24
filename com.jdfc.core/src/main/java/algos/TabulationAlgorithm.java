@@ -50,10 +50,6 @@ public class TabulationAlgorithm {
         this.pathEdgeSet.add(initialEdge); // [2]
         this.workList.add(initialEdge); // [3]
 
-        if (mainMId.contains("defineA")) {
-            System.out.println();
-        }
-
         //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
         while(!workList.isEmpty()) { // [10]
             ESGEdge currPathEdge = workList.pop(); // [11]
