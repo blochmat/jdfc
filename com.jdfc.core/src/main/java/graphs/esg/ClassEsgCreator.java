@@ -24,6 +24,9 @@ public class ClassEsgCreator {
         for(MethodData methodData : classData.getMethodDataFromStore().values()) {
             MethodEsgCreator methodESGCreator = new MethodEsgCreator(className, methodData);
             ESG esg = methodESGCreator.createESG();
+            if (methodData.buildInternalMethodName().contains("addOne") || methodData.buildInternalMethodName().contains("defineA")) {
+                System.out.println();
+            }
             methodData.setEsg(esg);
         }
     }
@@ -170,6 +173,10 @@ public class ClassEsgCreator {
                 String currVariableMethodIdentifier = activeDomainMethodSection.getKey();
                 Map<UUID, ProgramVariable> programVariables = activeDomainMethodSection.getValue();
 
+                if (mainMethodId.contains("defineA") && currSGNodeIdx == 4) {
+                    System.out.println();
+                }
+
                 for (ProgramVariable pVar : programVariables.values()) {
                     Collection<Integer> currSGNodeTargets = superGraph.getEdges().get(currSGNodeIdx);
                     for (Integer currSGNodeTargetIdx : currSGNodeTargets) {
@@ -178,11 +185,16 @@ public class ClassEsgCreator {
                             // Special case ZERO
                             ESGEdge edge = handleZero(currSGNode, sgTargetNode, pVar);
                             esgEdges.put(currSGNodeIdx, edge);
-                        } else if (!asmHelper.isStatic(currSGNode.getMethodAccess()) && (Objects.equals(pVar.getName(), "this") || pVar.getIsField())) {
-                            // Special case this and fields
-                            if(Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
+                        } else if ((Objects.equals(pVar.getName(), "this") || pVar.getIsField())) {
+                            if (!asmHelper.isStatic(currSGNode.getMethodAccess())
+                                && Objects.equals(currSGNodeMethodIdentifier, currVariableMethodIdentifier)) {
                                 Set<ESGEdge> edges = handleGlobal(currSGNode, sgTargetNode, pVar);
                                 esgEdges.putAll(currSGNodeIdx, edges);
+                            } else {
+                                // Todo: connect outer this of call site
+                                // 1. find call site
+                                // 2. connect outer this
+                                System.out.println();
                             }
                         } else {
                             // Local variables
