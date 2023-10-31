@@ -131,11 +131,11 @@ public class ClassEsgCreator {
                 System.out.println();
             }
 
-            //--- CREATE NODES ---------------------------------------------------------------------------------------------
-            NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> esgNodes = createESGNodes(ImmutableMap.copyOf(methodDefinitionsMap));
-
-            // --- DEBUG NODES ---------------------------------------------------------------------------------------------
-            debugNodes(esgNodes);
+//            //--- CREATE NODES ---------------------------------------------------------------------------------------------
+//            NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> esgNodes = createESGNodes(ImmutableMap.copyOf(esgNodeActiveVarMap));
+//
+//            // --- DEBUG NODES ---------------------------------------------------------------------------------------------
+//            debugNodes(esgNodes);
 
             //--- CREATE EDGES ---------------------------------------------------------------------------------------------
             Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
@@ -171,25 +171,25 @@ public class ClassEsgCreator {
             }
 
             //--- PRED & SUCC
-            for(ESGEdge esgEdge : esgEdges.values()) {
-                int sgnSourceIdx = esgEdge.getSgnSourceIdx();
-                int sgnTargetIdx = esgEdge.getSgnTargetIdx();
-                String sourceMethodName = esgEdge.getSourceMethodId();
-                String targetMethodName = esgEdge.getTargetMethodId();
-                ProgramVariable sourceDVar = esgEdge.getSourceVar();
-                ProgramVariable targetDVar = esgEdge.getTargetVar();
-
-                String debug = String.format("%d %s %s %d %s %s",
-                        sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
-                JDFCUtils.logThis(debug, "debug");
-
-                ESGNode first = esgNodes.get(sgnSourceIdx).get(sourceMethodName).get(sourceDVar.getId());
-                ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVar.getId());
-                first.getSucc().add(second);
-                second.getPred().add(first);
-
-                second.setPossiblyNotRedefined(true);
-            }
+//            for(ESGEdge esgEdge : esgEdges.values()) {
+//                int sgnSourceIdx = esgEdge.getSgnSourceIdx();
+//                int sgnTargetIdx = esgEdge.getSgnTargetIdx();
+//                String sourceMethodName = esgEdge.getSourceMethodId();
+//                String targetMethodName = esgEdge.getTargetMethodId();
+//                ProgramVariable sourceDVar = esgEdge.getSourceVar();
+//                ProgramVariable targetDVar = esgEdge.getTargetVar();
+//
+//                String debug = String.format("%d %s %s %d %s %s",
+//                        sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
+//                JDFCUtils.logThis(debug, "debug");
+//
+//                ESGNode first = esgNodes.get(sgnSourceIdx).get(sourceMethodName).get(sourceDVar.getId());
+//                ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVar.getId());
+//                first.getSucc().add(second);
+//                second.getPred().add(first);
+//
+//                second.setPossiblyNotRedefined(true);
+//            }
 
             // --- DEBUG NODES ---------------------------------------------------------------------------------------------
 //        if(log.isDebugEnabled()) {
@@ -709,7 +709,7 @@ public class ClassEsgCreator {
             }
         }
 
-        public NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> createESGNodes(Map<String, Map<UUID, ProgramVariable>> domain) {
+        public NavigableMap<Integer, Map<Integer, Map<UUID, ESGNode>>> createESGNodes(Map<String, Map<UUID, ProgramVariable>> domain) {
             NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> esgNodes = Maps.newTreeMap();
 
             // create nodes for SG nodes
