@@ -76,22 +76,22 @@ public class ClassEsgCreator {
             Map<String, Map<UUID, ProgramVariable>> methodDefinitionsMap = createMethodDefinitonsMap();
             debugMethodDefinitionsMap(ImmutableMap.copyOf(methodDefinitionsMap));
 
-            // <SGNodeIdx <CallSequenceIdx, MethodIdentifier>>
-            Map<Integer, Map<Integer, String>> activeMethods = new HashMap<>();
+            // <ESGNodeIdx <CallSequenceIdx, MethodIdentifier>>
+            Map<Integer, Map<Integer, String>> esgNodeActiveMethodMap = new HashMap<>();
             for (SGNode iNode : superGraph.getNodes().values()) {
                 int i = iNode.getIndex();
                 if (i == 0) {
                     // for first node only put ZERO
                     // IMPORTANT: CallSequenceIdx of ZERO = 0
                     //            CallSequenceIdx of main method = 1
-                    activeMethods.put(i, new HashMap<>());
-                    activeMethods.get(i).put(0, "ZERO");
+                    esgNodeActiveMethodMap.put(i, new HashMap<>());
+                    esgNodeActiveMethodMap.get(i).put(0, "ZERO");
                 }
 
                 // IMPORTANT: SGNodeIdx + 1 = ESGNodeIdx
                 int esgIdx = i + 1;
-                activeMethods.put(esgIdx, new HashMap<>());
-                Map<Integer, String> methods = activeMethods.get(esgIdx);
+                esgNodeActiveMethodMap.put(esgIdx, new HashMap<>());
+                Map<Integer, String> methods = esgNodeActiveMethodMap.get(esgIdx);
 
                 if (iNode instanceof SGEntryNode) {
                     SGEntryNode callNode = (SGEntryNode) iNode;
@@ -108,28 +108,27 @@ public class ClassEsgCreator {
                 }
             }
 
-            if (mainMethodName.contains("defineA")) {
-                System.out.println();
+//            if (mainMethodName.contains("defineA")) {
+//                System.out.println();
+//            }
+
+            //--- Create esgNodeActiveVarMap for every SGNode
+            // <ESGNodeIdx <CallSequenceIdx <PVarUUID, PVar>>>
+            Map<Integer, Map<Integer, Map<UUID, ProgramVariable>>> esgNodeActiveVarMap = new HashMap<>();
+            for (Map.Entry<Integer, Map<Integer, String>> esgNodeEntry : esgNodeActiveMethodMap.entrySet()) {
+                int esgIdx = esgNodeEntry.getKey();
+                Map<Integer, String> activeMethods = esgNodeEntry.getValue();
+
+                esgNodeActiveVarMap.put(esgIdx, new HashMap<>());
+                for (Map.Entry<Integer, String> activeMethod : activeMethods.entrySet()) {
+                    int callSequenceIdx = activeMethod.getKey();
+                    String mId = activeMethod.getValue();
+                    esgNodeActiveVarMap.get(esgIdx).put(callSequenceIdx, methodDefinitionsMap.get(mId));
+                }
             }
 
-            //--- Create domain for every SGNode
-            Map<Integer, Map<UUID, ProgramVariable>> domain = new HashMap<>();
-            for(SGNode iNode : superGraph.getNodes().values()) {
-                int i = iNode.getIndex();
-
-                // ESG nodes 0
-                if (i == 0) {
-                    domain.computeIfAbsent(i, k -> Maps.newTreeMap() );
-                    domain.get(i).put(ZERO.getId(), ZERO);
-                }
-
-                domain.computeIfAbsent(i+1, k -> Maps.newTreeMap());
-                domain.get(i+1).put(ZERO.getId(), ZERO);
-
-                String currSGNodeMethodIdentifier = this.buildMethodIdentifier(
-                        iNode.getClassName(), iNode.getMethodName());
-                Map<UUID, ProgramVariable> iDomain = methodDefinitionsMap.get(currSGNodeMethodIdentifier);
-
+            if (mainMethodName.contains("defineA")) {
+                System.out.println();
             }
 
             //--- CREATE NODES ---------------------------------------------------------------------------------------------
