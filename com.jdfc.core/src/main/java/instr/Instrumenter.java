@@ -1,9 +1,9 @@
 package instr;
 
-import algos.TabulationAlgorithm;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import data.*;
+import data.ClassData;
+import data.MethodData;
+import data.PackageData;
+import data.ProjectData;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
@@ -23,7 +23,10 @@ import utils.JDFCUtils;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -206,20 +209,20 @@ public class Instrumenter {
         classEsgCreator.createESGsForClass(classData);
 
         // Compute inter-procedural pairs
-        for (MethodData methodData : classData.getMethodDataFromStore().values()) {
-            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(methodData.getEsg());
-            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
-            Multimap<Integer, String> mvpUUID = ArrayListMultimap.create();
-            for (Map.Entry<Integer, ProgramVariable> entry : MVP.entries()) {
-                String str = String.format("%s:%d", entry.getValue().getName(), entry.getValue().getInstructionIndex());
-                mvpUUID.put(entry.getKey(), str);
-            }
-            String debug = String.format("%s :: %s\n%s",
-                    classData.getClassMetaData().getClassFileRelNoType(),
-                    methodData.buildInternalMethodName(),
-                    JDFCUtils.prettyPrintMultimap(mvpUUID));
-            JDFCUtils.logThis(debug, "MVP");
-        }
+//        for (MethodData methodData : classData.getMethodDataFromStore().values()) {
+//            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(methodData.getEsg());
+//            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
+//            Multimap<Integer, String> mvpUUID = ArrayListMultimap.create();
+//            for (Map.Entry<Integer, ProgramVariable> entry : MVP.entries()) {
+//                String str = String.format("%s:%d", entry.getValue().getName(), entry.getValue().getInstructionIndex());
+//                mvpUUID.put(entry.getKey(), str);
+//            }
+//            String debug = String.format("%s :: %s\n%s",
+//                    classData.getClassMetaData().getClassFileRelNoType(),
+//                    methodData.buildInternalMethodName(),
+//                    JDFCUtils.prettyPrintMultimap(mvpUUID));
+//            JDFCUtils.logThis(debug, "MVP");
+//        }
 
         // Tracking instrumentation
         if (log.isDebugEnabled()) {

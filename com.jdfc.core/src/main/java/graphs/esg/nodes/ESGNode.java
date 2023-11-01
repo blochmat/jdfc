@@ -5,9 +5,9 @@ import data.ProgramVariable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import utils.JDFCUtils;
 
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +19,14 @@ public class ESGNode {
     private boolean isPossiblyNotRedefined;
     Set<ESGNode> pred;
     Set<ESGNode> succ;
+    private int idx;
+    private Map<Integer, String> callSeqIdxMethodIdMap = new TreeMap<>();
+    private Map<Integer, Map<UUID, ProgramVariable>> callSeqIdxVarMap = new TreeMap<>();
+    private List<String> callSequenceIdx;
+
+    public ESGNode(int idx) {
+        this.idx = idx;
+    }
 
     private ESGNode(int sgnIndex, String className, String methodName) {
         this.sgnIndex = sgnIndex;
@@ -48,22 +56,19 @@ public class ESGNode {
 
     @Override
     public String toString() {
-        String redefined = isPossiblyNotRedefined ? "T" : "F";
-        if(var.getInstructionIndex() != Integer.MIN_VALUE) {
-            return String.format("(%d, %s:%d, %d, %d, %s)",
-                    sgnIndex,
-                    var.getName(),
-                    var.getInstructionIndex(),
-                    pred.size(),
-                    succ.size(),
-                    redefined);
-        }
-        return String.format("(%d, %s, %d, %d, %s)",
-                sgnIndex,
-                var.getName(),
-                pred.size(),
-                succ.size(),
-                redefined);
+//        String redefined = isPossiblyNotRedefined ? "T" : "F";
+//        if(var.getInstructionIndex() != Integer.MIN_VALUE) {
+//            return String.format("(%d, %s:%d, %d, %d, %s)",
+//                    sgnIndex,
+//                    var.getName(),
+//                    var.getInstructionIndex(),
+//                    pred.size(),
+//                    succ.size(),
+//                    redefined);
+//        }
+        return String.format("(%d: %s)",
+                idx,
+                JDFCUtils.prettyPrintMap(callSeqIdxMethodIdMap));
     }
 
     @Override
