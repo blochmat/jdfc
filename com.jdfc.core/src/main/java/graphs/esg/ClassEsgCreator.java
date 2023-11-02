@@ -86,6 +86,10 @@ public class ClassEsgCreator {
                     //            CallSequenceIdx of main method = 1
                     esgNodes.put(0, new ESGNode());
                     esgNodes.get(0).getCallSeqIdxMethodIdMap().put(0, "ZERO");
+                    esgNodes.get(0).getCallSeqIdxVarMap().put(0, new TreeMap<>());
+                    esgNodes.get(0).getCallSeqIdxVarMap().get(0).put(this.ZERO.getId(), this.ZERO);
+                    esgNodes.get(0).getCallSeqIdxPosNotReMap().put(0, new TreeMap<>());
+                    esgNodes.get(0).getCallSeqIdxPosNotReMap().get(0).put(this.ZERO.getId(), false);
                 }
 
                 // IMPORTANT: SGNodeIdx + 1 = ESGNodeIdx
@@ -110,13 +114,24 @@ public class ClassEsgCreator {
                 esgNode.setCallSeqIdxMethodIdMap(predMap);
 
                 // Add variables to esgNode based on call sequence
-                Map<Integer, Map<UUID, ProgramVariable>> callSeqIdxVarMap = new HashMap<>();
+                Map<Integer, Map<UUID, ProgramVariable>> callSeqIdxVarMap = new TreeMap<>();
                 for (Map.Entry<Integer, String> callSeqIdxMethodEntry : esgNode.getCallSeqIdxMethodIdMap().entrySet()) {
                     int callSeqIdx = callSeqIdxMethodEntry.getKey();
                     String mId = callSeqIdxMethodEntry.getValue();
                     callSeqIdxVarMap.put(callSeqIdx, new HashMap<>(methodDefinitionsMap.get(mId)));
                 }
                 esgNode.setCallSeqIdxVarMap(callSeqIdxVarMap);
+
+                // Add possiblyNotRedefined to esgNode based on variables
+                Map<Integer, Map<UUID, Boolean>> callSeqIdxPosNotReMap = new TreeMap<>();
+                for (Map.Entry<Integer, Map<UUID, ProgramVariable>> callSeqIdxVarEntry : esgNode.getCallSeqIdxVarMap().entrySet()) {
+                    Map<UUID, Boolean> posNotReMap = new HashMap<>();
+                    for (Map.Entry<UUID, ProgramVariable> pVarEntry : callSeqIdxVarEntry.getValue().entrySet()) {
+                        posNotReMap.put(pVarEntry.getKey(), false);
+                    }
+                    callSeqIdxPosNotReMap.put(callSeqIdxVarEntry.getKey(), posNotReMap);
+                }
+                esgNode.setCallSeqIdxPosNotReMap(callSeqIdxPosNotReMap);
                 esgNodes.put(esgIdx, esgNode);
             }
 
@@ -147,13 +162,11 @@ public class ClassEsgCreator {
 //            debugNodes(esgNodes);
 
             //--- CREATE EDGES ---------------------------------------------------------------------------------------------
-            // TODO: create edges from esgNodeActiveVarMap
             Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
-
-            for(SGNode currSGNode : superGraph.getNodes().values()) {
-                int currSGNodeIdx = currSGNode.getIndex();
-                String currSGNodeMethodIdentifier = this.buildMethodIdentifier(
-                        currSGNode.getClassName(), currSGNode.getMethodName());
+            for(Map.Entry<Integer, ESGNode> esgNodeEntry : esgNodes.entrySet()) {
+                int esgNodeIdx = esgNodeEntry.getKey();
+                int currSGNodeIdx = esgNodeIdx - 1;
+                ESGNode esgNode = esgNodeEntry.getValue();
 
                 //--- UPDATE ACTIVE SCOPE ----------------------------------------------------------------------------------
 //                Map<String, Map<UUID, ProgramVariable>> activeScope = updateActiveScope(methodDefinitionsMap, currSGNode);

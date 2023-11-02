@@ -22,6 +22,7 @@ public class ESGNode {
     private int idx;
     private Map<Integer, String> callSeqIdxMethodIdMap = new TreeMap<>();
     private Map<Integer, Map<UUID, ProgramVariable>> callSeqIdxVarMap = new TreeMap<>();
+    private Map<Integer, Map<UUID, Boolean>> callSeqIdxPosNotReMap = new TreeMap<>();
     private List<String> callSequenceIdx;
 
     public ESGNode(int idx) {
