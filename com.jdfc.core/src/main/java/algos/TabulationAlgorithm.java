@@ -55,31 +55,31 @@ public class TabulationAlgorithm {
             ESGEdge currPathEdge = workList.pop(); // [11]
 
             // Path Edge Source
-            SGNode peSrcNode = sg.getNodes().get(currPathEdge.getSgnSourceIdx());
-            int peSrcNodeIdx = currPathEdge.getSgnSourceIdx();
-            String peSrcMethodId = currPathEdge.getSourceMethodId();
-            ProgramVariable peSrcVar = currPathEdge.getSourceVar();
+            SGNode peSrcNode = sg.getNodes().get(currPathEdge.getSrcIdx());
+            int peSrcNodeIdx = currPathEdge.getSrcIdx();
+            String peSrcMethodId = currPathEdge.getSrcCallSeqIdx();
+            ProgramVariable peSrcVar = currPathEdge.getSrcVarId();
 
             // Path Edge Target
-            SGNode peTargetNode = sg.getNodes().get(currPathEdge.getSgnTargetIdx());
-            int peTargetNodeIdx = currPathEdge.getSgnTargetIdx();
-            String peTargetMethodId = currPathEdge.getTargetMethodId();
-            ProgramVariable peTargetVar = currPathEdge.getTargetVar();
+            SGNode peTargetNode = sg.getNodes().get(currPathEdge.getTrgtIdx());
+            int peTargetNodeIdx = currPathEdge.getTrgtIdx();
+            String peTargetMethodId = currPathEdge.getTrgtCallSeqIdx();
+            ProgramVariable peTargetVar = currPathEdge.getTrgtVarId();
 
             // [13] - [20]
             if (peTargetNode instanceof SGCallNode) {
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(peTargetNodeIdx);
                 for (ESGEdge esgEdge : esgEdges) {
-                    boolean basicEdgeExits = Objects.equals(peSrcMethodId, esgEdge.getSourceMethodId())
-                            && Objects.equals(peSrcVar, esgEdge.getSourceVar());
+                    boolean basicEdgeExits = Objects.equals(peSrcMethodId, esgEdge.getSrcCallSeqIdx())
+                            && Objects.equals(peSrcVar, esgEdge.getSrcVarId());
                     boolean matchEdgeExists = false;
-                    if (esg.getCallerToCalleeDefinitionMap().containsKey(esgEdge.getSgnSourceIdx())) {
-                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(esgEdge.getSgnSourceIdx()).containsKey(peTargetVar);
+                    if (esg.getCallerToCalleeDefinitionMap().containsKey(esgEdge.getSrcIdx())) {
+                        matchEdgeExists = esg.getCallerToCalleeDefinitionMap().get(esgEdge.getSrcIdx()).containsKey(peTargetVar);
                     }
                     if (basicEdgeExits || matchEdgeExists) {
-                        int mIdx = esgEdge.getSgnTargetIdx();
-                        String d3MId = esgEdge.getTargetMethodId();
-                        ProgramVariable d3 = esgEdge.getTargetVar();
+                        int mIdx = esgEdge.getTrgtIdx();
+                        String d3MId = esgEdge.getTrgtCallSeqIdx();
+                        ProgramVariable d3 = esgEdge.getTrgtVarId();
                         SGNode mSGNode = sg.getNodes().get(mIdx);
 
                         if (mSGNode instanceof SGEntryNode) {
@@ -105,12 +105,12 @@ public class TabulationAlgorithm {
                 }
 
                 for (ESGEdge esgEdge : summaryEdgeSet) {
-                    if (Objects.equals(peTargetNode.getIndex(), esgEdge.getSgnSourceIdx())
-                            && Objects.equals(peSrcMethodId, esgEdge.getSourceMethodId())
-                            && Objects.equals(peSrcVar, esgEdge.getSourceVar())) {
-                        int mIdx = esgEdge.getSgnTargetIdx();
-                        String d3MId = esgEdge.getTargetMethodId();
-                        ProgramVariable d3 = esgEdge.getTargetVar();
+                    if (Objects.equals(peTargetNode.getIndex(), esgEdge.getSrcIdx())
+                            && Objects.equals(peSrcMethodId, esgEdge.getSrcCallSeqIdx())
+                            && Objects.equals(peSrcVar, esgEdge.getSrcVarId())) {
+                        int mIdx = esgEdge.getTrgtIdx();
+                        String d3MId = esgEdge.getTrgtCallSeqIdx();
+                        ProgramVariable d3 = esgEdge.getTrgtVarId();
                         SGNode mSGNode = sg.getNodes().get(mIdx);
                         if (mSGNode instanceof SGReturnSiteNode) {
                             propagate(new ESGEdge(
@@ -200,13 +200,13 @@ public class TabulationAlgorithm {
 
                     // Path edge source
                     int newPeSgnSourceIdx = sgTargetNode.getEntryNodeIdx();
-                    String newPeSourceMethodId = e.getTargetMethodId();
-                    ProgramVariable newPeSourceVar = e.getTargetVar();
+                    String newPeSourceMethodId = e.getTrgtCallSeqIdx();
+                    ProgramVariable newPeSourceVar = e.getTrgtVarId();
 
                     // Path edge target
-                    int newPeSgnTargetIdx = e.getSgnTargetIdx();
-                    String newPeTargetMethodId = e.getTargetMethodId();
-                    ProgramVariable newPeTargetVar = e.getTargetVar();
+                    int newPeSgnTargetIdx = e.getTrgtIdx();
+                    String newPeTargetMethodId = e.getTrgtCallSeqIdx();
+                    ProgramVariable newPeTargetVar = e.getTrgtVarId();
 
                     propagate(new ESGEdge(
                             newPeSgnSourceIdx,
@@ -233,10 +233,10 @@ public class TabulationAlgorithm {
             int sgEntryIdx = sgEntryNode.getIndex();
 
             for(ESGEdge pathEdge : pathEdgeSet) {
-                if(Objects.equals(sgEntryIdx, pathEdge.getSgnSourceIdx())
-                        && Objects.equals(sgIdx, pathEdge.getSgnTargetIdx())
-                        && !Objects.equals(ZERO, pathEdge.getTargetVar())) {
-                    ProgramVariable pVar = pathEdge.getTargetVar();
+                if(Objects.equals(sgEntryIdx, pathEdge.getSrcIdx())
+                        && Objects.equals(sgIdx, pathEdge.getTrgtIdx())
+                        && !Objects.equals(ZERO, pathEdge.getTrgtVarId())) {
+                    ProgramVariable pVar = pathEdge.getTrgtVarId();
                     bigXSet.put(sgIdx, pVar);
                 }
             }

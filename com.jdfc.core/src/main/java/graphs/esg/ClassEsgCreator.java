@@ -14,6 +14,7 @@ import utils.ASMHelper;
 import utils.JDFCUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ClassEsgCreator {
@@ -164,24 +165,12 @@ public class ClassEsgCreator {
             //--- CREATE EDGES ---------------------------------------------------------------------------------------------
             Multimap<Integer, ESGEdge> esgEdges = ArrayListMultimap.create();
             for(Map.Entry<Integer, ESGNode> esgNodeEntry : esgNodes.entrySet()) {
-                int esgNodeIdx = esgNodeEntry.getKey();
-                int currSGNodeIdx = esgNodeIdx - 1;
-                ESGNode esgNode = esgNodeEntry.getValue();
-
-                //--- UPDATE ACTIVE SCOPE ----------------------------------------------------------------------------------
-//                Map<String, Map<UUID, ProgramVariable>> activeScope = updateActiveScope(methodDefinitionsMap, currSGNode);
-
-                //--- DEBUG ACTIVE DOMAIN ----------------------------------------------------------------------------------
-//                debugActiveScope(activeScope, currSGNodeIdx);
-
-                //--- UPDATE LIVE VARIABLES --------------------------------------------------------------------------------
-//                liveVariables = updateLiveVariables(activeScope, currSGNode);
-
-                //--- DEBUG LIVE VARIABLES ---------------------------------------------------------------------------------
-//                debugLiveVariables(currSGNodeIdx);
-
-                // --- CREATE EDGES ----------------------------------------------------------------------------------------
-//                createEdges(esgEdges, currSGNode, currSGNodeIdx, currSGNodeMethodIdentifier, activeScope);
+                if (esgNodeEntry.getKey() + 1 == esgNodes.size()) {
+                    continue;
+                }
+                ESGNode esgCurr = esgNodeEntry.getValue();
+                ESGNode esgNext = esgNodes.get(esgNodeEntry.getKey() + 1);
+                createEdges(esgEdges, esgCurr, esgNext);
             }
 
             //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
@@ -246,9 +235,76 @@ public class ClassEsgCreator {
             return new ESG(superGraph, null, esgEdges, methodDefinitionsMap, callerToCalleeDefMap, calleeToCallerDefMap);
         }
 
-//        private void createEdges(Multimap<Integer, ESGEdge> esgEdges, SGNode currSGNode, int currSGNodeIdx, String currSGNodeMethodIdentifier, Map<Integer, Map<UUID, ProgramVariable>> callSeqIdxActiveVarMap) {
+        private ESGEdge createEdge(int srcIdx,
+                                   int srcCallSeqIdx,
+                                   UUID srcVarId,
+                                   int trgtIdx,
+                                   int trgtCallSeqIdx,
+                                   UUID trgtVarId) {
+            return new ESGEdge(srcIdx, trgtIdx, srcCallSeqIdx, trgtCallSeqIdx, srcVarId, trgtVarId);
+        }
+
+        private int getCallSeqIdxByMId(Map<Integer, String> callSeqMidMap, String mId) {
+            Set<Map.Entry<Integer, String>> calls = callSeqMidMap.entrySet().stream()
+                    .filter(entry -> entry.getValue().equals(mId))
+                    .collect(Collectors.toSet());
+            Optional<Map.Entry<Integer, String>> callSeqIdxOpt = calls.stream().reduce((a, b) -> {
+                if (a.getKey() < b.getKey()) {
+                    return b;
+                } else {
+                    return a;
+                }
+            });
+
+            if (callSeqIdxOpt.isPresent()) {
+                Map.Entry<Integer, String> callSeqIdxEntry = callSeqIdxOpt.get();
+                return callSeqIdxEntry.getKey();
+            } else {
+                throw new IllegalArgumentException("getCallSeqIdxByMId");
+            }
+        }
+
+        private void createEdges(Multimap<Integer, ESGEdge> esgEdges, ESGNode esgCurr, ESGNode esgNext) {
+            Map<Integer, String> callSeqMidCurr = esgCurr.getCallSeqIdxMethodIdMap();
+            Map<Integer, String> callSeqMidNext = esgNext.getCallSeqIdxMethodIdMap();
+            Map<Integer, Map<UUID, ProgramVariable>> callSeqVarsCurr = esgCurr.getCallSeqIdxVarMap();
+            Map<Integer, Map<UUID, ProgramVariable>> callSeqVarsNext = esgNext.getCallSeqIdxVarMap();
+            SGNode currSGNode = superGraph.getNodes().get(esgCurr.getIdx() - 1);
+            SGNode nextSGNode = superGraph.getNodes().get(esgCurr.getIdx());
+
+            if (currSGNode == null || currSGNode instanceof SGCallNode) {
+                return;
+            }
+
+            // For all methods in esgCurr
+            for (Map.Entry<Integer, Map<UUID, ProgramVariable>> callSeqEntryCurr : callSeqVarsCurr.entrySet()) {
+                int callSeqIdxCurr = callSeqEntryCurr.getKey();
+                // For all variables in method in esgCurr
+                for (Map.Entry<UUID, ProgramVariable> varEntryCurr : callSeqEntryCurr.getValue().entrySet()) {
+                    UUID varIdCurr = varEntryCurr.getKey();
+                    // connect ZERO to ZERO
+                    if (varIdCurr.equals(this.ZERO.getId())) {
+                        ESGEdge newEdge = this.createEdge(
+                                esgCurr.getIdx(), callSeqIdxCurr, varIdCurr, esgNext.getIdx(), callSeqIdxCurr, varIdCurr
+                        );
+                        esgEdges.put(esgCurr.getIdx(), newEdge);
+                    }
+
+                    // connect ZERO to new definitions
+                    for (ProgramVariable def : nextSGNode.getDefinitions()) {
+                        String mId = this.buildMethodIdentifier(nextSGNode.getClassName(), nextSGNode.getMethodName());
+                        int callSeqIdx = this.getCallSeqIdxByMId(callSeqMidCurr, mId);
+                        ESGEdge newEdge = this.createEdge(
+                                esgCurr.getIdx(), 0, this.ZERO.getId(), esgNext.getIdx(), callSeqIdx, def.getId()
+                        );
+                        esgEdges.put(esgCurr.getIdx(), newEdge);
+                    }
+
+                    // TODO: connect alive variables to alive variables
+                }
+
+            }
 //            for(Map.Entry<Integer, Map<UUID, ProgramVariable>> activeDomainMethodSection : callSeqIdxActiveVarMap.entrySet()) {
-//                int callSequenceIdx =
 //                String currVariableMethodIdentifier = activeDomainMethodSection.getKey();
 //                Map<UUID, ProgramVariable> programVariables = activeDomainMethodSection.getValue();
 //
@@ -301,7 +357,7 @@ public class ClassEsgCreator {
 //                    }
 //                }
 //            }
-//        }
+        }
 
 //        public Map<String, Map<UUID, ProgramVariable>> updateActiveScope(
 //                Map<String, Map<UUID, ProgramVariable>> domain,
