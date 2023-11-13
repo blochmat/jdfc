@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ESG {
     private SG sg;
-    private NavigableMap<Integer, Map<String, Map<UUID, ESGNode>>> nodes;
+    private NavigableMap<Integer, ESGNode> nodes;
     private Multimap<Integer, ESGEdge> edges;
     private Map<String, Map<UUID, ProgramVariable>> domain;
     private NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> callerToCalleeDefinitionMap;

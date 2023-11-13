@@ -8,8 +8,8 @@ import data.MethodData;
 import data.ProgramVariable;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
-import graphs.sg.nodes.SGCallNode;
 import graphs.sg.nodes.SGEntryNode;
+import graphs.sg.nodes.SGExitNode;
 import graphs.sg.nodes.SGNode;
 import graphs.sg.nodes.SGReturnSiteNode;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +80,7 @@ public class ClassEsgCreator {
             debugMethodDefinitionsMap(ImmutableMap.copyOf(methodDefinitionsMap));
 
             // <ESGNodeIdx <CallSequenceIdx, MethodIdentifier>>
-            Map<Integer, ESGNode> esgNodes = new TreeMap<>();
+            NavigableMap<Integer, ESGNode> esgNodes = new TreeMap<>();
             for (SGNode iNode : superGraph.getNodes().values()) {
                 // Create call sequence map for every esg node
                 int i = iNode.getIndex();
@@ -248,7 +248,7 @@ public class ClassEsgCreator {
 
             //--- CREATE ESG -----------------------------------------------------------------------------------------------
             // TODO
-            return new ESG(superGraph, null, esgEdges, methodDefinitionsMap, callerToCalleeDefMap, calleeToCallerDefMap);
+            return new ESG(superGraph, esgNodes, esgEdges, methodDefinitionsMap, callerToCalleeDefMap, calleeToCallerDefMap);
         }
 
         private ESGEdge createEdge(int srcIdx,
@@ -283,40 +283,31 @@ public class ClassEsgCreator {
         // todo: Get the current esg node
         // todo: Get the next esg node
         private void createEdges(Multimap<Integer, ESGEdge> esgEdges, ESGNode esgCurr, ESGNode esgNext) {
+
             // TODO: imagine the positioning of esg nodes like this
             //       0: esg
             //       1: esg = 0: sg
             //       2: esg = 1: sg
             //       ...
 
-            int esgIdxCurr = esgCurr.getIdx();
-            int esgIdxNext = esgNext.getIdx();
+            // src
+            int srcIdx = esgCurr.getIdx();
+            Map<Integer, String> srcCallIdxMethodNameMap = esgCurr.getCallSeqIdxMethodIdMap();
+            Map<Integer, Map<UUID, ProgramVariable>> srcCallIdxVarsMap = esgCurr.getCallSeqIdxVarMap();
+            Map<Integer, Map<UUID, Boolean>> srcCallIdxLiveVarsMap = esgCurr.getCallSeqIdxLiveVarMap();
 
-            // Methods
-            // todo: get current esg nodes method call sequence
-            Map<Integer, String> esgMidCurr = esgCurr.getCallSeqIdxMethodIdMap();
-            // todo: get next esg nodes method call sequence
-            Map<Integer, String> esgMidNext = esgNext.getCallSeqIdxMethodIdMap();
+            // sgNode
+            SGNode sgNode = superGraph.getNodes().get(srcIdx);
 
-            // Vars
-            // todo: get current esg nodes variables per method
-            Map<Integer, Map<UUID, ProgramVariable>> esgVarCurr = esgCurr.getCallSeqIdxVarMap();
-            // todo: get next esg nodes variables per method
-            Map<Integer, Map<UUID, ProgramVariable>> esgVarNext = esgNext.getCallSeqIdxVarMap();
+            // target
+            int trgtIdx = esgNext.getIdx();
+            Map<Integer, String> trgtCallIdxMethodNameMap = esgNext.getCallSeqIdxMethodIdMap();
+            Map<Integer, Map<UUID, ProgramVariable>> trgtCallIdxVarsMap = esgNext.getCallSeqIdxVarMap();
+            Map<Integer, Map<UUID, Boolean>> trgCallIdxLiveVarsMap = esgNext.getCallSeqIdxLiveVarMap();
 
-            // Liveness
-            // todo: get current esg nodes live variables indicator per method
-            Map<Integer, Map<UUID, Boolean>> esgLiveVarCurr = esgCurr.getCallSeqIdxLiveVarMap();
-            // todo: get next esg nodes live variables indicator per method
-            Map<Integer, Map<UUID, Boolean>> esgLiveVarNext = esgNext.getCallSeqIdxLiveVarMap();
-
-            // todo: get next sg node
-            //      - connect live variables from the current esg node to the next esg node
-            //      - check the next sg node for new definition and connect them to ZERO
-            SGNode sgNext = superGraph.getNodes().get(esgIdxCurr);
-            // todo: get call sequence idx of method of current sg node
-            String sgMid = this.buildMethodIdentifier(sgNext.getClassName(), sgNext.getMethodName());
-            Map.Entry<Integer, String> sgCallEntry = esgMidCurr.entrySet().stream()
+            // 1.1 Use mId from SG to get callIdx from esgNext
+            String sgMid = this.buildMethodIdentifier(sgNode.getClassName(), sgNode.getMethodName());
+            Map.Entry<Integer, String> trgtCallIdxMethodNameEntry = trgtCallIdxMethodNameMap.entrySet().stream()
                     .filter(entry -> entry.getValue().equals(sgMid))
                     .reduce((a, b) -> {
                         if (a.getKey() > b.getKey()) {
@@ -327,50 +318,62 @@ public class ClassEsgCreator {
                     })
                     .orElse(null);
 
-            if (sgNext instanceof SGCallNode) {
-                return;
+            if(trgtCallIdxMethodNameEntry == null) {
+                throw new RuntimeException("trgtCallIdxMethodNameEntry is null");
             }
 
-            // todo: The callSeqIndex is important to know which method is currently active.
-            //          This also means that for other methods we only want to connect the variables that need to be
-            //          connected even if they are in a outer scope
-            // todo: For the active (inner) and inactive (outer) scope we still only want to connect live variables.
-            // todo: inner scope test: callSeqIdx fits AND var is alive
-            // todo: outer scope test: var is alive AND (var is local, live OR (method is static AND (var is this OR field))
-            // todo: connect the live variables from esgCurr to esgNext
+            // 1.2 hold active scope
+            final int trgtCallIdx = trgtCallIdxMethodNameEntry.getKey();
+            Map<UUID, ProgramVariable> activeMethodDomain = trgtCallIdxVarsMap.get(trgtCallIdxMethodNameEntry.getKey());
 
-            // For all methods in esgCurr
-            for (Map.Entry<Integer, Map<UUID, ProgramVariable>> callEntry : esgVarCurr.entrySet()) {
-                int callIdx = callEntry.getKey();
-                // For all variables in method in esgCurr
-                for (Map.Entry<UUID, ProgramVariable> varEntry : callEntry.getValue().entrySet()) {
-                    UUID varId = varEntry.getKey();
+            // 2 iterate over srcCallIdxVarsMap (source)
+            for (Map.Entry<Integer, Map<UUID, ProgramVariable>> srcCallIdxVarsEntry : srcCallIdxVarsMap.entrySet()) {
+                for (Map.Entry<UUID, ProgramVariable> srcVarEntry : srcCallIdxVarsEntry.getValue().entrySet()) {
+                    final int srcCallIdx = srcCallIdxVarsEntry.getKey();
+                    final UUID srcVarId = srcVarEntry.getKey();
+                    final ProgramVariable srcVar = srcVarEntry.getValue();
+                    final String srcVarMId = this.buildMethodIdentifier(srcVar.getClassName(), srcVar.getMethodName());
 
-                    boolean isAlive = esgCurr.getCallSeqIdxLiveVarMap().get(callIdx).get(varId);
+                    // Handle new definitions
+                    // todo: if sgNode is callNode, check for src != Zero if a match exists
+                    //           yes: find callSeqIdx of target, connect src to target
+                    //           no:  connect src to src if necessary
+                    //       if src is newDefinition:
+                    //           if alive: connect to src
+                    //           if not: connect zero to src, connect src to src
+                    if (srcCallIdx == 0 && srcVarId.equals(this.ZERO.getId())) {
+                        for (Map.Entry<UUID, ProgramVariable> varEntry : activeMethodDomain.entrySet()) {
+                            final UUID varId = varEntry.getKey();
+                            final ProgramVariable var = varEntry.getValue();
+                            boolean isNewDefinition = sgNode.getDefinitions().contains(var);
+                            if (isNewDefinition) {
+                                ESGEdge newEdge = this.createEdge(
+                                        srcIdx, srcCallIdx, srcVarId, trgtIdx, trgtCallIdx, varId
+                                );
+                                esgEdges.put(srcIdx, newEdge);
+                                trgCallIdxLiveVarsMap.get(trgtCallIdx).put(varId, true);
+                            } else {
+                                // do nothing
+                            }
+                        }
+                    }
+
+                    boolean isAlive = esgCurr.getCallSeqIdxLiveVarMap().get(srcCallIdx).get(srcVarId);
                     if (isAlive) {
-                        // todo: create edge
-                        ESGEdge newEdge = this.createEdge(
-                                esgIdxCurr, callIdx, varId, esgIdxNext, callIdx, varId
-                        );
-                        esgEdges.put(esgIdxCurr, newEdge);
-                        // todo: set variable live in next esg
-                        esgNext.getCallSeqIdxLiveVarMap().get(callIdx).put(varId, true);
-                    }
+                        // Connect alive vars
+                        if (sgNode instanceof SGExitNode && sgMid.equals(srcVarMId)) {
+                            // todo: match var to call site if necessary
+                            System.out.println("todo: match var to call site if necessary");
+                        } else {
+                            ESGEdge newEdge = this.createEdge(
+                                    srcIdx, srcCallIdx, srcVarId, trgtIdx, srcCallIdx, srcVarId
+                            );
+                            esgEdges.put(srcIdx, newEdge);
+                            esgNext.getCallSeqIdxLiveVarMap().get(srcCallIdx).put(srcVarId, true);
+                        }
+                    } else {
 
-                    boolean isNewDefinition = sgCallEntry != null
-                            && sgCallEntry.getKey() == callIdx
-                            && sgNext.getDefinitions().contains(varEntry.getValue());
-                    if (isNewDefinition) {
-                        // todo: draw edge ZERO -> new definition
-                        ESGEdge newEdge = this.createEdge(
-                                esgIdxCurr, 0, this.ZERO.getId(), esgIdxNext, callIdx, varId
-                        );
-                        esgEdges.put(esgIdxCurr, newEdge);
-                        // todo: set variable live in next esg
-                        esgNext.getCallSeqIdxLiveVarMap().get(callIdx).put(varId, true);
                     }
-
-                    // todo: Test if live variables and new definitions are connected correctly
                 }
 
             }
