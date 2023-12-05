@@ -195,11 +195,11 @@ public class SGCreator {
                         SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdxStack.peek());
                         sgEntryNode.setDVarMap(sgCallNode.getDVarMap().inverse());
 
-                        Multimap<ProgramVariable, ProgramVariable> calleeMap = ArrayListMultimap.create();
-                        for (Map.Entry<ProgramVariable, ProgramVariable> pVarMapEntry : sgCallNode.getDefinitionsMap().entrySet()) {
-                            calleeMap.put(pVarMapEntry.getValue(), pVarMapEntry.getKey());
-                        }
-                        sgEntryNode.setDefinitionsMap(calleeMap);
+//                        Multimap<ProgramVariable, ProgramVariable> calleeMap = ArrayListMultimap.create();
+//                        for (Map.Entry<ProgramVariable, ProgramVariable> pVarMapEntry : sgCallNode.getDefinitionsMap().entrySet()) {
+//                            calleeMap.put(pVarMapEntry.getValue(), pVarMapEntry.getKey());
+//                        }
+                        sgEntryNode.setDefinitionsMap(sgCallNode.getDefinitionsMap());
                     }
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
@@ -289,7 +289,7 @@ public class SGCreator {
                             // Create program variable mapping
                             Map<ProgramVariable, ProgramVariable> callerMap = new HashMap<>();
                             for (Map.Entry<Integer, ProgramVariable> cEntry : positionParamMapCall.entries()) {
-                                callerMap.put(cEntry.getValue(), positionParamMapEntry.get(cEntry.getKey()));
+                                callerMap.put(positionParamMapEntry.get(cEntry.getKey()), cEntry.getValue());
                             }
 
                             // Create domain variable mapping

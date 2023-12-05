@@ -24,8 +24,8 @@ public class SGCallNode extends SGNode {
     private boolean isCalledSGPresent;
 
     /**
-     * The key is a definition of the current procedure.
-     * The value is a definition of the invoked procedure.
+     * The key is a definition of the invoked procedure.
+     * The value is a definition of the invoking procedure.
      */
     private Map<ProgramVariable, ProgramVariable> definitionsMap;
     private BiMap<DomainVariable, DomainVariable> dVarMap;

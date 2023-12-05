@@ -91,6 +91,21 @@ public class ProgramVariable implements Comparable<Object>, Serializable {
         }
     }
 
+    public boolean isNewDefOf(ProgramVariable that) {
+        return !Objects.equals(getId(), that.getId())
+                && !Objects.equals(getInstructionIndex(), that.getInstructionIndex())
+                && !Objects.equals(getLineNumber(), that.getLineNumber())
+                && getLineNumber() < that.getLineNumber()
+                && Objects.equals(getLocalVarIdx(), that.getLocalVarIdx())
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getDescriptor(), that.getDescriptor())
+                && Objects.equals(getIsDefinition(), that.getIsDefinition())
+                && Objects.equals(getIsCovered(), that.getIsCovered())
+                && Objects.equals(getIsField(), that.getIsField());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

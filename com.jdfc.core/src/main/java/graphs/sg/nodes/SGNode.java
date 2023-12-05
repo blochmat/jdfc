@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 import utils.ASMHelper;
 import utils.JDFCUtils;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -50,6 +52,17 @@ public class SGNode {
         this.succ = Sets.newLinkedHashSet();
         this.cfgReachOut = node.getReachOut();
         this.cfgReach = node.getReach();
+    }
+
+    public ProgramVariable getNewDefOf(ProgramVariable src) {
+        List<ProgramVariable> newDefs = definitions.stream()
+                .filter(x -> x.isNewDefOf(src))
+                .collect(Collectors.toList());
+        if (newDefs.size() == 1) {
+            return newDefs.get(0);
+        } else {
+            return null;
+        }
     }
 
     @Override

@@ -19,17 +19,17 @@ public class SGExitNode extends SGNode {
     private ASMHelper asmHelper = new ASMHelper();
 
     /**
-     * The key is a definition of the current procedure.
-     * The value is a list of definitions of the invoking procedure.
+     * The key is a definition of the invoked procedure.
+     * The value is a definition of the invoking procedure.
      */
-    private Multimap<ProgramVariable, ProgramVariable> definitionsMap;
+    private Map<ProgramVariable, ProgramVariable> definitionsMap;
     private Map<DomainVariable, DomainVariable> dVarMap;
     private int callNodeIdx;
     private int returnSiteNodeIdx;
 
     public SGExitNode(int index, int cfgIndex, int entryNodeIdx, CFGNode node) {
         super(index, cfgIndex, entryNodeIdx, node);
-        this.definitionsMap = ArrayListMultimap.create();
+        this.definitionsMap = new HashMap<>();
         this.dVarMap = new HashMap<>();
     }
 

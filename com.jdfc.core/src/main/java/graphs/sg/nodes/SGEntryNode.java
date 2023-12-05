@@ -1,9 +1,7 @@
 package graphs.sg.nodes;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Multimap;
 import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
@@ -11,6 +9,8 @@ import lombok.Data;
 import utils.ASMHelper;
 import utils.JDFCUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Data
@@ -19,10 +19,10 @@ public class SGEntryNode extends SGNode {
     private ASMHelper asmHelper = new ASMHelper();
 
     /**
-     * The key is a definition of the current procedure.
-     * The value is a list of definitions of the invoking procedure.
+     * The key is a definition of the invoked procedure.
+     * The value is a definition of the invoking procedure.
      */
-    private Multimap<ProgramVariable, ProgramVariable> definitionsMap;
+    private Map<ProgramVariable, ProgramVariable> definitionsMap;
     private BiMap<DomainVariable, DomainVariable> dVarMap;
     private int callNodeIdx;
     private int exitNodeIdx;
@@ -30,7 +30,7 @@ public class SGEntryNode extends SGNode {
 
     public SGEntryNode(int index, int cfgIndex, CFGNode node) {
         super(index, cfgIndex, index, node);
-        this.definitionsMap = ArrayListMultimap.create();
+        this.definitionsMap = new HashMap<>();
         this.dVarMap = HashBiMap.create();
     }
 
