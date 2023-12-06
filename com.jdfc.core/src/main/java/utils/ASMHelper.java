@@ -1,11 +1,14 @@
 package utils;
 
+import data.ProgramVariable;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -53,6 +56,11 @@ public class ASMHelper {
 
     public boolean isStatic(int access) {
         return (access & ACC_STATIC) != 0;
+    }
+
+    public boolean isPrimitiveTypeVar(ProgramVariable var) {
+        final List<String> primitives = Arrays.asList("B", "C", "D", "F", "I", "J", "S", "Z");
+        return primitives.contains(var.getDescriptor());
     }
 
     public boolean isInstrumentationRequired(MethodNode methodNode, String internalMethodName) {

@@ -362,9 +362,13 @@ public class ClassEsgCreator {
                                 if (match != null) {
                                     this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
                                             srcCallIdx, srcCallIdx -1, srcVarId, match.getId());
-                                } else {
+                                } else if (asmHelper.isStatic(sgNode.getMethodAccess())) {
                                     this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
                                             srcCallIdx, srcCallIdx, srcVarId, srcVarId);
+                                } else if (sgNode.getIndex() == superGraph.getNodes().size() - 1) {
+                                    // do nothing
+                                } else {
+                                    throw new RuntimeException("'this' is buggy");
                                 }
                             } else if (sgNode instanceof SGReturnSiteNode) {
                                 this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
@@ -381,6 +385,50 @@ public class ClassEsgCreator {
                                                 srcCallIdx, srcCallIdx, srcVarId, srcVarId);
                                     }
                                 }
+                            }
+                        } else {
+                            // do nothing
+                        }
+                    } else if (asmHelper.isPrimitiveTypeVar(srcVar)) {
+                        final boolean isAlive = srcLiveVarsMaps.get(srcCallIdx).get(srcVarId);
+                        if (isAlive) {
+                            if (sgNode instanceof SGCallNode) {
+                                SGCallNode sgCallNode = (SGCallNode) sgNode;
+                                boolean hasNoMatch = sgCallNode.getDefinitionsMap()
+                                        .values()
+                                        .stream()
+                                        .noneMatch(var -> var.equals(srcVar));
+                                if (hasNoMatch) {
+                                    // Connect to next self
+                                    this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
+                                            srcCallIdx, srcCallIdx, srcVarId, srcVarId);
+                                } else {
+                                    // Connect to all matches
+                                    for (ProgramVariable match : sgCallNode.getDefinitionsMap().keySet()) {
+                                        ProgramVariable matchedSrc = sgCallNode.getDefinitionsMap().get(match);
+                                        if (matchedSrc.equals(srcVar)) {
+                                            this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
+                                                    activeMethodCallIdx, activeMethodCallIdx + 1, srcVarId, match.getId());
+                                        }
+                                    }
+                                    // Connect to self (call-by-value)
+                                    this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
+                                            srcCallIdx, srcCallIdx, srcVarId, srcVarId);
+                                }
+                            } else if (sgNode instanceof SGEntryNode) {
+                                this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
+                                        srcCallIdx, srcCallIdx, srcVarId, srcVarId);
+                            } else if (sgNode instanceof SGExitNode) {
+                                if (srcCallIdx != activeMethodCallIdx) {
+                                    this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
+                                            srcCallIdx, srcCallIdx, srcVarId, srcVarId);
+                                }
+                            } else if (sgNode instanceof SGReturnSiteNode) {
+                                this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
+                                        srcCallIdx, srcCallIdx, srcVarId, srcVarId);
+                            } else {
+                                this.addEdge(esgEdges, trgtLiveVarsMaps, currEsgIdx, nextEsgIdx,
+                                        srcCallIdx, srcCallIdx, srcVarId, srcVarId);
                             }
                         }
                     }
