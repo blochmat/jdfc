@@ -297,6 +297,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
 //        String debug = String.format("visitJumpInsn %s %s", JDFCUtils.getOpcode(opcode), label);
 //        logger.debug(debug);
         super.visitJumpInsn(opcode, label);
+        String debug = JDFCUtils.getOpcode(opcode);
         aa.visitJumpInsn(opcode, label);
 //        checkForF_NEW();
         final CFGNode node = new CFGNode(
