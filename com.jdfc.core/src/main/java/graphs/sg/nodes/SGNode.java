@@ -54,15 +54,11 @@ public class SGNode {
         this.cfgReach = node.getReach();
     }
 
-    public ProgramVariable getNewDefOf(ProgramVariable src) {
+    public boolean containsRedefinitionOf(ProgramVariable src) {
         List<ProgramVariable> newDefs = definitions.stream()
-                .filter(x -> x.isNewDefOf(src))
+                .filter(src::isNewDefOf)
                 .collect(Collectors.toList());
-        if (newDefs.size() == 1) {
-            return newDefs.get(0);
-        } else {
-            return null;
-        }
+        return !newDefs.isEmpty();
     }
 
     @Override

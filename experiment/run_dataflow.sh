@@ -1,14 +1,19 @@
-pc_analysis_dir="/tmp/pc_analysis"
+#!/opt/homebrew/bin/bash
+current_dir=$(pwd)
+working_dir=$1
+pc_analysis_dir="/tmp/pc_analysis/dataflow"
 
-if [ ! -d "$pc_analysis_dir" ]; then
-    mkdir -p "$pc_analysis_dir"
+if [ ! -d "${pc_analysis_dir:?}" ]; then
+    mkdir -p "${pc_analysis_dir:?}"
+elif [ -n "$(ls -A ${pc_analysis_dir:?})" ]; then
+    rm -r "${pc_analysis_dir:?}"/*
 fi
 
 project="Lang"
 bug_ids=(1)
 #bug_ids=$(defects4j query -p "$project")
 for bug_id in $bug_ids; do
-    repo_dir="/tmp/${project}_${bug_id}_buggy"
+    repo_dir="${working_dir}/${project}_${bug_id}b"
     project_output_dir="${pc_analysis_dir}/${project}"
     bug_output_dir="${project_output_dir}/${bug_id}"
     coverage_file="${bug_output_dir}/dataflow_coverage.csv"
@@ -53,7 +58,7 @@ for bug_id in $bug_ids; do
     readarray -t pair_ids < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/pairs/pair" -v "@id" -n "$repo_dir"/jdfc-report/coverage.xml | sort -n | uniq)
     
     # Add header row to csv
-    echo ",failed,${line_numbers[*]}" | sed 's/ /,/g' > "$coverage_file"
+    echo ",failed,${pair_ids[*]}" | sed 's/ /,/g' > "$coverage_file"
     
     ## Get test methods
     
@@ -63,7 +68,7 @@ for bug_id in $bug_ids; do
     #echo "${test_classes_array_joined[@]}"
     
     # Extract all relevant test methods (format: ["a","b",...])
-    test_methods_py=$(python ~/repos/hub/jdfc/tmp_scripts/get_test_methods.py "$repo_dir" "$test_classes_array_joined")
+    test_methods_py=$(python "$current_dir/get_test_methods.py" "$repo_dir" "$test_classes_array_joined")
     #echo $test_methods_py
     
     # Convert test methods to sh array
@@ -86,8 +91,8 @@ for bug_id in $bug_ids; do
             fi
         done
     
-        for i in "${hits[@]}"; do
-            if [ $i ]; then
+        for i in "${covered[@]}"; do
+            if [ "$i" = "true" ]; then
                 coverage+=("x")
             else
                 coverage+=("")
@@ -96,9 +101,9 @@ for bug_id in $bug_ids; do
         echo "$test_method,$failed,${coverage[*]}" | sed 's/ /,/g' >> "$coverage_file"
     done
     
-    sh ~/repos/hub/jdfc/tmp_scripts/compute_pc_all_lines.sh "$coverage_file" "$bug_output_dir"
-    sh ~/repos/hub/jdfc/tmp_scripts/compute_pc_relevant_lines.sh "$coverage_file" "$bug_output_dir"
-    sh ~/repos/hub/jdfc/tmp_scripts/compute_pc_bug.sh "$coverage_file" "$project_output_dir" "$bug_id"
+#    bash "$current_dir/compute_pc_all_lines.sh" "$coverage_file" "$bug_output_dir"
+#    bash "$current_dir/compute_pc_relevant_lines.sh" "$coverage_file" "$bug_output_dir"
+#    bash "$current_dir/compute_pc_bug.sh" "$coverage_file" "$project_output_dir" "$bug_id"
 
     # delete repo after analysis
     rm -rf "$repo_dir"

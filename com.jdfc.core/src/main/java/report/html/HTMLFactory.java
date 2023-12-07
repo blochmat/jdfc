@@ -199,8 +199,8 @@ public class HTMLFactory {
         String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(sourceViewHTML), SCRIPT);
 
         // load class file
-        String classFilePath = String.format("%s/%s.java", pSourceDir, ((ClassData) classData).getClassMetaData().getClassFileRel());
-        File classFile = new File(classFilePath);
+        String srcFilePath = String.format("%s/%s.java", pSourceDir, classData.getClassMetaData().getClassFileRel().replace(".class", ""));
+        File classFile = new File(srcFilePath);
 
         // build html
         HTMLElement classSourceViewHTML =
