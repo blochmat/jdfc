@@ -439,7 +439,8 @@ public class JDFCUtils {
     }
 
     public static File createFileInDebugDevLogDir(String fileName, boolean isDir) {
-        return JDFCUtils.createFileIn(ProjectData.getInstance().getJdfcDebugDevLogDir(), fileName, isDir);
+        String debugDirStr = String.format("%s%s%s", getPwd(), File.separator, "jdfc-debug");
+        return JDFCUtils.createFileIn(debugDirStr, fileName, isDir);
     }
 
     public static File createFileIn(String dir, String fileName, boolean isDir) {
@@ -464,5 +465,24 @@ public class JDFCUtils {
                 throw new RuntimeException(message);
             }
         }
+    }
+
+    public static String getPwd() {
+        String pwd;
+        try {
+            pwd = new File(".").getCanonicalPath();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return pwd;
+    }
+
+    public static String getJDFCDir() {
+        String pwd = JDFCUtils.getPwd();
+        return String.format("%s%s%s", pwd, File.separator, Constants.JDFC_DIR);
+    }
+
+    public static String getJDFCSerFileAbs() {
+        return String.format("%s%s%s", getJDFCDir(), File.separator, Constants.JDFC_SERIALIZATION_FILE);
     }
 }

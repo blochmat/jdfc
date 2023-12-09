@@ -26,10 +26,12 @@ public class ReportTask extends Task {
 
     @Override
     public void execute() throws BuildException {
-        String fileInAbs = String.join(File.separator, work, JDFC_SERIALIZATION_FILE);
+        String jdfcDir = String.format("%s/%s", work, "target/jdfc/");
+        String fileInAbs = String.join(File.separator, jdfcDir, JDFC_SERIALIZATION_FILE);
         ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
         if(deserialized == null) {
-            throw new IllegalArgumentException("Unable do deserialize coverage data.");
+            String msg = String.format("Unable do deserialize coverage data from %s", fileInAbs);
+            throw new IllegalArgumentException(msg);
         }
         ProjectData.setInstance(deserialized);
         String outAbs = String.join(File.separator, ProjectData.getInstance().getWorkDir().getAbsolutePath(), out);

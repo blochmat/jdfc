@@ -4,10 +4,14 @@ import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import instr.ClassMetaData;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import utils.Deserializer;
+import utils.JDFCUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.LogManager;
 
 import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
@@ -19,7 +23,10 @@ import static utils.Constants.JDFC_SERIALIZATION_FILE;
 public class ProjectData implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static ProjectData instance;
+    private static volatile ProjectData instance;
+    private static volatile ProjectData old;
+    private static final Object lock = new Object();
+
     private File workDir;
     private File buildDir;
     private File classesDir;
@@ -55,7 +62,8 @@ public class ProjectData implements Serializable {
     private static final Class<?> localVariableClass = LocalVariable.class;
     private static final Class<?> cfgClass = CFG.class;
 
-    private ProjectData() {
+    private ProjectData(final boolean initHook) {
+        JDFCUtils.logThis("Constructor", "ProjectData");
 //        ExecutionData executionData = new ExecutionData("", "");
 //        this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new HashSet<>();
@@ -68,49 +76,53 @@ public class ProjectData implements Serializable {
         this.defUsePairMap = new HashMap<>();
         this.programVariableMap = new HashMap<>();
         this.coveredPVarIds = new HashSet<>();
+        loadOld();
 
+        if (initHook) {
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+//                    JDFCUtils.logThis("Shutdown hook started.", "ProjectData");
+                    try {
+                        FileOutputStream fileOut = new FileOutputStream(JDFCUtils.getJDFCSerFileAbs());
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    // Create a file to save the object to
-//                    String fileAbs = workDirAbs.replace("/", File.separator)
-//                            .concat(File.separator)
-//                            .concat(JDFC_SERIALIZATION_FILE);
+                        // Create an ObjectOutputStream to write the object
+                        ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                        if (old != null) {
+//                            JDFCUtils.logThis("Shutdown hook exporting old + new.", "ProjectData");
+                            old.getCoveredPVarIds().addAll(ProjectData.getInstance().getCoveredPVarIds());
+                            out.writeObject(old);
+                        } else {
+//                            JDFCUtils.logThis("Shutdown hook exporting new.", "ProjectData");
+                            out.writeObject(ProjectData.getInstance());
+                        }
 
-                    // workdir is not set for "mvn test"
-//                    String fileInAbs = String.join(File.separator, workDir.getAbsolutePath(), JDFC_SERIALIZATION_FILE);
-                    ProjectData deserialized = Deserializer.deserializeCoverageData(JDFC_SERIALIZATION_FILE);
-
-                    String fileAbs = JDFC_SERIALIZATION_FILE;
-                    FileOutputStream fileOut = new FileOutputStream(fileAbs);
-
-                    // Create an ObjectOutputStream to write the object
-                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-                    if (deserialized != null) {
-                        deserialized.getCoveredPVarIds().addAll(ProjectData.getInstance().coveredPVarIds);
-                        out.writeObject(deserialized);
-                    } else {
-                        out.writeObject(ProjectData.getInstance());
+                        // Close the streams
+                        out.flush();
+                        out.close();
+                        fileOut.flush();
+                        fileOut.close();
+//                        JDFCUtils.logThis("Shutdown hook finished.", "ProjectData");
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
-                    // Close the streams
-                    out.flush();
-                    out.close();
-                    fileOut.flush();
-                    fileOut.close();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-            }
-        });
+            });
+        }
+    }
+
+    public static void loadOld() {
+        ProjectData.old = Deserializer.deserializeCoverageData(JDFCUtils.getJDFCSerFileAbs());
     }
 
     public static ProjectData getInstance() {
-        if(instance == null) {
-            instance = new ProjectData();
+        synchronized (lock) {
+            if(instance == null) {
+                String callerClassName = Thread.currentThread().getStackTrace()[2].getClassName();
+                String callerMethodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+//                JDFCUtils.logThis(callerClassName +"::"+callerMethodName, "ProjectData");
+                instance = new ProjectData(true);
+            }
         }
         return instance;
     }
@@ -150,6 +162,7 @@ public class ProjectData implements Serializable {
 
     public static void trackVar(final String pId) {
         ProjectData.getInstance().getCoveredPVarIds().add(pId);
+//        JDFCUtils.logThis(ProjectData.getInstance().getCoveredPVarIds().toString(), "trackVar");
 //        CoverageTracker.getInstance().addVarCoveredEntry(pId);
     }
 

@@ -5,6 +5,7 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import instr.Instrumenter;
+import utils.JDFCUtils;
 
 import java.io.File;
 import java.util.ArrayList;

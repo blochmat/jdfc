@@ -1,10 +1,14 @@
 import data.ProjectData;
 import org.apache.commons.cli.*;
+import org.junit.Test;
 import report.ReportGenerator;
 import utils.Deserializer;
 import instr.Instrumenter;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
 import static utils.Constants.JDFC_SERIALIZATION_FILE;
@@ -12,13 +16,11 @@ import static utils.Constants.JDFC_SERIALIZATION_FILE;
 public class Main {
 
     private static Options options;
-
     private static String workDirAbs;
     private static String buildDirAbs;
     private static String classesDirAbs;
     private static String sourceDirAbs;
     private static String outputDirAbs;
-
 
     public static void main(String[] args) {
         createOptions();
@@ -31,63 +33,54 @@ public class Main {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-
-        if(cmd.hasOption("i") ^ cmd.hasOption("r")) {
-            if(cmd.hasOption("i")) {
-                // Instrument
-                parsePathOptions(cmd, false);
-                ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-                Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
-                if(cmd.hasOption("c")) {
-                    // Instrument single class
-                    String classFileAbs = String.join(File.separator, classesDirAbs, cmd.getOptionValue("c"));
-                    instrumenter.instrumentClass(classFileAbs);
-                } else {
-                    // Instrument all classes from project
-                    List<File> classFiles = instrumenter.loadClassFiles();
-                    for (File classFile : classFiles) {
-                        instrumenter.instrumentClass(classFile.getAbsolutePath());
-                    }
-                }
+        if(cmd.hasOption("i")) {
+            // Instrument
+            parsePathOptions(cmd, false);
+            ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
+            String classFqn = cmd.getOptionValue("i");
+            if (classFqn != null) {
+                // Instrument single class
+                String classFileRel = classFqn.replace(".", File.separator) + ".class";
+                String classFileAbs = String.join(File.separator, classesDirAbs, classFileRel);
+                instrumenter.instrumentClass(classFileAbs);
             } else {
-                // Report
-                if(cmd.hasOption("O")) {
-                    parsePathOptions(cmd, true);
-                    String fileInAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
-                    ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
-                    if(deserialized == null) {
-                        throw new IllegalArgumentException("Unable do deserialize coverage data.");
-                    }
-                    ProjectData.setInstance(deserialized);
-
-                    ReportGenerator reportGenerator = new ReportGenerator(outputDirAbs, sourceDirAbs);
-                    reportGenerator.create();
-                } else {
-                    System.out.println("Please provide the desired output directory path of the report relative to the project's root e.g. /path/to/report.");
+                // Instrument all classes from project
+                List<File> classFiles = instrumenter.loadClassFiles();
+                for (File classFile : classFiles) {
+                    instrumenter.instrumentClass(classFile.getAbsolutePath());
                 }
             }
-        } else {
-            System.out.println("To analyse your project please follow these steps:\n    1. Run jdfc with -i to instrument the source code.\n    2. Execute the tests of your project.\n    3. Run jdfc with -r to create the coverage report.");
-            System.exit(1);
+        }
+
+        if (cmd.hasOption("t")
+                && cmd.getOptionValue("i") != null
+                && cmd.getOptionValue("t") != null) {
+        }
+
+        if (cmd.hasOption("r")) {
+            // Report
+            String outputDirStr = cmd.getOptionValue("r");
+            if(outputDirStr == null) {
+                outputDirStr = outputDirAbs;
+            }
+            System.out.println(outputDirStr);
+//            parsePathOptions(cmd, true);
+//            String jdfcDir = String.format("%s/%s", buildDirAbs, "jdfc/");
+//            String fileInAbs = String.join(File.separator, jdfcDir, JDFC_SERIALIZATION_FILE);
+//            ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+//            if(deserialized == null) {
+//                throw new IllegalArgumentException("Unable do deserialize coverage data.");
+//            }
+//            ProjectData.setInstance(deserialized);
+//
+//            ReportGenerator reportGenerator = new ReportGenerator(outputDirAbs, sourceDirAbs);
+//            reportGenerator.create();
         }
     }
 
     private static void createOptions() {
         options = new Options();
-
-        Option instrument = Option.builder()
-                .option("i")
-                .longOpt("instrument")
-                .desc("When flag is set the classes under test are instrumented.")
-                .build();
-        options.addOption(instrument);
-
-        Option report = Option.builder()
-                .option("r")
-                .longOpt("report")
-                .desc("When flag is set the coverage report is created from gathered coverage data.")
-                .build();
-        options.addOption(report);
 
         Option workDirOption = Option.builder()
                 .option("W")
@@ -121,22 +114,32 @@ public class Main {
                 .build();
         options.addOption(sourceDirOption);
 
-        Option outputDirOption = Option.builder()
-                .option("O")
-                .longOpt("outputDir")
+        Option instrument = Option.builder()
+                .option("i")
+                .longOpt("instrument")
+                .argName("instrument")
                 .hasArg()
-                .desc("relative path to report output directory from workdir root")
+                .optionalArg(true)
+                .desc("Instrument class/es.")
                 .build();
-        options.addOption(outputDirOption);
+        options.addOption(instrument);
 
-        Option singleClassOption = Option.builder()
-                .option("c")
-                .longOpt("class")
-                .argName("class")
+        Option test = Option.builder()
+                .option("t")
+                .longOpt("test")
+                .argName("test")
+                .optionalArg(true)
                 .hasArg()
-                .desc("Relative path to class to instrument from source directory.")
+                .desc("Test instrumented class/es.")
                 .build();
-        options.addOption(singleClassOption);
+        options.addOption(test);
+
+        Option report = Option.builder()
+                .option("r")
+                .longOpt("report")
+                .desc("When flag is set the coverage report is created from gathered coverage data.")
+                .build();
+        options.addOption(report);
     }
 
     private static void parsePathOptions(CommandLine cmd, boolean parseOutputDir) {

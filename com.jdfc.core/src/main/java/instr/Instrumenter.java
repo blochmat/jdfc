@@ -43,6 +43,7 @@ public class Instrumenter {
 
     public void instrumentClass(String classFileAbs) {
         // Create output directory and file
+        log.info("Instrument: " + classFileAbs);
         File classFile = new File(classFileAbs);
         String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
         File outDir = new File(String.join(File.separator, workDirAbs, ".jdfc_instrumented", packagePath));
@@ -201,12 +202,12 @@ public class Instrumenter {
         }
 
         // Create SGs for all methods of class
-        SGCreator sgCreator = new SGCreator();
-        sgCreator.createSGsForClass(classData);
-
-        // Create ESGs for all methods of class
-        ClassEsgCreator classEsgCreator = new ClassEsgCreator();
-        classEsgCreator.createESGsForClass(classData);
+//        SGCreator sgCreator = new SGCreator();
+//        sgCreator.createSGsForClass(classData);
+//
+//        // Create ESGs for all methods of class
+//        ClassEsgCreator classEsgCreator = new ClassEsgCreator();
+//        classEsgCreator.createESGsForClass(classData);
 
         // Compute inter-procedural pairs
 //        for (MethodData methodData : classData.getMethodDataFromStore().values()) {
@@ -238,7 +239,6 @@ public class Instrumenter {
 
                 // iv -> afterTcv -> cw
                 ClassVisitor iv = new InstrumentationClassVisitor(afterTcv, classNode, classData);
-
 
                 // beforeTcv -> iv -> afterTcv -> cw
                 File beforeFile = JDFCUtils.createFileIn(instrLogDir, "BEFORE", false);

@@ -20,6 +20,7 @@ public class Constants {
     public static final String METHOD_GET_AND_RESET_DESCRIPTOR = "()Ljava/util/Map;";
     public static final String METHOD_GET_AND_RESET_SIGNATURE = "()Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;";
 
+    public static final String JDFC_DIR = ".jdfc_instrumented";
     public static final String JDFC_SERIALIZATION_FILE = "jdfc_data.ser";
 
     public static final List<Integer> JUMP_OPCODES = Arrays.asList(
