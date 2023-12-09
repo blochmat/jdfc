@@ -19,7 +19,7 @@ for bug_id in $bug_ids; do
     coverage_file="${bug_output_dir}/dataflow_coverage.csv"
 
     echo "RUNNING DATAFLOW ANALYSIS:  ${repo_dir}."
-    
+
     # create if directory does not exist
     if [ ! -d "$bug_output_dir" ]; then
         mkdir -p "$bug_output_dir"
@@ -38,7 +38,7 @@ for bug_id in $bug_ids; do
     # Split line by ";" and store in array
     IFS=';' read -ra test_classes_array <<< "$relevant_test_classes_string"
     #echo "${test_classes_array[@]}"
-    
+
     # Query bug_id, triggering tests map
     triggering_tests_map=$(defects4j query -p "$project" -q "tests.trigger")
     # Extract relevant test classes by bug id
@@ -46,34 +46,34 @@ for bug_id in $bug_ids; do
     # Split line by ";" and store in array
     IFS=';' read -ra triggering_tests_array <<< "$triggering_tests_string"
     #echo "${triggering_tests_array[@]}"
-    
+
     # Checkout and compile one buggy version
     $(defects4j checkout -p "$project" -v "$bug_id"b -w "$repo_dir")
     $(defects4j compile -w "$repo_dir")
-    
+
     # Run all relevant tests
     echo "$(defects4j jdfc -w "$repo_dir" -r)"
-    
+
     # Extract all coverage goals
     readarray -t pair_ids < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/pairs/pair" -v "@id" -n "$repo_dir"/jdfc-report/coverage.xml | sort -n | uniq)
-    
+
     # Add header row to csv
     echo ",failed,${pair_ids[*]}" | sed 's/ /,/g' > "$coverage_file"
-    
+
     ## Get test methods
-    
+
     # Join the array elements in order to pass it as single parameter to the python script
     test_classes_array_joined=$(printf "%s," "${test_classes_array[@]}")
     test_classes_array_joined=${test_classes_array_joined%,}
     #echo "${test_classes_array_joined[@]}"
-    
+
     # Extract all relevant test methods (format: ["a","b",...])
     test_methods_py=$(python "$current_dir/get_test_methods.py" "$repo_dir" "$test_classes_array_joined")
     #echo $test_methods_py
-    
+
     # Convert test methods to sh array
     test_methods_sh=($(echo $test_methods_py | jq -r '.[]'))
-    
+
     ## Execute test methods one by one
     for test_method in "${test_methods_sh[@]}"; do
         echo "$test_method"

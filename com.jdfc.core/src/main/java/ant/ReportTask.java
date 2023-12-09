@@ -5,6 +5,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import report.ReportGenerator;
 import utils.Deserializer;
+import utils.JDFCUtils;
 
 import java.io.File;
 
@@ -26,11 +27,9 @@ public class ReportTask extends Task {
 
     @Override
     public void execute() throws BuildException {
-        String jdfcDir = String.format("%s/%s", work, "target/jdfc/");
-        String fileInAbs = String.join(File.separator, jdfcDir, JDFC_SERIALIZATION_FILE);
-        ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+        ProjectData deserialized = Deserializer.deserializeCoverageData(JDFCUtils.getJDFCSerFileAbs());
         if(deserialized == null) {
-            String msg = String.format("Unable do deserialize coverage data from %s", fileInAbs);
+            String msg = String.format("Unable do deserialize coverage data from %s", JDFCUtils.getJDFCSerFileAbs());
             throw new IllegalArgumentException(msg);
         }
         ProjectData.setInstance(deserialized);

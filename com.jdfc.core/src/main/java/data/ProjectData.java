@@ -63,9 +63,6 @@ public class ProjectData implements Serializable {
     private static final Class<?> cfgClass = CFG.class;
 
     private ProjectData(final boolean initHook) {
-        JDFCUtils.logThis("Constructor", "ProjectData");
-//        ExecutionData executionData = new ExecutionData("", "");
-//        this.root = new ExecutionDataNode<>(executionData);
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
 
@@ -82,18 +79,15 @@ public class ProjectData implements Serializable {
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
-//                    JDFCUtils.logThis("Shutdown hook started.", "ProjectData");
                     try {
                         FileOutputStream fileOut = new FileOutputStream(JDFCUtils.getJDFCSerFileAbs());
 
                         // Create an ObjectOutputStream to write the object
                         ObjectOutputStream out = new ObjectOutputStream(fileOut);
                         if (old != null) {
-//                            JDFCUtils.logThis("Shutdown hook exporting old + new.", "ProjectData");
                             old.getCoveredPVarIds().addAll(ProjectData.getInstance().getCoveredPVarIds());
                             out.writeObject(old);
                         } else {
-//                            JDFCUtils.logThis("Shutdown hook exporting new.", "ProjectData");
                             out.writeObject(ProjectData.getInstance());
                         }
 
@@ -102,7 +96,6 @@ public class ProjectData implements Serializable {
                         out.close();
                         fileOut.flush();
                         fileOut.close();
-//                        JDFCUtils.logThis("Shutdown hook finished.", "ProjectData");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
