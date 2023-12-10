@@ -23,6 +23,10 @@ public class SG {
     private NavigableMap<Integer, SGNode> nodes;
     private Multimap<Integer, Integer> edges;
     private Map<Integer, Integer> returnSiteIndexMap;
+
+    /**
+     * Matches a procedure name to all call nodes calling the procedure
+     */
     private Multimap<String, Integer> callersMap;
 
     public SGEntryNode getEntryNode() {

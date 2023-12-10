@@ -207,20 +207,10 @@ public class Instrumenter {
         classEsgCreator.createESGsForClass(classData);
 
         // Compute inter-procedural pairs
-//        for (MethodData methodData : classData.getMethodDataFromStore().values()) {
-//            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(methodData.getEsg());
-//            Multimap<Integer, ProgramVariable> MVP = tabulationAlgorithm.execute();
-//            Multimap<Integer, String> mvpUUID = ArrayListMultimap.create();
-//            for (Map.Entry<Integer, ProgramVariable> entry : MVP.entries()) {
-//                String str = String.format("%s:%d", entry.getValue().getName(), entry.getValue().getInstructionIndex());
-//                mvpUUID.put(entry.getKey(), str);
-//            }
-//            String debug = String.format("%s :: %s\n%s",
-//                    classData.getClassMetaData().getClassFileRelNoType(),
-//                    methodData.buildInternalMethodName(),
-//                    JDFCUtils.prettyPrintMultimap(mvpUUID));
-//            JDFCUtils.logThis(debug, "MVP");
-//        }
+        for (MethodData methodData : classData.getMethodDataFromStore().values()) {
+            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(methodData.getEsg());
+            Map<Integer, Set<UUID>> MVP = tabulationAlgorithm.execute();
+        }
 
         // Tracking instrumentation
         if (log.isDebugEnabled()) {
