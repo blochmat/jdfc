@@ -83,14 +83,14 @@ for bug_id in $bug_ids; do
         readarray -t covered < <(xmlstarlet sel -T -t -m "/coverage/packages/package/classes/class/pairs/pair" -v "@covered" -n "$repo_dir"/jdfc-report/coverage.xml)
         coverage=()
         failed=""
-    
+
         for ttest in "${triggering_tests_array[@]}"; do
             if [ "$ttest" == "$test_method" ]; then
                 failed="x"
                 break
             fi
         done
-    
+
         for i in "${covered[@]}"; do
             if [ "$i" = "true" ]; then
                 coverage+=("x")
@@ -101,9 +101,9 @@ for bug_id in $bug_ids; do
         echo "$test_method,$failed,${coverage[*]}" | sed 's/ /,/g' >> "$coverage_file"
     done
     
-#    bash "$current_dir/compute_pc_all_lines.sh" "$coverage_file" "$bug_output_dir"
-#    bash "$current_dir/compute_pc_relevant_lines.sh" "$coverage_file" "$bug_output_dir"
-#    bash "$current_dir/compute_pc_bug.sh" "$coverage_file" "$project_output_dir" "$bug_id"
+    bash "$current_dir/compute_pc_all_lines.sh" "$coverage_file" "$bug_output_dir"
+    bash "$current_dir/compute_pc_relevant_lines.sh" "$coverage_file" "$bug_output_dir"
+    bash "$current_dir/compute_pc_bug.sh" "$coverage_file" "$project_output_dir" "$bug_id"
 
     # delete repo after analysis
     rm -rf "$repo_dir"
