@@ -113,7 +113,11 @@ public class SGCreator {
                     Collection<Integer> sgEdgeTargets = this.computeSGEdgeTargets(sgNode, cfgEdgeTargets);
                     sgEdges.putAll(sgNodeIdx, sgEdgeTargets);
                 } else if (sgNode instanceof SGCallNode && this.nextIsEntry(sgNodeIdx)) {
+                    SGCallNode sgCallNode = (SGCallNode) sgNode;
+                    // Call-Entry edge
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
+                    // Call-ReturnSite edge
+                    sgEdges.put(sgNodeIdx, sgCallNode.getReturnSiteNodeIdx());
                 } else if (sgNode instanceof SGExitNode && this.nextIsReturnSite(sgNodeIdx)) {
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
                 } else if (sgNode instanceof SGReturnSiteNode) {
@@ -324,13 +328,6 @@ public class SGCreator {
 
         private void addSGNode(SGNode sgNode, Collection<Integer> targets) {
             sgNodes.put(index, sgNode);
-//            List<Integer> edges;
-//            if(indexShiftStack.isEmpty()) {
-//                edges = targets.stream().map(x -> x + addedNodesSum).collect(Collectors.toList());
-//            } else {
-//                edges = targets.stream().map(x -> x + indexShiftStack.peek() + addedNodesSum).collect(Collectors.toList());
-//            }
-//            sgEdges.putAll(index, edges);
             index++;
         }
 
