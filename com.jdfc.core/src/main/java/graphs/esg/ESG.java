@@ -19,7 +19,14 @@ public class ESG {
     private SG sg;
     private NavigableMap<Integer, ESGNode> nodes;
     private Multimap<Integer, ESGEdge> edges;
-    private Map<String, Map<UUID, ProgramVariable>> domain;
-    private NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> callerToCalleeDefinitionMap;
-    private NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> calleeToCallerDefinitionMap;
+    private Map<String, Map<UUID, ProgramVariable>> methodDefinitionsMap;
+
+    /**
+     * TODO
+     */
+    private NavigableMap<Integer, Map<UUID, UUID>> callerToCalleeDefinitionsMap;
+    /**
+     * TODO
+     */
+    private NavigableMap<Integer, Map<UUID, UUID>> calleeToCallerDefinitionsMap;
 }

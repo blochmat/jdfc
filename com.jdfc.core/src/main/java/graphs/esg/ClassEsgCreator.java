@@ -25,9 +25,6 @@ public class ClassEsgCreator {
         for(MethodData methodData : classData.getMethodDataFromStore().values()) {
             MethodEsgCreator methodESGCreator = new MethodEsgCreator(className, methodData);
             ESG esg = methodESGCreator.createESG();
-            if (methodData.buildInternalMethodName().contains("addOne") || methodData.buildInternalMethodName().contains("defineA")) {
-                System.out.println();
-            }
             methodData.setEsg(esg);
         }
     }
@@ -48,13 +45,11 @@ public class ClassEsgCreator {
 
         private final String mainMethodId;
 
-//        private final List<String> callSequence;
-
         private Map<ProgramVariable, Boolean> liveVariables;
 
-        private final NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> callerToCalleeDefMap;
+        private final NavigableMap<Integer, Map<UUID, UUID>> callerToCalleeDefMap;
 
-        private final NavigableMap<Integer, Map<ProgramVariable, ProgramVariable>> calleeToCallerDefMap;
+        private final NavigableMap<Integer, Map<UUID, UUID>> calleeToCallerDefMap;
 
         public MethodEsgCreator(String className, MethodData methodData) {
             this.className = className;
@@ -167,107 +162,17 @@ public class ClassEsgCreator {
 
             //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
             if(log.isDebugEnabled() && !mainMethodName.contains("defineAStatic") && mainMethodName.contains("defineA")) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(className).append(" ");
-                sb.append(mainMethodName).append("\n");
-                sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
-                JDFCUtils.logThis(sb.toString(), "exploded_edges");
+                String sb = className + " " +
+                        mainMethodName + "\n" +
+                        JDFCUtils.prettyPrintMultimap(esgEdges);
+                JDFCUtils.logThis(sb, "exploded_edges");
             }
 
-            //--- PRED & SUCC
-//            for(ESGEdge esgEdge : esgEdges.values()) {
-//                int sgnSourceIdx = esgEdge.getSgnSourceIdx();
-//                int sgnTargetIdx = esgEdge.getSgnTargetIdx();
-//                String sourceMethodName = esgEdge.getSourceMethodId();
-//                String targetMethodName = esgEdge.getTargetMethodId();
-//                ProgramVariable sourceDVar = esgEdge.getSourceVar();
-//                ProgramVariable targetDVar = esgEdge.getTargetVar();
-//
-//                String debug = String.format("%d %s %s %d %s %s",
-//                        sgnSourceIdx, sourceMethodName, sourceDVar, sgnTargetIdx, targetMethodName, targetDVar);
-//                JDFCUtils.logThis(debug, "debug");
-//
-//                ESGNode first = esgNodes.get(sgnSourceIdx).get(sourceMethodName).get(sourceDVar.getId());
-//                ESGNode second = esgNodes.get(sgnTargetIdx).get(targetMethodName).get(targetDVar.getId());
-//                first.getSucc().add(second);
-//                second.getPred().add(first);
-//
-//                second.setPossiblyNotRedefined(true);
-//            }
-
-            // --- DEBUG NODES ---------------------------------------------------------------------------------------------
-//        if(log.isDebugEnabled()) {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append(MAIN_METHOD_CLASS_NAME).append(" ");
-//            sb.append(MAIN_METHOD_NAME).append("\n");
-//
-//            for(Map.Entry<Integer, Map<String, Map<UUID, ESGNode>>> esgSGNodeEntry : esgNodes.entrySet()) {
-//                for(Map.Entry<String, Map<UUID, ESGNode>> esgNodesMethodEntry : esgSGNodeEntry.getValue().entrySet()) {
-//                    for(Map.Entry<UUID, ESGNode> esgNodeEntry : esgNodesMethodEntry.getValue().entrySet()) {
-//                        sb.append(esgNodeEntry.getValue()).append("  ");
-//                    }
-//                }
-//                sb.append("\n");
-//            }
-//
-//            JDFCUtils.logThis(sb.toString(), "exploded_nodes");
-//        }
-
-//        //--- DEGUG EDGES ----------------------------------------------------------------------------------------------
-//        if(log.isDebugEnabled()) {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append(cData.getRelativePath()).append(" ");
-//            sb.append(mData.buildInternalMethodName()).append("\n");
-//            sb.append(JDFCUtils.prettyPrintMultimap(esgEdges));
-//            JDFCUtils.logThis(sb.toString(), "exploded_edges");
-//        }
-
             //--- CREATE ESG -----------------------------------------------------------------------------------------------
-            // TODO
             return new ESG(superGraph, esgNodes, esgEdges, methodDefinitionsMap, callerToCalleeDefMap, calleeToCallerDefMap);
         }
 
-        private ESGEdge createEdge(int srcIdx,
-                                   int srcCallSeqIdx,
-                                   UUID srcVarId,
-                                   int trgtIdx,
-                                   int trgtCallSeqIdx,
-                                   UUID trgtVarId) {
-            return new ESGEdge(srcIdx, trgtIdx, srcCallSeqIdx, trgtCallSeqIdx, srcVarId, trgtVarId);
-        }
-
-        private int getCallSeqIdxByMId(Map<Integer, String> callSeqMidMap, String mId) {
-            Set<Map.Entry<Integer, String>> calls = callSeqMidMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().equals(mId))
-                    .collect(Collectors.toSet());
-            Optional<Map.Entry<Integer, String>> callSeqIdxOpt = calls.stream().reduce((a, b) -> {
-                if (a.getKey() < b.getKey()) {
-                    return b;
-                } else {
-                    return a;
-                }
-            });
-
-            if (callSeqIdxOpt.isPresent()) {
-                Map.Entry<Integer, String> callSeqIdxEntry = callSeqIdxOpt.get();
-                return callSeqIdxEntry.getKey();
-            } else {
-                throw new IllegalArgumentException("getCallSeqIdxByMId");
-            }
-        }
-
-        // todo: Get the current esg node
-        // todo: Get the next esg node
         private void createEdges(Map<Integer, ESGNode> esgNodes, Multimap<Integer, ESGEdge> esgEdges, ESGNode esgCurr, SGNode sgCurr) {
-
-            if(!mainMethodName.contains("defineAStatic") && mainMethodName.contains("defineA") && esgCurr.getIdx() == 60) {
-                System.out.println();
-            }
-            // TODO: imagine the positioning of esg nodes like this
-            //       0: esg
-            //       1: esg = 0: sg
-            //       2: esg = 1: sg
-            //       ...
 
             // src
             int currEsgIdx = esgCurr.getIdx();
@@ -344,9 +249,6 @@ public class ClassEsgCreator {
                         }
 
                         // Skip if var is redefined
-                        if (currEsgIdx == 60) {
-                            System.out.println();
-                        }
                         if (sgCurr.containsRedefinitionOf(srcVar)) {
                             continue;
                         }
