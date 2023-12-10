@@ -101,8 +101,8 @@ for bug_id in $bug_ids; do
         echo "$test_method,$failed,${coverage[*]}" | sed 's/ /,/g' >> "$coverage_file"
     done
     
-    bash "$current_dir/compute_pc_all_lines.sh" "$coverage_file" "$bug_output_dir"
-    bash "$current_dir/compute_pc_relevant_lines.sh" "$coverage_file" "$bug_output_dir"
+    bash "$current_dir/compute_pc_all.sh" "$coverage_file" "$bug_output_dir"
+    bash "$current_dir/compute_pc_relevant.sh" "$coverage_file" "$bug_output_dir"
     bash "$current_dir/compute_pc_bug.sh" "$coverage_file" "$project_output_dir" "$bug_id"
 
     # delete repo after analysis

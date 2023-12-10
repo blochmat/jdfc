@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Computes the probabilistic coupling for all lines in the code and 
-# saves all of them in a csv file.
+# Computes probabilistic coupling for all lines but only saves
+# all lines with pc != 0 in a csv file.
 
 if [ -z "$1" ]; then
   echo "Please provide a path to the coverage CSV file."
@@ -13,7 +13,7 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
-output_file="${2}/pc_all_lines.csv"
+output_file="${2}/pc_relevant.csv"
 
 if [ ! -d "$2" ]; then
     mkdir -p "$2"
@@ -21,7 +21,7 @@ fi
 
 awk -F',' -v output_file="$output_file" '
   BEGIN { print "Line,ProbCoup" >> output_file }
-  NR == 1 { for (i=3; i<=NF; i++) { num[$i] = 0; den[$i] = 0; lines[i-2] = $i } }
+  NR == 1 { for (i=3; i<=NF; i++) lines[i-2] = $i }
   NR > 1 {
     failed = $2 == "x" ? 1 : 0
     for (i=3; i<=NF; i++) {
@@ -35,7 +35,9 @@ awk -F',' -v output_file="$output_file" '
   END { 
     for (i in lines) {
       line_number = lines[i]
-      prob = (den[line_number] > 0 ? num[line_number] "\\" den[line_number] : 0)
-      print line_number "," prob >> output_file
+      if (num[line_number] > 0) {
+        prob = num[line_number] "\\" den[line_number]
+        print line_number "," prob >> output_file
+      }
     }
   }' "$1"

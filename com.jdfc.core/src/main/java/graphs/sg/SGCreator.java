@@ -114,10 +114,7 @@ public class SGCreator {
                     sgEdges.putAll(sgNodeIdx, sgEdgeTargets);
                 } else if (sgNode instanceof SGCallNode && this.nextIsEntry(sgNodeIdx)) {
                     SGCallNode sgCallNode = (SGCallNode) sgNode;
-                    // Call-Entry edge
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
-                    // Call-ReturnSite edge
-                    sgEdges.put(sgNodeIdx, sgCallNode.getReturnSiteNodeIdx());
                 } else if (sgNode instanceof SGExitNode && this.nextIsReturnSite(sgNodeIdx)) {
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
                 } else if (sgNode instanceof SGReturnSiteNode) {
