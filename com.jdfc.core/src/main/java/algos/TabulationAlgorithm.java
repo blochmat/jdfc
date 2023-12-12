@@ -1,22 +1,15 @@
 package algos;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import data.ProgramVariable;
 import graphs.esg.ESG;
 import graphs.esg.ESGEdge;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
-import graphs.sg.nodes.SGCallNode;
-import graphs.sg.nodes.SGEntryNode;
-import graphs.sg.nodes.SGExitNode;
-import graphs.sg.nodes.SGNode;
+import graphs.sg.nodes.*;
 import lombok.Data;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 public class TabulationAlgorithm {
@@ -37,6 +30,9 @@ public class TabulationAlgorithm {
     }
 
     public Map<Integer, Set<UUID>> execute() {
+        if(!this.esg.getSg().getMethodName().contains("defineAStatic") && this.esg.getSg().getMethodName().contains("defineA")) {
+            System.out.println();
+        }
         SG sg = this.esg.getSg();
         String mainMId = String.format("%s :: %s", sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
         ProgramVariable ZERO = new ProgramVariable.ZeroVariable(sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
@@ -45,160 +41,78 @@ public class TabulationAlgorithm {
         this.pathEdgeSet.add(initialEdge); // [2]
         this.workList.add(initialEdge); // [3]
 
+        // [10]
         //--- ForwardTabulateSLRPs -------------------------------------------------------------------------------------
-        while(!workList.isEmpty()) { // [10]
+        while(!workList.isEmpty()) {
             ESGEdge currPathEdge = workList.pop(); // [11]
 
+            if (pathEdgeSet.size() == 123) {
+                System.out.println();
+            }
+
             // Path Edge Source
-            SGNode peSrcNode = sg.getNodes().get(currPathEdge.getSrcIdx());
-            int peSrcIdx = currPathEdge.getSrcIdx();
-            int peSrcCallIdx = currPathEdge.getSrcCallSeqIdx();
-            UUID peSrcVarId = currPathEdge.getSrcVarId();
+            int zeroIdx = currPathEdge.getSrcIdx();
+            int zeroCallIdx = currPathEdge.getSrcCallSeqIdx();
+            UUID zeroVarId = currPathEdge.getSrcVarId();
 
             // Path Edge Target
-            SGNode peTrgtNode = sg.getNodes().get(currPathEdge.getTrgtIdx());
-            int peTrgtEsgIdx = currPathEdge.getTrgtIdx();
-            int peTrgtCallIdx = currPathEdge.getTrgtCallSeqIdx();
-            UUID peTrgtVarId = currPathEdge.getTrgtVarId();
+            SGNode n = sg.getNodes().get(currPathEdge.getTrgtIdx());
+            int peTrgtIdx = currPathEdge.getTrgtIdx();
 
-            // [13] - [20]
-            if (peTrgtNode instanceof SGCallNode) {
-                Collection<ESGEdge> esgEdges = esg.getEdges().get(peTrgtEsgIdx);
-                SGCallNode sgCallNode = (SGCallNode) peTrgtNode;
-                for (ESGEdge esgEdge : esgEdges) {
-                    int trgtIdx = esgEdge.getTrgtIdx();
-                    int trgtCallIdx = esgEdge.getTrgtCallSeqIdx();
-                    UUID trgtVarId = esgEdge.getTrgtVarId();
-                    // [14] - [16]
-                    if (esgEdge.getSrcCallSeqIdx() < trgtCallIdx) {
-                        // Trgt is entry node
-                        propagate(new ESGEdge(trgtIdx, trgtIdx, trgtCallIdx, trgtCallIdx, trgtVarId, trgtVarId));
-                    }
+            if (peTrgtIdx == 64) {
+                System.out.println();
+            }
 
-                    // [17] - [19]: E#
-                    if (trgtIdx == sgCallNode.getReturnSiteNodeIdx()) {
-                        int entryNodeIdx = peTrgtNode.getEntryNodeIdx();
-                        propagate(new ESGEdge(entryNodeIdx, trgtIdx, peSrcCallIdx, trgtCallIdx, peSrcVarId, trgtVarId));
-                    }
+            if (n != null) {
+                if (n instanceof SGCallNode) {
+                    System.out.println();
+                } else if (n instanceof SGEntryNode) {
+                    System.out.println();
+                } else if (n instanceof SGExitNode) {
+                    System.out.println();
+                } else if (n instanceof SGReturnSiteNode) {
+                    System.out.println();
+                } else {
+                    System.out.println();
                 }
 
-                // [17] - [19]: SummaryEdge
-                for (ESGEdge esgEdge : summaryEdgeSet) {
-                    int trgtIdx = esgEdge.getTrgtIdx();
-                    int trgtCallIdx = esgEdge.getTrgtCallSeqIdx();
-                    UUID trgtVarId = esgEdge.getTrgtVarId();
-                    if (trgtIdx == sgCallNode.getReturnSiteNodeIdx()) {
-                        int entryNodeIdx = peTrgtNode.getEntryNodeIdx();
-                        propagate(new ESGEdge(entryNodeIdx, trgtIdx, peSrcCallIdx, trgtCallIdx, peSrcVarId, trgtVarId));
-                    }
-                }
-            // [21]
-            } else if (peTrgtNode instanceof SGExitNode && !Objects.equals(peTrgtNode, sg.getExitNode())) {
-                Collection<Integer> callers = sg.getCallersMap().get(peTrgtNode.getMethodName());
+                Collection<ESGEdge> esgEdges = esg.getEdges().get(peTrgtIdx);
+                for (ESGEdge e : esgEdges) {
+                    int trgtIdx = e.getTrgtIdx();
+                    int trgtCallIdx = e.getTrgtCallSeqIdx();
+                    UUID trgtVarId = e.getTrgtVarId();
+                    ESGEdge newEdge = new ESGEdge(zeroIdx, trgtIdx, zeroCallIdx, trgtCallIdx, zeroVarId, trgtVarId);
+                    propagate(newEdge);
 
-                // [22]
-                // for all call nodes calling the exit node's procedure
-                for (Integer c : callers) {
-                    Set<ESGEdge> esgCallEdges = esg.getEdges().get(c)
-                            .stream()
-                            .filter(e -> e.getSrcCallSeqIdx() < e.getTrgtCallSeqIdx())
-                            .collect(Collectors.toSet());
-                    Set<ESGEdge> esgExitEdges = esg.getEdges().get(peTrgtNode.getIndex())
-                            .stream()
-                            .filter(e -> e.getSrcCallSeqIdx() > e.getTrgtCallSeqIdx())
-                            .collect(Collectors.toSet());
-
-                    // [23]
-                    for (ESGEdge callEdge : esgCallEdges) {
-                        int d4Idx = callEdge.getSrcIdx();
-                        int d4CallIdx = callEdge.getSrcCallSeqIdx();
-                        UUID d4VarId = callEdge.getSrcVarId();
-
-                        for (ESGEdge exitEdge : esgExitEdges) {
-                            int d5Idx = exitEdge.getTrgtIdx();
-                            int d5CallIdx = exitEdge.getTrgtCallSeqIdx();
-                            UUID d5VarId = exitEdge.getTrgtVarId();
-
-                            ESGEdge summaryEdge = new ESGEdge(
-                                    callEdge.getSrcIdx(), exitEdge.getTrgtIdx(),
-                                    callEdge.getSrcCallSeqIdx(), exitEdge.getTrgtCallSeqIdx(),
-                                    callEdge.getSrcVarId(), exitEdge.getTrgtVarId());
-
-                            if (d4CallIdx == d5CallIdx
-                                    && Objects.equals(d4VarId, d5VarId)) {
-                                // [24], [25]
-                                this.summaryEdgeSet.add(summaryEdge);
-
-                                // [26]
-                                List<ESGEdge> toAdd = new ArrayList<>();
-                                for (ESGEdge pe : this.pathEdgeSet) {
-                                    int d3Idx = pe.getSrcIdx();
-                                    int d3CallIdx = pe.getSrcCallSeqIdx();
-                                    UUID d3VarId = pe.getSrcVarId();
-
-                                    if (d4Idx == pe.getTrgtIdx()
-                                        && d4CallIdx == pe.getTrgtCallSeqIdx()
-                                        && d4VarId == pe.getTrgtVarId()) {
-                                        // [27]
-                                        toAdd.add(new ESGEdge(d3Idx, d5Idx, d3CallIdx, d5CallIdx, d3VarId, d5VarId));
-                                    }
-                                }
-
-                                for (ESGEdge e : toAdd) {
-                                    propagate(e);
-                                }
-                            }
-                        }
-                    }
-                }
-            // [33]
-            // if node is not call p or exit p
-            } else {
-                // [34]
-                if (peTrgtNode != null) {
-                    Collection<ESGEdge> esgEdges = esg.getEdges().get(peTrgtNode.getIndex());
-                    for (ESGEdge e : esgEdges) {
-                        int d3Idx = e.getTrgtIdx();
-                        int d3CallIdx = e.getTrgtCallSeqIdx();
-                        UUID d3VarId = e.getTrgtVarId();
-                        // [35]
-                        propagate(new ESGEdge(peSrcIdx, d3Idx, peSrcCallIdx, d3CallIdx, peSrcVarId, d3VarId));
-                    }
+                    // Connect matches
+                    int srcIdx = e.getSrcIdx();
+                    ESGNode srcNode = esg.getNodes().get(srcIdx);
+                    connectMatches(srcNode, zeroIdx, trgtIdx, zeroCallIdx, zeroVarId, trgtVarId);
                 }
             }
         }
 
         // [7]
         //--- CREATE MVP -----------------------------------------------------------------------------------------------
-        Map<Integer, Set<UUID>> bigXSet = new HashMap<>();
+        Map<Integer, Set<UUID>> bigXSet = new TreeMap<>();
 
         for (Map.Entry<Integer, ESGNode> esgNodeEntry : esg.getNodes().entrySet()) {
             int esgIdx = esgNodeEntry.getKey();
             ESGNode esgNode = esgNodeEntry.getValue();
-            Map<Integer, Map<UUID, ProgramVariable>> esgVarsMap = esgNode.getCallSeqIdxVarMap();
-
-            for (Map.Entry<Integer, Map<UUID, ProgramVariable>> callIdxEntry : esgVarsMap.entrySet()) {
-                int d2CallIdx = callIdxEntry.getKey();
+            for (Map.Entry<Integer, Map<UUID, ProgramVariable>> callIdxEntry : esgNode.getCallIdxVarMaps().entrySet()) {
+                int callIdx = callIdxEntry.getKey();
                 Map<UUID, ProgramVariable> varMap = callIdxEntry.getValue();
                 for (Map.Entry<UUID, ProgramVariable> varEntry : varMap.entrySet()) {
-                    UUID d2VarId = varEntry.getKey();
-                    ProgramVariable d2Var = varEntry.getValue();
-
+                    UUID varId = varEntry.getKey();
                     SGNode sgNode = sg.getNodes().get(esgIdx);
-
                     if (sgNode != null) {
-                        for (ESGEdge pe : this.pathEdgeSet) {
-                            if (pe.getSrcIdx() == sgNode.getEntryNodeIdx()
-                                    && pe.getTrgtIdx() == esgIdx
-                                    && pe.getTrgtCallSeqIdx() == d2CallIdx
-                                    && pe.getTrgtVarId() == d2VarId) {
-
-                                if (!bigXSet.containsKey(esgIdx)) {
-                                    bigXSet.put(esgIdx, new HashSet<>());
-                                }
-
-                                bigXSet.get(esgIdx).add(d2VarId);
+                        ESGEdge e = new ESGEdge(0, esgIdx, 0, callIdx, ZERO.getId(), varId);
+                        if (this.pathEdgeSet.contains(e)) {
+                            if (!bigXSet.containsKey(esgIdx)) {
+                                bigXSet.put(esgIdx, new HashSet<>());
                             }
+
+                            bigXSet.get(esgIdx).add(varId);
                         }
                     }
                 }
@@ -208,11 +122,35 @@ public class TabulationAlgorithm {
         return bigXSet;
     }
 
+    /**
+     * Recursive method to connect all inter-procedural matches of a variable
+     *
+     * @param srcNode ESGNode containing the definition matches
+     * @param zeroIdx 0
+     * @param trgtIdx Index of the target ESGNode
+     * @param zeroCallIdx 0
+     * @param zeroVarId basically 0
+     * @param trgtVarId Variable id we are searching a match for
+     */
+    private void connectMatches(ESGNode srcNode, int zeroIdx, int trgtIdx, int zeroCallIdx, UUID zeroVarId, UUID trgtVarId) {
+        for (Map.Entry<Integer, Map<UUID, UUID>> callIdxEntry : srcNode.getDefinitionMaps().entrySet()) {
+            Integer callIdx = callIdxEntry.getKey();
+            Map<UUID, UUID> matches = callIdxEntry.getValue();
+            UUID matchId = matches.get(trgtVarId);
+
+            if (matchId != null) {
+                ESGEdge matchEdge = new ESGEdge(zeroIdx, trgtIdx, zeroCallIdx, callIdx, zeroVarId, matchId);
+                propagate(matchEdge);
+
+                connectMatches(srcNode, zeroIdx, trgtIdx, zeroCallIdx, zeroVarId, matchId);
+            }
+        }
+    }
+
     private void propagate(ESGEdge e) {
         if(!this.pathEdgeSet.contains(e)) {
             this.pathEdgeSet.add(e);
             this.workList.add(e);
         }
     }
-
 }

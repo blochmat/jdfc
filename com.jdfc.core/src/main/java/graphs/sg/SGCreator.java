@@ -114,8 +114,13 @@ public class SGCreator {
                     sgEdges.putAll(sgNodeIdx, sgEdgeTargets);
                 } else if (sgNode instanceof SGCallNode && this.nextIsEntry(sgNodeIdx)) {
                     SGCallNode sgCallNode = (SGCallNode) sgNode;
+                    if (sgCallNode.getReturnSiteNodeIdx() == 0) {
+                        System.out.println();
+                    }
                     // Call-Entry edge
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
+                    // Call-ReturnSite edge
+                    sgEdges.put(sgNodeIdx, sgCallNode.getReturnSiteNodeIdx());
                 } else if (sgNode instanceof SGExitNode && this.nextIsReturnSite(sgNodeIdx)) {
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
                 } else if (sgNode instanceof SGReturnSiteNode) {
@@ -205,6 +210,9 @@ public class SGCreator {
                     }
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
+                    if (cfgNode.getMethodName().contains("addOne")) {
+                        System.out.println();
+                    }
                     SGExitNode sgExitNode = new SGExitNode(index, cfgIndex, entryNodeIdxStack.pop(), cfgNode);
                     if (!sgEntryNodeIdxStack.isEmpty()) {
                         // node is part of subroutine
@@ -243,9 +251,8 @@ public class SGCreator {
                         this.addSGNode(sgReturnSiteNode, returnSiteTargets);
                         sgReturnSiteNode.setDefinitionsMap(sgCallNode.getDefinitionsMap());
                         sgReturnSiteIndexMap.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
-                        // Connect call and return site node
-//                        sgEdges.put(sgCallNodeIdx, sgReturnSiteNodeIdx);
 
+                        // Connect call and return site node
                         sgCallNode.setEntryNodeIdx(sgEntryNodeIdx);
                         sgCallNode.setExitNodeIdx(sgExitNodeIdx);
                         sgCallNode.setReturnSiteNodeIdx(sgReturnSiteNodeIdx);
@@ -265,14 +272,17 @@ public class SGCreator {
                         this.addSGNode(sgExitNode, targets);
                     }
                 } else if (cfgNode instanceof CFGCallNode) {
+                    if (cfgNode.getMethodName().contains("addOne")) {
+                        System.out.println();
+                    }
                     // Add call node
                     SGCallNode sgCallNode = new SGCallNode(index, cfgIndex, entryNodeIdxStack.peek(),(CFGCallNode) cfgNode);
-                    this.sgCallNodeIdxStack.push(index);
                     // Add called method cfg if possible
                     CFGCallNode cfgCallNode = (CFGCallNode) cfgNode;
                     MethodData calledMethodData = cData.getMethodByInternalName(cfgCallNode.getCalledMethodName());
                     String calledMethodName = calledMethodData.buildInternalMethodName();
                     if(Collections.frequency(callSequence, calledMethodName) < 3) {
+                        this.sgCallNodeIdxStack.push(index);
                         sgCallersMap.put(calledMethodName, index);
                         this.callSequence.add(calledMethodName);
                         this.addCFG(calledMethodData);

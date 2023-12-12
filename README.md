@@ -1,5 +1,19 @@
 # JDFC
 
+## Rocket Start
+- Changed JDFC?
+	- mvn clean install
+	- Copy jar to defects4j
+- Changed defects4j perl files?
+	- cpanm --installdeps .
+	- ./init.sh
+- Delete lang_1b
+- Checkout lang_1b
+- Test
+	- Run single test in d4j-repo
+	- Run experiment script in jdfc/experiment
+- Note down time
+
 ## How to run a successful analysis?
 - defects4j installed
 - class path set correctly in defects4j.build.xml

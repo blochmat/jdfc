@@ -9,6 +9,7 @@ import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
 import graphs.cfg.visitors.classVisitors.LocalVariableClassVisitor;
 import graphs.esg.ClassEsgCreator;
 import graphs.sg.SGCreator;
+import graphs.sg.nodes.SGNode;
 import instr.classVisitors.InstrumentationClassVisitor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -207,9 +208,19 @@ public class Instrumenter {
         classEsgCreator.createESGsForClass(classData);
 
         // Compute inter-procedural pairs
-        for (MethodData methodData : classData.getMethodDataFromStore().values()) {
-            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(methodData.getEsg());
+        for (MethodData mData : classData.getMethodDataFromStore().values()) {
+            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(mData.getEsg());
             Map<Integer, Set<UUID>> MVP = tabulationAlgorithm.execute();
+            if(log.isDebugEnabled() && !mData.getName().contains("defineAStatic") && mData.getName().contains("defineA")) {
+                System.out.println();
+            }
+
+            for (Map.Entry<Integer, SGNode>  sgNodeEntry : mData.getSg().getNodes().entrySet()) {
+                int sgNodeIdx = sgNodeEntry.getKey();
+                SGNode sgNode = sgNodeEntry.getValue();
+
+
+            }
         }
 
         // Tracking instrumentation

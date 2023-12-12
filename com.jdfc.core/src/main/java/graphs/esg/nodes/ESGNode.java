@@ -20,11 +20,41 @@ public class ESGNode {
     Set<ESGNode> pred;
     Set<ESGNode> succ;
     private int idx;
-    private Map<Integer, String> callSeqIdxMethodIdMap = new TreeMap<>();
-    private Map<Integer, Map<UUID, ProgramVariable>> callSeqIdxVarMap = new TreeMap<>();
-    private Map<Integer, Map<UUID, Boolean>> callSeqIdxLiveVarMap = new TreeMap<>();
-    private Map<Integer, Map<UUID, Boolean>> callSeqIdxPosNotReMap = new TreeMap<>();
+    /**
+     * Stores the call idx and the corresponding method id
+     * e.g.
+     *      1 -> class::method
+     */
+    private Map<Integer, String> callIdxMethodIdMap = new TreeMap<>();
+    /**
+     * Stores the call idx and the corresponding variables
+     * e.g.
+     *      1 -> id1 -> var1,
+     *      1 -> id2 -> var2
+     */
+    private Map<Integer, Map<UUID, ProgramVariable>> callIdxVarMaps = new TreeMap<>();
+    /**
+     * Stores the call idx and the corresponding liveness of variables
+     * e.g.
+     *      1 -> id1 -> true,
+     *      1 -> id2 -> false
+     */
+    private Map<Integer, Map<UUID, Boolean>> callIdxLiveVarMap = new TreeMap<>();
+    /**
+     * Unused
+     */
+    private Map<Integer, Map<UUID, Boolean>> callIdxPosNotReMap = new TreeMap<>();
+    /**
+     * Unused
+     */
     private List<String> callSequenceIdx;
+    /**
+     * Stores the call idx and definition matches
+     * e.g.
+     *      1 -> id1 -> id2
+     *      1 -> id3 -> id4
+     */
+    private Map<Integer, Map<UUID, UUID>> definitionMaps = new HashMap<>();
 
     public ESGNode(int idx) {
         this.idx = idx;
@@ -70,7 +100,7 @@ public class ESGNode {
 //        }
         return String.format("(%d: %s)",
                 idx,
-                JDFCUtils.prettyPrintMap(callSeqIdxMethodIdMap));
+                JDFCUtils.prettyPrintMap(callIdxMethodIdMap));
     }
 
     @Override
