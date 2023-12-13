@@ -19,7 +19,7 @@ public class ReportGenerator {
     public void create() {
         this.computeProjectCoverage();
         this.xmlReportGenerator.create();
-        this.htmlReportGenerator.create();
+//        this.htmlReportGenerator.create();
     }
 
     private void computeProjectCoverage() {

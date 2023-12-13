@@ -10,16 +10,18 @@ elif [ -n "$(ls -A ${pc_analysis_dir:?})" ]; then
 fi
 
 project="Lang"
-bug_ids=(1)
 #bug_ids=$(defects4j query -p "$project")
-for bug_id in $bug_ids; do
+bug_ids=(1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65)
+echo "Starting dataflow analysis for project:  ${project}."
+for bug_id in "${bug_ids[@]}"; do
     repo_dir="${working_dir}/${project}_${bug_id}b"
     project_output_dir="${pc_analysis_dir}/${project}"
     bug_output_dir="${project_output_dir}/${bug_id}"
     coverage_file="${bug_output_dir}/branch_coverage.csv"
 
-    echo "RUNNING BRANCH ANALYSIS:  ${repo_dir}."
-    
+    echo "Starting statement/branch analysis for bugId:  ${bug_id}."
+    echo "  - Working directory:  ${repo_dir}."
+
     # create if directory does not exist
     if [ ! -d "$bug_output_dir" ]; then
         mkdir -p "$bug_output_dir"
