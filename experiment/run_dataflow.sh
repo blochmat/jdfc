@@ -5,8 +5,8 @@ pc_analysis_dir="/tmp/pc_analysis/dataflow"
 
 if [ ! -d "${pc_analysis_dir:?}" ]; then
     mkdir -p "${pc_analysis_dir:?}"
-elif [ -n "$(ls -A ${pc_analysis_dir:?})" ]; then
-    rm -r "${pc_analysis_dir:?}"/*
+#elif [ -n "$(ls -A ${pc_analysis_dir:?})" ]; then
+#    rm -r "${pc_analysis_dir:?}"/*
 fi
 
 project="Lang"
