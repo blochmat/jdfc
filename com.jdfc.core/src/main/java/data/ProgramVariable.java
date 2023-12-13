@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
+import static utils.Constants.ZERO_ID;
+
 /**
  * Represents a program variable that is identified by its name and type.
  */
@@ -33,7 +35,7 @@ public class ProgramVariable implements Comparable<Object>, Serializable {
     private Boolean isField;
 
     private ProgramVariable(String className, String methodName) {
-        this.id = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        this.id = ZERO_ID;
         this.localVarIdx = -1;
         this.className = className;
         this.methodName = methodName;
@@ -104,6 +106,23 @@ public class ProgramVariable implements Comparable<Object>, Serializable {
                 && Objects.equals(getIsDefinition(), that.getIsDefinition())
                 && Objects.equals(getIsCovered(), that.getIsCovered())
                 && Objects.equals(getIsField(), that.getIsField());
+    }
+
+    public boolean isIntraProcUseOf(ProgramVariable that) {
+        return !Objects.equals(getId(), that.getId())
+                && !Objects.equals(getInstructionIndex(), that.getInstructionIndex())
+                && !Objects.equals(getLineNumber(), that.getLineNumber())
+                && Objects.equals(getLocalVarIdx(), that.getLocalVarIdx())
+                && Objects.equals(getClassName(), that.getClassName())
+                && Objects.equals(getMethodName(), that.getMethodName())
+                && Objects.equals(getName(), that.getName())
+                && Objects.equals(getDescriptor(), that.getDescriptor())
+                && Objects.equals(getIsDefinition(), that.getIsDefinition())
+                && Objects.equals(getIsField(), that.getIsField());
+    }
+
+    public boolean isMatchOf(UUID id) {
+        return ProjectData.getInstance().getMatchesMap().get(this.id).contains(id);
     }
 
     @Override

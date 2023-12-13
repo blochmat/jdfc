@@ -2,6 +2,7 @@ package utils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -43,4 +44,6 @@ public class Constants {
             ARETURN, // Return reference from method
             RETURN  // Return void from method
     );
+
+    public static final UUID ZERO_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 }

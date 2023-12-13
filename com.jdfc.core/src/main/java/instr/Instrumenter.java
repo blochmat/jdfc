@@ -1,8 +1,6 @@
 package instr;
 
 import algos.TabulationAlgorithm;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import data.*;
 import data.visitors.CreateClassDataVisitor;
 import graphs.cfg.visitors.classVisitors.CFGClassVisitor;
@@ -169,11 +167,11 @@ public class Instrumenter {
         classReader.accept(cfgClassVisitor, ClassReader.EXPAND_FRAMES);
 
         // Calculate DefUsePairs
+        // Todo: This needs to stay here.
         for(MethodData mData : classData.getMethodDataFromStore().values()) {
             if(mData.getCfg() != null) {
-//                        mData.getCfg().getEntryNode().addFieldDefinitions(fieldDefinitions);
                 mData.getCfg().calculateReachingDefinitions();
-                mData.calculateIntraDefUsePairs();
+                mData.calculateIntraProcDefUsePairs();
             } else {
                 System.err.println("ERROR: MethodData.getCfg() returned null! See /target/jdfc/debug/ERROR_JDFCInstrument.log for more info.");
                 if(log.isDebugEnabled()) {
@@ -207,19 +205,17 @@ public class Instrumenter {
         ClassEsgCreator classEsgCreator = new ClassEsgCreator();
         classEsgCreator.createESGsForClass(classData);
 
+        // TODO
         // Compute inter-procedural pairs
         for (MethodData mData : classData.getMethodDataFromStore().values()) {
-            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(mData.getEsg());
-            Map<Integer, Set<UUID>> MVP = tabulationAlgorithm.execute();
             if(log.isDebugEnabled() && !mData.getName().contains("defineAStatic") && mData.getName().contains("defineA")) {
                 System.out.println();
             }
-
-            for (Map.Entry<Integer, SGNode>  sgNodeEntry : mData.getSg().getNodes().entrySet()) {
-                int sgNodeIdx = sgNodeEntry.getKey();
-                SGNode sgNode = sgNodeEntry.getValue();
-
-
+            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(mData.getEsg());
+            Map<Integer, Set<UUID>> MVP = tabulationAlgorithm.execute();
+            mData.calculateInterProcDefUsePairs(MVP);
+            if(log.isDebugEnabled() && !mData.getName().contains("defineAStatic") && mData.getName().contains("defineA")) {
+                System.out.println();
             }
         }
 

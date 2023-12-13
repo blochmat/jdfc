@@ -1,19 +1,16 @@
 package data;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import graphs.cfg.CFG;
 import graphs.cfg.LocalVariable;
 import instr.ClassMetaData;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import utils.Deserializer;
 import utils.JDFCUtils;
 
 import java.io.*;
 import java.util.*;
-import java.util.logging.LogManager;
-
-import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
 /**
  * A storage singleton for all class data required for the analysis. A tree structure of {@code ExecutionDataNode}
@@ -51,6 +48,11 @@ public class ProjectData implements Serializable {
     private final Map<UUID, ProgramVariable> programVariableMap;
     private final Set<String> coveredPVarIds;
 
+    /**
+     * The keys are variable ids of invoked routines.
+     * The values ar variable ids of calling routines.
+     */
+    private final Multimap<UUID, UUID> matchesMap;
 
 //    private final transient ExecutionDataNode<ExecutionData> root;
     private final Set<String> testedClassList;
@@ -73,6 +75,7 @@ public class ProjectData implements Serializable {
         this.defUsePairMap = new HashMap<>();
         this.programVariableMap = new HashMap<>();
         this.coveredPVarIds = new HashSet<>();
+        this.matchesMap = ArrayListMultimap.create();
         loadOld();
 
         if (initHook) {

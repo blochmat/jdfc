@@ -6,6 +6,7 @@ import com.google.common.collect.Multimap;
 import data.ClassData;
 import data.MethodData;
 import data.ProgramVariable;
+import data.ProjectData;
 import graphs.esg.nodes.ESGNode;
 import graphs.sg.SG;
 import graphs.sg.nodes.*;
@@ -286,6 +287,12 @@ public class ClassEsgCreator {
                                                         srcCallIdx, srcCallIdx + 1, srcVarId, match.getId());
                                                 esgCurr.getDefinitionMaps().computeIfAbsent(srcCallIdx, k -> new HashMap<>());
                                                 esgCurr.getDefinitionMaps().get(srcCallIdx).put(match.getId(), srcVarId);
+
+                                                Multimap<UUID, UUID> matchesMap = ProjectData.getInstance().getMatchesMap();
+                                                Collection<UUID> matches = matchesMap.get(match.getId());
+                                                if (matches != null && !matches.contains(srcVarId)) {
+                                                    matchesMap.put(match.getId(), srcVarId);
+                                                }
                                             }
                                         }
                                     }
@@ -338,6 +345,12 @@ public class ClassEsgCreator {
                                                         srcCallIdx, srcCallIdx + 1, srcVarId, match.getId());
                                                 esgCurr.getDefinitionMaps().computeIfAbsent(srcCallIdx, k -> new HashMap<>());
                                                 esgCurr.getDefinitionMaps().get(srcCallIdx).put(match.getId(), srcVarId);
+
+                                                Multimap<UUID, UUID> matchesMap = ProjectData.getInstance().getMatchesMap();
+                                                Collection<UUID> matches = matchesMap.get(match.getId());
+                                                if (matches != null && !matches.contains(srcVarId)) {
+                                                    matchesMap.put(match.getId(), srcVarId);
+                                                }
                                             }
                                         }
                                     }
@@ -380,6 +393,12 @@ public class ClassEsgCreator {
                                                         srcCallIdx, srcCallIdx + 1, srcVarId, match.getId());
                                                 esgCurr.getDefinitionMaps().computeIfAbsent(srcCallIdx, k -> new HashMap<>());
                                                 esgCurr.getDefinitionMaps().get(srcCallIdx).put(match.getId(), srcVarId);
+
+                                                Multimap<UUID, UUID> matchesMap = ProjectData.getInstance().getMatchesMap();
+                                                Collection<UUID> matches = matchesMap.get(match.getId());
+                                                if (matches != null && !matches.contains(srcVarId)) {
+                                                    matchesMap.put(match.getId(), srcVarId);
+                                                }
                                             }
                                         }
                                     }

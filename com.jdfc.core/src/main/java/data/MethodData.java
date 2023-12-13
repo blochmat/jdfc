@@ -11,6 +11,7 @@ import graphs.cfg.nodes.CFGCallNode;
 import graphs.cfg.nodes.CFGNode;
 import graphs.esg.ESG;
 import graphs.sg.SG;
+import graphs.sg.nodes.SGNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import static utils.Constants.ZERO_ID;
 
 @Slf4j
 @Data
@@ -249,7 +252,7 @@ public class MethodData implements Serializable {
     /**
      * Calculates intra Def-Use-Pairs.
      */
-    public void calculateIntraDefUsePairs() {
+    public void calculateIntraProcDefUsePairs() {
         for (Map.Entry<Integer, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
             for (ProgramVariable def : node.getReach()) {
@@ -257,16 +260,7 @@ public class MethodData implements Serializable {
                     if (Objects.equals(def.getName(), use.getName())
                             && Objects.equals(def.getIsField(), use.getIsField())
                             && !def.getDescriptor().equals("UNKNOWN")) {
-                        UUID id = UUID.randomUUID();
-                        this.duPairIds.add(id);
-                        ProjectData.getInstance().getDefUsePairMap()
-                                .put(id, new PairData(
-                                        id,
-                                        this.className,
-                                        this.buildInternalMethodName(),
-                                        def.getId(),
-                                        use.getId())
-                                );
+                        createDefUsePair(def, use);
                     }
 
                     if (def.getInstructionIndex() == Integer.MIN_VALUE) {
@@ -277,6 +271,67 @@ public class MethodData implements Serializable {
 
         }
         JDFCUtils.logThis(this.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintMap(this.getDUPairsFromStore()), "intra_pairs");
+    }
+
+    private void createDefUsePair(ProgramVariable def, ProgramVariable use) {
+        UUID id = UUID.randomUUID();
+        this.duPairIds.add(id);
+        ProjectData.getInstance().getDefUsePairMap()
+                .put(id, new PairData(
+                        id,
+                        this.className,
+                        this.buildInternalMethodName(),
+                        def.getId(),
+                        use.getId())
+                );
+    }
+
+    public void calculateInterProcDefUsePairs(Map<Integer, Set<UUID>> MVP) {
+        for (Map.Entry<UUID, PairData> dupairEntry : ProjectData.getInstance().getDefUsePairMap().entrySet()) {
+            PairData dupair = dupairEntry.getValue();
+            UUID defId = dupair.getDefId();
+            Collection<UUID> matches = ProjectData.getInstance().getMatchesMap().get(defId);
+            for (UUID matchId : matches) {
+                ProgramVariable def = ProjectData.getInstance().getProgramVariableMap().get(matchId);
+                ProgramVariable use = dupair.getUseFromStore();
+                createDefUsePair(def, use);
+            }
+        }
+
+        for (Map.Entry<Integer, SGNode>  sgNodeEntry : this.getSg().getNodes().entrySet()) {
+            int sgNodeIdx = sgNodeEntry.getKey();
+            SGNode sgNode = sgNodeEntry.getValue();
+            Set<UUID> reachingDefs = MVP.get(sgNodeIdx);
+            if (!sgNode.getUses().isEmpty()) {
+                for (ProgramVariable use : sgNode.getUses()) {
+                    // intra
+                    for (UUID intraDefId : reachingDefs) {
+                        if (intraDefId == ZERO_ID) {
+                            continue;
+                        }
+                        ProgramVariable intraDef = ProjectData.getInstance().getProgramVariableMap().get(intraDefId);
+                        if (!use.getDescriptor().equals("UNKNOWN")
+                                && !intraDef.getDescriptor().equals("UNKNOWN")
+                                && use.isIntraProcUseOf(intraDef)) {
+                            createDefUsePair(intraDef, use);
+                            if (intraDef.getInstructionIndex() == Integer.MIN_VALUE) {
+                                intraDef.setIsCovered(true);
+                            }
+
+                            for (UUID interDefId : reachingDefs) {
+                                if (intraDef.isMatchOf(interDefId)) {
+                                    ProgramVariable interDef = ProjectData.getInstance().getProgramVariableMap().get(interDefId);
+                                    createDefUsePair(interDef, use);
+                                    if (interDef.getInstructionIndex() == Integer.MIN_VALUE) {
+                                        interDef.setIsCovered(true);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
