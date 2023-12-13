@@ -65,6 +65,10 @@ public class ProjectData implements Serializable {
     private static final Class<?> cfgClass = CFG.class;
 
     private ProjectData(final boolean initHook) {
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.err.println("Exception occurred in thread: " + t.getName());
+            e.printStackTrace();
+        });
         this.testedClassList = new HashSet<>();
         this.untestedClassList = new HashSet<>();
 
@@ -134,10 +138,6 @@ public class ProjectData implements Serializable {
                                 String classesBuildDirStr,
                                 String srcDirStr) {
         // print uncaught exception
-        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
-            System.err.println("Exception occurred in thread: " + t.getName());
-            e.printStackTrace();
-        });
         this.workDir = new File(projectDirStr);
         this.buildDir = new File(buildDirStr);
         this.classesDir = new File(classesBuildDirStr);
