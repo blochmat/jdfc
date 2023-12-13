@@ -59,7 +59,7 @@ public class PairData implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PairData pair = (PairData) o;
-        return isCovered() == pair.isCovered()  && Objects.equals(getDefId(), pair.getDefId()) && Objects.equals(getUseId(), pair.getUseId());
+        return Objects.equals(getDefId(), pair.getDefId()) && Objects.equals(getUseId(), pair.getUseId());
     }
 
     @Override

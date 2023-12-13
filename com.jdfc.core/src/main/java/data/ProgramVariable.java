@@ -117,7 +117,8 @@ public class ProgramVariable implements Comparable<Object>, Serializable {
                 && Objects.equals(getMethodName(), that.getMethodName())
                 && Objects.equals(getName(), that.getName())
                 && Objects.equals(getDescriptor(), that.getDescriptor())
-                && Objects.equals(getIsDefinition(), that.getIsDefinition())
+                && !this.getIsDefinition()
+                && that.getIsDefinition()
                 && Objects.equals(getIsField(), that.getIsField());
     }
 

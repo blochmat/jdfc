@@ -213,7 +213,7 @@ public class Instrumenter {
             }
             TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(mData.getEsg());
             Map<Integer, Set<UUID>> MVP = tabulationAlgorithm.execute();
-            mData.calculateInterProcDefUsePairs(MVP);
+//            mData.calculateInterProcDefUsePairs(MVP);
             if(log.isDebugEnabled() && !mData.getName().contains("defineAStatic") && mData.getName().contains("defineA")) {
                 System.out.println();
             }

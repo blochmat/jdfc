@@ -87,7 +87,7 @@ public class TabulationAlgorithm {
                     // Connect matches
                     int srcIdx = e.getSrcIdx();
                     ESGNode srcNode = esg.getNodes().get(srcIdx);
-                    connectMatches(srcNode, zeroIdx, trgtIdx, zeroCallIdx, zeroVarId, trgtVarId);
+                    connectMatches(srcNode, zeroIdx, trgtIdx, zeroCallIdx, zeroVarId, trgtVarId, new ArrayList<>());
                 }
             }
         }
@@ -132,17 +132,18 @@ public class TabulationAlgorithm {
      * @param zeroVarId basically 0
      * @param trgtVarId Variable id we are searching a match for
      */
-    private void connectMatches(ESGNode srcNode, int zeroIdx, int trgtIdx, int zeroCallIdx, UUID zeroVarId, UUID trgtVarId) {
+    private void connectMatches(ESGNode srcNode, int zeroIdx, int trgtIdx, int zeroCallIdx, UUID zeroVarId, UUID trgtVarId, List<UUID> matched) {
         for (Map.Entry<Integer, Map<UUID, UUID>> callIdxEntry : srcNode.getDefinitionMaps().entrySet()) {
             Integer callIdx = callIdxEntry.getKey();
             Map<UUID, UUID> matches = callIdxEntry.getValue();
             UUID matchId = matches.get(trgtVarId);
 
-            if (matchId != null) {
+            if (matchId != null && !matched.contains(matchId)) {
                 ESGEdge matchEdge = new ESGEdge(zeroIdx, trgtIdx, zeroCallIdx, callIdx, zeroVarId, matchId);
                 propagate(matchEdge);
+                matched.add(matchId);
 
-                connectMatches(srcNode, zeroIdx, trgtIdx, zeroCallIdx, zeroVarId, matchId);
+                connectMatches(srcNode, zeroIdx, trgtIdx, zeroCallIdx, zeroVarId, matchId, matched);
             }
         }
     }
