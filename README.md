@@ -11,6 +11,7 @@
 	- ./init.sh
 - Delete lang_1b
 - Checkout lang_1b
+- Delete /
 - Test
 	- Run single test in d4j-repo
 	- Run experiment script in jdfc/experiment
