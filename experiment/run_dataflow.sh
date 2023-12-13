@@ -79,6 +79,12 @@ for bug_id in "${bug_ids[@]}"; do
     ## Execute test methods one by one
     for test_method in "${test_methods_sh[@]}"; do
         echo "$test_method"
+        # Remove serialization file if it exists
+        ser_file="$repo_dir/.jdfc_instrumented/jdfc_data.ser"
+        if [ -f "$ser_file" ]; then
+            echo "Remove $ser_file"
+            rm "$ser_file"
+        fi
         # Execute test method
         echo "$(defects4j jdfc -w "$repo_dir" -t "$test_method")"
         # Extract covered coverage goals from coverage.xml

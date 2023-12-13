@@ -2,9 +2,11 @@
 
 ## Rocket Start
 - Changed JDFC?
+	- disable debug
 	- mvn clean install
 	- Copy jar to defects4j
 - Changed defects4j perl files?
+	- class path set correctly in defects4j.build.xml
 	- cpanm --installdeps .
 	- ./init.sh
 - Delete lang_1b
