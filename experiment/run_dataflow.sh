@@ -9,9 +9,18 @@ if [ ! -d "${pc_analysis_dir:?}" ]; then
 #    rm -r "${pc_analysis_dir:?}"/*
 fi
 
-project="Lang"
 #bug_ids=$(defects4j query -p "$project")
-bug_ids=(1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65)
+# Lang
+# YES: 1 3 4 7 11 12 15 16 23 24 27 36 44 53 54 55 57 65
+# NOPE: 4 6 8 9 10 13 14 17 18 19 20 21 22 25 26 28 29 30 31 32 33 34 35 37 38 39 40 41 42 45 46 47 48 49 50 51 52 56 58 59 60 61 62 63 64
+# ENDLESS: 43
+
+project="Time"
+# Time
+# YES:
+# NOPE:
+# ENDLESS:
+bug_ids=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27)
 echo "Starting dataflow analysis for project:  ${project}."
 for bug_id in "${bug_ids[@]}"; do
     repo_dir="${working_dir}/${project}_${bug_id}b"
@@ -79,12 +88,6 @@ for bug_id in "${bug_ids[@]}"; do
     ## Execute test methods one by one
     for test_method in "${test_methods_sh[@]}"; do
         echo "$test_method"
-        # Remove serialization file if it exists
-        ser_file="$repo_dir/.jdfc_instrumented/jdfc_data.ser"
-        if [ -f "$ser_file" ]; then
-            echo "Remove $ser_file"
-            rm "$ser_file"
-        fi
         # Execute test method
         echo "$(defects4j jdfc -w "$repo_dir" -t "$test_method")"
         # Extract covered coverage goals from coverage.xml
