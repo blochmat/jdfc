@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
-@Slf4j
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -85,18 +84,18 @@ public class ClassData implements Serializable {
             }
         }
 
-        if(log.isDebugEnabled()) {
-            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByInternalName.txt", false);
-            try (FileWriter writer = new FileWriter(transformFile, true)) {
-                writer.write(String.format("Search param: %s", internalName));
-                writer.write(JDFCUtils.prettyPrintArray(
-                        this.getMethodDataFromStore().values().stream().map(MethodData::buildInternalMethodName).toArray()));
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-
-            }
-        }
+//        if(log.isDebugEnabled()) {
+//            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByInternalName.txt", false);
+//            try (FileWriter writer = new FileWriter(transformFile, true)) {
+//                writer.write(String.format("Search param: %s", internalName));
+//                writer.write(JDFCUtils.prettyPrintArray(
+//                        this.getMethodDataFromStore().values().stream().map(MethodData::buildInternalMethodName).toArray()));
+//                writer.write("\n");
+//            } catch (IOException ioException) {
+//                ioException.printStackTrace();
+//
+//            }
+//        }
         return null;
     }
 
@@ -107,18 +106,18 @@ public class ClassData implements Serializable {
             }
         }
 
-        if(log.isDebugEnabled()) {
-            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByShortInternalName.txt", false);
-            try (FileWriter writer = new FileWriter(transformFile, true)) {
-                writer.write(String.format("Search param: %s", internalName));
-                writer.write(JDFCUtils.prettyPrintArray(
-                        this.getMethodDataFromStore().values().stream().map(MethodData::buildInternalMethodName).toArray()));
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-
-            }
-        }
+//        if(log.isDebugEnabled()) {
+//            File transformFile = JDFCUtils.createFileInDebugDir("getMethodByShortInternalName.txt", false);
+//            try (FileWriter writer = new FileWriter(transformFile, true)) {
+//                writer.write(String.format("Search param: %s", internalName));
+//                writer.write(JDFCUtils.prettyPrintArray(
+//                        this.getMethodDataFromStore().values().stream().map(MethodData::buildInternalMethodName).toArray()));
+//                writer.write("\n");
+//            } catch (IOException ioException) {
+//                ioException.printStackTrace();
+//
+//            }
+//        }
         return null;
     }
 

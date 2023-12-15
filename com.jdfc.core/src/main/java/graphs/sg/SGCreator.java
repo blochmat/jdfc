@@ -115,7 +115,7 @@ public class SGCreator {
                 } else if (sgNode instanceof SGCallNode && this.nextIsEntry(sgNodeIdx)) {
                     SGCallNode sgCallNode = (SGCallNode) sgNode;
                     if (sgCallNode.getReturnSiteNodeIdx() == 0) {
-                        System.out.println();
+//                        System.out.println();
                     }
                     // Call-Entry edge
                     sgEdges.put(sgNodeIdx, sgNodeIdx + 1);
@@ -211,7 +211,7 @@ public class SGCreator {
                     this.addSGNode(sgEntryNode, targets);
                 } else if (cfgNode instanceof CFGExitNode) {
                     if (cfgNode.getMethodName().contains("addOne")) {
-                        System.out.println();
+//                        System.out.println();
                     }
                     SGExitNode sgExitNode = new SGExitNode(index, cfgIndex, entryNodeIdxStack.pop(), cfgNode);
                     if (!sgEntryNodeIdxStack.isEmpty()) {
@@ -273,7 +273,7 @@ public class SGCreator {
                     }
                 } else if (cfgNode instanceof CFGCallNode) {
                     if (cfgNode.getMethodName().contains("addOne")) {
-                        System.out.println();
+//                        System.out.println();
                     }
                     // Add call node
                     SGCallNode sgCallNode = new SGCallNode(index, cfgIndex, entryNodeIdxStack.peek(),(CFGCallNode) cfgNode);
@@ -301,6 +301,9 @@ public class SGCreator {
                             // Create program variable mapping
                             Map<ProgramVariable, ProgramVariable> callerMap = new HashMap<>();
                             for (Map.Entry<Integer, ProgramVariable> cEntry : positionParamMapCall.entries()) {
+                                if (positionParamMapEntry.get(cEntry.getKey()) == null) {
+                                    System.out.println();
+                                }
                                 callerMap.put(positionParamMapEntry.get(cEntry.getKey()), cEntry.getValue());
                             }
 

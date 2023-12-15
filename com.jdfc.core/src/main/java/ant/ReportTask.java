@@ -1,6 +1,7 @@
 package ant;
 
 import data.ProjectData;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import report.ReportGenerator;
@@ -11,6 +12,7 @@ import java.io.File;
 
 import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
+@Slf4j
 public class ReportTask extends Task {
 
     private String work;
@@ -27,6 +29,7 @@ public class ReportTask extends Task {
 
     @Override
     public void execute() throws BuildException {
+        log(JDFCUtils.getJDFCSerFileAbs());
         ProjectData deserialized = Deserializer.deserializeCoverageData(JDFCUtils.getJDFCSerFileAbs());
         if(deserialized == null) {
             String msg = String.format("Unable do deserialize coverage data from %s", JDFCUtils.getJDFCSerFileAbs());

@@ -176,7 +176,7 @@ public class ClassEsgCreator {
                     && !mainMethodName.contains("defineAStatic")
                     && mainMethodName.contains("defineA")
                     && esgCurr.getIdx() == 26) {
-                System.out.println();
+//                System.out.println();
             }
             // curr
             int currEsgIdx = esgCurr.getIdx();
@@ -260,9 +260,6 @@ public class ClassEsgCreator {
                         // 5 Iterate over all sg edge targets
                         final Collection<Integer> trgtEsgIndices = superGraph.getEdges().get(sgCurr.getIndex());
                         for (Integer trgtEsgIdx : trgtEsgIndices) {
-                            if (trgtEsgIdx == 0) {
-                                System.out.println();
-                            }
                             Map<Integer, Map<UUID, Boolean>> trgtEsgLiveVarsMaps = esgNodes.get(trgtEsgIdx).getCallIdxLiveVarMap();
                             // 6 Handle "this"
                             if (srcVar.getName().equals("this")) {
@@ -308,8 +305,6 @@ public class ClassEsgCreator {
                                     if (match != null) {
                                         this.addEdge(esgEdges, trgtEsgLiveVarsMaps, currEsgIdx, trgtEsgIdx,
                                                 srcCallIdx, srcCallIdx - 1, srcVarId, match.getId());
-                                    } else {
-                                        throw new RuntimeException("'this' is buggy");
                                     }
 
                                     esgCurr.getDefinitionMaps().remove(srcCallIdx);

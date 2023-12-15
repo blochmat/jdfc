@@ -1,6 +1,7 @@
 package ant;
 
 import data.ProjectData;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class InstrumentTask extends Task {
 
     private List<FileSet> filesets = new ArrayList<>();
@@ -39,6 +41,9 @@ public class InstrumentTask extends Task {
 
     @Override
     public void execute() {
+        log.info(this.work);
+        log.info(this.classes);
+        log.info(this.src);
         String workDirAbs = work;
         String buildDirAbs = String.format("%s%starget", workDirAbs, File.separator);
         String classesDirAbs = String.join(File.separator, workDirAbs, classes);

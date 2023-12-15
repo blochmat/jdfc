@@ -30,11 +30,7 @@ public class TabulationAlgorithm {
     }
 
     public Map<Integer, Set<UUID>> execute() {
-        if(!this.esg.getSg().getMethodName().contains("defineAStatic") && this.esg.getSg().getMethodName().contains("defineA")) {
-            System.out.println();
-        }
         SG sg = this.esg.getSg();
-        String mainMId = String.format("%s :: %s", sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
         ProgramVariable ZERO = new ProgramVariable.ZeroVariable(sg.getClassName().substring(1).replace(".class", ""), sg.getMethodName());
 
         ESGEdge initialEdge = new ESGEdge(0, 0, 0, 0, ZERO.getId(), ZERO.getId());
@@ -46,10 +42,6 @@ public class TabulationAlgorithm {
         while(!workList.isEmpty()) {
             ESGEdge currPathEdge = workList.pop(); // [11]
 
-            if (pathEdgeSet.size() == 123) {
-                System.out.println();
-            }
-
             // Path Edge Source
             int zeroIdx = currPathEdge.getSrcIdx();
             int zeroCallIdx = currPathEdge.getSrcCallSeqIdx();
@@ -59,23 +51,7 @@ public class TabulationAlgorithm {
             SGNode n = sg.getNodes().get(currPathEdge.getTrgtIdx());
             int peTrgtIdx = currPathEdge.getTrgtIdx();
 
-            if (peTrgtIdx == 64) {
-                System.out.println();
-            }
-
             if (n != null) {
-                if (n instanceof SGCallNode) {
-                    System.out.println();
-                } else if (n instanceof SGEntryNode) {
-                    System.out.println();
-                } else if (n instanceof SGExitNode) {
-                    System.out.println();
-                } else if (n instanceof SGReturnSiteNode) {
-                    System.out.println();
-                } else {
-                    System.out.println();
-                }
-
                 Collection<ESGEdge> esgEdges = esg.getEdges().get(peTrgtIdx);
                 for (ESGEdge e : esgEdges) {
                     int trgtIdx = e.getTrgtIdx();
