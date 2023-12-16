@@ -9,10 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Data
@@ -355,4 +353,106 @@ public class ClassData implements Serializable {
 //
 //        JDFCUtils.logThis(JDFCUtils.prettyPrintMap(lineToMethodIdMap), "lineToMethodIdMap");
 //    }
+
+    // Serialization
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeLong(id.getMostSignificantBits());
+        out.writeLong(id.getLeastSignificantBits());
+        out.writeObject(classMetaData);
+        writeMap(out, nestedTypeMap);
+        writeUUIDSet(out, methodDataIds);
+        writeLineToMethodIdMap(out, lineToMethodIdMap);
+        out.writeInt(total);
+        out.writeInt(covered);
+        out.writeDouble(ratio);
+        out.writeInt(methodCount);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        long mostSigBits = in.readLong();
+        long leastSigBits = in.readLong();
+        id = new UUID(mostSigBits, leastSigBits);
+        classMetaData = (ClassMetaData) in.readObject();
+        nestedTypeMap = readMap(in);
+        methodDataIds = readUUIDSet(in);
+        lineToMethodIdMap = readLineToMethodIdMap(in);
+        total = in.readInt();
+        covered = in.readInt();
+        ratio = in.readDouble();
+        methodCount = in.readInt();
+    }
+
+    private void writeMap(ObjectOutputStream out, Map<String, String> map) throws IOException {
+        out.writeInt(map.size());
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            writeString(out, entry.getKey());
+            writeString(out, entry.getValue());
+        }
+    }
+
+    private Map<String, String> readMap(ObjectInputStream in) throws IOException {
+        int size = in.readInt();
+        Map<String, String> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            String key = readString(in);
+            String value = readString(in);
+            map.put(key, value);
+        }
+        return map;
+    }
+
+    private void writeString(ObjectOutputStream out, String str) throws IOException {
+        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        out.writeInt(bytes.length);
+        out.write(bytes);
+    }
+
+    private String readString(ObjectInputStream in) throws IOException {
+        int length = in.readInt();
+        if (length == 0) return "";
+        byte[] bytes = new byte[length];
+        in.readFully(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    private void writeUUIDSet(ObjectOutputStream out, Set<UUID> uuidSet) throws IOException {
+        out.writeInt(uuidSet.size());
+        for (UUID uuid : uuidSet) {
+            out.writeLong(uuid.getMostSignificantBits());
+            out.writeLong(uuid.getLeastSignificantBits());
+        }
+    }
+
+    private Set<UUID> readUUIDSet(ObjectInputStream in) throws IOException {
+        int size = in.readInt();
+        Set<UUID> uuidSet = new HashSet<>();
+        for (int i = 0; i < size; i++) {
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            uuidSet.add(new UUID(mostSigBits, leastSigBits));
+        }
+        return uuidSet;
+    }
+
+    private void writeLineToMethodIdMap(ObjectOutputStream out, Map<Integer, UUID> map) throws IOException {
+        out.writeInt(map.size());
+        for (Map.Entry<Integer, UUID> entry : map.entrySet()) {
+            out.writeInt(entry.getKey());
+            out.writeLong(entry.getValue().getMostSignificantBits());
+            out.writeLong(entry.getValue().getLeastSignificantBits());
+        }
+    }
+
+    private Map<Integer, UUID> readLineToMethodIdMap(ObjectInputStream in) throws IOException {
+        int size = in.readInt();
+        Map<Integer, UUID> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            int key = in.readInt();
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            map.put(key, new UUID(mostSigBits, leastSigBits));
+        }
+        return map;
+    }
 }

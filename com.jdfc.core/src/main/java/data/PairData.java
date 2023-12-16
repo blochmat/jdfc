@@ -6,7 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -65,5 +69,47 @@ public class PairData implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(defId, useId);
+    }
+
+    // Serialization
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeLong(id.getMostSignificantBits());
+        out.writeLong(id.getLeastSignificantBits());
+        writeString(out, className);
+        writeString(out, methodName);
+        out.writeLong(defId.getMostSignificantBits());
+        out.writeLong(defId.getLeastSignificantBits());
+        out.writeLong(useId.getMostSignificantBits());
+        out.writeLong(useId.getLeastSignificantBits());
+        out.writeBoolean(isCovered);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        long mostSigBits = in.readLong();
+        long leastSigBits = in.readLong();
+        id = new UUID(mostSigBits, leastSigBits);
+        className = readString(in);
+        methodName = readString(in);
+        mostSigBits = in.readLong();
+        leastSigBits = in.readLong();
+        defId = new UUID(mostSigBits, leastSigBits);
+        mostSigBits = in.readLong();
+        leastSigBits = in.readLong();
+        useId = new UUID(mostSigBits, leastSigBits);
+        isCovered = in.readBoolean();
+    }
+
+    private void writeString(ObjectOutputStream out, String str) throws IOException {
+        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        out.writeInt(bytes.length);
+        out.write(bytes);
+    }
+
+    private String readString(ObjectInputStream in) throws IOException {
+        int length = in.readInt();
+        if (length == 0) return "";
+        byte[] bytes = new byte[length];
+        in.readFully(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }

@@ -18,7 +18,11 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import utils.JDFCUtils;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -395,5 +399,80 @@ public class MethodData implements Serializable {
         } else {
             throw new IllegalArgumentException("Method end is undefined.");
         }
+    }
+
+    // Serialization
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeLong(id.getMostSignificantBits());
+        out.writeLong(id.getLeastSignificantBits());
+        out.writeInt(total);
+        out.writeInt(covered);
+        out.writeDouble(ratio);
+        out.writeInt(access);
+        writeString(out, className);
+        writeString(out, name);
+        writeString(out, desc);
+        out.writeInt(beginLine);
+        out.writeInt(endLine);
+        writeString(out, declarationStr);
+        // Note: Transient fields are not serialized
+
+        // Serialize UUID Sets
+        writeUUIDSet(out, pVarIds);
+        writeUUIDSet(out, duPairIds);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        long mostSigBits = in.readLong();
+        long leastSigBits = in.readLong();
+        id = new UUID(mostSigBits, leastSigBits);
+        total = in.readInt();
+        covered = in.readInt();
+        ratio = in.readDouble();
+        access = in.readInt();
+        className = readString(in);
+        name = readString(in);
+        desc = readString(in);
+        beginLine = in.readInt();
+        endLine = in.readInt();
+        declarationStr = readString(in);
+        // Note: Transient fields are not deserialized
+
+        // Deserialize UUID Sets
+        pVarIds = readUUIDSet(in);
+        duPairIds = readUUIDSet(in);
+    }
+
+    private void writeString(ObjectOutputStream out, String str) throws IOException {
+        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        out.writeInt(bytes.length);
+        out.write(bytes);
+    }
+
+    private String readString(ObjectInputStream in) throws IOException {
+        int length = in.readInt();
+        if (length == 0) return "";
+        byte[] bytes = new byte[length];
+        in.readFully(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    private void writeUUIDSet(ObjectOutputStream out, Set<UUID> uuidSet) throws IOException {
+        out.writeInt(uuidSet.size());
+        for (UUID uuid : uuidSet) {
+            out.writeLong(uuid.getMostSignificantBits());
+            out.writeLong(uuid.getLeastSignificantBits());
+        }
+    }
+
+    private Set<UUID> readUUIDSet(ObjectInputStream in) throws IOException {
+        int size = in.readInt();
+        Set<UUID> uuidSet = new HashSet<>();
+        for (int i = 0; i < size; i++) {
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            uuidSet.add(new UUID(mostSigBits, leastSigBits));
+        }
+        return uuidSet;
     }
 }

@@ -41,23 +41,23 @@ public class ProjectData implements Serializable {
     private double ratio = 0.0;
     private int methodCount = 0;
 
-    private final Map<String, PackageData> packageDataMap;
-    private final Map<String, ClassMetaData> classMetaDataMap;
-    private final Map<UUID, ClassData> classDataMap;
-    private final Map<UUID, MethodData> methodDataMap;
-    private final Map<UUID, PairData> defUsePairMap;
-    private final Map<UUID, ProgramVariable> programVariableMap;
-    private final Set<String> coveredPVarIds;
+    private Map<String, PackageData> packageDataMap;
+    private Map<String, ClassMetaData> classMetaDataMap;
+    private Map<UUID, ClassData> classDataMap;
+    private Map<UUID, MethodData> methodDataMap;
+    private Map<UUID, PairData> defUsePairMap;
+    private Map<UUID, ProgramVariable> programVariableMap;
+    private Set<String> coveredPVarIds;
 
     /**
      * The keys are variable ids of invoked routines.
      * The values ar variable ids of calling routines.
      */
-    private final Multimap<UUID, UUID> matchesMap;
+    private Multimap<UUID, UUID> matchesMap;
 
 //    private final transient ExecutionDataNode<ExecutionData> root;
-    private final Set<String> testedClassList;
-    private final Set<String> untestedClassList;
+    private Set<String> testedClassList;
+    private Set<String> untestedClassList;
 
     private static final Class<?> deserializerClass = Deserializer.class;
     private static final Class<?> defUsePairClass = PairData.class;
@@ -311,4 +311,181 @@ public class ProjectData implements Serializable {
 //        }
 //        return false;
 //    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        writeString(out, workDir != null ? workDir.getAbsolutePath() : "");
+        writeString(out, buildDir != null ? buildDir.getAbsolutePath() : "");
+        writeString(out, classesDir != null ? classesDir.getAbsolutePath() : "");
+        writeString(out, jdfcDir != null ? jdfcDir.getAbsolutePath() : "");
+        writeString(out, sourceDirAbs);
+        writeString(out, jdfcDebugDir != null ? jdfcDebugDir.getAbsolutePath() : "");
+        writeString(out, jdfcDebugInstrDir != null ? jdfcDebugInstrDir.getAbsolutePath() : "");
+        writeString(out, jdfcDebugErrorDir != null ? jdfcDebugErrorDir.getAbsolutePath() : "");
+        writeString(out, jdfcDebugDevLogDir != null ? jdfcDebugDevLogDir.getAbsolutePath() : "");
+
+        out.writeInt(total);
+        out.writeInt(covered);
+        out.writeDouble(ratio);
+        out.writeInt(methodCount);
+
+        writeStringMap(out, packageDataMap);
+        writeStringMap(out, classMetaDataMap);
+        writeUUIDMap(out, classDataMap);
+        writeUUIDMap(out, methodDataMap);
+        writeUUIDMap(out, defUsePairMap);
+        writeUUIDMap(out, programVariableMap);
+        writeStringSet(out, coveredPVarIds);
+        writeMultimap(out, matchesMap);
+        writeStringSet(out, testedClassList);
+        writeStringSet(out, untestedClassList);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        String workDirPath = readString(in);
+        workDir = workDirPath.isEmpty() ? null : new File(workDirPath);
+        String buildDirPath = readString(in);
+        buildDir = buildDirPath.isEmpty() ? null : new File(buildDirPath);
+        String classesDirPath = readString(in);
+        classesDir = classesDirPath.isEmpty() ? null : new File(classesDirPath);
+        String jdfcDirPath = readString(in);
+        jdfcDir = jdfcDirPath.isEmpty() ? null : new File(jdfcDirPath);
+        sourceDirAbs = readString(in);
+        String jdfcDebugDirPath = readString(in);
+        jdfcDebugDir = jdfcDebugDirPath.isEmpty() ? null : new File(jdfcDebugDirPath);
+        String jdfcDebugInstrDirPath = readString(in);
+        jdfcDebugInstrDir = jdfcDebugInstrDirPath.isEmpty() ? null : new File(jdfcDebugInstrDirPath);
+        String jdfcDebugErrorDirPath = readString(in);
+        jdfcDebugErrorDir = jdfcDebugErrorDirPath.isEmpty() ? null : new File(jdfcDebugErrorDirPath);
+        String jdfcDebugDevLogDirPath = readString(in);
+        jdfcDebugDevLogDir = jdfcDebugDevLogDirPath.isEmpty() ? null : new File(jdfcDebugDevLogDirPath);
+
+        total = in.readInt();
+        covered = in.readInt();
+        ratio = in.readDouble();
+        methodCount = in.readInt();
+
+        packageDataMap = (Map<String, PackageData>) readStringMap(in);
+        classMetaDataMap = (Map<String, ClassMetaData>) readStringMap(in);
+        classDataMap = (Map<UUID, ClassData>) readUUIDMap(in);
+        methodDataMap = (Map<UUID, MethodData>) readUUIDMap(in);
+        defUsePairMap = (Map<UUID, PairData>) readUUIDMap(in);
+        programVariableMap = (Map<UUID, ProgramVariable>) readUUIDMap(in);
+        coveredPVarIds = readStringSet(in);
+        matchesMap = readMultimap(in);
+        testedClassList = readStringSet(in);
+        untestedClassList = readStringSet(in);
+    }
+
+    // Helper method to write a String with UTF-8 encoding
+    private void writeString(ObjectOutputStream out, String str) throws IOException {
+        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        out.writeInt(bytes.length);
+        out.write(bytes);
+    }
+
+    // Helper method to read a String with UTF-8 encoding
+    private String readString(ObjectInputStream in) throws IOException {
+        int length = in.readInt();
+        if (length == 0) return "";
+        byte[] bytes = new byte[length];
+        in.readFully(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    private void writeStringMap(ObjectOutputStream out, Map<String, ?> map) throws IOException {
+        out.writeInt(map.size());
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
+            writeString(out, entry.getKey());
+            out.writeObject(entry.getValue());
+        }
+    }
+
+    private void writeUUIDMap(ObjectOutputStream out, Map<UUID, ?> map) throws IOException {
+        out.writeInt(map.size());
+        for (Map.Entry<UUID, ?> entry : map.entrySet()) {
+            UUID key = entry.getKey();
+            out.writeLong(key.getMostSignificantBits());
+            out.writeLong(key.getLeastSignificantBits());
+            out.writeObject(entry.getValue());
+        }
+    }
+
+
+    // Helper method to read a Map<String, ?>
+    private Map<String, ?> readStringMap(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int size = in.readInt();
+        Map<String, Object> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            String key = readString(in);
+            Object value = in.readObject();
+            map.put(key, value);
+        }
+        return map;
+    }
+
+
+    private Map<UUID, ?> readUUIDMap(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int size = in.readInt();
+        Map<UUID, Object> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            UUID key = new UUID(mostSigBits, leastSigBits);
+            Object value = in.readObject();
+            map.put(key, value);
+        }
+        return map;
+    }
+
+    // Helper method to write a Set<String>
+    private void writeStringSet(ObjectOutputStream out, Set<String> stringSet) throws IOException {
+        out.writeInt(stringSet.size());
+        for (String str : stringSet) {
+            writeString(out, str);
+        }
+    }
+
+    // Helper method to read a Set<String>
+    private Set<String> readStringSet(ObjectInputStream in) throws IOException {
+        int size = in.readInt();
+        Set<String> stringSet = new HashSet<>();
+        for (int i = 0; i < size; i++) {
+            stringSet.add(readString(in));
+        }
+        return stringSet;
+    }
+
+    // Helper method to write a Multimap<UUID, UUID>
+    private void writeMultimap(ObjectOutputStream out, Multimap<UUID, UUID> multimap) throws IOException {
+        out.writeInt(multimap.size());
+        for (Map.Entry<UUID, Collection<UUID>> entry : multimap.asMap().entrySet()) {
+            out.writeLong(entry.getKey().getMostSignificantBits());
+            out.writeLong(entry.getKey().getLeastSignificantBits());
+            Collection<UUID> values = entry.getValue();
+            out.writeInt(values.size());
+            for (UUID uuid : values) {
+                out.writeLong(uuid.getMostSignificantBits());
+                out.writeLong(uuid.getLeastSignificantBits());
+            }
+        }
+    }
+
+    // Helper method to read a Multimap<UUID, UUID>
+    private Multimap<UUID, UUID> readMultimap(ObjectInputStream in) throws IOException {
+        int size = in.readInt();
+        Multimap<UUID, UUID> multimap = ArrayListMultimap.create();
+        for (int i = 0; i < size; i++) {
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            UUID key = new UUID(mostSigBits, leastSigBits);
+            int valueSize = in.readInt();
+            for (int j = 0; j < valueSize; j++) {
+                mostSigBits = in.readLong();
+                leastSigBits = in.readLong();
+                UUID value = new UUID(mostSigBits, leastSigBits);
+                multimap.put(key, value);
+            }
+        }
+        return multimap;
+    }
 }
