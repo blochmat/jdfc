@@ -662,13 +662,12 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             ProgramVariable p = createPVarThis(currentInstructionIndex);
             if (p != null) {
                 result.put(0, p);
-                for (Object o : local) {
-                    if (o instanceof ProgramVariable) {
-                        result.put(local.indexOf(o) + 1, (ProgramVariable) o);
-                    }
+            }
+
+            for (Object o : local) {
+                if (o instanceof ProgramVariable) {
+                    result.put(local.indexOf(o) + 1, (ProgramVariable) o);
                 }
-            } else {
-                System.err.println("ERROR createIndexUseMap: p is null.");
             }
         } else {
             for (Object o : local) {

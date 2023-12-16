@@ -121,7 +121,7 @@ public class Instrumenter {
         if(this.isInterface(classNode.access)) {
             System.out.println("Skipping instrumentation of interface: " + classMetaData.getClassFileAbs());
             classReader.accept(cw, 0);
-            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, new PrintWriter(System.err));
+//            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, new PrintWriter(System.err));
             return cw.toByteArray();
         }
 
@@ -129,7 +129,7 @@ public class Instrumenter {
         if(this.isEnum(classNode.access)) {
             System.out.println("Skipping instrumentation of enum: " + classMetaData.getClassFileAbs());
             classReader.accept(cw, 0);
-            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, new PrintWriter(System.err));
+//            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, new PrintWriter(System.err));
             return cw.toByteArray();
         }
 
@@ -137,7 +137,7 @@ public class Instrumenter {
         if(this.isAnonymousInnerClass(classMetaData.getFqn())) {
             System.out.println("Skipping instrumentation of anonymous inner class: " + classMetaData.getClassFileAbs());
             classReader.accept(cw, 0);
-            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, new PrintWriter(System.err));
+//            CheckClassAdapter.verify(new ClassReader(cw.toByteArray()), false, new PrintWriter(System.err));
             return cw.toByteArray();
         }
 

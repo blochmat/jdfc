@@ -10,6 +10,7 @@ import utils.Deserializer;
 import utils.JDFCUtils;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -65,6 +66,7 @@ public class ProjectData implements Serializable {
     private static final Class<?> cfgClass = CFG.class;
 
     private ProjectData(final boolean initHook) {
+        JDFCUtils.logThis(Thread.currentThread().getName(), "threads");
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             System.err.println("Exception occurred in thread: " + t.getName());
             e.printStackTrace();
@@ -86,25 +88,18 @@ public class ProjectData implements Serializable {
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
-                    try {
-                        FileOutputStream fileOut = new FileOutputStream(JDFCUtils.getJDFCSerFileAbs());
+                    try (FileOutputStream fileOut = new FileOutputStream(JDFCUtils.getJDFCSerFileAbs());
+                         ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
 
-                        // Create an ObjectOutputStream to write the object
-                        ObjectOutputStream out = new ObjectOutputStream(fileOut);
                         if (old != null) {
                             old.getCoveredPVarIds().addAll(ProjectData.getInstance().getCoveredPVarIds());
                             out.writeObject(old);
                         } else {
                             out.writeObject(ProjectData.getInstance());
                         }
-
-                        // Close the streams
-                        out.flush();
-                        out.close();
-                        fileOut.flush();
-                        fileOut.close();
                     } catch (IOException e) {
                         e.printStackTrace();
+                        // Consider additional error handling here
                     }
                 }
             });
