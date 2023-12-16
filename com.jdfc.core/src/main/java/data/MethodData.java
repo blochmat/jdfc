@@ -341,6 +341,9 @@ public class MethodData implements Serializable {
     }
 
     public void createIndexDefinitionsMap() {
+        if (this.name.contains("addObservedPoint")) {
+            System.out.println();
+        }
         for (Map.Entry<Integer, CFGNode> entry : this.cfg.getNodes().entrySet()) {
             CFGNode node = entry.getValue();
 
@@ -348,10 +351,13 @@ public class MethodData implements Serializable {
                 Multimap<Integer, ProgramVariable> indexDefinitionsMap = ArrayListMultimap.create();
                 CFGCallNode cfgCallNode = (CFGCallNode) node;
                 for (Map.Entry<Integer, ProgramVariable> paramEntry : cfgCallNode.getIndexUseMap().entrySet()) {
-                    ProgramVariable usage = paramEntry.getValue();
+                    ProgramVariable match = paramEntry.getValue();
+                    if (match == null) {
+                        continue;
+                    }
                     Set<PairData> duPairs = ProjectData.getInstance().getDefUsePairMap().values()
                             .stream()
-                            .filter(x -> x.getUseId().equals(usage.getId()))
+                            .filter(x -> x.getUseId().equals(match.getId()))
                             .collect(Collectors.toSet());
                     Set<UUID> defIds = duPairs.stream().map(PairData::getDefId).collect(Collectors.toSet());
                     for (UUID defId : defIds) {

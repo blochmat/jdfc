@@ -107,4 +107,49 @@ public class ASMHelper {
         // Arrays and Objects are not primitive and so are not call-by-value.
         return false;
     }
+
+    public List<String> extractParameterTypes(String descriptor) {
+        List<String> paramTypes = new ArrayList<>();
+        int i = 0;
+        boolean isParam = false;
+
+        while (i < descriptor.length()) {
+            char ch = descriptor.charAt(i);
+            if (ch == '(') {
+                isParam = true;
+                i++;
+                continue;
+            }
+            if (ch == ')') {
+                break;
+            }
+            if (isParam) {
+                StringBuilder type = new StringBuilder();
+                if (ch == 'L') {
+                    while (descriptor.charAt(i) != ';') {
+                        type.append(descriptor.charAt(i++));
+                    }
+                    type.append(';'); // Include the semicolon in the type
+                } else if (ch == '[') {
+                    while (descriptor.charAt(i) == '[') {
+                        type.append(descriptor.charAt(i++));
+                    }
+                    if (descriptor.charAt(i) == 'L') {
+                        type.append(descriptor.charAt(i++));
+                        while (descriptor.charAt(i) != ';') {
+                            type.append(descriptor.charAt(i++));
+                        }
+                        type.append(';'); // Include the semicolon in the type
+                    } else {
+                        type.append(descriptor.charAt(i));
+                    }
+                } else {
+                    type.append(ch);
+                }
+                paramTypes.add(type.toString());
+            }
+            i++;
+        }
+        return paramTypes;
+    }
 }

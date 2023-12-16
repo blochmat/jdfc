@@ -384,6 +384,9 @@ public class ClassEsgCreator {
                                         for (ProgramVariable match : sgCallNode.getDefinitionsMap().keySet()) {
                                             ProgramVariable matchedSrc = sgCallNode.getDefinitionsMap().get(match);
                                             if (matchedSrc.equals(srcVar)) {
+                                                if (match == null) {
+                                                    System.out.println();
+                                                }
                                                 this.addEdge(esgEdges, trgtEsgLiveVarsMaps, currEsgIdx, trgtEsgIdx,
                                                         srcCallIdx, srcCallIdx + 1, srcVarId, match.getId());
                                                 esgCurr.getDefinitionMaps().computeIfAbsent(srcCallIdx, k -> new HashMap<>());

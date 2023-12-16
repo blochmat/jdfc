@@ -153,6 +153,9 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 null);
         MethodData cmData = classVisitor.classData.getMethodByShortInternalName(shortCalledMethodName);
         if (owner.equals(classVisitor.classNode.name) && cmData != null) {
+            if (cmData.getName().contains("addObservedPoint")) {
+                System.out.println();
+            }
             Map<Integer, ProgramVariable> paramPositionMap = this.createIndexUseMap(aa.getPopList(), cmData);
             if (!paramPositionMap.isEmpty()) {
                 paramPositionMap = this.cleanupPVarMap(paramPositionMap, cmData);
@@ -208,10 +211,13 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             String descriptor = first.getDescriptor();
             int key = -1;
             boolean foundFirst = false;
+            pVarMap.values().removeIf(Objects::isNull);
             for (Map.Entry<Integer, ProgramVariable> entry : pVarMap.entrySet()) {
-                if (!foundFirst && entry.getValue().getDescriptor().equals(descriptor)) {
-                    foundFirst = true;
-                    key = entry.getKey();
+                if (entry.getValue() != null) {
+                    if (!foundFirst && entry.getValue().getDescriptor().equals(descriptor)) {
+                        foundFirst = true;
+                        key = entry.getKey();
+                    }
                 }
             }
 
@@ -658,25 +664,43 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         // Reverse list is necessary, because arguments are popped from the stack in reverse order
         Collections.reverse(local);
         // Add "this" if called procedure is not static
+        int index = 0;
         if (!asmHelper.isStatic(called.getAccess()) && !isStatic) {
             ProgramVariable p = createPVarThis(currentInstructionIndex);
             if (p != null) {
-                result.put(0, p);
-            }
-
-            for (Object o : local) {
-                if (o instanceof ProgramVariable) {
-                    result.put(local.indexOf(o) + 1, (ProgramVariable) o);
-                }
-            }
-        } else {
-            for (Object o : local) {
-                if (o instanceof ProgramVariable) {
-                    result.put(local.indexOf(o), (ProgramVariable) o);
-                }
+                result.put(index, p);
+                index++;
             }
         }
 
+        // Match params to their position in method call
+        List<String> paramTypes = asmHelper.extractParameterTypes(called.toString());
+        while (!paramTypes.isEmpty()) {
+            String type = paramTypes.remove(0);
+            if (!local.isEmpty()) {
+                Object a = local.remove(0);
+                if (Objects.equals(type, "D") || Objects.equals(type, "J")) {
+                    if (!local.isEmpty()) {
+                        // could be empty when exception occurs
+                        Object b = local.remove(0);
+                        if (!(a instanceof ProgramVariable || b instanceof ProgramVariable)) {
+                            result.put(index, null);
+                        } else if (a instanceof ProgramVariable) {
+                            result.put(index, (ProgramVariable) a);
+                        } else {
+                            result.put(index, (ProgramVariable) b);
+                        }
+                    }
+                } else {
+                    if (a instanceof ProgramVariable) {
+                        result.put(index, (ProgramVariable) a);
+                    } else {
+                        result.put(index, null);
+                    }
+                }
+                index++;
+            }
+        }
         return result;
     }
 
