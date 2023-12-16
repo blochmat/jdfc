@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
+import java.util.Objects;
 
 import static utils.Constants.JDFC_SERIALIZATION_FILE;
 
@@ -21,6 +22,7 @@ public class Main {
     private static String classesDirAbs;
     private static String sourceDirAbs;
     private static String outputDirAbs;
+    private static boolean isInterProcedural = false;
 
     public static void main(String[] args) {
         createOptions();
@@ -34,10 +36,19 @@ public class Main {
             throw new RuntimeException(e);
         }
         if(cmd.hasOption("i")) {
+            if (!cmd.hasOption("s")) {
+                System.err.println("Please set a scope for the instrumentation.");
+                System.exit(1);
+            }
+
+            if (Objects.equals(cmd.getOptionValue("s"), "inter")) {
+                isInterProcedural = true;
+            }
+
             // Instrument
             parsePathOptions(cmd, false);
             ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
+            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
             String classFqn = cmd.getOptionValue("i");
             if (classFqn != null) {
                 // Instrument single class
@@ -51,11 +62,6 @@ public class Main {
                     instrumenter.instrumentClass(classFile.getAbsolutePath());
                 }
             }
-        }
-
-        if (cmd.hasOption("t")
-                && cmd.getOptionValue("i") != null
-                && cmd.getOptionValue("t") != null) {
         }
 
         if (cmd.hasOption("r")) {
@@ -82,6 +88,7 @@ public class Main {
     private static void createOptions() {
         options = new Options();
 
+        // Directories
         Option workDirOption = Option.builder()
                 .option("W")
                 .longOpt("workDir")
@@ -114,16 +121,27 @@ public class Main {
                 .build();
         options.addOption(sourceDirOption);
 
+        // Instrumentation
         Option instrument = Option.builder()
                 .option("i")
                 .longOpt("instrument")
                 .argName("instrument")
                 .hasArg()
                 .optionalArg(true)
-                .desc("Instrument class/es.")
+                .desc("Instrument single class by passing its fully qualified name. If no value is set all classes are instrumented.")
                 .build();
         options.addOption(instrument);
 
+        Option scope = Option.builder()
+                .option("s")
+                .longOpt("scope")
+                .argName("scope")
+                .hasArg()
+                .desc("Analysis scope. \n   \"intra\": intra-procedural\n   \"inter\": inter-procedural")
+                .build();
+        options.addOption(scope);
+
+        // Test execution. Currently unused.
         Option test = Option.builder()
                 .option("t")
                 .longOpt("test")
@@ -134,6 +152,7 @@ public class Main {
                 .build();
         options.addOption(test);
 
+        // Report creation
         Option report = Option.builder()
                 .option("r")
                 .longOpt("report")

@@ -11,6 +11,7 @@ import utils.JDFCUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class InstrumentTask extends Task {
@@ -22,6 +23,8 @@ public class InstrumentTask extends Task {
     private String classes;
 
     private String src;
+
+    private String scope;
 
     public void addFileset(FileSet fileset) {
         filesets.add(fileset);
@@ -39,17 +42,27 @@ public class InstrumentTask extends Task {
         this.src = src;
     }
 
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+
     @Override
     public void execute() {
         log.info(this.work);
         log.info(this.classes);
         log.info(this.src);
+        log.info(this.scope);
+        boolean isInterProcedural = false;
+        if (Objects.equals(this.scope, "inter")) {
+            isInterProcedural = true;
+        }
         String workDirAbs = work;
         String buildDirAbs = String.format("%s%starget", workDirAbs, File.separator);
         String classesDirAbs = String.join(File.separator, workDirAbs, classes);
         String sourceDirAbs = String.join(File.separator, workDirAbs, src);
         ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
+        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
         for (FileSet fs : filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             for (String includedFile : ds.getIncludedFiles()) {

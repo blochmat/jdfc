@@ -24,12 +24,13 @@ public class InstrumentMojo extends AbstractMojo {
 
     @Override
     public void execute()  {
+        // TODO
         final String workDirAbs = project.getBasedir().toString();
         final String buildDirAbs = project.getBuild().getDirectory();
         final String classesDirAbs = project.getBuild().getOutputDirectory();
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
         ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
-        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
+        Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, true);
         List<File> classFiles = instrumenter.loadClassFiles();
         for (File classFile : classFiles) {
             instrumenter.instrumentClass(classFile.getAbsolutePath());

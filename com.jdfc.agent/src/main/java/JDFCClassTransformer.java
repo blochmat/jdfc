@@ -14,6 +14,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
     private final String workDirAbs;
     private final String classesDirAbs;
     private final String sourceDirAbs;
+    private final boolean isInterProcedural;
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
@@ -23,7 +24,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
         }
 
         if(classFileAbs.startsWith(classesDirAbs)) {
-            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs);
+            Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
             return instrumenter.instrumentClass(classfileBuffer, classFileAbs);
         } else {
             return classfileBuffer;

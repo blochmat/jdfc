@@ -36,6 +36,7 @@ public class Instrumenter {
     private final String workDirAbs;
     private final String classesDirAbs;
     private final String sourceDirAbs;
+    private final boolean isInterProcedural;
 
     public void instrumentClass(String classFileAbs) {
         // Create output directory and file
@@ -158,6 +159,8 @@ public class Instrumenter {
         UUID classDataId = ProjectData.getInstance().getClassMetaDataMap().get(classMetaData.getFqn()).getClassDataId();
         ClassData classData = ProjectData.getInstance().getClassDataMap().get(classDataId);
 
+        log.info("Start instrumentation for intra-procedural analysis.");
+
         // Find local variables for all methods
         LocalVariableClassVisitor localVariableVisitor = new LocalVariableClassVisitor(classNode, classData);
         classReader.accept(localVariableVisitor, ClassReader.EXPAND_FRAMES);
@@ -188,34 +191,32 @@ public class Instrumenter {
             }
         }
 
-        // Create pVarMaps
-        for(MethodData mData : classData.getMethodDataFromStore().values()) {
-            if(mData.getCfg() != null) {
-                mData.createIndexDefinitionsMap();
-            } else {
-                System.err.println("ERROR: MethodData.getCfg() returned null! See /target/jdfc/debug/ERROR_JDFCInstrument.log for more info.");
-            }
-        }
+        if (this.isInterProcedural) {
 
-        // Create SGs for all methods of class
-        SGCreator sgCreator = new SGCreator();
-        sgCreator.createSGsForClass(classData);
-//
-//        // Create ESGs for all methods of class
-        ClassEsgCreator classEsgCreator = new ClassEsgCreator();
-        classEsgCreator.createESGsForClass(classData);
-
-        // TODO
-        // Compute inter-procedural pairs
-        for (MethodData mData : classData.getMethodDataFromStore().values()) {
-            if(log.isDebugEnabled() && !mData.getName().contains("defineAStatic") && mData.getName().contains("defineA")) {
-//                System.out.println();
+            log.info("Start instrumentation for inter-procedural analysis.");
+            // Create pVarMaps
+            for(MethodData mData : classData.getMethodDataFromStore().values()) {
+                if(mData.getCfg() != null) {
+                    mData.createIndexDefinitionsMap();
+                } else {
+                    System.err.println("ERROR: MethodData.getCfg() returned null! See /target/jdfc/debug/ERROR_JDFCInstrument.log for more info.");
+                }
             }
-            TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(mData.getEsg());
-            Map<Integer, Set<UUID>> MVP = tabulationAlgorithm.execute();
-            mData.calculateInterProcDefUsePairs(MVP);
-            if(log.isDebugEnabled() && !mData.getName().contains("defineAStatic") && mData.getName().contains("defineA")) {
-//                System.out.println();
+
+            // Create SGs for all methods of class
+            SGCreator sgCreator = new SGCreator();
+            sgCreator.createSGsForClass(classData);
+
+            // Create ESGs for all methods of class
+            ClassEsgCreator classEsgCreator = new ClassEsgCreator();
+            classEsgCreator.createESGsForClass(classData);
+
+            // TODO
+            // Compute inter-procedural pairs
+            for (MethodData mData : classData.getMethodDataFromStore().values()) {
+                TabulationAlgorithm tabulationAlgorithm = new TabulationAlgorithm(mData.getEsg());
+                Map<Integer, Set<UUID>> MVP = tabulationAlgorithm.execute();
+                mData.calculateInterProcDefUsePairs(MVP);
             }
         }
 
