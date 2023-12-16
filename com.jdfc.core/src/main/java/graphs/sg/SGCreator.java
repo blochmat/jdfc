@@ -2,7 +2,6 @@ package graphs.sg;
 
 import com.google.common.collect.*;
 import data.ClassData;
-import data.DomainVariable;
 import data.MethodData;
 import data.ProgramVariable;
 import graphs.cfg.CFG;
@@ -200,7 +199,6 @@ public class SGCreator {
                         // node is part of subroutine
                         this.sgEntryNodeIdxStack.push(index);
                         SGCallNode sgCallNode = (SGCallNode) sgNodes.get(sgCallNodeIdxStack.peek());
-                        sgEntryNode.setDVarMap(sgCallNode.getDVarMap().inverse());
 
 //                        Multimap<ProgramVariable, ProgramVariable> calleeMap = ArrayListMultimap.create();
 //                        for (Map.Entry<ProgramVariable, ProgramVariable> pVarMapEntry : sgCallNode.getDefinitionsMap().entrySet()) {
@@ -219,7 +217,6 @@ public class SGCreator {
                         int sgExitNodeIdx = index;
                         SGEntryNode sgEntryNode = (SGEntryNode) sgNodes.get(sgEntryNodeIdxStack.peek());
                         sgExitNode.setDefinitionsMap(sgEntryNode.getDefinitionsMap());
-                        sgExitNode.setDVarMap(sgEntryNode.getDVarMap().inverse());
                         // Connect exit to return site node
                         Collection<Integer> exitTargets = Collections.singletonList(cfgIndex + 1);
                         this.addSGNode(sgExitNode, exitTargets);
@@ -307,17 +304,7 @@ public class SGCreator {
                                 callerMap.put(positionParamMapEntry.get(cEntry.getKey()), cEntry.getValue());
                             }
 
-                            // Create domain variable mapping
-                            Map<Integer, DomainVariable> dVarsCall = cfgCallNode.getDVarMap();
-                            BiMap<DomainVariable, DomainVariable> dVarMap = HashBiMap.create();
-                            for (Map.Entry<Integer, DomainVariable> cEntry : dVarsCall.entrySet()) {
-                                if (cEntry.getValue().getIndex() != 0) {
-                                    dVarMap.put(cEntry.getValue(), calledMethodData.getCfg().getDomain().get(cEntry.getKey()));
-                                }
-                            }
-
                             sgCallNode.getDefinitionsMap().putAll(callerMap);
-                            sgCallNode.getDVarMap().putAll(dVarMap);
                         }
                     }
                 } else {

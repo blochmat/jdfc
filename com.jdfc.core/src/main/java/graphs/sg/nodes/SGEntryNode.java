@@ -2,7 +2,6 @@ package graphs.sg.nodes;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
@@ -23,7 +22,6 @@ public class SGEntryNode extends SGNode {
      * The value is a definition of the invoking procedure.
      */
     private Map<ProgramVariable, ProgramVariable> definitionsMap;
-    private BiMap<DomainVariable, DomainVariable> dVarMap;
     private int callNodeIdx;
     private int exitNodeIdx;
     private int returnSiteNodeIdx;
@@ -31,7 +29,6 @@ public class SGEntryNode extends SGNode {
     public SGEntryNode(int index, int cfgIndex, CFGNode node) {
         super(index, cfgIndex, index, node);
         this.definitionsMap = new HashMap<>();
-        this.dVarMap = HashBiMap.create();
     }
 
     @Override

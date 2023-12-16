@@ -4,7 +4,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import data.DomainVariable;
 import data.MethodData;
 import data.ProgramVariable;
 import data.ProjectData;
@@ -32,7 +31,6 @@ import static org.objectweb.asm.Opcodes.*;
 public class CFGMethodVisitor extends JDFCMethodVisitor {
     private final Multimap<Integer, Integer> edges;
     private final NavigableMap<Integer, CFGNode> nodes;
-    private final NavigableMap<Integer, DomainVariable> domain;
     private final MethodData mData;
     private final CFGAnalyzerAdapter aa;
     private final int argCount;
@@ -54,9 +52,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         this.argCount = argCount;
         this.asmHelper = new ASMHelper();
         this.isStatic = this.asmHelper.isStatic(mData.getAccess());
-        // TODO: Add fields to domain
-        this.domain = new TreeMap<>();
-        this.domain.putAll(createDomainVarsFromLocal());
     }
 
     @Override
@@ -160,10 +155,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             if (!paramPositionMap.isEmpty()) {
                 paramPositionMap = this.cleanupPVarMap(paramPositionMap, cmData);
             }
-            Map<Integer, DomainVariable> dVarMap = this.createDVarMap(aa.getPopList(), cmData);
-            if (!dVarMap.isEmpty()) {
-                dVarMap = this.cleanupDVarMap(dVarMap, cmData);
-            }
 
             CFGCallNode node = new CFGCallNode(
                     currentInstructionIndex,
@@ -175,8 +166,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                     owner,
                     cmData.buildInternalMethodName(),
                     isInterface,
-                    paramPositionMap,
-                    dVarMap);
+                    paramPositionMap);
             nodes.put(currentInstructionIndex, node);
         } else {
             final CFGNode node = new CFGNode(
@@ -230,49 +220,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             }
 
             for (Map.Entry<Integer, ProgramVariable> entry : pVarMap.entrySet()) {
-                newMap.put(entry.getKey() - removed, entry.getValue());
-            }
-        }
-        return newMap;
-    }
-
-    /**
-     * This method exists, because on some occasions more than just the method parameters are popped from the operand
-     * stack, which leads to issues when we want to match parameters on call and entry nodes.
-     * Therefore we want to delete all ProgramVariables that are not part of the called methods scope.
-     * We use the first local variable from the called methods variable table and compare its type to the type of
-     * the variables in the pop list.
-     * As soon as these types match we assume that the matching element is the first parameter to match followed by all
-     * other parameters, which require matching.
-     * This is not sure to work at all times.
-     * @param dVarMap
-     * @param called
-     * @return
-     */
-    private Map<Integer, DomainVariable> cleanupDVarMap(Map<Integer, DomainVariable> dVarMap, MethodData called) {
-        Map<Integer, DomainVariable> newMap = new HashMap<>();
-        Optional<LocalVariable> firstOptional = called.getLocalVariableTable().values().stream().findFirst();
-        if (firstOptional.isPresent()) {
-            LocalVariable first = firstOptional.get();
-            String descriptor = first.getDescriptor();
-            int key = -1;
-            boolean foundFirst = false;
-            for (Map.Entry<Integer, DomainVariable> entry : dVarMap.entrySet()) {
-                if (!foundFirst && entry.getValue().getDescriptor().equals(descriptor)) {
-                    foundFirst = true;
-                    key = entry.getKey();
-                }
-            }
-
-            int removed = 0;
-            for (int i = 0; i < key; i++) {
-                if (dVarMap.get(i) != null) {
-                    dVarMap.remove(i);
-                    removed++;
-                }
-            }
-
-            for (Map.Entry<Integer, DomainVariable> entry : dVarMap.entrySet()) {
                 newMap.put(entry.getKey() - removed, entry.getValue());
             }
         }
@@ -399,10 +346,9 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         this.addEntryAndExitNode();
 
         this.setPredecessorSuccessorRelation();
-        CFG cfg = new CFG(classVisitor.classNode.name, internalMethodName, nodes, edges, domain);
+        CFG cfg = new CFG(classVisitor.classNode.name, internalMethodName, nodes, edges);
 
         if (true) {
-            JDFCUtils.logThis(internalMethodName + "\n" + JDFCUtils.prettyPrintMap(domain), "domain");
             JDFCUtils.logThis(JDFCUtils.prettyPrintMap(nodes), String.format("cfg_%s::%s", classVisitor.classData.getClassMetaData().getName(), methodNode.name));
             JDFCUtils.logThis(JDFCUtils.prettyPrintMultimap(edges), String.format("cfg_%s::%s", classVisitor.classData.getClassMetaData().getName(), methodNode.name));
         }
@@ -415,14 +361,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
 
     // ---------------------------------------------- Helper Methods ---------------------------------------------------
 
-    private Map<Integer, DomainVariable> createDomainVarsFromLocal() {
-        Map<Integer, DomainVariable> domain = new TreeMap<>();
-        for(Map.Entry<Integer, LocalVariable> localVarEntry : mData.getLocalVariableTable().entrySet()) {
-            domain.put(localVarEntry.getKey(), new DomainVariable(localVarEntry.getKey(), classVisitor.classNode.name, internalMethodName, localVarEntry.getValue().getName(), localVarEntry.getValue().getDescriptor()));
-        }
-
-        return domain;
-    }
     private int getFrameOpcode(int type) {
 //        logger.debug("getFrameOpcode");
         switch (type) {
@@ -597,12 +535,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
             case DSTORE:
             case ASTORE:
                 programVariable = getProgramVariableFromLocalVar(localVarIdx, opcode, insnIdx, lineNumber);
-                domain.put(localVarIdx, new DomainVariable(
-                        localVarIdx,
-                        classVisitor.classNode.name,
-                        internalMethodName,
-                        programVariable.getName(),
-                        programVariable.getDescriptor()));
                 node = new CFGNode(
                         classVisitor.classNode.name,
                         internalMethodName,
@@ -704,42 +636,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
         return result;
     }
 
-    private Map<Integer, DomainVariable> createDVarMap(List<Object> popList, MethodData called) {
-        List<Object> local = new ArrayList<>(popList);
-        Map<Integer, DomainVariable> result = new HashMap<>();
-        // Reverse list is necessary, because arguments are popped from the stack in reverse order
-        Collections.reverse(local);
-
-        if (!asmHelper.isStatic(called.getAccess()) && !isStatic) {
-            DomainVariable d = createDomainVariableFromLocalVar(0);
-            result.put(0, d);
-            for (Object o : local) {
-                if (o instanceof ProgramVariable) {
-                    result.put(local.indexOf(o) + 1, new DomainVariable(
-                            ((ProgramVariable) o).getLocalVarIdx(),
-                            classVisitor.classNode.name,
-                            internalMethodName,
-                            ((ProgramVariable) o).getName(),
-                            ((ProgramVariable) o).getDescriptor()));
-                }
-            }
-        } else {
-            for (Object o : local) {
-                if (o instanceof ProgramVariable) {
-                    result.put(local.indexOf(o), new DomainVariable(
-                            ((ProgramVariable) o).getLocalVarIdx(),
-                            classVisitor.classNode.name,
-                            internalMethodName,
-                            ((ProgramVariable) o).getName(),
-                            ((ProgramVariable) o).getDescriptor()));
-                }
-            }
-        }
-
-
-        return result;
-    }
-
     private Multimap<Integer, Integer> createEdges() {
 //        logger.debug("createEdges");
         CFGEdgeAnalysisVisitor cfgEdgeAnalysisVisitor =
@@ -762,21 +658,11 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
 //        logger.debug("addEntryAndExitNode");
         Set<ProgramVariable> definitions = createDefinitionsFromLocalVars();
         Map<Integer, ProgramVariable> pVarMap = new HashMap<>();
-        Map<Integer, DomainVariable> dVarMap = new HashMap<>();
         int idx = 0;
         for(ProgramVariable def : definitions) {
             ProjectData.getInstance().getProgramVariableMap().put(def.getId(), def);
             mData.getPVarIds().add(def.getId());
-
             pVarMap.put(idx, def);
-
-            // TODO: delete
-            dVarMap.put(idx, new DomainVariable(
-                    def.getLocalVarIdx(),
-                    classVisitor.classNode.name,
-                    internalMethodName,
-                    def.getName(),
-                    def.getDescriptor()));
             idx++;
         }
 
@@ -794,8 +680,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
                 Sets.newLinkedHashSet(),
-                pVarMap,
-                dVarMap);
+                pVarMap);
         entryNode.setIndex(0);
         nodes.put(0, entryNode);
 
@@ -817,8 +702,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
                 Sets.newLinkedHashSet(),
                 Sets.newHashSet(),
                 Sets.newLinkedHashSet(),
-                pVarMap,
-                dVarMap);
+                pVarMap);
         int index = nodes.size();
         exitNode.setIndex(index);
         nodes.put(index, exitNode);
@@ -869,16 +753,6 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
 
         }
         return var;
-    }
-
-    private DomainVariable createDomainVariableFromLocalVar(int index) {
-        LocalVariable localVariable = mData.getLocalVariableTable().get(index);
-        return new DomainVariable(
-                index,
-                classVisitor.classNode.name,
-                internalMethodName,
-                localVariable.getName(),
-                localVariable.getDescriptor());
     }
 
     /**

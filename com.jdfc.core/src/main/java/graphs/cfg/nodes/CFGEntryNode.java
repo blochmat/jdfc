@@ -1,6 +1,5 @@
 package graphs.cfg.nodes;
 
-import data.DomainVariable;
 import data.ProgramVariable;
 import lombok.Data;
 import utils.ASMHelper;
@@ -21,11 +20,6 @@ public class CFGEntryNode extends CFGNode {
      */
     private final Map<Integer, ProgramVariable> pVarMap;
 
-    /**
-     * Mapping of all domain variables (value) with position of appearance in the method call (key) apart from "this" <br>
-     */
-    private final Map<Integer, DomainVariable> dVarMap;
-
     private ASMHelper asmHelper = new ASMHelper();
 
     public CFGEntryNode(
@@ -37,11 +31,9 @@ public class CFGEntryNode extends CFGNode {
             Set<ProgramVariable> uses,
             Set<CFGNode> predecessors,
             Set<CFGNode> successors,
-            Map<Integer, ProgramVariable> pVarMap,
-            Map<Integer, DomainVariable> dVarMap) {
+            Map<Integer, ProgramVariable> pVarMap) {
         super(className, methodName, methodAccess, lineNumber, definitions, uses, Integer.MIN_VALUE, Integer.MIN_VALUE, predecessors, successors);
         this.pVarMap = pVarMap;
-        this.dVarMap = dVarMap;
     }
 
     @Override

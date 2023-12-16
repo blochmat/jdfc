@@ -1,7 +1,6 @@
 package graphs.cfg.nodes;
 
 import com.google.common.collect.Multimap;
-import data.DomainVariable;
 import data.ProgramVariable;
 import lombok.Data;
 import utils.ASMHelper;
@@ -46,8 +45,6 @@ public class CFGCallNode extends CFGNode {
      */
     private Multimap<Integer, ProgramVariable> indexDefinitionsMap;
 
-    private final Map<Integer, DomainVariable> dVarMap;
-
     private ASMHelper asmHelper = new ASMHelper();
 
     public CFGCallNode(
@@ -60,14 +57,12 @@ public class CFGCallNode extends CFGNode {
             String calledClassName,
             String calledMethodName,
             boolean calledIsInterface,
-            Map<Integer, ProgramVariable> indexUseMap,
-            Map<Integer, DomainVariable> dVarMap) {
+            Map<Integer, ProgramVariable> indexUseMap) {
        super(className, methodName, methodAccess, lineNumber, index, opcode);
        this.calledClassName = calledClassName;
        this.calledMethodName = calledMethodName;
        this.calledIsInterface = calledIsInterface;
        this.indexUseMap = indexUseMap;
-       this.dVarMap = dVarMap;
     }
 
     @Override

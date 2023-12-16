@@ -2,7 +2,6 @@ package graphs.cfg;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGEntryNode;
 import graphs.cfg.nodes.CFGNode;
@@ -27,19 +26,16 @@ public class CFG {
     private String methodName;
     private NavigableMap<Integer, CFGNode> nodes;
     private Multimap<Integer, Integer> edges;
-    private NavigableMap<Integer, DomainVariable> domain;
 
     public CFG(
             @NonNull final String owner,
             @NonNull final String methodName,
             @NonNull final NavigableMap<Integer, CFGNode> nodes,
-            @NonNull final Multimap<Integer, Integer> edges,
-            @NonNull final NavigableMap<Integer, DomainVariable> domain) {
+            @NonNull final Multimap<Integer, Integer> edges) {
         this.owner = owner;
         this.methodName = methodName;
         this.nodes = nodes;
         this.edges = edges;
-        this.domain = domain;
     }
 
     public CFGEntryNode getEntryNode() {

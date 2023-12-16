@@ -1,8 +1,5 @@
 package graphs.sg.nodes;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import data.DomainVariable;
 import data.ProgramVariable;
 import graphs.cfg.nodes.CFGNode;
 import lombok.Data;
@@ -23,14 +20,12 @@ public class SGExitNode extends SGNode {
      * The value is a definition of the invoking procedure.
      */
     private Map<ProgramVariable, ProgramVariable> definitionsMap;
-    private Map<DomainVariable, DomainVariable> dVarMap;
     private int callNodeIdx;
     private int returnSiteNodeIdx;
 
     public SGExitNode(int index, int cfgIndex, int entryNodeIdx, CFGNode node) {
         super(index, cfgIndex, entryNodeIdx, node);
         this.definitionsMap = new HashMap<>();
-        this.dVarMap = new HashMap<>();
     }
 
     @Override
