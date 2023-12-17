@@ -1,3 +1,4 @@
+import data.ProjectData;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.instrument.Instrumentation;
@@ -9,7 +10,8 @@ public final class JDFCAgent {
 
     public static void premain(final String agentArgs, final Instrumentation inst) {
         List<String> args = Arrays.asList(agentArgs.split(","));
-        JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer(args.get(0), args.get(1), args.get(2), args.get(3).equals("inter"));
+        ProjectData.getInstance().saveProjectInfo(args.get(0), args.get(1), args.get(2), args.get(3));
+        JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer(args.get(0), args.get(1), args.get(2), args.get(4).equals("inter"));
         inst.addTransformer(jdfcClassTransformer);
     }
 }

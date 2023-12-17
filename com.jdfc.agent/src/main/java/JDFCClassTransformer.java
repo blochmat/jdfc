@@ -1,6 +1,7 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import instr.Instrumenter;
+import utils.JDFCUtils;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.net.URL;
@@ -19,6 +20,7 @@ public class JDFCClassTransformer implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
         String classFileAbs = this.getAbsolutePath(classBeingRedefined);
+        JDFCUtils.logThis(classFileAbs, "transform");
         if(classFileAbs == null) {
             throw new RuntimeException("ERROR: Absolute path of " + className + " could not be retrieved. Code source is null.");
         }
