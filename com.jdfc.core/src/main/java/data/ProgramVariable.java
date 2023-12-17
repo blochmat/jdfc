@@ -165,44 +165,43 @@ public class ProgramVariable implements Comparable<Object>, Serializable {
     }
 
     // Serialization
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.writeInt(localVarIdx);
-        writeString(out, className);
-        writeString(out, methodName);
-        writeString(out, name);
-        writeString(out, descriptor);
-        out.writeInt(instructionIndex);
-        out.writeInt(lineNumber);
-        out.writeBoolean(isDefinition);
-        out.writeBoolean(isCovered);
-        out.writeBoolean(isField);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        localVarIdx = in.readInt();
-        className = readString(in);
-        methodName = readString(in);
-        name = readString(in);
-        descriptor = readString(in);
-        instructionIndex = in.readInt();
-        lineNumber = in.readInt();
-        isDefinition = in.readBoolean();
-        isCovered = in.readBoolean();
-        isField = in.readBoolean();
-    }
-
-    private void writeString(ObjectOutputStream out, String str) throws IOException {
-        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
-        out.writeInt(bytes.length);
-        out.write(bytes);
-    }
-
-    private String readString(ObjectInputStream in) throws IOException {
-        int length = in.readInt();
-        if (length == 0) return "";
-        byte[] bytes = new byte[length];
-        in.readFully(bytes);
-        return new String(bytes, StandardCharsets.UTF_8);
-    }
+//    private void writeObject(ObjectOutputStream out) throws IOException {
+//        out.writeInt(localVarIdx);
+//        writeString(out, className);
+//        writeString(out, methodName);
+//        writeString(out, name);
+//        writeString(out, descriptor);
+//        out.writeInt(instructionIndex);
+//        out.writeInt(lineNumber);
+//        out.writeBoolean(isDefinition);
+//        out.writeBoolean(isCovered);
+//        out.writeBoolean(isField);
+//    }
+//
+//    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+//        localVarIdx = in.readInt();
+//        className = readString(in);
+//        methodName = readString(in);
+//        name = readString(in);
+//        descriptor = readString(in);
+//        instructionIndex = in.readInt();
+//        lineNumber = in.readInt();
+//        isDefinition = in.readBoolean();
+//        isCovered = in.readBoolean();
+//        isField = in.readBoolean();
+//    }
+//
+//    private void writeString(ObjectOutputStream out, String str) throws IOException {
+//        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
+//        out.writeInt(bytes.length);
+//        out.write(bytes);
+//    }
+//
+//    private String readString(ObjectInputStream in) throws IOException {
+//        int length = in.readInt();
+//        if (length == 0) return "";
+//        byte[] bytes = new byte[length];
+//        in.readFully(bytes);
+//        return new String(bytes, StandardCharsets.UTF_8);
+//    }
 }

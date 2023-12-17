@@ -19,7 +19,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Slf4j
 public class JDFCUtils {
 
     public static File workDir;
@@ -405,16 +404,14 @@ public class JDFCUtils {
     }
 
     public static void logThis(String str, String fileName) {
-        if(log.isDebugEnabled()) {
-            Thread thread = Thread.currentThread();
-            File log = createFileInDebugDevLogDir(fileName, false);
-            try (FileWriter writer = new FileWriter(log, true)) {
-                writer.write(String.format("ThreadName: %s, ThreadId: %d", thread.getName(), thread.getId()));
-                writer.write(getFormattedTimestamp() + " - " + str);
-                writer.write("\n");
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
+        Thread thread = Thread.currentThread();
+        File log = createFileInDebugDevLogDir(fileName, false);
+        try (FileWriter writer = new FileWriter(log, true)) {
+            writer.write(String.format("ThreadName: %s, ThreadId: %d", thread.getName(), thread.getId()));
+            writer.write(getFormattedTimestamp() + " - " + str);
+            writer.write("\n");
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
         }
     }
 

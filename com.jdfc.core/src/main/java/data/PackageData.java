@@ -36,61 +36,61 @@ public class PackageData implements Serializable {
     }
 
     // Serialization
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.writeLong(id.getMostSignificantBits());
-        out.writeLong(id.getLeastSignificantBits());
-        writeString(out, relPath);
-        writeString(out, fqn);
-        out.writeInt(total);
-        out.writeInt(covered);
-        out.writeDouble(ratio);
-        out.writeInt(methodCount);
-        writeUUIDSet(out, classDataIds);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        long mostSigBits = in.readLong();
-        long leastSigBits = in.readLong();
-        id = new UUID(mostSigBits, leastSigBits);
-        relPath = readString(in);
-        fqn = readString(in);
-        total = in.readInt();
-        covered = in.readInt();
-        ratio = in.readDouble();
-        methodCount = in.readInt();
-        classDataIds = readUUIDSet(in);
-    }
-
-    private void writeString(ObjectOutputStream out, String str) throws IOException {
-        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
-        out.writeInt(bytes.length);
-        out.write(bytes);
-    }
-
-    private String readString(ObjectInputStream in) throws IOException {
-        int length = in.readInt();
-        if (length == 0) return "";
-        byte[] bytes = new byte[length];
-        in.readFully(bytes);
-        return new String(bytes, StandardCharsets.UTF_8);
-    }
-
-    private void writeUUIDSet(ObjectOutputStream out, Set<UUID> uuidSet) throws IOException {
-        out.writeInt(uuidSet.size());
-        for (UUID uuid : uuidSet) {
-            out.writeLong(uuid.getMostSignificantBits());
-            out.writeLong(uuid.getLeastSignificantBits());
-        }
-    }
-
-    private Set<UUID> readUUIDSet(ObjectInputStream in) throws IOException {
-        int size = in.readInt();
-        Set<UUID> uuidSet = new HashSet<>();
-        for (int i = 0; i < size; i++) {
-            long mostSigBits = in.readLong();
-            long leastSigBits = in.readLong();
-            uuidSet.add(new UUID(mostSigBits, leastSigBits));
-        }
-        return uuidSet;
-    }
+//    private void writeObject(ObjectOutputStream out) throws IOException {
+//        out.writeLong(id.getMostSignificantBits());
+//        out.writeLong(id.getLeastSignificantBits());
+//        writeString(out, relPath);
+//        writeString(out, fqn);
+//        out.writeInt(total);
+//        out.writeInt(covered);
+//        out.writeDouble(ratio);
+//        out.writeInt(methodCount);
+//        writeUUIDSet(out, classDataIds);
+//    }
+//
+//    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+//        long mostSigBits = in.readLong();
+//        long leastSigBits = in.readLong();
+//        id = new UUID(mostSigBits, leastSigBits);
+//        relPath = readString(in);
+//        fqn = readString(in);
+//        total = in.readInt();
+//        covered = in.readInt();
+//        ratio = in.readDouble();
+//        methodCount = in.readInt();
+//        classDataIds = readUUIDSet(in);
+//    }
+//
+//    private void writeString(ObjectOutputStream out, String str) throws IOException {
+//        byte[] bytes = str != null ? str.getBytes(StandardCharsets.UTF_8) : new byte[0];
+//        out.writeInt(bytes.length);
+//        out.write(bytes);
+//    }
+//
+//    private String readString(ObjectInputStream in) throws IOException {
+//        int length = in.readInt();
+//        if (length == 0) return "";
+//        byte[] bytes = new byte[length];
+//        in.readFully(bytes);
+//        return new String(bytes, StandardCharsets.UTF_8);
+//    }
+//
+//    private void writeUUIDSet(ObjectOutputStream out, Set<UUID> uuidSet) throws IOException {
+//        out.writeInt(uuidSet.size());
+//        for (UUID uuid : uuidSet) {
+//            out.writeLong(uuid.getMostSignificantBits());
+//            out.writeLong(uuid.getLeastSignificantBits());
+//        }
+//    }
+//
+//    private Set<UUID> readUUIDSet(ObjectInputStream in) throws IOException {
+//        int size = in.readInt();
+//        Set<UUID> uuidSet = new HashSet<>();
+//        for (int i = 0; i < size; i++) {
+//            long mostSigBits = in.readLong();
+//            long leastSigBits = in.readLong();
+//            uuidSet.add(new UUID(mostSigBits, leastSigBits));
+//        }
+//        return uuidSet;
+//    }
 }
