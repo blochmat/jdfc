@@ -47,7 +47,7 @@ public class Main {
 
             // Instrument
             parsePathOptions(cmd, false);
-            ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+            ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
             Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
             String classFqn = cmd.getOptionValue("i");
             if (classFqn != null) {

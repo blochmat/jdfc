@@ -14,7 +14,7 @@ public final class JDFCAgent {
         JDFCUtils.logThis("Start: premain", "callStack");
         List<String> args = Arrays.asList(agentArgs.split(","));
         JDFCUtils.logThis(args.toString(), "test");
-        ProjectData.getInstance().saveProjectInfo(args.get(0), args.get(1), args.get(2), args.get(3));
+        ProjectData.getInstance().saveProjectInfo(args.get(0), args.get(1), args.get(2), args.get(3), args.get(4).equals("inter"));
         JDFCClassTransformer jdfcClassTransformer = new JDFCClassTransformer(args.get(0), args.get(2), args.get(3), args.get(4).equals("inter"));
         inst.addTransformer(jdfcClassTransformer);
         JDFCUtils.logThis("End: premain", "callStack");

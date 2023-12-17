@@ -33,7 +33,7 @@ public class ReportTask extends Task {
             String msg = String.format("Unable do deserialize coverage data from %s", JDFCUtils.getJDFCSerFileAbs());
             throw new IllegalArgumentException(msg);
         }
-        ProjectData.setInstance(deserialized);
+        ProjectData.getInstance().fetchDataFrom(deserialized);
         String outAbs = String.join(File.separator, ProjectData.getInstance().getWorkDir().getAbsolutePath(), out);
 
         ReportGenerator reportGenerator = new ReportGenerator(outAbs, ProjectData.getInstance().getSourceDirRel());

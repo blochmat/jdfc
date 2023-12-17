@@ -46,6 +46,7 @@ public class ProjectData implements Serializable {
     private Map<UUID, PairData> defUsePairMap;
     private Map<UUID, ProgramVariable> programVariableMap;
     private Set<String> coveredPVarIds;
+    private boolean isInterProcedural;
 
     /**
      * The keys are variable ids of invoked routines.
@@ -138,22 +139,50 @@ public class ProjectData implements Serializable {
         return instance;
     }
 
-    public static void setInstance(ProjectData deserialized) {
-        if(instance == null) {
-            instance = deserialized;
-        }
+    public void fetchDataFrom(ProjectData source) {
+        if (source == null) return;
+
+        this.workDir = source.workDir;
+        this.buildDir = source.buildDir;
+        this.classesDir = source.classesDir;
+        this.jdfcDir = source.jdfcDir;
+        this.sourceDirRel = source.sourceDirRel;
+        this.jdfcDebugDir = source.jdfcDebugDir;
+        this.jdfcDebugInstrDir = source.jdfcDebugInstrDir;
+        this.jdfcDebugErrorDir = source.jdfcDebugErrorDir;
+        this.jdfcDebugDevLogDir = source.jdfcDebugDevLogDir;
+
+        this.total = source.total;
+        this.covered = source.covered;
+        this.ratio = source.ratio;
+        this.methodCount = source.methodCount;
+
+        this.packageDataMap = source.packageDataMap;
+        this.classMetaDataMap = source.classMetaDataMap;
+        this.classDataMap = source.classDataMap;
+        this.methodDataMap = source.methodDataMap;
+        this.defUsePairMap = source.defUsePairMap;
+        this.programVariableMap = source.programVariableMap;
+        this.coveredPVarIds = source.coveredPVarIds;
+        this.isInterProcedural = source.isInterProcedural;
+
+        this.matchesMap = source.matchesMap;
+        this.testedClassList = source.testedClassList;
+        this.untestedClassList = source.untestedClassList;
     }
 
     public void saveProjectInfo(String projectDirStr,
                                 String buildDirStr,
                                 String classesBuildDirStr,
-                                String srcDirStr) {
+                                String srcDirStr,
+                                boolean isInterProcedural) {
         // print uncaught exception
         this.workDir = new File(projectDirStr);
         JDFCUtils.workDir = this.workDir;
         this.buildDir = new File(buildDirStr);
         this.classesDir = new File(classesBuildDirStr);
         this.sourceDirRel = srcDirStr;
+        this.isInterProcedural = isInterProcedural;
         this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDir, File.separator));
         this.jdfcDebugDir = new File(String.format("%s%sdebug", this.jdfcDir, File.separator));
         this.jdfcDebugInstrDir = new File(String.format("%s%sinstrumentation", this.jdfcDebugDir, File.separator));

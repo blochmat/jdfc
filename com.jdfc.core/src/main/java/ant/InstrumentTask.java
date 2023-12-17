@@ -58,7 +58,7 @@ public class InstrumentTask extends Task {
         String buildDirAbs = String.format("%s%starget", workDirAbs, File.separator);
         String classesDirAbs = String.join(File.separator, workDirAbs, classes);
         String sourceDirAbs = String.join(File.separator, workDirAbs, src);
-        ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
+        ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
         Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
         // Print class path
         System.err.println(System.getProperty("java.class.path").replace(":", "\n"));
