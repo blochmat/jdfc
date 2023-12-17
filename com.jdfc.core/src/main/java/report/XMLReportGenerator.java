@@ -1,6 +1,5 @@
 package report;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import data.*;
 import data.ProjectData;
 import org.w3c.dom.Document;
@@ -53,7 +52,7 @@ public class XMLReportGenerator {
             coverage.appendChild(sources);
             File projectDirString = ProjectData.getInstance().getWorkDir();
             Element source = doc.createElement("source");
-            String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), ProjectData.getInstance().getSourceDirAbs()).substring(1);
+            String relPath = JDFCUtils.getStringDiff(String.valueOf(projectDirString), ProjectData.getInstance().getSourceDirRel()).substring(1);
             source.setTextContent(relPath);
             sources.appendChild(source);
 

@@ -28,7 +28,7 @@ public class ProjectData implements Serializable {
     private File buildDir;
     private File classesDir;
     private File jdfcDir;
-    private String sourceDirAbs;
+    private String sourceDirRel;
     private File jdfcDebugDir;
     private File jdfcDebugInstrDir;
     private File jdfcDebugErrorDir;
@@ -153,7 +153,7 @@ public class ProjectData implements Serializable {
         JDFCUtils.workDir = this.workDir;
         this.buildDir = new File(buildDirStr);
         this.classesDir = new File(classesBuildDirStr);
-        this.sourceDirAbs = srcDirStr;
+        this.sourceDirRel = srcDirStr;
         this.jdfcDir = new File(String.format("%s%sjdfc", this.buildDir, File.separator));
         this.jdfcDebugDir = new File(String.format("%s%sdebug", this.jdfcDir, File.separator));
         this.jdfcDebugInstrDir = new File(String.format("%s%sinstrumentation", this.jdfcDebugDir, File.separator));

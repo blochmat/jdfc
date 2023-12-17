@@ -10,8 +10,6 @@ import utils.JDFCUtils;
 
 import java.io.File;
 
-import static utils.Constants.JDFC_SERIALIZATION_FILE;
-
 @Slf4j
 public class ReportTask extends Task {
 
@@ -38,7 +36,7 @@ public class ReportTask extends Task {
         ProjectData.setInstance(deserialized);
         String outAbs = String.join(File.separator, ProjectData.getInstance().getWorkDir().getAbsolutePath(), out);
 
-        ReportGenerator reportGenerator = new ReportGenerator(outAbs, ProjectData.getInstance().getSourceDirAbs());
+        ReportGenerator reportGenerator = new ReportGenerator(outAbs, ProjectData.getInstance().getSourceDirRel());
         reportGenerator.create();
     }
 }

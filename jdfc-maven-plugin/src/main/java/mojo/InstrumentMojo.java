@@ -23,7 +23,7 @@ import java.util.Properties;
 
 import static java.lang.String.format;
 
-@Mojo(name = "instrument", defaultPhase = LifecyclePhase.INITIALIZE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
+@Mojo(name = "instrument", defaultPhase = LifecyclePhase.VALIDATE, requiresDependencyResolution = ResolutionScope.RUNTIME, threadSafe = true)
 public class InstrumentMojo extends AbstractMojo {
 
     @Parameter(property = "project", readonly = true)
