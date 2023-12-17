@@ -87,6 +87,10 @@ public class Main {
 //            ReportGenerator reportGenerator = new ReportGenerator(outputDirAbs, sourceDirAbs);
 //            reportGenerator.create();
         }
+
+        if (!(cmd.hasOption("i") || cmd.hasOption("r"))) {
+            printHelp();
+        }
     }
 
     private static void createOptions() {
@@ -145,22 +149,13 @@ public class Main {
                 .build();
         options.addOption(scope);
 
-        // Test execution. Currently unused.
-        Option test = Option.builder()
-                .option("t")
-                .longOpt("test")
-                .argName("test")
-                .optionalArg(true)
-                .hasArg()
-                .desc("Test instrumented class/es.")
-                .build();
-        options.addOption(test);
-
         // Report creation
         Option report = Option.builder()
                 .option("r")
                 .longOpt("report")
-                .desc("When flag is set the coverage report is created from gathered coverage data.")
+                .hasArg()
+                .optionalArg(true)
+                .desc("Report type. \n   \"all\": xml + html\n   \"xml\": xml\n   \"html\": html")
                 .build();
         options.addOption(report);
     }
@@ -206,5 +201,23 @@ public class Main {
         if(systemExit) {
             System.exit(1);
         }
+    }
+
+    private static void printHelp() {
+        System.out.println("Usage: <command> [options]");
+        System.out.println();
+        System.out.println("Options:");
+        System.out.println(" -W, --workDir      absolute path to root of project to analyse");
+        System.out.println(" -B, --buildDir     relative path to build directory from workdir root");
+        System.out.println(" -C, --classesDir   relative path to classes build directory from workdir root");
+        System.out.println(" -S, --sourceDir    relative path to source directory from workdir root e.g. src/main/java");
+        System.out.println(" -i, --instrument   Instrument single class by passing its fully qualified name. ");
+        System.out.println("                    If no value is set all classes are instrumented. [Optional]");
+        System.out.println(" -s, --scope        Analysis scope. ");
+        System.out.println("                    \"intra\": intra-procedural");
+        System.out.println("                    \"inter\": inter-procedural");
+        System.out.println(" -r, --report       Report type. Default: xml + html ");
+        System.out.println("                    \"xml\": xml report");
+        System.out.println("                    \"html\": html report");
     }
 }
