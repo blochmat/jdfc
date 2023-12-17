@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 @Slf4j
 public class JDFCUtils {
 
+    public static File workDir;
+
     public static String getOpcode(int value) {
         switch (value) {
             case -1: return "F_NEW";
@@ -478,6 +480,9 @@ public class JDFCUtils {
     }
 
     public static String getJDFCDir() {
+        if (JDFCUtils.workDir != null) {
+            return String.format("%s%s%s", JDFCUtils.workDir, File.separator, Constants.JDFC_DIR);
+        }
         String pwd = JDFCUtils.getPwd();
         return String.format("%s%s%s", pwd, File.separator, Constants.JDFC_DIR);
     }

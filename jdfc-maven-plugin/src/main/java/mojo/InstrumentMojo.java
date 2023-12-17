@@ -32,6 +32,8 @@ public class InstrumentMojo extends AbstractMojo {
         ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
         Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, true);
         List<File> classFiles = instrumenter.loadClassFiles();
+        // Print class path
+        System.out.println(System.getProperty("java.class.path").replace(":", "\n"));
         for (File classFile : classFiles) {
             instrumenter.instrumentClass(classFile.getAbsolutePath());
         }

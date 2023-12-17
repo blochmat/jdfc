@@ -150,12 +150,11 @@ Testing on jdfc-playground is not possible
 ## CLI
 Following options are available to invoke the cli
 ```shell
-option      required            description               arg     
+option      required            description               description     
 -W          yes                 working directory         absolute path to working directory
 -B          yes                 build directory           relative path from working directory to build directory
 -C          yes                 classes directory         relative path from working directory to classes directory
 -S          yes                 java source directory     relative path from working directory to java source root
 -i          no                  run instrumentation       optional: fully qualified class name to instrument single class
--t          no                  run tests                 optional: name of test method to run single test (e.g. org.example.Class::test) (default: all test methods of all instrumented classes)
--r          no                  create report             optional: absolute path to report output directory (default: <workDir>/jdfc-report)
+-r          no                  create report             default: <workDir>/jdfc-report
 ```

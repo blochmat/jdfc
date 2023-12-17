@@ -88,6 +88,7 @@ public class ProjectData implements Serializable {
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
+                    createPath(JDFCUtils.getJDFCSerFileAbs());
                     try (FileOutputStream fileOut = new FileOutputStream(JDFCUtils.getJDFCSerFileAbs());
                          ObjectOutputStream out = new ObjectOutputStream(fileOut)) {
 
@@ -108,6 +109,24 @@ public class ProjectData implements Serializable {
 
     public static void loadOld() {
         ProjectData.old = Deserializer.deserializeCoverageData(JDFCUtils.getJDFCSerFileAbs());
+    }
+
+    private static void createPath(String filePath) {
+        File file = new File(filePath);
+
+        // Create directories if they don't exist
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
+        // Create file if it doesn't exist
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static ProjectData getInstance() {
@@ -134,6 +153,7 @@ public class ProjectData implements Serializable {
                                 String srcDirStr) {
         // print uncaught exception
         this.workDir = new File(projectDirStr);
+        JDFCUtils.workDir = this.workDir;
         this.buildDir = new File(buildDirStr);
         this.classesDir = new File(classesBuildDirStr);
         this.sourceDirAbs = srcDirStr;

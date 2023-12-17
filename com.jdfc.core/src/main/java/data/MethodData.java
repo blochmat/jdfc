@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 
 import static utils.Constants.ZERO_ID;
 
-@Slf4j
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

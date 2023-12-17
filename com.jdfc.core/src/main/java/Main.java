@@ -54,9 +54,13 @@ public class Main {
                 // Instrument single class
                 String classFileRel = classFqn.replace(".", File.separator) + ".class";
                 String classFileAbs = String.join(File.separator, classesDirAbs, classFileRel);
+                // Print class path
+                System.out.println(System.getProperty("java.class.path").replace(":", "\n"));
                 instrumenter.instrumentClass(classFileAbs);
             } else {
                 // Instrument all classes from project
+                // Print class path
+                System.out.println(System.getProperty("java.class.path").replace(":", "\n"));
                 List<File> classFiles = instrumenter.loadClassFiles();
                 for (File classFile : classFiles) {
                     instrumenter.instrumentClass(classFile.getAbsolutePath());
