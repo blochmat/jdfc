@@ -40,6 +40,7 @@ public class Instrumenter {
     public void instrumentClass(String classFileAbs) {
         // Create output directory and file
         log.info("Instrument: " + classFileAbs);
+        JDFCUtils.logThis(System.getProperty("java.class.path").replace(":", "\n"), "path");
         File classFile = new File(classFileAbs);
         String packagePath = classFile.getAbsolutePath().replace(classesDirAbs, "").replace(classFile.getName(), "");
         File outDir = new File(String.join(File.separator, workDirAbs, ".jdfc_instrumented", packagePath));

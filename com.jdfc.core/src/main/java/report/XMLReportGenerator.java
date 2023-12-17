@@ -73,10 +73,6 @@ public class XMLReportGenerator {
                 pkg.appendChild(classes);
 
                 for (ClassData cData : pkgData.getClassDataFromStore().values()) {
-//                    Set<ProgramVariable> fieldDefinitions = cData.getFieldDefinitions().values().stream()
-//                            .flatMap(inner -> inner.values().stream())
-//                            .collect(Collectors.toSet());
-//                    JDFCUtils.logThis(cData.getRelativePath() + "\n" + JDFCUtils.prettyPrintSet(fieldDefinitions), "fieldDefinitions");
                     Element clazz = doc.createElement("class");
                     clazz.setAttribute("name", cData.getClassMetaData().getFqn());
                     clazz.setAttribute("filename", cData.getClassMetaData().getClassFileRel());
@@ -86,15 +82,6 @@ public class XMLReportGenerator {
                     clazz.appendChild(methods);
 
                     for (MethodData mData : cData.getMethodDataFromStore().values()) {
-//                        JDFCUtils.logThis(cData.getRelativePath() + " " + mData.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintMap(mData.getAllocatedObjects()), "allocatedObjects");
-//                        JDFCUtils.logThis(cData.getRelativePath() + " " + mData.buildInternalMethodName() + "\n" + JDFCUtils.prettyPrintMap(mData.getModifiedObjects()), "modifiedObjects");
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        try {
-                            objectMapper.writeValue(new File(String.format("/tmp/%s.json", mData.getName())), mData);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-
                         Element method = doc.createElement("method");
                         method.setAttribute("name", mData.getName());
                         method.setAttribute("signature", mData.getDesc());

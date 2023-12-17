@@ -64,7 +64,7 @@ public class InstrumentTask extends Task {
         ProjectData.getInstance().saveProjectInfo(workDirAbs, buildDirAbs, classesDirAbs, sourceDirAbs);
         Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, isInterProcedural);
         // Print class path
-        System.out.println(System.getProperty("java.class.path").replace(":", "\n"));
+        System.err.println(System.getProperty("java.class.path").replace(":", "\n"));
         for (FileSet fs : filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             for (String includedFile : ds.getIncludedFiles()) {

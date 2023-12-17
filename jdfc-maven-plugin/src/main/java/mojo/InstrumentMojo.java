@@ -8,6 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import instr.Instrumenter;
+import utils.JDFCUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class InstrumentMojo extends AbstractMojo {
         Instrumenter instrumenter = new Instrumenter(workDirAbs, classesDirAbs, sourceDirAbs, true);
         List<File> classFiles = instrumenter.loadClassFiles();
         // Print class path
-        System.out.println(System.getProperty("java.class.path").replace(":", "\n"));
+        JDFCUtils.logThis(System.getProperty("java.class.path").replace(":", "\n"), "path");
         for (File classFile : classFiles) {
             instrumenter.instrumentClass(classFile.getAbsolutePath());
         }

@@ -8,6 +8,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import report.ReportGenerator;
 import utils.Deserializer;
+import utils.JDFCUtils;
 
 import java.io.File;
 
@@ -21,9 +22,7 @@ public class ReportMojo extends AbstractMojo {
 
     @Override
     public void execute() {
-        final String workDirAbs = project.getBasedir().toString();
-        String fileInAbs = String.join(File.separator, workDirAbs, JDFC_SERIALIZATION_FILE);
-        ProjectData deserialized = Deserializer.deserializeCoverageData(fileInAbs);
+        ProjectData deserialized = Deserializer.deserializeCoverageData(JDFCUtils.getJDFCSerFileAbs());
         if(deserialized == null) {
             throw new IllegalArgumentException("Unable do deserialize coverage data.");
         }
