@@ -44,7 +44,7 @@ public class ClassEsgCreator {
 
         private final String mainMethodId;
 
-        private Map<ProgramVariable, Boolean> liveVariables;
+        private final Map<ProgramVariable, Boolean> liveVariables;
 
         private final NavigableMap<Integer, Map<UUID, UUID>> callerToCalleeDefMap;
 

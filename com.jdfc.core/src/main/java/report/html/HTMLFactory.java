@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class HTMLFactory {
 
-    private Logger logger = LoggerFactory.getLogger(HTMLFactory.class);
+    private final Logger logger = LoggerFactory.getLogger(HTMLFactory.class);
     private final Resources resources;
     private final File baseDir;
 
@@ -138,7 +138,7 @@ public class HTMLFactory {
         String scriptPath = String.format("%s/%s", resources.getPathToResourcesFrom(classFile), SCRIPT);
 
         HTMLElement classOverviewHTML =
-                createClassOverviewHTML((ClassData) classData, classFile, pClassName, styleSheetPath, scriptPath);
+                createClassOverviewHTML(classData, classFile, pClassName, styleSheetPath, scriptPath);
 
         Writer writer = new FileWriter(classFile);
         writer.write(classOverviewHTML.render());
@@ -204,7 +204,7 @@ public class HTMLFactory {
 
         // build html
         HTMLElement classSourceViewHTML =
-                createClassSourceViewHTML(classFile, (ClassData) classData, pClassName, styleSheetPath, scriptPath);
+                createClassSourceViewHTML(classFile, classData, pClassName, styleSheetPath, scriptPath);
 
         // save file
         Writer writer = new FileWriter(sourceViewHTML);

@@ -38,7 +38,7 @@ public class CFGAnalyzerAdapter extends MethodVisitor {
     private int maxLocals;
 
     /** The owner's class name. */
-    private String className;
+    private final String className;
 
     private ProgramVariable pVar;
 

@@ -35,7 +35,7 @@ public class CFGMethodVisitor extends JDFCMethodVisitor {
     private final CFGAnalyzerAdapter aa;
     private final int argCount;
     private final boolean isStatic;
-    private ASMHelper asmHelper;
+    private final ASMHelper asmHelper;
 
     public CFGMethodVisitor(final CFGClassVisitor pClassVisitor,
                             final MethodVisitor pMethodVisitor,

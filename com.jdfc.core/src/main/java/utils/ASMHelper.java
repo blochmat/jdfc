@@ -100,12 +100,9 @@ public class ASMHelper {
         // B (byte), C (char), D (double), F (float), I (int), J (long), S (short), Z (boolean)
         String primitives = "BCDFIJSZ";
 
-        if (desc.length() == 1 && primitives.contains(desc)) {
-            return true;
-        }
+        return desc.length() == 1 && primitives.contains(desc);
 
         // Arrays and Objects are not primitive and so are not call-by-value.
-        return false;
     }
 
     public List<String> extractParameterTypes(String descriptor) {

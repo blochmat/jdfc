@@ -16,7 +16,7 @@ import java.util.Objects;
 @Slf4j
 public class InstrumentTask extends Task {
 
-    private List<FileSet> filesets = new ArrayList<>();
+    private final List<FileSet> filesets = new ArrayList<>();
 
     private String work;
 
@@ -53,10 +53,7 @@ public class InstrumentTask extends Task {
         log.info(this.classes);
         log.info(this.src);
         log.info(this.scope);
-        boolean isInterProcedural = false;
-        if (Objects.equals(this.scope, "inter")) {
-            isInterProcedural = true;
-        }
+        boolean isInterProcedural = Objects.equals(this.scope, "inter");
         String workDirAbs = work;
         String buildDirAbs = String.format("%s%starget", workDirAbs, File.separator);
         String classesDirAbs = String.join(File.separator, workDirAbs, classes);

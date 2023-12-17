@@ -15,9 +15,9 @@ import static org.objectweb.asm.Opcodes.ASM5;
 
 public class CreateMethodDataVisitor extends MethodVisitor {
 
-    private MethodData methodData;
-    private ClassData classData;
-    private ClassOrInterfaceDeclaration classDeclaration;
+    private final MethodData methodData;
+    private final ClassData classData;
+    private final ClassOrInterfaceDeclaration classDeclaration;
 
     public CreateMethodDataVisitor(MethodVisitor methodVisitor,
                                    MethodData methodData,

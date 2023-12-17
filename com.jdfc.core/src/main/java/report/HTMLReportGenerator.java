@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class HTMLReportGenerator {
 
-    private Logger logger = LoggerFactory.getLogger(HTMLReportGenerator.class);
+    private final Logger logger = LoggerFactory.getLogger(HTMLReportGenerator.class);
     private final File outputDir;
     private final File sourceDir;
 
