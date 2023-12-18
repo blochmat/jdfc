@@ -25,6 +25,14 @@ cpanm --installdeps .
 ./init.sh
 ```
 
+### Find run.dev.test target
+```
+- open defects4j.build.xml
+- find "run.dev.test" target
+- verify first path element is:
+   <pathelement location="${d4j.dir.classes.jdfc-instrumented}" /> 
+```
+
 ## Run full experiment with
 ```shell
 cd <path-to-jdfc>/experiment
