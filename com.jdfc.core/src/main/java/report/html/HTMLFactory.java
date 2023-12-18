@@ -377,7 +377,7 @@ public class HTMLFactory {
                         Set<PairData> pairSet = getDefUsePairsCoveredForVar(mData, programVariable);
                         String backgroundColor = getVariableBackgroundColor(programVariable.getIsCovered(), pairSet);
                         divTagLine.getContent().add(
-                                createVariableInformation(pClassFile, pClassName, pairSet, programVariable, backgroundColor));
+                                createVariableInformation(pClassFile, pClassName, mData, pairSet, programVariable, backgroundColor));
                     }
                 }
             }
@@ -783,12 +783,13 @@ public class HTMLFactory {
 
     private HTMLElement createVariableInformation(final File cFile,
                                                   final String cName,
+                                                  final MethodData mData,
                                                   final Set<PairData> pairs,
                                                   final ProgramVariable var,
                                                   final String color) {
         HTMLElement variableSpan = createVariableSpan(var, color);
         HTMLElement tooltipContent;
-        tooltipContent = createVariableTooltipContent(cFile, cName, pairs, var);
+        tooltipContent = createVariableTooltipContent(cFile, cName, mData, pairs, var);
         HTMLElement tooltipDiv = createTooltipDiv();
         tooltipDiv.getContent().add(tooltipContent);
         HTMLElement variableDiv = createVariableDiv();
@@ -808,6 +809,7 @@ public class HTMLFactory {
 
     private HTMLElement createVariableTooltipContent(final File cFile,
                                                      final String cName,
+                                                     final MethodData mData,
                                                      final Set<PairData> pairs,
                                                      final ProgramVariable var) {
         // Is var def / use / both?
@@ -825,12 +827,12 @@ public class HTMLFactory {
                 table.getContent().add(createAssociatedVariablesTable(cFile, cName, var, associateList));
             }
             table.getContent().add(createUsagesSpan(var));
-            table.getContent().add(createTabInfoTable(cFile, cName, var, pairs, true));
+            table.getContent().add(createTabInfoTable(cFile, cName, mData, var, pairs, true));
         }
 
         if (isUsage) {
             table.getContent().add(createDefinitionsSpan(var));
-            table.getContent().add(createTabInfoTable(cFile, cName, var, pairs, false));
+            table.getContent().add(createTabInfoTable(cFile, cName, mData, var, pairs, false));
         }
 
         return table;
@@ -850,6 +852,7 @@ public class HTMLFactory {
 
     private HTMLElement createTabInfoTable(final File cFile,
                                            final String cName,
+                                           final MethodData mData,
                                            final ProgramVariable var,
                                            final Set<PairData> pairs,
                                            final boolean isDefTab) {
@@ -886,7 +889,11 @@ public class HTMLFactory {
                     .collect(Collectors.toSet());
             for (ProgramVariable def : defList) {
                 try {
-                    table.getContent().add(createDataRow(cFile, cName, def.getLineNumber(), def.getIsCovered()));
+                    if (def.getLineNumber() == Integer.MIN_VALUE) {
+                        table.getContent().add(createDataRow(cFile, cName, mData.getBeginLine(), def.getIsCovered()));
+                    } else {
+                        table.getContent().add(createDataRow(cFile, cName, def.getLineNumber(), def.getIsCovered()));
+                    }
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
