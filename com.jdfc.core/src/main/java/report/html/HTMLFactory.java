@@ -239,7 +239,14 @@ public class HTMLFactory {
                                          final String pClassName) throws FileNotFoundException {
         logger.debug(String.format("createSourceCode(%s, <ClassExecutionData>, %s)", pClassFile, pClassName));
         // Read source file
-        Scanner scanner = new Scanner(pClassFile);
+        Scanner scanner;
+        if(pClassFile.getAbsolutePath().contains("$")) {
+            String classFileAbs = pClassFile.getAbsolutePath().split("\\$")[0] + ".java";
+            File classFile = new File(classFileAbs);
+            scanner = new Scanner(classFile);
+        } else {
+            scanner = new Scanner(pClassFile);
+        }
 
         // Get all method definitions from the ast
 
@@ -646,7 +653,9 @@ public class HTMLFactory {
 
             // First link tag
             HTMLElement tdTag = HTMLElement.td();
-            tdTag.getContent().add(HTMLElement.a(entry.getKey(), entry.getKey()));
+            String path = "." + entry.getKey();
+            String value = entry.getKey().substring(1);
+            tdTag.getContent().add(HTMLElement.a(path, value));
 
             trTag.getContent().add(tdTag);
 

@@ -8,18 +8,28 @@ import java.util.stream.Collectors;
 
 public class ReportGenerator {
 
+    private final boolean xml;
     private final XMLReportGenerator xmlReportGenerator;
+
+    private final boolean html;
     private final HTMLReportGenerator htmlReportGenerator;
 
-    public ReportGenerator(String outDirAbs, String sourceDirAbs) {
+
+    public ReportGenerator(String outDirAbs, String sourceDirAbs, boolean xml, boolean html) {
+        this.xml = xml;
         this.xmlReportGenerator = new XMLReportGenerator(outDirAbs);
+        this.html = html;
         this.htmlReportGenerator = new HTMLReportGenerator(outDirAbs, sourceDirAbs);
     }
 
     public void create() {
         this.computeProjectCoverage();
-        this.xmlReportGenerator.create();
-//        this.htmlReportGenerator.create();
+        if (this.xml) {
+            this.xmlReportGenerator.create();
+        }
+        if (this.html) {
+            this.htmlReportGenerator.create();
+        }
     }
 
     private void computeProjectCoverage() {

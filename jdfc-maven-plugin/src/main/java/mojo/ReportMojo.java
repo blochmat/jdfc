@@ -22,11 +22,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Mojo(name = "create-report", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
+@Mojo(name = "report", defaultPhase = LifecyclePhase.TEST, threadSafe = true)
 public class ReportMojo extends AbstractMojo {
 
     @Parameter(property = "project", readonly = true)
     private MavenProject project;
+
+    @Parameter(property = "report.createXml", defaultValue = "false")
+    private String createXml;
+
+    @Parameter(property = "report.createHtml", defaultValue = "false")
+    private String createHtml;
 
     @Override
     public void execute() {
@@ -36,13 +42,13 @@ public class ReportMojo extends AbstractMojo {
             throw new IllegalArgumentException("Unable do deserialize coverage data.");
         }
         ProjectData.getInstance().fetchDataFrom(deserialized);
-
         this.analyseUntestedClasses();
-
         final String outDirAbs = String.format("%s%sjdfc-report", ProjectData.getInstance().getBuildDir().getAbsolutePath(), File.separator);
         final String sourceDirAbs = project.getBuild().getSourceDirectory();
+        final boolean xml = Objects.equals(createXml, "true");
+        final boolean html = Objects.equals(createHtml, "true");
 
-        ReportGenerator reportGenerator = new ReportGenerator(outDirAbs, sourceDirAbs);
+        ReportGenerator reportGenerator = new ReportGenerator(outDirAbs, sourceDirAbs, xml, html);
         reportGenerator.create();
     }
 
