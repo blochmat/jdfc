@@ -6,6 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -659,8 +661,8 @@ public class HTMLFactory {
 
             trTag.getContent().add(tdTag);
 
-            // TODO
-            double percentage = 0;
+            Map<UUID, ClassData> classDataMap = entry.getValue().getClassDataFromStore();
+            double percentage = getPercentage(classDataMap);
             trTag.getContent().add(HTMLElement.td(entry.getValue().getMethodCount()));
             trTag.getContent().add(HTMLElement.td(percentage));
             trTag.getContent().add(HTMLElement.td(entry.getValue().getTotal()));
@@ -674,18 +676,46 @@ public class HTMLFactory {
         HTMLElement tfootTag = HTMLElement.tfoot();
         HTMLElement rowTag = HTMLElement.tr();
         tfootTag.getContent().add(rowTag);
-        // TODO
+
         int pkgMethodCount = 0;
+        double percentage = 0;
         int totalPairs = 0;
         int coveredPairs = 0;
-        double percentage = 0.00;
+        int missedPairs = 0;
+        for (PackageData packageData : ProjectData.getInstance().getPackageDataMap().values()) {
+            pkgMethodCount += packageData.getMethodCount();
+            totalPairs += packageData.getTotal();
+            coveredPairs += packageData.getCovered();
+        }
+
+        double doubleValue = (double) coveredPairs/totalPairs;
+        BigDecimal bd = new BigDecimal(doubleValue);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        percentage = bd.doubleValue() * 100;
+
+        missedPairs = totalPairs - coveredPairs;
+
         rowTag.getContent().add(HTMLElement.td("Total"));
         rowTag.getContent().add(HTMLElement.td(pkgMethodCount));
-        rowTag.getContent().add(HTMLElement.td("TODO"));
+        rowTag.getContent().add(HTMLElement.td(percentage));
         rowTag.getContent().add(HTMLElement.td(totalPairs));
         rowTag.getContent().add(HTMLElement.td(coveredPairs));
-        rowTag.getContent().add(HTMLElement.td(percentage));
+        rowTag.getContent().add(HTMLElement.td(missedPairs));
+
         return tfootTag;
+    }
+
+    private double getPercentage(Map<UUID, ClassData> classDataMap) {
+        int covered = 0;
+        int total = 0;
+        for (ClassData classData : classDataMap.values()) {
+            covered += classData.getCovered();
+            total += classData.getTotal();
+        }
+        double doubleValue = (double) covered/total;
+        BigDecimal bd = new BigDecimal(doubleValue);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        return bd.doubleValue() * 100;
     }
 
     private HTMLElement createClassesTableBodyTag(Map<UUID, ClassData> classDataMap) {
