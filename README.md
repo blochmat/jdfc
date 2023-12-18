@@ -1,5 +1,13 @@
 # JDFC
 
+## Notes for Gordon
+```
+Instructions for Maven plugin usage are in JDFC-playground.
+
+Instructions for running the experiment can be found in ./experiment
+
+Instructons for running Defects4j task can be queried when setting up Defects4j-jdfc
+```
 ## Rocket Start
 - Changed JDFC?
 	- disable debug
