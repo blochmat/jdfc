@@ -95,7 +95,6 @@ public class HTMLFactory {
 
         HTMLElement htmlBodyTag = createDefaultHTMLBody(title, pkg, scriptRel, null);
         List<String> columns = new ArrayList<>(Arrays.asList("Method Count", "Covered %", "Total", "Covered", "Missed"));
-        // TODO: i think we should pass packageDAta instead of classData
         htmlBodyTag.getContent().add(createClassesTable(columns, classDataMap));
         htmlMainTag.getContent().add(htmlBodyTag);
         return htmlMainTag;
@@ -599,8 +598,6 @@ public class HTMLFactory {
         HTMLElement tableTag = HTMLElement.table();
         tableTag.getContent().add(createTableHeadTag(pColumns));
         tableTag.getContent().add(createClassesTableBodyTag(classDataMap));
-
-        // TODO: Build the sum of all displayed elements
         tableTag.getContent().add(createClassesTableFootTag(classDataMap));
         return tableTag;
     }
@@ -728,10 +725,13 @@ public class HTMLFactory {
             String link = String.format("%s.html", cData.getClassMetaData().getFqn());
             tdTag.getContent().add(HTMLElement.a(link, cData.getClassMetaData().getFqn()));
 
+            double doubleValue = (double) cData.getCovered()/cData.getTotal();
+            BigDecimal bd = new BigDecimal(doubleValue);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double percentage =  bd.doubleValue() * 100;
             trTag.getContent().add(tdTag);
             trTag.getContent().add(HTMLElement.td(cData.getMethodCount()));
-            // TODO: fill with rate
-            trTag.getContent().add(HTMLElement.td("TODO"));
+            trTag.getContent().add(HTMLElement.td(percentage));
             trTag.getContent().add(HTMLElement.td(cData.getTotal()));
             trTag.getContent().add(HTMLElement.td(cData.getCovered()));
             trTag.getContent().add(HTMLElement.td(cData.getTotal() - cData.getCovered()));
@@ -748,13 +748,25 @@ public class HTMLFactory {
         int pkgMethodCount = 0;
         int totalPairs = 0;
         int coveredPairs = 0;
-        double percentage = 0.00;
+
+        for (ClassData classData : classDataMap.values()) {
+            pkgMethodCount += classData.getMethodCount();
+            totalPairs += classData.getTotal();
+            coveredPairs +=classData.getCovered();
+        }
+
+        int missedPairs = totalPairs - coveredPairs;
+
+        double doubleValue = (double) coveredPairs/totalPairs;
+        BigDecimal bd = new BigDecimal(doubleValue);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        double percentage =  bd.doubleValue() * 100;
         rowTag.getContent().add(HTMLElement.td("Total"));
         rowTag.getContent().add(HTMLElement.td(pkgMethodCount));
-        rowTag.getContent().add(HTMLElement.td("TODO"));
+        rowTag.getContent().add(HTMLElement.td(percentage));
         rowTag.getContent().add(HTMLElement.td(totalPairs));
         rowTag.getContent().add(HTMLElement.td(coveredPairs));
-        rowTag.getContent().add(HTMLElement.td(percentage));
+        rowTag.getContent().add(HTMLElement.td(missedPairs));
         return tfootTag;
     }
 
