@@ -1,0 +1,7 @@
+,failed,65,70,75,79,85,86,96,97,99,100,102,103,104,105,115,116,118,119,120,128,129,130,131,132,144,145,147,148,149,160,161,163,164,165,176,177,179,180,181,192,193,195,196,197,198,209,210,212,213,215,216,218,232,233,235,247,260
+org.apache.commons.lang.time.StopWatchTest::testStopWatchSimple,,x,x,x,x,x,x,x,,x,,x,x,x,x,x,,x,x,x,x,x,x,x,x,,,,,,,,,,,,,,,,,,,,,,x,x,x,x,,,,,,,,
+org.apache.commons.lang.time.StopWatchTest::testStopWatchSimpleGet,,x,x,x,x,x,x,x,,x,,x,x,x,x,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,x,,x,x,x,x,,,,,x,
+org.apache.commons.lang.time.StopWatchTest::testStopWatchSplit,,x,x,x,x,x,x,x,,x,,x,x,x,x,x,,x,x,x,,,,,,x,,x,x,x,x,,x,x,x,,,,,,,,,,,,x,x,,,,,,x,,x,,x
+org.apache.commons.lang.time.StopWatchTest::testStopWatchSuspend,,x,x,x,x,x,x,x,,x,,x,x,x,x,x,,x,x,x,,,,,,,,,,,,,,,,x,,x,x,x,x,,x,x,x,x,x,x,,,,,,,,,,
+org.apache.commons.lang.time.StopWatchTest::testLang315,x,x,x,x,x,x,x,x,,x,,x,x,x,x,x,,x,x,x,,,,,,,,,,,,,,,,x,,x,x,x,,,,,,,x,x,,,,,,,,,,
+org.apache.commons.lang.time.StopWatchTest::testBadStates,,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,,,,,,x,x,,,,x,x,,,,x,x,,,,x,x,,,,,,,,,,,,x,x,,,
